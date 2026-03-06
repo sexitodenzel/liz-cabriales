@@ -9,6 +9,8 @@ import { useState, useEffect } from "react"
 import { menuData } from "./menuData"
 import MegaMenu from "./dropdowns/MegaMenu"
 import SearchMenu from "./dropdowns/SearchMenu"
+import CartMenu from "./dropdowns/CartMenu"
+import DropdownContainer from "./dropdowns/DropdownContainer"
 
 /* =========================================
    TYPES
@@ -126,7 +128,16 @@ return (
 
 {/* MegaMenu Component */}
 <MegaMenu activeMenu={activeMenu} currentMenu={currentMenu} />
-<SearchMenu activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
+
+<DropdownContainer activeMenu={activeMenu} setActiveMenu={setActiveMenu}>
+  <DropdownContainer.Panel menu="search">
+    {({ isOpen }) => <SearchMenu isOpen={isOpen} />}
+  </DropdownContainer.Panel>
+
+  <DropdownContainer.Panel menu="cart">
+    {({ isOpen, close }) => <CartMenu isOpen={isOpen} close={close} />}
+  </DropdownContainer.Panel>
+</DropdownContainer>
 </nav>
 
 </div>
