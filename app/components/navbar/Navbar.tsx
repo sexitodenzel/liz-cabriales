@@ -8,12 +8,13 @@ import { Search, Heart, User, ShoppingBag } from "lucide-react"
 import { useState, useEffect } from "react"
 import { menuData } from "./menuData"
 import MegaMenu from "./dropdowns/MegaMenu"
+import SearchMenu from "./dropdowns/SearchMenu"
 
 /* =========================================
    TYPES
    ========================================= */
 
-   type MenuType =
+   export type MenuType =
    | "Tienda"
    | "Cursos"
    | "Servicios"
@@ -125,8 +126,7 @@ return (
 
 {/* MegaMenu Component */}
 <MegaMenu activeMenu={activeMenu} currentMenu={currentMenu} />
-
-
+<SearchMenu activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
 </nav>
 
 </div>
