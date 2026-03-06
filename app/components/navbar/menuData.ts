@@ -1,3 +1,8 @@
+/* =========================================
+   DATOS DEL MENU
+   ========================================= */
+
+
 export const menuData = {
     Tienda: {
       col1: { title: "Categoría", items: ["Kits profesionales", "Acrílicos", "Gel UV", "Decoración"] },

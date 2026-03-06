@@ -12,7 +12,7 @@ export default function HeroSlider() {
 return (
 
 <>
-<section className="h-[80vh] px-6">
+  <section className="h-[80vh] px-6">
   <div className="h-full max-w-[1400px]  mx-auto rounded-md overflow-hidden">
 
     <Swiper
