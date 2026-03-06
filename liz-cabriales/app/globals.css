@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* =====================================
+   VARIABLES GLOBALES DE MARCA
+===================================== */
+
+:root {
+  --background: #ffffff;
+  --foreground: #111111;
+  --gold: #C6A75E;
+}
+
+/* =====================================
+   BODY BASE
+===================================== */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+}
+
+/* =====================================
+   SWIPER CUSTOM
+===================================== */
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: white !important;
+  transition: all 0.3s ease;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  color: var(--gold) !important;
+}
+
+.swiper-pagination-bullet {
+  background: white !important;
+  opacity: 0.5;
+}
+
+.swiper-pagination-bullet-active {
+  background: var(--gold) !important;
+  opacity: 1;
+}
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 20px !important;
+}
