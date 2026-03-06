@@ -2,6 +2,7 @@
 
 import { Search, Heart, User, ShoppingBag } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
+import { menuData } from "./menuData"
 
 export default function Navbar() {
 
@@ -10,24 +11,6 @@ const [cartOpen, setCartOpen] = useState(false)
 
 const searchRef = useRef<HTMLDivElement>(null)
 const [activeMenu, setActiveMenu] = useState<string | null>(null)
-
-const menuData = {
-    Tienda: {
-      col1: { title: "Categoría", items: ["Kits profesionales", "Acrílicos", "Gel UV", "Decoración"] },
-      col2: { title: "Más", items: ["Ofertas", "Nuevos productos", "Más vendidos"] },
-      col3: { title: "Explorar", items: ["Guía de compra", "Colecciones", "Inspiración"] }
-    },
-    Cursos: {
-      col1: { title: "Cursos", items: ["Curso básico", "Curso avanzado", "Masterclass"] },
-      col2: { title: "Certificaciones", items: ["Certificado profesional", "Especialización"] },
-      col3: { title: "Aprender", items: ["Tips", "Técnicas", "Tutoriales"] }
-    },
-    Servicios: {
-      col1: { title: "Servicios", items: ["Aplicación de uñas", "Retoque", "Diseño personalizado"] },
-      col2: { title: "Citas", items: ["Reservar cita", "Disponibilidad"] },
-      col3: { title: "Studio", items: ["Ubicación", "Horarios", "Contacto"] }
-    }
-  }
   
   const currentMenu =
     activeMenu ? menuData[activeMenu as keyof typeof menuData] : null
@@ -75,8 +58,7 @@ return (
     {/* NAV LINKS */}
     <nav className="hidden md:flex gap-13 text-[16px] tracking-[0.06em] capitalize font-medium">
 
-    {["Tienda","Cursos","Servicios"].map((item)=>(
-
+    {Object.keys(menuData).map((item)=>(
 <div
  key={item}
  onMouseEnter={()=>setActiveMenu(item)}
