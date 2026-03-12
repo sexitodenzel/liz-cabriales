@@ -1,9 +1,12 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
 /* =========================================
    UI DEL MEGA MENU 
    ========================================= */
-   
+
+import { useEffect, useState } from "react"
+
 type MenuColumn = {
   title: string
   items: string[]
@@ -27,6 +30,23 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
     { delayMs: 300, col: currentMenu?.col3 },
   ]
 
+  const [contentOpen, setContentOpen] = useState(false)
+
+  useEffect(() => {
+    if (!currentMenu) {
+      setContentOpen(false)
+      return
+    }
+
+    setContentOpen(false)
+
+    const raf = requestAnimationFrame(() => {
+      setContentOpen(true)
+    })
+
+    return () => cancelAnimationFrame(raf)
+  }, [activeMenu, currentMenu])
+
   return (
     <div
       className={`
@@ -41,20 +61,19 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
     `}
     >
       <div
-        key={activeMenu}
         className="max-w-[1400px] mx-auto px-6 py-14 grid grid-cols-3 gap-20 transition-all duration-300 ease-out"
       >
         {columns.map(({ delayMs, col }) => (
           <div
             key={delayMs}
             className={`transition-all duration-500 ease-out ${
-              isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              contentOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
             style={{ transitionDelay: `${delayMs}ms` }}
           >
             <p
               className={`text-gray-400 text-sm mb-6 transition-all duration-500 ease-out ${
-                isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                contentOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
               }`}
               style={{ transitionDelay: `${delayMs}ms` }}
             >
@@ -66,7 +85,7 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
                 <li
                   key={item}
                   className={`cursor-pointer transition-all duration-500 ease-out hover:text-[#C6A75E] ${
-                    isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+                    contentOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
                   }`}
                   style={{ transitionDelay: `${delayMs + 90 + idx * 45}ms` }}
                 >
