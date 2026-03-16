@@ -33,16 +33,6 @@ return (
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/30"></div>
-
-          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white text-center px-6">
-            <h2 className="text-4xl font-light tracking-wide">
-              Kits Profesionales
-            </h2>
-            <div className="w-16 h-[1px] bg-[#C6A75E] mt-6"></div>
-            <button className="mt-10 px-8 py-3 border border-white hover:border-[#C6A75E] hover:text-[#C6A75E] transition-all">
-              Comprar ahora
-            </button>
-          </div>
         </div>
       </SwiperSlide>
 
@@ -54,16 +44,6 @@ return (
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/30"></div>
-
-          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white text-center px-6">
-            <h2 className="text-4xl font-light tracking-wide">
-              Masterclass Nacional
-            </h2>
-            <div className="w-16 h-[1px] bg-[#C6A75E] mt-6"></div>
-            <button className="mt-10 px-8 py-3 border border-white hover:border-[#C6A75E] hover:text-[#C6A75E] transition-all">
-              Ver detalles
-            </button>
-          </div>
         </div>
       </SwiperSlide>
 
@@ -75,16 +55,6 @@ return (
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/30"></div>
-
-          <div className="relative z-10 h-full flex flex-col items-center justify-center text-white text-center px-6">
-            <h2 className="text-4xl font-light tracking-wide">
-              Envíos a toda la República
-            </h2>
-            <div className="w-16 h-[1px] bg-[#C6A75E] mt-6"></div>
-            <button className="mt-10 px-8 py-3 border border-white hover:border-[#C6A75E] hover:text-[#C6A75E] transition-all">
-              Explorar productos
-            </button>
-          </div>
         </div>
       </SwiperSlide>
 
