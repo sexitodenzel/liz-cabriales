@@ -48,3 +48,29 @@ body {
 .swiper-button-prev::after {
   font-size: 20px !important;
 }
+
+/* =====================================
+   BRAND MARQUEE
+===================================== */
+
+.brand-marquee {
+  position: relative;
+}
+
+.brand-marquee-track {
+  animation: brand-scroll-left 25s linear infinite;
+  will-change: transform;
+}
+
+.brand-marquee:hover .brand-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes brand-scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

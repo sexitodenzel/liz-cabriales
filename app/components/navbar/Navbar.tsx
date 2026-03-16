@@ -4,6 +4,7 @@
    IMPORTS ESTA MAMADA CONTROLA MENUS 
    ========================================= */
 
+import Link from "next/link"
 import { Search, Heart, User, ShoppingBag } from "lucide-react"
 import { useState, useEffect } from "react"
 import { menuData } from "./menuData"
@@ -92,7 +93,7 @@ return (
 
 <header className="w-full sticky top-0 bg-white z-50 px-6">
 
-<div className="max-w-[1400px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center py-3">  
+<div className="max-w-[1400px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center py-4.5">  
 
 
 {/* =========================================
@@ -188,7 +189,9 @@ setActiveMenu(activeMenu === "search" ? null : "search")
 
 {/* USER ICON */}
 
-<User className="w-5 h-5 cursor-pointer hover:text-[#C6A75E] transition-colors" />
+<Link href="/login" className="inline-flex">
+  <User className="w-5 h-5 cursor-pointer hover:text-[#C6A75E] transition-colors" />
+</Link>
 
 
 

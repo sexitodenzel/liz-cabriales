@@ -35,9 +35,11 @@ export default function DropdownContainer({ activeMenu, setActiveMenu, children 
 
     Children.forEach(children, (child) => {
       if (!isValidElement(child)) return
-      const menu = child.props.menu as DropdownPanelKey | undefined
+
+      const element = child as React.ReactElement<DropdownPanelProps>
+      const menu = element.props.menu as DropdownPanelKey | undefined
       if (!menu) return
-      map.set(menu, child.props.children)
+      map.set(menu, element.props.children)
     })
 
     return map
