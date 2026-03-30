@@ -1,43 +1,88 @@
+# product-overview.md
 
-## Contexto previo
+## Qué es el producto
 
-El producto es una plataforma web integral para la academia/salón Liz Cabriales que combina tres sistemas en uno:
+Plataforma web integral para la academia/salón Liz Cabriales que combina tres sistemas:
 
-1. **Ecommerce** — tienda online de productos para uñas, pestañas y accesorios. Modelo similar a Shopify. Ventas a nivel nacional.
-2. **Sistema de reservas** — dos tipos: citas para servicios de aplicación de uñas (local) y registro de asistencia a cursos/talleres (local, cuando hay disponibles).
-3. **Gestión de cursos presenciales** — no es una plataforma de cursos online. Todo es presencial.
+1. **Ecommerce** — tienda online de productos para uñas, pestañas y podología. Ventas a nivel nacional.
+2. **Sistema de citas** — reserva de servicios del salón (local). Pago adelantado al reservar.
+3. **Gestión de cursos presenciales** — inscripción, pago y control de asistencia. Todo presencial, no hay cursos online.
 
-Todo el contenido de los cursos es presencial; el sitio solo gestiona inscripción, pago y asistencia.
+---
 
-**Funcionalidades del cliente:**
-- Comprar productos
-- Agendar citas de servicios
+## Funcionalidades del cliente
+
+- Comprar productos y rastrear pedidos
+- Agendar citas de servicios desde la app
 - Registrarse a cursos/talleres disponibles
-- Ver historial de compras (para repetir pedidos)
-
-**Funcionalidades del administrador:**
-- Tienda: agregar/eliminar productos, ver órdenes, autorizar compras
-- Cursos: ver lista de asistentes, administrar inscripciones
-- Citas: ver todas las citas activas con sus horarios, sin permitir traslapes
-
-**Autenticación:**
-- Se requiere cuenta para realizar cualquier acción (comprar, agendar, inscribirse)
-- Login con Google o con Supabase Auth — aún sin decidir
+- Ver historial de compras, citas y cursos
+- Solicitar factura (CFDI) al momento de compra — opcional, con cargo adicional
 
 ---
 
-## To-do (pendiente confirmar con Liz)
+## Funcionalidades del administrador
 
-- [ ] ¿Google login, Supabase Auth nativo, o ambas opciones?
-- [ ] ¿El admin puede tener múltiples usuarios con distintos permisos (Liz + staff)?
-- [ ] ¿El historial incluye solo compras o también citas y cursos?
-- [ ] ¿Qué significa "autorizar compras" — hay compras que requieren aprobación manual?
+Ver `admin/admin-permissions.md` para detalle completo.
+
+### Tienda
+- CRUD de productos
+- Ver y gestionar pedidos
+- Envíos con guías DHL
+
+### Cursos
+- Crear, editar y cancelar cursos
+- Ver lista de asistentes
+- Agregar alumnos manualmente (pagos fuera del sitio)
+
+### Citas
+- Ver agenda completa sin traslapes
+- Crear citas manualmente (clientes que llaman por teléfono)
+- Cancelar citas
+- Bloquear horarios (vacaciones, días sin servicio)
 
 ---
 
-## Preguntas para la reunión con Liz
+## Autenticación
 
-1. ¿Prefieres que el cliente pueda entrar con Google o que cree usuario y contraseña en el sitio?
-2. ¿Solo tú manejas el admin o también alguien de tu equipo necesita acceso?
-3. ¿Quieres que el cliente pueda ver el historial de sus citas y cursos además de sus compras?
-4. Mencionaste "autorizar compras" — ¿hay pedidos que necesitan tu aprobación antes de confirmarse, o es automático al pagar?
+- Email/password activo (Supabase Auth)
+- Google OAuth — pendiente implementar
+- Se requiere cuenta para comprar, agendar o inscribirse
+- Roles: `client`, `admin`, `receptionist` (pendiente implementar receptionist)
+
+---
+
+## Política de cambios y devoluciones
+
+- **No existen reembolsos** — no sale dinero bajo ninguna circunstancia
+- Cambio por otro producto solo si: menos de 3 días y producto sin usar
+- Productos usados: sin cambio ni devolución
+- No hay sistema de apartado
+- Debe reflejarse en Términos y Condiciones del sitio
+
+---
+
+## Carrito e inventario
+
+- Carrito híbrido: guest en localStorage, usuario autenticado en Supabase
+- Merge automático al hacer login
+- Inventario sincronizado: ventas locales y online actualizan el mismo stock
+- Citas híbridas: se agendan desde la app o desde el local (recepcionista en panel admin)
+
+---
+
+## Facturación
+
+- Mayoría de clientes no factura
+- Clientes que solicitan CFDI: checkbox opcional en checkout
+- Se captura RFC + razón social
+- Se aplica % adicional definido por la contadora de Liz
+- El CFDI lo emite la contadora — el sistema solo registra la solicitud
+
+---
+
+## Pendientes de confirmar con Liz
+
+- [ ] ¿El historial del cliente incluye solo compras o también citas y cursos?
+- [ ] ¿Las compras se confirman automáticamente al pagar o requieren aprobación manual?
+- [ ] % exacto del cargo por facturación
+- [ ] Definición exacta de permisos del rol recepcionista

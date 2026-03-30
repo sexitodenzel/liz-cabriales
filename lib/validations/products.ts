@@ -10,11 +10,8 @@ export const createProductSchema = z.object({
         "El slug solo puede contener letras minúsculas, números y guiones",
     }),
   description: z.string().nullable().optional(),
-  basePrice: z
-    .coerce
-    .number({
-      invalid_type_error: "El precio base debe ser un número",
-    })
+  basePrice: z.coerce
+    .number({ message: "El precio base debe ser un número" })
     .nonnegative("El precio base no puede ser negativo"),
   categoryId: z.string().uuid("Categoría inválida"),
   brand: z.string().nullable().optional(),

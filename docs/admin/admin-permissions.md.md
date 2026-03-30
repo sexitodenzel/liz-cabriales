@@ -1,46 +1,61 @@
+# admin-permissions.md
 
-## Contexto previo
+## Roles de administrador
 
-### Permisos confirmados del administrador
+Hay más de un admin. Existen al menos dos niveles de acceso:
+- **Admin completo** (Liz y equipo de confianza) — acceso total
+- **Recepcionista** (staff) — acceso limitado a citas y agenda
 
-**Productos:**
+Definición exacta de permisos por rol pendiente de confirmar con Liz.
+
+---
+
+## Permisos confirmados — Admin completo
+
+### Productos
 - Crear productos
 - Editar productos
-- Eliminar productos
+- Eliminar productos (soft delete)
 
-**Cursos:**
+### Cursos
 - Crear y publicar cursos
+- Editar o cancelar un curso ya publicado
 - Ver lista de alumnos inscritos
+- Agregar alumnos manualmente a un curso (para pagos fuera del sitio — efectivo, transferencia directa, organizaciones)
 
-**Citas:**
+### Citas
 - Ver todas las citas agendadas
 - Cancelar citas
+- Crear citas manualmente para clientes que llamen por teléfono
+- Bloquear horarios en la agenda (vacaciones, días sin servicio)
 
-**Pedidos:**
+### Pedidos
 - Ver todos los pedidos
+- El estado del pedido NO se modifica manualmente desde el panel — el flujo es automático
+- Envíos: se manejan con guías DHL; si el pedido es pequeño, la guía se regala al cliente
+
+### Reembolsos
+- **No existen reembolsos** — no sale dinero bajo ninguna circunstancia
+- Si el cliente lleva menos de 3 días y el producto no ha sido usado, se puede hacer un cambio por otro producto de igual valor
+- Productos usados (uña pintada, servicio aplicado): sin cambio ni devolución
+- No hay sistema de apartado
+- Esto debe reflejarse en los Términos y Condiciones del sitio
 
 ---
 
-## To-do (pendiente confirmar con Liz)
+## Permisos pendientes de definir
 
-- [ ] ¿El admin puede agregar alumnos a un curso manualmente (sin que paguen en el sitio)?
-- [ ] ¿El admin puede editar o cancelar un curso ya publicado?
-- [ ] ¿El admin puede modificar el estado de un pedido manualmente?
-- [ ] ¿El admin puede emitir reembolsos desde el panel?
-- [ ] ¿Hay más de un admin o solo Liz tiene acceso?
-- [ ] ¿Habrá roles diferenciados (ej. Liz con acceso total, staff con acceso limitado)?
-- [ ] ¿El admin puede bloquear horarios en la agenda (vacaciones, días sin servicio)?
-- [ ] ¿El admin puede crear citas manualmente para clientes que llamen por teléfono?
+- [ ] Qué secciones ve el rol recepcionista exactamente
+- [ ] ¿La recepcionista puede ver pedidos o solo citas?
+- [ ] ¿La recepcionista puede agregar alumnos a cursos?
+- [ ] Número exacto de personas que tendrán acceso admin
 
 ---
 
-## Preguntas para la reunión con Liz
+## Notas técnicas
 
-1. ¿Necesitas poder agregar manualmente a alguien a un curso aunque haya pagado fuera del sitio?
-2. ¿Puedes editar o cancelar un curso después de publicarlo?
-3. ¿Necesitas poder cambiar el estado de un pedido tú misma (ej. marcarlo como enviado)?
-4. ¿Puedes hacer reembolsos desde el panel o lo manejas por fuera?
-5. ¿Solo tú tendrás acceso al admin o también alguien de tu equipo?
-6. ¿Si alguien de tu equipo tiene acceso, necesita ver todo o solo ciertas secciones?
-7. ¿Necesitas poder bloquear días u horas en la agenda (vacaciones, días sin servicio)?
-8. ¿Puedes crear una cita manualmente para una clienta que te llame por teléfono?
+- El schema actual tiene `role: 'client' | 'admin'` — hay que agregar `'receptionist'` o manejar sub-roles
+- La tabla `users` necesita un campo adicional o una tabla `admin_permissions` para granularidad de permisos
+- Las API routes de admin ya validan `role = 'admin'` — habrá que extender para manejar recepcionista
+- Citas creadas manualmente por recepcionista deben registrarse igual que las del cliente en la tabla `appointments`
+- Bloqueo de horarios usa la tabla `blocked_slots` que ya existe en el schema

@@ -18,21 +18,21 @@
 
 ---
 
-## To-do (pendiente confirmar con Liz)
+## To-do (pendiente confirmar con Liz) 
 
-- [ ] ¿Cuántas técnicas trabajan actualmente en el salón?
-- [ ] ¿Cada técnica tiene su propia agenda o comparten una sola?
-- [ ] ¿Si cancela con 1 día de anticipación se reembolsa el 100% o hay penalización?
-- [ ] ¿El límite de 1 cita activa aplica por usuario o por número de personas en la cita?
-- [ ] ¿Hay tiempo mínimo antes de la cita para poder reservar (ej. no se puede agendar con menos de X horas)?
-- [ ] ¿El admin puede hacer excepciones a la política de cancelación?
+- [ ] ¿Cuántas técnicas trabajan actualmente en el salón? 2
+- [ ] ¿Cada técnica tiene su propia agenda o comparten una sola? sola
+- [ ] ¿Si cancela con 1 día de anticipación se reembolsa el 100% o hay penalización?  penalizacion
+- [ ] ¿El límite de 1 cita activa aplica por usuario o por número de personas en la cita? 
+- [ ] ¿Hay tiempo mínimo antes de la cita para poder reservar (ej. no se puede agendar con menos de X horas)? 1 hora antes
+- [ ] ¿El admin puede hacer excepciones a la política de cancelación? pendeiente
 
 ---
 
 ## Preguntas para la reunión con Liz
 
-1. ¿Cuántas técnicas trabajan contigo actualmente?
-2. ¿Cada una maneja su propia agenda o todas comparten el mismo calendario?
+1. ¿Cuántas técnicas trabajan contigo actualmente? solo liz,, su hija
+2. ¿Cada una maneja su propia agenda o todas comparten el mismo calendario?  agendas separadas, 
 3. Si una clienta cancela con 1 día de anticipación, ¿se le regresa el dinero completo?
 4. ¿Con cuántas horas mínimo de anticipación se puede agendar una cita?
 5. ¿Tú como admin puedes hacer excepciones — por ejemplo reembolsar a alguien aunque no haya cancelado a tiempo?
