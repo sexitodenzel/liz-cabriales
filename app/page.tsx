@@ -1,4 +1,3 @@
-import Navbar from "./components/navbar/Navbar"
 import HeroSlider from "./components/hero/HeroSlider"
 import BrandsSlider from "./components/BrandsSlider"
 import PromoCards from "./components/PromoCards"
@@ -14,7 +13,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white text-black">
       <div className="max-w-[1460px] mx-auto w-full px-6">
-        <Navbar />
         <HeroSlider />
         <BrandsSlider />
         <PromoCards />

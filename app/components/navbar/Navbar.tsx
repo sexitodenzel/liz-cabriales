@@ -10,8 +10,9 @@ import { useState, useEffect } from "react"
 import { menuData } from "./menuData"
 import MegaMenu from "./dropdowns/MegaMenu"
 import SearchMenu from "./dropdowns/SearchMenu"
-import CartMenu from "./dropdowns/CartMenu"
 import DropdownContainer from "./dropdowns/DropdownContainer"
+import CartMenu from "./dropdowns/CartMenu"
+import { useCart } from "../cart/CartContext"
 
 /* =========================================
    TYPES
@@ -40,6 +41,14 @@ export default function Navbar() {
   // "Tienda", "Cursos", "Servicios", "search", "cart", etc.
 
   const [activeMenu, setActiveMenu] = useState<MenuType>(null)
+  const {
+    itemCount,
+    isCartOpen,
+    openCart,
+    closeCart,
+    isProgrammatic,
+    clearProgrammatic,
+  } = useCart()
 
 /* =========================================
    DERIVED STATE
@@ -66,6 +75,7 @@ export default function Navbar() {
     function handleMouseLeavePage(e: MouseEvent) {
       if (e.clientY <= 0 || e.clientX <= 0) {
         setActiveMenu(null)
+        closeCart()
       }
     }
 
@@ -74,7 +84,14 @@ export default function Navbar() {
     return () => {
       document.removeEventListener("mouseleave", handleMouseLeavePage)
     }
-  }, [])
+  }, [closeCart])
+
+  // Cualquier menú del navbar abierto cierra el carrito
+  useEffect(() => {
+    if (activeMenu !== null) {
+      closeCart()
+    }
+  }, [activeMenu, closeCart])
 
 
 
@@ -106,25 +123,33 @@ return (
 <nav className="hidden md:flex gap-13 text-[16px] tracking-[0.06em] capitalize font-medium">
 
 {/* Render dinámico de links del navbar */}
-{(Object.keys(menuData) as (keyof typeof menuData)[]).map((item)=>(
-<div
- key={item}
- onMouseEnter={()=>setActiveMenu(item)}
->
+{(Object.keys(menuData) as (keyof typeof menuData)[]).map((item) => {
+  const isTienda = item === "Tienda"
+  const label = (
+    <button className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none">
+      <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
+        {item}
+      </span>
+      <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full"></span>
+    </button>
+  )
 
-<button className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none">
-
-<span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
-{item}
-</span>
-
-<span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full"></span>
-
-</button>
-
-</div>
-
-))}
+  return (
+    <div
+      key={item}
+      onMouseEnter={() => setActiveMenu(item)}
+      className="flex items-center"
+    >
+      {isTienda ? (
+        <Link href="/tienda">
+          {label}
+        </Link>
+      ) : (
+        label
+      )}
+    </div>
+  )
+})}
 
 
 {/* MegaMenu Component */}
@@ -133,10 +158,6 @@ return (
 <DropdownContainer activeMenu={activeMenu} setActiveMenu={setActiveMenu}>
   <DropdownContainer.Panel menu="search">
     {({ isOpen }) => <SearchMenu isOpen={isOpen} />}
-  </DropdownContainer.Panel>
-
-  <DropdownContainer.Panel menu="cart">
-    {({ isOpen, close }) => <CartMenu isOpen={isOpen} close={close} />}
   </DropdownContainer.Panel>
 </DropdownContainer>
 </nav>
@@ -205,16 +226,23 @@ setActiveMenu(activeMenu === "search" ? null : "search")
 
 <div
 className="relative cursor-pointer"
-onClick={() =>
-setActiveMenu(activeMenu === "cart" ? null : "cart")
-}
+onClick={() => {
+  if (isCartOpen) {
+    closeCart()
+  } else {
+    setActiveMenu(null)
+    openCart()
+  }
+}}
 >
 
 <ShoppingBag className="w-5 h-5 hover:text-[#C6A75E] transition-colors" />
 
-<span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-0
-</span>
+{itemCount > 0 && (
+  <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
+    {itemCount}
+  </span>
+)}
 
 </div>
 
@@ -222,6 +250,8 @@ setActiveMenu(activeMenu === "cart" ? null : "cart")
 </div>
 
 </div>
+
+<CartMenu />
 
 </header>
 
@@ -239,9 +269,16 @@ setActiveMenu(activeMenu === "cart" ? null : "cart")
 
 <div
 className={`fixed inset-0 top-[60px] backdrop-blur-md bg-black/10 z-30 transition-opacity duration-300 ${
-activeMenu ? "opacity-100" : "opacity-0 pointer-events-none"
+activeMenu || isCartOpen ? "opacity-100" : "opacity-0 pointer-events-none"
 }`}
-onMouseEnter={() => setActiveMenu(null)}
+onMouseEnter={() => {
+  if (isProgrammatic()) {
+    clearProgrammatic()
+    return
+  }
+  closeCart()
+  setActiveMenu(null)
+}}
 ></div>
 
 

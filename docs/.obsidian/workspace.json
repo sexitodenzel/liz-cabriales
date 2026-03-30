@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "8189bd2ec6bc1e87",
+        "id": "5794e74aa832ac1a",
         "type": "tabs",
         "children": [
           {
-            "id": "5e59a7ceb60f04e0",
+            "id": "0cbafa2721adfed3",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -31,25 +31,12 @@
         "type": "tabs",
         "children": [
           {
-            "id": "4eb7dee5cb9482b0",
-            "type": "leaf",
-            "state": {
-              "type": "file-explorer",
-              "state": {
-                "sortOrder": "alphabetical",
-                "autoReveal": false
-              },
-              "icon": "lucide-folder-closed",
-              "title": "Explorador de archivos"
-            }
-          },
-          {
             "id": "8c105d324375b457",
             "type": "leaf",
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "[]",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -68,6 +55,19 @@
               "state": {},
               "icon": "lucide-bookmark",
               "title": "Marcadores"
+            }
+          },
+          {
+            "id": "f2ba279178b8b7cb",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
             }
           }
         ]
@@ -176,7 +176,7 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "4eb7dee5cb9482b0",
+  "active": "8c105d324375b457",
   "lastOpenFiles": [
     "README.md",
     "ai-context.md",

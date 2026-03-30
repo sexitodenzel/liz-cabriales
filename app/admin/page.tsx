@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
@@ -69,9 +70,28 @@ export default function AdminPage() {
         </div>
       </header>
       <main className="p-8">
-        <p className="text-white/80">
-          Bienvenido al panel de administración
-        </p>
+        <div className="space-y-6">
+          <p className="text-white/80">
+            Bienvenido al panel de administración
+          </p>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <Link
+              href="/admin/products"
+              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-[#C9A84C] hover:bg-white/10"
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-gradient-to-br from-[#C9A84C] to-transparent transition-opacity" />
+              <div className="relative space-y-1">
+                <p className="text-sm font-semibold text-white">
+                  Gestionar Productos
+                </p>
+                <p className="text-xs text-white/70">
+                  Crear, editar, activar o eliminar productos del catálogo.
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
       </main>
     </div>
   )
