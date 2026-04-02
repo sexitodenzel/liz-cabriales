@@ -6,7 +6,7 @@ Pega este archivo + `ai-context.md` al inicio de cada sesión. Luego di en 2 lí
 
 ---
 
-## Árbol del proyecto (código)
+## Árbol del proyecto (código) — actualizado 30 marzo 2026
 
 ```
 liz-cabriales/
@@ -14,11 +14,23 @@ liz-cabriales/
 │   ├── (auth)/
 │   │   └── login/page.tsx
 │   ├── admin/
+│   │   ├── page.tsx
 │   │   └── products/page.tsx
-│   ├── tienda/page.tsx
+│   ├── api/
+│   │   ├── admin/products/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   └── cart/route.ts
 │   ├── carrito/page.tsx
+│   ├── tienda/
+│   │   ├── page.tsx
+│   │   └── components/
+│   │       ├── FilterSidebar.tsx
+│   │       ├── ProductCard.tsx
+│   │       └── ProductGrid.tsx
 │   ├── inspiracion/page.tsx
 │   ├── components/
+│   │   ├── cart/CartContext.tsx
 │   │   ├── hero/HeroSlider.tsx
 │   │   ├── navbar/
 │   │   │   ├── Navbar.tsx
@@ -43,11 +55,19 @@ liz-cabriales/
 │   ├── supabase/
 │   │   ├── client.ts
 │   │   ├── server.ts
-│   │   └── admin.ts       ← service role key, solo para operaciones admin
+│   │   ├── admin.ts        ← service role key, solo operaciones admin
+│   │   ├── cart.ts         ← queries de carrito
+│   │   └── products.ts     ← queries de productos
+│   ├── validations/
+│   │   └── products.ts     ← schemas Zod
+│   ├── cart.ts             ← lógica merge guest→auth
 │   └── users.ts
+├── scripts/
+│   └── seed-products.ts
 ├── types/index.ts
 ├── middleware.ts
-├── docs/                  ← vault de Obsidian
+├── docs/                   ← vault de Obsidian
+├── tsconfig.scripts.json
 └── .env.local
 ```
 
@@ -63,6 +83,8 @@ docs/
 │   ├── backlog.md
 │   ├── sprint-actual.md    ← LEER SIEMPRE AL INICIAR
 │   ├── decisions-log.md
+│   ├── entregables.md
+│   ├── acuerdo-servicio.md
 │   └── meetings/
 │       └── 2026-03-16.md
 ├── tech/
@@ -72,19 +94,22 @@ docs/
 │   ├── dev-rules.md
 │   ├── architecture.md
 │   └── stack.md
+├── admin/admin-permissions.md
+├── booking/booking-rules.md
+├── commerce/order-flow.md
 ├── context/ (brand-research, business-model, target-users, vision)
-├── product/ (product-overview, user-flows, features, pricing, catalogo)
-├── commerce/ (order-flow)
-├── booking/ (booking-rules, services)
 ├── courses/ (courses-rules, courses-rules-dos)
 ├── payments/ (proveedorpagos, proveedorpagos-2)
-├── admin/ (admin-permissions)
+├── product/ (product-overview, user-flows, features, pricing, catalogo)
 ├── ux/ (design-notes, pages)
+├── tasks-DEPRECAR/         ← ignorar
+├── vmigracion/             ← ignorar, basura de Cursor
 ├── ai-context.md
-└── claude-prompt.md
+├── cheat-sheet.md
+└── claudeprompt.md
 ```
 
-> ⚠️ `tasks/roadmap.md` y `tasks/backlog.md` están deprecados.
+> ⚠️ `tasks-DEPRECAR/` y `vmigracion/` se ignoran completamente.
 
 ---
 
@@ -102,7 +127,8 @@ docs/
 
 1. Siempre pegar el contenido de los .md relevantes directo en el prompt (no solo `@docs`)
 2. Especificar archivos a crear y archivos a modificar
-3. Todo prompt debe terminar con:
+3. Decirle a Cursor explícitamente qué NO debe tocar
+4. Todo prompt debe terminar con:
 
 ```
 Al terminar, genera un resumen con:
@@ -110,6 +136,7 @@ Al terminar, genera un resumen con:
 - Archivos modificados  
 - Decisiones técnicas tomadas
 - Qué quedó pendiente
+No modifiques archivos fuera del scope de esta tarea.
 ```
 
 ---
@@ -183,6 +210,7 @@ Al terminar, genera un resumen con:
 [ ] sprint-actual.md refleja el estado real
 [ ] Si algo nuevo surgió → está en backlog.md
 [ ] Si Liz tomó una decisión → está en decisions-log.md
+[ ] git add . → git commit -m "mensaje" → git push
 [ ] Si el sprint terminó → sprint review agendado con Liz
 ```
 
@@ -190,12 +218,14 @@ Al terminar, genera un resumen con:
 
 ## Soluciones a problemas comunes
 
-|Problema|Solución|
-|---|---|
-|Contexto reseteado|Pegar claude-prompt.md + ai-context.md|
-|Vault desactualizado|Decir qué cambió en 2 líneas al iniciar|
-|Cursor ignora @docs|Pegar contenido del .md directo en el prompt|
-|Resúmenes incompletos|El prompt siempre pide resumen estructurado|
-|Sesión muy larga|Chat nuevo cada 90 min o al terminar tarea|
-|Scope creep (agregar cosas no planeadas)|Si no está en sprint-actual.md, va al backlog|
-|No sé qué hacer hoy|Leer delivery/sprint-actual.md primero|
+| Problema                         | Solución                                                   |
+| -------------------------------- | ---------------------------------------------------------- |
+| Contexto reseteado               | Pegar claude-prompt.md + ai-context.md                     |
+| Vault desactualizado             | Decir qué cambió en 2 líneas al iniciar                    |
+| Cursor ignora @docs              | Pegar contenido del .md directo en el prompt               |
+| Cursor hace cosas fuera de scope | Agregar "No modifiques archivos fuera del scope" al prompt |
+| Resúmenes incompletos            | El prompt siempre pide resumen estructurado                |
+| Sesión muy larga                 | Chat nuevo cada 90 min o al terminar tarea                 |
+| Scope creep                      | Si no está en sprint-actual.md → va al backlog             |
+| No sé qué hacer hoy              | Leer delivery/sprint-actual.md primero                     |
+| Git con cambios atorados         | git add . → git commit -m "mensaje" → git push             |

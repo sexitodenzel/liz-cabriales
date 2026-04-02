@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "delivery/acuerdo-servicio.md",
+                "file": "claudeprompt.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "acuerdo-servicio"
+              "title": "claudeprompt"
             }
           }
         ]
@@ -183,9 +183,15 @@
   },
   "active": "0cbafa2721adfed3",
   "lastOpenFiles": [
-    "delivery/entregables.md",
-    "delivery/acuerdo-servicio.md",
+    "delivery/sprint-actual.md",
+    "meetings/meetings.md",
+    "delivery/meetings.md",
+    "meetings",
     "delivery/rodamap.md",
+    "cheat-sheet.md",
+    "claudeprompt.md",
+    "delivery/acuerdo-servicio.md",
+    "delivery/entregables.md",
     "delivery/backlog.md",
     "ai-context.md",
     "README.md",
@@ -208,16 +214,10 @@
     "product/features.md",
     "product/catalogo.md",
     "product",
-    "payments/proveedorpagos-2.md",
-    "payments/proveedorpagos.md",
     "payments",
     "marketing",
     "legal",
-    "courses/courses-rules.md",
-    "courses/courses-rules-dos.md",
     "courses",
-    "context/target-users.md",
-    "context",
-    "commerce"
+    "context"
   ]
 }
