@@ -1,21 +1,45 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 
 import {
   addCartItem,
+  clearCartItems,
+  getActiveCartSnapshot,
   getCartItems,
   getOrCreateCart,
   mergeGuestCart,
   removeCartItem,
   updateCartItemQuantity,
+  type CartSnapshot,
 } from "@/lib/supabase/cart"
 import { createClient } from "@/lib/supabase/server"
-import type { CartItem } from "@/lib/cart"
+import {
+  cartActionSchema,
+  deleteCartItemSchema,
+  updateCartItemSchema,
+} from "@/lib/validations/cart"
 
 type ApiResponse<T> =
   | { data: T; error: null }
   | { data: null; error: { message: string; code?: string } }
 
-async function requireUser(req: NextRequest) {
+function errorResponse<T>(
+  message: string,
+  status: number,
+  code?: string
+): NextResponse<ApiResponse<T>> {
+  return NextResponse.json(
+    {
+      data: null,
+      error: {
+        message,
+        code,
+      },
+    },
+    { status }
+  )
+}
+
+async function requireUser() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -23,210 +47,267 @@ async function requireUser(req: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (error || !user) {
-    return { userId: null, response: unauthorized() as NextResponse<ApiResponse<unknown>> }
+    return {
+      userId: null,
+      response: errorResponse("No autorizado", 401, "UNAUTHORIZED") as NextResponse<
+        ApiResponse<unknown>
+      >,
+    }
   }
 
-  return { userId: user.id as string, response: null as NextResponse<ApiResponse<unknown>> | null }
+  return {
+    userId: user.id as string,
+    response: null as NextResponse<ApiResponse<unknown>> | null,
+  }
 }
 
-function unauthorized<T>(): NextResponse<ApiResponse<T>> {
-  return NextResponse.json(
-    { data: null, error: { message: "No autorizado", code: "unauthorized" } },
-    { status: 401 }
-  )
-}
+async function loadCartSnapshot(
+  userId: string
+): Promise<NextResponse<ApiResponse<CartSnapshot>> | CartSnapshot> {
+  const snapshotResult = await getActiveCartSnapshot(userId)
 
-export async function GET(
-  req: NextRequest
-): Promise<NextResponse<ApiResponse<{ items: CartItem[] }>>> {
-  const { userId, response } = await requireUser(req)
-  if (!userId || response) return response as NextResponse<ApiResponse<{ items: CartItem[] }>>
-
-  const cartResult = await getOrCreateCart(userId)
-  if (!cartResult.data) {
-    return NextResponse.json(
-      { data: null, error: cartResult.error },
-      { status: 500 }
+  if (!snapshotResult.data) {
+    return errorResponse(
+      snapshotResult.error.message,
+      500,
+      snapshotResult.error.code
     )
   }
 
-  const itemsResult = await getCartItems(cartResult.data.id)
-  if (!itemsResult.data) {
-    return NextResponse.json(
-      { data: null, error: itemsResult.error },
-      { status: 500 }
-    )
+  return snapshotResult.data
+}
+
+export async function GET(): Promise<NextResponse<ApiResponse<CartSnapshot>>> {
+  const { userId, response } = await requireUser()
+  if (!userId || response) {
+    return response as NextResponse<ApiResponse<CartSnapshot>>
   }
 
-  const items: CartItem[] = itemsResult.data.map((row) => ({
-    productId: row.product_id,
-    variantId: row.variant_id,
-    quantity: row.quantity,
-    price: row.price,
-    name: row.name,
-    brand: row.brand,
-    image: row.image,
-  }))
+  const snapshot = await loadCartSnapshot(userId)
+  if (snapshot instanceof NextResponse) {
+    return snapshot
+  }
 
-  return NextResponse.json({ data: { items }, error: null })
+  return NextResponse.json({ data: snapshot, error: null })
 }
 
 export async function POST(
-  req: NextRequest
-): Promise<NextResponse<ApiResponse<{ items?: CartItem[] }>>> {
-  const { userId, response } = await requireUser(req)
-  if (!userId || response) return response as NextResponse<ApiResponse<{ items?: CartItem[] }>>
+  request: Request
+): Promise<NextResponse<ApiResponse<CartSnapshot>>> {
+  const { userId, response } = await requireUser()
+  if (!userId || response) {
+    return response as NextResponse<ApiResponse<CartSnapshot>>
+  }
 
-  const body = (await req.json()) as
-    | { action: "add"; item: CartItem }
-    | { action: "merge"; guestItems: CartItem[] }
+  let json: unknown
 
-  if (body.action === "merge") {
-    const mergeResult = await mergeGuestCart(userId, body.guestItems ?? [])
-    if (!mergeResult.data) {
-      return NextResponse.json(
-        { data: null, error: mergeResult.error },
-        { status: 500 }
+  try {
+    json = await request.json()
+  } catch {
+    return errorResponse("Body invalido", 400, "VALIDATION_ERROR")
+  }
+
+  const parseResult = cartActionSchema.safeParse(json)
+  if (!parseResult.success) {
+    return errorResponse("Datos invalidos", 400, "VALIDATION_ERROR")
+  }
+
+  if (parseResult.data.action === "merge") {
+    const mergeResult = await mergeGuestCart(
+      userId,
+      parseResult.data.guestItems
+    )
+
+    if (mergeResult.error) {
+      return errorResponse(
+        mergeResult.error.message,
+        500,
+        mergeResult.error.code
+      )
+    }
+  } else {
+    const cartResult = await getOrCreateCart(userId)
+    if (!cartResult.data) {
+      return errorResponse(
+        cartResult.error.message,
+        500,
+        cartResult.error.code
       )
     }
 
-    const items: CartItem[] = mergeResult.data.map((row) => ({
-      productId: row.product_id,
-      variantId: row.variant_id,
-      quantity: row.quantity,
-      price: row.price,
-      name: row.name,
-      brand: row.brand,
-      image: row.image,
-    }))
-
-    return NextResponse.json({ data: { items }, error: null })
+    const addResult = await addCartItem(cartResult.data.id, parseResult.data.item)
+    if (addResult.error) {
+      return errorResponse(
+        addResult.error.message,
+        500,
+        addResult.error.code
+      )
+    }
   }
 
-  const cartResult = await getOrCreateCart(userId)
-  if (!cartResult.data) {
-    return NextResponse.json(
-      { data: null, error: cartResult.error },
-      { status: 500 }
-    )
+  const snapshot = await loadCartSnapshot(userId)
+  if (snapshot instanceof NextResponse) {
+    return snapshot
   }
 
-  const addResult = await addCartItem(cartResult.data.id, body.item)
-  if (!addResult.data) {
-    return NextResponse.json(
-      { data: null, error: addResult.error },
-      { status: 500 }
-    )
-  }
-
-  return NextResponse.json({ data: {}, error: null })
+  return NextResponse.json({ data: snapshot, error: null })
 }
 
 export async function PATCH(
-  req: NextRequest
-): Promise<NextResponse<ApiResponse<{}>>> {
-  const { userId, response } = await requireUser(req)
-  if (!userId || response) return response as NextResponse<ApiResponse<{}>>
+  request: Request
+): Promise<NextResponse<ApiResponse<CartSnapshot>>> {
+  const { userId, response } = await requireUser()
+  if (!userId || response) {
+    return response as NextResponse<ApiResponse<CartSnapshot>>
+  }
 
-  const body = (await req.json()) as { variantId: string; quantity: number }
+  let json: unknown
+
+  try {
+    json = await request.json()
+  } catch {
+    return errorResponse("Body invalido", 400, "VALIDATION_ERROR")
+  }
+
+  const parseResult = updateCartItemSchema.safeParse(json)
+  if (!parseResult.success) {
+    return errorResponse("Datos invalidos", 400, "VALIDATION_ERROR")
+  }
 
   const cartResult = await getOrCreateCart(userId)
   if (!cartResult.data) {
-    return NextResponse.json(
-      { data: null, error: cartResult.error },
-      { status: 500 }
+    return errorResponse(
+      cartResult.error.message,
+      500,
+      cartResult.error.code
     )
   }
 
   const itemsResult = await getCartItems(cartResult.data.id)
   if (!itemsResult.data) {
-    return NextResponse.json(
-      { data: null, error: itemsResult.error },
-      { status: 500 }
+    return errorResponse(
+      itemsResult.error.message,
+      500,
+      itemsResult.error.code
     )
   }
 
   const target = itemsResult.data.find(
-    (row) => row.variant_id === body.variantId
+    (row) => row.variantId === parseResult.data.variantId
   )
   if (!target) {
-    return NextResponse.json({
-      data: null,
-      error: { message: "Item no encontrado", code: "not_found" },
-    })
+    return errorResponse("Item no encontrado", 404, "NOT_FOUND")
   }
 
-  const updateResult = await updateCartItemQuantity(target.id, body.quantity)
-  if (!updateResult.data) {
-    return NextResponse.json(
-      { data: null, error: updateResult.error },
-      { status: 500 }
+  if (parseResult.data.quantity === 0) {
+    const removeResult = await removeCartItem(target.id)
+    if (removeResult.error) {
+      return errorResponse(
+        removeResult.error.message,
+        500,
+        removeResult.error.code
+      )
+    }
+  } else {
+    const updateResult = await updateCartItemQuantity(
+      target.id,
+      parseResult.data.quantity
     )
+    if (updateResult.error) {
+      return errorResponse(
+        updateResult.error.message,
+        500,
+        updateResult.error.code
+      )
+    }
   }
 
-  return NextResponse.json({ data: {}, error: null })
+  const snapshot = await loadCartSnapshot(userId)
+  if (snapshot instanceof NextResponse) {
+    return snapshot
+  }
+
+  return NextResponse.json({ data: snapshot, error: null })
 }
 
 export async function DELETE(
-  req: NextRequest
-): Promise<NextResponse<ApiResponse<{}>>> {
-  const { userId, response } = await requireUser(req)
-  if (!userId || response) return response as NextResponse<ApiResponse<{}>>
+  request: Request
+): Promise<NextResponse<ApiResponse<CartSnapshot>>> {
+  const { userId, response } = await requireUser()
+  if (!userId || response) {
+    return response as NextResponse<ApiResponse<CartSnapshot>>
+  }
 
-  const body = (await req.json()) as
-    | { clearAll: true }
-    | { variantId: string }
+  let json: unknown
+
+  try {
+    json = await request.json()
+  } catch {
+    return errorResponse("Body invalido", 400, "VALIDATION_ERROR")
+  }
+
+  const parseResult = deleteCartItemSchema.safeParse(json)
+  if (!parseResult.success) {
+    return errorResponse("Datos invalidos", 400, "VALIDATION_ERROR")
+  }
 
   const cartResult = await getOrCreateCart(userId)
   if (!cartResult.data) {
-    return NextResponse.json(
-      { data: null, error: cartResult.error },
-      { status: 500 }
+    return errorResponse(
+      cartResult.error.message,
+      500,
+      cartResult.error.code
     )
   }
 
-  if ("clearAll" in body && body.clearAll) {
-    const supabase = await createClient()
-    const { error } = await supabase
-      .from("cart_items")
-      .delete()
-      .eq("cart_id", cartResult.data.id)
-    if (error) {
-      return NextResponse.json(
-        { data: null, error: { message: error.message, code: error.code } },
-        { status: 500 }
+  if ("clearAll" in parseResult.data && parseResult.data.clearAll) {
+    const clearResult = await clearCartItems(cartResult.data.id)
+    if (clearResult.error) {
+      return errorResponse(
+        clearResult.error.message,
+        500,
+        clearResult.error.code
       )
     }
-    return NextResponse.json({ data: {}, error: null })
-  }
+  } else {
+    const variantId = "variantId" in parseResult.data
+      ? parseResult.data.variantId
+      : null
 
-  const itemsResult = await getCartItems(cartResult.data.id)
-  if (!itemsResult.data) {
-    return NextResponse.json(
-      { data: null, error: itemsResult.error },
-      { status: 500 }
+    if (!variantId) {
+      return errorResponse("Datos invalidos", 400, "VALIDATION_ERROR")
+    }
+
+    const itemsResult = await getCartItems(cartResult.data.id)
+    if (!itemsResult.data) {
+      return errorResponse(
+        itemsResult.error.message,
+        500,
+        itemsResult.error.code
+      )
+    }
+
+    const target = itemsResult.data.find(
+      (row) => row.variantId === variantId
     )
+    if (!target) {
+      return errorResponse("Item no encontrado", 404, "NOT_FOUND")
+    }
+
+    const removeResult = await removeCartItem(target.id)
+    if (removeResult.error) {
+      return errorResponse(
+        removeResult.error.message,
+        500,
+        removeResult.error.code
+      )
+    }
   }
 
-  const variantId = (body as { variantId: string }).variantId
-  const target = itemsResult.data.find(
-    (row) => row.variant_id === variantId
-  )
-  if (!target) {
-    return NextResponse.json({
-      data: null,
-      error: { message: "Item no encontrado", code: "not_found" },
-    })
+  const snapshot = await loadCartSnapshot(userId)
+  if (snapshot instanceof NextResponse) {
+    return snapshot
   }
 
-  const removeResult = await removeCartItem(target.id)
-  if (removeResult.error) {
-    return NextResponse.json(
-      { data: null, error: removeResult.error },
-      { status: 500 }
-    )
-  }
-
-  return NextResponse.json({ data: {}, error: null })
+  return NextResponse.json({ data: snapshot, error: null })
 }
-

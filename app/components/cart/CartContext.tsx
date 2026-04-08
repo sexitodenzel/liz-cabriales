@@ -37,17 +37,35 @@ type CartContextValue = {
   clearProgrammatic: () => void
 }
 
+type CartApiData = {
+  cart_id: string
+  items: CartItem[]
+  total: number
+}
+
+type CartApiResponse =
+  | { data: CartApiData; error: null }
+  | { data: null; error: { message: string; code?: string } }
+
 const CartContext = createContext<CartContextValue | null>(null)
 
-async function syncWithApi(
-  method: "POST" | "DELETE" | "PATCH",
-  body: unknown
-): Promise<void> {
-  await fetch("/api/cart", {
+async function requestCartSnapshot(
+  method: "GET" | "POST" | "DELETE" | "PATCH",
+  body?: unknown
+): Promise<CartApiData> {
+  const response = await fetch("/api/cart", {
     method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
   })
+
+  const json = (await response.json()) as CartApiResponse
+
+  if (!response.ok || !json.data) {
+    throw new Error(json.error?.message ?? "No se pudo sincronizar el carrito")
+  }
+
+  return json.data
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -60,14 +78,41 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const itemCount = useMemo(() => computeItemCount(items), [items])
   const subtotal = useMemo(() => computeSubtotal(items), [items])
 
-  // Cargar estado inicial
   useEffect(() => {
     const supabase = createClient()
 
     let isMounted = true
 
+    const loadAuthenticatedCart = async (nextUserId: string) => {
+      setUserId(nextUserId)
+
+      const guest = readGuestCart()
+
+      try {
+        const snapshot =
+          guest.items.length > 0
+            ? await requestCartSnapshot("POST", {
+                action: "merge",
+                guestItems: guest.items,
+              })
+            : await requestCartSnapshot("GET")
+
+        if (!isMounted) return
+
+        setItems(snapshot.items)
+
+        if (guest.items.length > 0) {
+          clearGuestCart()
+        }
+      } catch {
+        if (!isMounted) return
+        setItems(guest.items)
+      }
+    }
+
     const init = async () => {
       setIsLoading(true)
+
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -82,37 +127,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      setUserId(user.id)
-
-      // merge guest cart → supabase
-      const guest = readGuestCart()
       try {
-        const response = await fetch("/api/cart", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "merge",
-            guestItems: guest.items,
-          }),
-        })
-        const json = (await response.json()) as {
-          data:
-            | {
-                items: CartItem[]
-              }
-            | null
-          error: { message: string } | null
-        }
-        if (json.data?.items) {
-          setItems(json.data.items)
-          clearGuestCart()
-        } else if (!json.error) {
-          setItems([])
-        }
-      } catch {
-        // fallo silencioso, mantenemos guest cart en memoria
-        setItems(guest.items)
+        await loadAuthenticatedCart(user.id)
       } finally {
+        if (!isMounted) return
         setIsLoading(false)
       }
     }
@@ -123,9 +141,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setUserId(session.user.id)
+        void loadAuthenticatedCart(session.user.id)
       } else {
         setUserId(null)
+        setItems(readGuestCart().items)
       }
     })
 
@@ -154,9 +173,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (userId) {
         try {
-          await syncWithApi("POST", { action: "add", item })
+          const snapshot = await requestCartSnapshot("POST", {
+            action: "add",
+            item,
+          })
+          setItems(snapshot.items)
         } catch {
-          // se reintentará en la siguiente mutación
+          // se reintentara en la siguiente mutacion
         }
       }
     },
@@ -173,7 +196,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (userId) {
         try {
-          await syncWithApi("DELETE", { variantId })
+          const snapshot = await requestCartSnapshot("DELETE", { variantId })
+          setItems(snapshot.items)
         } catch {
           // ignore
         }
@@ -199,7 +223,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (userId) {
         try {
-          await syncWithApi("PATCH", { variantId, quantity })
+          const snapshot = await requestCartSnapshot("PATCH", {
+            variantId,
+            quantity,
+          })
+          setItems(snapshot.items)
         } catch {
           // ignore
         }
@@ -211,9 +239,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clearCart = useCallback(async () => {
     setItems([])
     clearGuestCart()
+
     if (userId) {
       try {
-        await syncWithApi("DELETE", { clearAll: true })
+        const snapshot = await requestCartSnapshot("DELETE", {
+          clearAll: true,
+        })
+        setItems(snapshot.items)
       } catch {
         // ignore
       }
@@ -261,4 +293,3 @@ export function useCart(): CartContextValue {
   }
   return ctx
 }
-

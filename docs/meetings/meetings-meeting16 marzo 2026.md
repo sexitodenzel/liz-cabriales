@@ -1,4 +1,4 @@
-# Reunión — 16 marzo 2026
+
 
 **Tipo:** Kickoff / definición de alcance **Asistentes:** Liz Cabriales, Denzel + socio **Canal:** Presencial / WhatsApp
 

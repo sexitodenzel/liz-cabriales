@@ -27,29 +27,31 @@ El público es mayoritariamente femenino. El mercado es México. Los colores de 
 
 ---
 
-## Estado actual — 29 marzo 2026
+## Estado actual — 8 abril 2026
 
-|Área|Estado|
-|---|---|
-|Landing page|✅ Completa|
-|Auth|✅ Login y registro funcionando, redirección por rol|
-|Base de datos|✅ 18 tablas en Supabase con RLS y seed de productos|
-|Middleware|✅ Protección de rutas /admin/_, /perfil/_, /checkout/*|
-|Panel admin `/admin/products`|✅ CRUD de productos con soft delete e inline editing|
-|Catálogo `/tienda`|✅ Conectado a Supabase, filtros por categoría y marca|
-|Carrito|✅ Persistente — guest localStorage + merge a Supabase al login|
-|Página `/carrito`|✅ Con resumen, barra envío gratis y CTA a checkout|
-|Checkout y pagos|⏳ Sprint 1 — EN PROGRESO|
-|Órdenes admin|⏳ Sprint 2|
-|Módulo de citas|⏳ Fase 2|
-|Módulo de cursos|⏳ Fase 2|
-|Admin multi-rol|⏳ Fase 2|
+| Área                          | Estado                                                                        |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| Landing page                  | ✅ Completa                                                                    |
+| Auth                          | ✅ Login y registro funcionando, redirección por rol                           |
+| Base de datos                 | ✅ 18 tablas en Supabase con RLS y seed de productos                           |
+| Middleware                    | ✅ Protección de rutas `/admin/*`, `/perfil/*`, `/checkout/*`                  |
+| Panel admin `/admin/products` | ✅ CRUD de productos con soft delete e inline editing                          |
+| Catálogo `/tienda`            | ✅ Conectado a Supabase, filtros por categoría y marca                         |
+| Carrito                       | ✅ Persistente + drift corregido — joins reales a products/product_variants    |
+| Página `/carrito`             | ✅ Con resumen, barra envío gratis y CTA a checkout                            |
+| Checkout y pagos              | ✅ Flujo completo con MercadoPago — pendiente deploy y credenciales producción |
+| Órdenes admin                 | ⏳ Sprint 2                                                                    |
+| Módulo de citas               | ⏳ Fase 2                                                                      |
+| Módulo de cursos              | ⏳ Fase 2                                                                      |
+| Admin multi-rol               | ⏳ Fase 2                                                                      |
 
 ---
 
 ## Sprint actual — Sprint 1
 
-**Objetivo:** Checkout funcional con MercadoPago **Plazo:** ~2 semanas desde 29 marzo 2026 **Ver detalle:** `delivery/sprint-actual.md`
+**Objetivo:** Checkout funcional con MercadoPago  
+**Plazo:** ~2 semanas desde 29 marzo 2026  
+**Ver detalle:** `delivery/sprint-actual.md`
 
 ---
 
@@ -61,15 +63,16 @@ El público es mayoritariamente femenino. El mercado es México. Los colores de 
 |Anticipo cobrado|$2,000 MXN|
 |Pendiente|$20,000 MXN|
 
-Distribución: Fase 1 ($8k) → Fase 2 ($8k) → Fase 3 retainer mensual (TBD) Ver detalle: `delivery/project-charter.md`
+Distribución: Fase 1 ($8k) → Fase 2 ($8k) → Fase 3 retainer mensual (TBD)  
+Ver detalle: `delivery/project-charter.md`
 
 ---
 
 ## Estructura del vault
 
-```
+```text
 docs/
-├── delivery/                    ← gestión del proyecto
+├── delivery/                    ← gestión del proyecto (source of truth para planning)
 │   ├── project-charter.md       ← qué construimos, para qué, financiero
 │   ├── roadmap.md               ← fases, sprints, entregables, fechas
 │   ├── backlog.md               ← todo lo que falta, priorizado
@@ -104,18 +107,30 @@ docs/
 │   ├── courses-rules.md
 │   └── courses-rules-dos.md
 ├── payments/
-│   ├── proveedorpagos.md
-│   └── proveedorpagos-2.md
+│   └── proveedorpagos.md        ← source of truth para pagos
 ├── admin/
 │   └── admin-permissions.md
 ├── ux/
 │   ├── design-notes.md
 │   └── pages.md
-├── ai-context.md                ← SIEMPRE pegar al iniciar sesión
-└── claude-prompt.md             ← SIEMPRE pegar al iniciar sesión
+└── ai-context.md
 ```
 
-> ⚠️ `tasks/roadmap.md` y `tasks/backlog.md` están deprecados. Usar `delivery/roadmap.md` y `delivery/backlog.md` en su lugar.
+> ⚠️ `tasks/roadmap.md` y `tasks/backlog.md` están deprecados.  
+> ⚠️ `payments/proveedorpagos-2.md` y cualquier variante root/legacy de pagos quedan fuera del flujo activo.
+
+---
+
+## Source of truth
+
+Usar siempre estas rutas como referencia activa para planning, prompts y decisiones:
+
+- `delivery/roadmap.md`
+- `delivery/backlog.md`
+- `delivery/sprint-actual.md`
+- `payments/proveedorpagos.md`
+
+Archivos legacy, duplicados o variantes fuera de esas rutas no se usan para planning ni para generación de prompts, aunque sigan existiendo como referencia histórica.
 
 ---
 
@@ -150,8 +165,8 @@ docs/
 - **Nunca queries inline en componentes** — todas las queries van en funciones nombradas en `lib/supabase/`
 - **Zod para toda validación**
 - **Respuesta de API siempre consistente:**
-    - Éxito: `{ data: T, error: null }`
-    - Error: `{ data: null, error: { message: string, code?: string } }`
+  - Éxito: `{ data: T, error: null }`
+  - Error: `{ data: null, error: { message: string, code?: string } }`
 - **Todo texto visible al usuario en español**
 - **Imágenes en Supabase Storage**, nunca en el repo
 - **Service role key** solo en scripts de seed y `lib/supabase/admin.ts` — nunca expuesta al cliente
@@ -180,3 +195,42 @@ docs/
 | Lista de servicios (nombre, precio, duración) | Bloquea módulo de citas              |
 | Lista de cursos activos                       | Bloquea módulo de cursos             |
 | % CFDI con contadora                          | Bloquea flujo de facturación         |
+
+
+---
+
+## Workflow operativo del proyecto
+
+Además del contexto funcional y técnico, este proyecto usa un sistema operativo de trabajo definido en:
+
+- `docs/ai-workflow-kit.md` — reglas operativas, prompts, semáforo, continuidad y flujo de trabajo
+- `docs/delivery/session-continuity.md` — último estado operativo confirmado
+
+### Regla de uso
+- ChatGPT asume el contexto base desde este proyecto y estos documentos
+- El usuario solo reporta el delta desde la última sesión
+- Si no hay continuidad clara, se entra a modo recuperación antes de proponer trabajo nuevo
+
+### Regla de portabilidad
+El sistema debe poder continuar aunque cambie la cuenta de ChatGPT, siempre que existan:
+- código real actualizado
+- vault actualizado
+- workflow kit
+- session continuity
+
+### Regla operativa adicional
+- `delivery/roadmap.md` define fases, sprints y cambios macro del plan
+- `delivery/sprint-actual.md` define el trabajo operativo inmediato
+- `delivery/backlog.md` captura pendientes nuevos, bloqueadores y fuera de scope
+- `delivery/decisions-log.md` registra decisiones relevantes aprobadas
+- `docs/ai-workflow-kit.md` define cómo se trabaja
+- `docs/delivery/session-continuity.md` define desde dónde se retoma
+
+## Rol proactivo del asistente
+
+Además de ejecutar tareas, el asistente debe:
+- Señalar riesgos técnicos o de negocio que detecte aunque no se le pregunten
+- Sugerir mejoras al flujo, arquitectura o decisiones cuando haya una opción claramente mejor
+- Identificar puntos débiles en el scope, en los contratos de API o en el schema antes de que Codex los encuentre en ejecución
+- Si detecta deuda técnica acumulándose, mencionarlo aunque no sea el tema de la sesión
+- Las sugerencias van separadas de la tarea — primero se ejecuta lo acordado, luego se señala lo adicional

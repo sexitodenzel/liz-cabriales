@@ -1,46 +1,81 @@
 # stack.md
 
-## Contexto previo
+## Stack actual del proyecto
 
 ### Frontend
-- **Next.js** — framework principal
+- **Next.js 14** — framework principal
 - **React** — base del frontend (incluido en Next.js)
+- **App Router** — arquitectura de rutas activa
 
 ### Backend
-- **Node.js** — servidor y lógica de negocio
+- **API Routes de Next.js** — backend dentro del mismo proyecto
+- **No hay servidor Node separado**
 
 ### Base de datos y servicios
-- **Supabase** — base de datos (PostgreSQL), storage y servicios en tiempo real
+- **Supabase** — PostgreSQL, Auth, Storage y RLS
+- **Supabase SDK directo** — no ORM
+
+### Lenguaje
+- **TypeScript** — obligatorio en todo el proyecto
+
+### Estilos y UI
+- **Tailwind CSS** — estilos
+- **Shadcn/ui** — componentes base
 
 ### Autenticación
 - **Supabase Auth** — manejo de sesiones y usuarios
-- **Google OAuth** — login con Google habilitado
+- **Google OAuth** — pendiente implementar
 
 ### Pagos
-- Proveedor sin definir — ver `payments/proveedorpagos.md`
+- **MercadoPago** — proveedor oficial del proyecto  
+- Ver archivo canónico: `payments/proveedorpagos.md`
+
+### Email transaccional
+- **Por definir** — Resend recomendado
 
 ### Deployment
-- Sin definir
+- **Por definir** — Vercel es la opción más probable
 
 ---
 
-## To-do (pendiente confirmar o definir)
+## Estado de decisiones técnicas
 
-- [ ] ¿Dónde se despliega el proyecto (Vercel, Railway, otro)?
-- [ ] ¿Se usará TypeScript o JavaScript?
-- [ ] ¿Se usará algún ORM o se consulta Supabase directo con su SDK?
-- [ ] ¿Se usará alguna librería de UI (Shadcn, Tailwind, otro)?
-- [ ] ¿Se usará algún sistema de emails transaccionales (Resend, SendGrid, otro)?
-- [ ] Definir proveedor de pagos
+### Ya definidas
+- ✅ Next.js App Router
+- ✅ TypeScript
+- ✅ Supabase SDK directo
+- ✅ Tailwind CSS
+- ✅ Shadcn/ui
+- ✅ API Routes de Next.js
+- ✅ MercadoPago como proveedor de pagos
+
+### Pendientes
+- [ ] Definir deployment final (`Vercel` u otro)
+- [ ] Definir proveedor de emails transaccionales (`Resend` u otro)
+- [ ] Confirmar si Google OAuth entra en la siguiente fase o se mantiene pendiente
 
 ---
 
-## Decisiones técnicas pendientes
+## Impacto en el desarrollo
 
-Estas decisiones afectan directamente la arquitectura y deben resolverse antes de comenzar el vibecoding:
+Estas decisiones ya no deben reabrirse en prompts ni planning:
 
-1. **Proveedor de pagos** — bloquea `commerce/order-flow.md` y `payments/proveedorpagos.md`
-2. **Deployment** — afecta configuración de variables de entorno y build
-3. **TypeScript vs JavaScript** — afecta toda la base de código
-4. **Librería de UI** — afecta estructura de componentes y diseño
-5. **Emails transaccionales** — necesario para confirmaciones de citas, cursos y pedidos
+1. **Proveedor de pagos** → usar MercadoPago
+2. **Lenguaje** → usar TypeScript
+3. **Acceso a datos** → usar Supabase SDK directo
+4. **UI** → usar Tailwind CSS + Shadcn/ui
+5. **Backend** → usar API Routes de Next.js dentro del mismo proyecto
+
+---
+
+## Variables de entorno esperadas
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+MERCADOPAGO_ACCESS_TOKEN=
+MERCADOPAGO_WEBHOOK_SECRET=
+
+NEXT_PUBLIC_APP_URL=

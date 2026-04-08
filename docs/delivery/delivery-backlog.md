@@ -11,12 +11,19 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 |Insumo|Bloqueado por|Impacto|
 |---|---|---|
 |Credenciales de MercadoPago (producción)|Liz|Sin esto no hay checkout real|
-|Base de datos de productos (precios + fotos)|~~Bloqueado~~ ✅|Se captura en visita al negocio — **agendar fecha**|
+|Base de datos de productos reales (precios + fotos)|Liz / visita en sitio|Sin esto Sprint 2 de ecommerce no cierra completo|
 |Lista de servicios del salón (nombre, precio, duración)|Liz|Sin esto no hay módulo de citas|
 |Lista de cursos activos (fechas, precio, cupo)|Liz|Sin esto no hay módulo de cursos|
 |Logos de marcas en PNG/SVG|Liz|Sin esto el slider usa placeholders|
 |Fotos reales del negocio y productos|Liz|Sin esto las imágenes son de picsum|
 |% adicional para CFDI|Contadora de Liz|Sin esto no hay flujo de facturación|
+
+## ⚠️ Bloqueadores técnicos inmediatos
+
+| Bloqueo técnico                                  | Responsable       | Impacto                                                      |
+| ------------------------------------------------ | ----------------- | ------------------------------------------------------------ |
+| No hay transacción SQL real en creación de orden | Equipo desarrollo | Riesgo controlado; no bloquea Sprint 1 pero sí pagos/webhook |
+| Typecheck/lint global con errores fuera de scope | Equipo desarrollo | Reduce confianza de validación global del repo               |
 
 ---
 
@@ -24,14 +31,21 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
 ### Sprint 1 ← AQUÍ ESTAMOS
 
-- [ ] Página `/checkout` — formulario de dirección y resumen de orden
-- [ ] Integración MercadoPago Checkout Pro (preferencia de pago)
-- [ ] Webhook MercadoPago — confirmar pago y actualizar orden
-- [ ] Tabla `orders` y `order_items` en Supabase
-- [ ] Lógica de creación de orden al confirmar pago
-- [ ] Página `/orden/[id]` — confirmación de compra
+- [x] Tabla `orders` y `order_items` en Supabase — verificadas en schema real
+- [x] API Route `POST /api/orders` — crear orden `pending` desde carrito activo
+- [x] Corregir drift del módulo carrito contra el schema real
+- [x] Página `/checkout` — formulario de dirección y resumen de orden
+- [x] Integración MercadoPago Checkout Pro (preferencia de pago)
+- [x] Webhook MercadoPago — confirmar pago y actualizar orden
+- [x] Página `/orden/[id]` — confirmación de compra
+- [x] Página `/orden/[id]/error` — manejo de pago fallido o cancelado
 - [ ] Email de confirmación al comprador (Resend o similar)
 - [ ] Manejo de estados de orden: `pending` → `paid` → `shipped` → `delivered`
+
+> Orden recomendado ahora:
+> 1. corregir drift del carrito
+> 2. conectar `/checkout` con `POST /api/orders`
+> 3. luego integrar MercadoPago
 
 ### Sprint 2
 
@@ -40,7 +54,7 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 - [ ] Cambio manual de estado de orden en admin
 - [ ] Importar base de datos de productos reales ← BLOQUEADO
 - [ ] Script de migración con validación previa a importación
-- [ ] Descuento automático de stock al confirmar pago
+- [x] Descuento automático de stock al confirmar pago
 - [ ] Alerta de stock bajo en panel admin
 - [ ] Sincronización de inventario — ventas locales actualizan el mismo stock
 
