@@ -24,7 +24,20 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 | ------------------------------------------------ | ----------------- | ------------------------------------------------------------ |
 | No hay transacción SQL real en creación de orden | Equipo desarrollo | Riesgo controlado; no bloquea Sprint 1 pero sí pagos/webhook |
 | Typecheck/lint global con errores fuera de scope | Equipo desarrollo | Reduce confianza de validación global del repo               |
+|                                                  |                   |                                                              |
 
+
+## ⚠️ Pendientes de testing — requieren deploy
+
+| Pendiente | Contexto |
+|---|---|
+| Configurar webhook en dashboard de MercadoPago con URL real del deploy | `MERCADOPAGO_WEBHOOK_SECRET` actual es placeholder |
+| Actualizar `NEXT_PUBLIC_APP_URL` con dominio real de Vercel | Afecta `notification_url` del checkout |
+| Probar flujo end-to-end en sandbox con tarjeta de prueba MP | Requiere servidor público — ngrok o Vercel preview |
+| Credenciales de producción de Liz — cambiar `MERCADOPAGO_ACCESS_TOKEN` | Bloqueado por Liz |
+| Limpiar carrito post-pago confirmado desde el webhook | Sprint 2 |
+| Idempotencia del email — MP puede reintentar webhook y mandar el email dos veces | Solución: campo `email_sent` en tabla `payments` — Sprint 2 |
+| Verificar dominio remitente en Resend cuando Liz tenga dominio propio | Cambiar `from` de `onboarding@resend.dev` a `pedidos@[dominio].com` |
 ---
 
 ## Fase 1 — Ecommerce (Sprint actual)

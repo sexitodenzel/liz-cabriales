@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import {
   Result,
@@ -8,10 +8,10 @@ import {
 } from "@/lib/supabase/admin"
 import { updateProductSchema } from "@/lib/validations/products"
 
-type RouteParams = {
-  params: {
+type RouteContext = {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 function mapResultToStatus(result: Result<unknown>, successStatus = 200) {
@@ -25,9 +25,12 @@ function mapResultToStatus(result: Result<unknown>, successStatus = 200) {
   return 400
 }
 
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: RouteContext
+) {
   try {
-    const { id } = params
+    const { id } = await params
     const supabase = await createClient()
     const {
       data: { user },
@@ -79,9 +82,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: RouteContext
+) {
   try {
-    const { id } = params
+    const { id } = await params
     const supabase = await createClient()
     const {
       data: { user },
@@ -115,4 +121,3 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     )
   }
 }
-

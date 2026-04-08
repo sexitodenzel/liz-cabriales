@@ -6,6 +6,7 @@ import {
   deductStockForOrder,
   updatePaymentStatusByOrderId,
 } from "@/lib/supabase/payments"
+import { sendOrderConfirmationEmail } from "@/lib/email/resend"
 
 type WebhookBody = {
   type?: string
@@ -126,6 +127,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         )
       }
       await deductStockForOrder(orderId)
+
+      try {
+        await sendOrderConfirmationEmail(orderId)
+      } catch (emailError) {
+        console.error(
+          `[webhook] Error enviando email de confirmación para orden ${orderId}:`,
+          emailError
+        )
+        // El fallo del email no interrumpe ni revierte el flujo del webhook
+      }
     } else if (mpStatus === "rejected" || mpStatus === "cancelled") {
       const updateResult = await updatePaymentStatusByOrderId(
         orderId,
