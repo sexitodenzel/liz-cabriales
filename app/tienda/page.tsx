@@ -51,9 +51,6 @@ export default async function StorePage({
     }),
   ])
 
-  console.log('categories error:', JSON.stringify(categoriesResult.error))
-  console.log('products error:', JSON.stringify(productsResult.error))
-
   if (categoriesResult.error || productsResult.error) {
     return (
       <main className="min-h-screen bg-white text-[#0a0a0a]">

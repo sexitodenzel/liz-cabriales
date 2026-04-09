@@ -1,28 +1,28 @@
 ## Estado actual
-- Último estado confirmado: flujo MercadoPago completo implementado
-- Sprint actual: Sprint 1
-- Estado de continuidad: Cerrado para esta entrega
+- Último estado confirmado: Sprint 1 cerrado al 100% — producción estable
+- Sprint actual: Sprint 2
+- Estado de continuidad: Cerrado
 
 ## Última tarea cerrada
-- POST /api/payments/mercadopago
-- POST /api/webhooks/mercadopago
-- /orden/[id] y /orden/[id]/error
-- Checkout conectado end-to-end con MP
+- MERCADOPAGO_WEBHOOK_SECRET real configurado en Vercel
+- Webhook MP respondiendo 200 con firma válida
+- Tienda /tienda corregida en producción (bug: supabase.com → supabase.co)
+- force-dynamic agregado en /tienda
+- Políticas RLS creadas para todas las tablas: carts, cart_items, orders, order_items, payments, favorites, appointments, appointment_services, course_registrations, blocked_slots, services, professionals
+- Flujo checkout → MP sandbox verificado hasta redirect
 
 ## Semáforo
 - Verde
 
 ## Tarea abierta actual
-Email de confirmación al comprador (Resend) — último item del Sprint 1
+- Ninguna — Sprint 1 cerrado
 
 ## Próxima tarea recomendada
-1. Definir y confirmar Resend como proveedor de email
-2. Implementar email de confirmación de compra
-3. Disparar desde el webhook al confirmar approved
+- Arrancar Sprint 2: Panel admin /admin/orders
+- Resolver RLS faltantes detectados en producción (ya resuelto esta sesión)
+- Preparar documento de pendientes para reunión con Liz
 
 ## Bloqueadores vigentes
-- MERCADOPAGO_WEBHOOK_SECRET real (dashboard MP) — necesario para prueba real
-- ngrok o deploy para probar webhook end-to-end
-- Credenciales producción de Liz
-- Proveedor de email transaccional sin confirmar (Resend recomendado)
-- Base de datos real de productos (visita acordada)
+- Credenciales MercadoPago producción — pendiente de Liz
+- Base de datos real de productos — visita acordada
+- Prueba end-to-end completa con pago real — requiere credenciales de Liz

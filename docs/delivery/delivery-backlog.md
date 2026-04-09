@@ -10,7 +10,7 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
 |Insumo|Bloqueado por|Impacto|
 |---|---|---|
-|Credenciales de MercadoPago (producción)|Liz|Sin esto no hay checkout real|
+|Credenciales de MercadoPago (producción)|Liz|Sin esto no hay checkout real con dinero real|
 |Base de datos de productos reales (precios + fotos)|Liz / visita en sitio|Sin esto Sprint 2 de ecommerce no cierra completo|
 |Lista de servicios del salón (nombre, precio, duración)|Liz|Sin esto no hay módulo de citas|
 |Lista de cursos activos (fechas, precio, cupo)|Liz|Sin esto no hay módulo de cursos|
@@ -18,31 +18,46 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 |Fotos reales del negocio y productos|Liz|Sin esto las imágenes son de picsum|
 |% adicional para CFDI|Contadora de Liz|Sin esto no hay flujo de facturación|
 
-## ⚠️ Bloqueadores técnicos inmediatos
+---
 
-| Bloqueo técnico                                  | Responsable       | Impacto                                                      |
-| ------------------------------------------------ | ----------------- | ------------------------------------------------------------ |
-| No hay transacción SQL real en creación de orden | Equipo desarrollo | Riesgo controlado; no bloquea Sprint 1 pero sí pagos/webhook |
-| Typecheck/lint global con errores fuera de scope | Equipo desarrollo | Reduce confianza de validación global del repo               |
-|                                                  |                   |                                                              |
+## ⚠️ Bloqueadores técnicos
 
+| Bloqueo técnico | Responsable | Impacto |
+|---|---|---|
+| No hay transacción SQL real en creación de orden | Equipo desarrollo | Riesgo controlado; no bloquea Sprint 2 pero hay que resolverlo |
+| Typecheck/lint global con errores fuera de scope | Equipo desarrollo | Reduce confianza de validación global del repo |
 
-## ⚠️ Pendientes de testing — requieren deploy
+---
+
+## ⚠️ Pendientes de testing — requieren credenciales de producción
 
 | Pendiente | Contexto |
 |---|---|
-| Configurar webhook en dashboard de MercadoPago con URL real del deploy | `MERCADOPAGO_WEBHOOK_SECRET` actual es placeholder |
-| Actualizar `NEXT_PUBLIC_APP_URL` con dominio real de Vercel | Afecta `notification_url` del checkout |
-| Probar flujo end-to-end en sandbox con tarjeta de prueba MP | Requiere servidor público — ngrok o Vercel preview |
-| Credenciales de producción de Liz — cambiar `MERCADOPAGO_ACCESS_TOKEN` | Bloqueado por Liz |
-| Limpiar carrito post-pago confirmado desde el webhook | Sprint 2 |
+| ✅ Configurar webhook MP con URL real | Resuelto — MERCADOPAGO_WEBHOOK_SECRET configurado |
+| ✅ NEXT_PUBLIC_APP_URL actualizado | Resuelto |
+| ✅ Webhook responde 200 con firma válida | Verificado con simulación MP |
+| Probar flujo end-to-end con pago real aprobado | Bloqueado por credenciales producción de Liz |
+| Limpiar carrito post-pago confirmado desde webhook | Sprint 2 |
 | Idempotencia del email — MP puede reintentar webhook y mandar el email dos veces | Solución: campo `email_sent` en tabla `payments` — Sprint 2 |
 | Verificar dominio remitente en Resend cuando Liz tenga dominio propio | Cambiar `from` de `onboarding@resend.dev` a `pedidos@[dominio].com` |
+
 ---
 
-## Fase 1 — Ecommerce (Sprint actual)
+## ⚠️ Mejoras de UX detectadas en producción — pre-launch
 
-### Sprint 1 ← AQUÍ ESTAMOS
+| Mejora | Prioridad |
+|---|---|
+| Email de Supabase Auth feo y con límite de envíos — configurar Resend como SMTP de Auth | Alta |
+| Google OAuth como opción de login/registro | Media |
+| Checkout — validaciones de dirección, autocomplete con CP, combos estado/ciudad | Alta |
+| Pantallas de login/registro — validaciones y UX mejorada | Media |
+| Dirección con búsqueda en mapa o autocompletado | Baja |
+
+---
+
+## Fase 1 — Ecommerce
+
+### Sprint 1 ✅ CERRADO — 9 abril 2026
 
 - [x] Tabla `orders` y `order_items` en Supabase — verificadas en schema real
 - [x] API Route `POST /api/orders` — crear orden `pending` desde carrito activo
@@ -52,24 +67,23 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 - [x] Webhook MercadoPago — confirmar pago y actualizar orden
 - [x] Página `/orden/[id]` — confirmación de compra
 - [x] Página `/orden/[id]/error` — manejo de pago fallido o cancelado
-- [ ] Email de confirmación al comprador (Resend o similar)
-- [ ] Manejo de estados de orden: `pending` → `paid` → `shipped` → `delivered`
+- [x] Email de confirmación al comprador (Resend)
+- [x] MERCADOPAGO_WEBHOOK_SECRET real configurado en Vercel
+- [x] Bug producción resuelto — NEXT_PUBLIC_SUPABASE_URL corregido (.com → .co)
+- [x] Políticas RLS creadas para todas las tablas del proyecto
+- [x] force-dynamic en /tienda — resuelve caché de Vercel
 
-> Orden recomendado ahora:
-> 1. corregir drift del carrito
-> 2. conectar `/checkout` con `POST /api/orders`
-> 3. luego integrar MercadoPago
-
-### Sprint 2
+### Sprint 2 ← SIGUIENTE
 
 - [ ] Panel admin `/admin/orders` — lista de órdenes con filtros
 - [ ] Detalle de orden — dirección, productos, estado, cliente
-- [ ] Cambio manual de estado de orden en admin
-- [ ] Importar base de datos de productos reales ← BLOQUEADO
+- [ ] Cambio manual de estado de orden en admin (pending → shipped → delivered)
+- [ ] Importar base de datos de productos reales ← BLOQUEADO por visita a Liz
 - [ ] Script de migración con validación previa a importación
 - [x] Descuento automático de stock al confirmar pago
 - [ ] Alerta de stock bajo en panel admin
-- [ ] Sincronización de inventario — ventas locales actualizan el mismo stock
+- [ ] Limpiar carrito después de pago confirmado
+- [ ] Idempotencia del email — campo `email_sent` en tabla `payments`
 
 ---
 
@@ -120,9 +134,41 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
 ## Mejoras futuras (no comprometidas)
 
-- Google OAuth (login con Google)
 - Programa de referidos
 - Página de inspiración con galería real
 - Reviews y calificaciones de productos
 - App móvil nativa
 - Integración con sistema contable externo
+
+---
+
+## Pendientes para reunión con Liz
+
+### Insumos que necesitamos de Liz
+
+- [ ] Credenciales MercadoPago producción (Access Token + Public Key)
+- [ ] Base de datos de productos — visita acordada al negocio
+- [ ] Fotos reales del negocio, productos y cursos
+- [ ] Logos de marcas en PNG/SVG
+- [ ] Lista de servicios del salón con precio y duración
+- [ ] Lista de cursos activos con fechas, precio y cupo
+- [ ] % adicional para CFDI con su contadora
+- [ ] Elección de dominio definitivo
+
+### Costos recurrentes que Liz debe cubrir
+
+| Concepto | Costo estimado | Frecuencia |
+|---|---|---|
+| Dominio | ~$200-400 MXN | Anual |
+| Vercel Pro (si aplica al crecer) | ~$400 MXN | Mensual |
+| Supabase (si supera plan gratuito) | ~$300 MXN | Mensual |
+| Resend (plan gratuito cubre inicio) | $0 por ahora | — |
+| MercadoPago comisiones | ~3.49% + IVA por transacción | Por venta |
+
+### Agenda sugerida para reunión semanal
+
+1. Review del sprint anterior — demo de lo construido
+2. Validación de Liz — aprobación o feedback
+3. Entrega de insumos pendientes
+4. Definición del siguiente sprint
+5. Resolución de dudas operativas

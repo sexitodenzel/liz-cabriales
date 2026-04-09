@@ -197,3 +197,13 @@ Pegar siempre en el prompt de Cursor:
 - 7 variables de entorno configuradas en Vercel
 - Webhook MP configurado con URL real — MERCADOPAGO_WEBHOOK_SECRET pendiente (bug en panel MP)
 - Sprint 1 cerrado — todos los ítems completados
+
+### 9 abril 2026
+- MERCADOPAGO_WEBHOOK_SECRET real obtenido del panel de MP y configurado en Vercel
+- Webhook MP verificado — simulación respondió 200 OK con firma válida
+- Bug crítico resuelto en producción: NEXT_PUBLIC_SUPABASE_URL tenía .com en lugar de .co
+- force-dynamic agregado en /tienda — resuelve problema de caché en Vercel
+- Políticas RLS creadas para todas las tablas faltantes del proyecto
+- Flujo checkout → MP sandbox verificado hasta redirect de pago
+- Sprint 1 oficialmente cerrado — todos los ítems completados y verificados en producción
+- Sprint 2 inicia próxima sesión: Panel admin de órdenes
