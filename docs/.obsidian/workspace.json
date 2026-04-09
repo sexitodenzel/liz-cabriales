@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "ai-workflow-kit.md",
+                "file": "ai-context.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ai-workflow-kit"
+              "title": "ai-context"
             }
           }
         ],
@@ -198,11 +198,12 @@
   },
   "active": "5fe5f07a0654438f",
   "lastOpenFiles": [
+    "delivery/delivery-sprint-actual.md",
     "ai-context.md",
+    "tech/stack.md",
+    "delivery/session-continuity.md",
     "delivery/delivery-backlog.md",
     "ai-workflow-kit.md",
-    "delivery/session-continuity.md",
-    "delivery/delivery-sprint-actual.md",
     "delivery/delivery-decisions-log.md",
     "admin/admin-permissions.md",
     "commerce/commerce-order-flow.md",
@@ -217,7 +218,6 @@
     "tasks-DEPRECAR/roadmap.md.md",
     "tech/database-schema.md",
     "tech/dev-rules.md",
-    "tech/stack.md",
     "random/Sin título.md",
     "random",
     "meetings/meetings-meeting16 marzo 2026.md",

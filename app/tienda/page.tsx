@@ -10,6 +10,8 @@ import {
 
 import ProductGrid from "./components/ProductGrid"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Tienda | Liz Cabriales",
 }
@@ -48,6 +50,9 @@ export default async function StorePage({
       search,
     }),
   ])
+
+  console.log('categories error:', JSON.stringify(categoriesResult.error))
+  console.log('products error:', JSON.stringify(productsResult.error))
 
   if (categoriesResult.error || productsResult.error) {
     return (

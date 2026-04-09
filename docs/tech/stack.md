@@ -31,10 +31,10 @@
 - Ver archivo canónico: `payments/proveedorpagos.md`
 
 ### Email transaccional
-- **Por definir** — Resend recomendado
+* Resend — implementado para confirmación de compra * From: `onboarding@resend.dev` (sandbox) — cambiar cuando Liz tenga dominio propio
 
 ### Deployment
-- **Por definir** — Vercel es la opción más probable
+* Vercel — activo en producción * URL: https://liz-cabriales.vercel.app
 
 ---
 
@@ -48,10 +48,10 @@
 - ✅ Shadcn/ui
 - ✅ API Routes de Next.js
 - ✅ MercadoPago como proveedor de pagos
+- ✅ Resend como proveedor de email transaccional
+- ✅ Vercel como plataforma de deployment
 
 ### Pendientes
-- [ ] Definir deployment final (`Vercel` u otro)
-- [ ] Definir proveedor de emails transaccionales (`Resend` u otro)
 - [ ] Confirmar si Google OAuth entra en la siguiente fase o se mantiene pendiente
 
 ---
@@ -79,3 +79,4 @@ MERCADOPAGO_ACCESS_TOKEN=
 MERCADOPAGO_WEBHOOK_SECRET=
 
 NEXT_PUBLIC_APP_URL=
+RESEND_API_KEY=

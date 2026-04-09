@@ -53,7 +53,7 @@
 | Webhook MercadoPago            | ✅ Hecho      |                                                                                                   |
 | Página /orden/[id]             | ✅ Hecho      |                                                                                                   |
 | Página /orden/[id]/error       | ✅ Hecho      |                                                                                                   |
-| Email de confirmación          | ⏳ Pendiente  | Definir si usamos Resend                                                                          |
+| Email de confirmación          | ✅ Hecho      | Resend — `lib/email/resend.ts` + template HTML, dispara desde webhook                             |
 | Tablas orders + order_items    | ✅ Verificado | Existen en Supabase y soportan las columnas requeridas                                            |
 
 ---
@@ -187,3 +187,13 @@ Pegar siempre en el prompt de Cursor:
 - Pendiente operativo: configurar MERCADOPAGO_WEBHOOK_SECRET real en dashboard MP
 - Pendiente operativo: exponer con ngrok para prueba end-to-end en sandbox
 - Siguiente: Email de confirmación (Resend) — último item del Sprint 1
+
+### 8 abril 2026 (tercer bloque)
+- Email de confirmación implementado con Resend
+- `lib/email/resend.ts` y `lib/email/templates/order-confirmation.ts` creados
+- Template incluye: productos, total, tipo de entrega (shipping/pickup), enlace WhatsApp
+- Build corregido para Next.js 16 — params como Promise en route handlers dinámicos
+- Deploy en Vercel exitoso — https://liz-cabriales.vercel.app
+- 7 variables de entorno configuradas en Vercel
+- Webhook MP configurado con URL real — MERCADOPAGO_WEBHOOK_SECRET pendiente (bug en panel MP)
+- Sprint 1 cerrado — todos los ítems completados

@@ -14,44 +14,43 @@ El público es mayoritariamente femenino. El mercado es México. Los colores de 
 
 ## Stack
 
-|Capa|Tecnología|
-|---|---|
-|Frontend|Next.js 14 (App Router) + React|
-|Lenguaje|TypeScript — obligatorio en todo|
-|Base de datos|Supabase (PostgreSQL + RLS)|
-|Auth|Supabase Auth (email/password activo, Google OAuth pendiente)|
-|Estilos|Tailwind CSS + Shadcn/ui|
-|Pagos|MercadoPago (definido — pendiente credenciales de producción de Liz)|
-|Backend|API Routes de Next.js|
-|Email|Por definir (Resend recomendado)|
+| Capa          | Tecnología                                                           |
+| ------------- | -------------------------------------------------------------------- |
+| Frontend      | Next.js 14 (App Router) + React                                      |
+| Lenguaje      | TypeScript — obligatorio en todo                                     |
+| Base de datos | Supabase (PostgreSQL + RLS)                                          |
+| Auth          | Supabase Auth (email/password activo, Google OAuth pendiente)        |
+| Estilos       | Tailwind CSS + Shadcn/ui                                             |
+| Pagos         | MercadoPago (definido — pendiente credenciales de producción de Liz) |
+| Backend       | API Routes de Next.js                                                |
+| Email         | implementado (`onboarding@resend.dev` en sandbox)\|                  |
 
 ---
 
 ## Estado actual — 8 abril 2026
 
-| Área                          | Estado                                                                        |
-| ----------------------------- | ----------------------------------------------------------------------------- |
-| Landing page                  | ✅ Completa                                                                    |
-| Auth                          | ✅ Login y registro funcionando, redirección por rol                           |
-| Base de datos                 | ✅ 18 tablas en Supabase con RLS y seed de productos                           |
-| Middleware                    | ✅ Protección de rutas `/admin/*`, `/perfil/*`, `/checkout/*`                  |
-| Panel admin `/admin/products` | ✅ CRUD de productos con soft delete e inline editing                          |
-| Catálogo `/tienda`            | ✅ Conectado a Supabase, filtros por categoría y marca                         |
-| Carrito                       | ✅ Persistente + drift corregido — joins reales a products/product_variants    |
-| Página `/carrito`             | ✅ Con resumen, barra envío gratis y CTA a checkout                            |
-| Checkout y pagos              | ✅ Flujo completo con MercadoPago — pendiente deploy y credenciales producción |
-| Órdenes admin                 | ⏳ Sprint 2                                                                    |
-| Módulo de citas               | ⏳ Fase 2                                                                      |
-| Módulo de cursos              | ⏳ Fase 2                                                                      |
-| Admin multi-rol               | ⏳ Fase 2                                                                      |
+| Área                          | Estado                                                                                            |
+| ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| Landing page                  | ✅ Completa                                                                                        |
+| Auth                          | ✅ Login y registro funcionando, redirección por rol                                               |
+| Base de datos                 | ✅ 18 tablas en Supabase con RLS y seed de productos                                               |
+| Middleware                    | ✅ Protección de rutas `/admin/*`, `/perfil/*`, `/checkout/*`                                      |
+| Panel admin `/admin/products` | ✅ CRUD de productos con soft delete e inline editing                                              |
+| Catálogo `/tienda`            | ✅ Conectado a Supabase, filtros por categoría y marca                                             |
+| Carrito                       | ✅ Persistente + drift corregido — joins reales a products/product_variants                        |
+| Página `/carrito`             | ✅ Con resumen, barra envío gratis y CTA a checkout                                                |
+| Checkout y pagos              | ✅ Flujo completo con MercadoPago — deploy activo en Vercel, pendiente credenciales producción<br> |
+| Deploy                        | ✅ Vercel activo — https://liz-cabriales.vercel.app \|                                             |
+| Email confirmación            | ✅ Implementado con Resend — pendiente prueba end-to-end                                           |
+| Órdenes admin                 | ⏳ Sprint 2                                                                                        |
+| Módulo de citas               | ⏳ Fase 2                                                                                          |
+| Módulo de cursos              | ⏳ Fase 2                                                                                          |
+| Admin multi-rol               | ⏳ Fase 2                                                                                          |
 
 ---
 
-## Sprint actual — Sprint 1
-
-**Objetivo:** Checkout funcional con MercadoPago  
-**Plazo:** ~2 semanas desde 29 marzo 2026  
-**Ver detalle:** `delivery/sprint-actual.md`
+## Sprint actual — Sprint 2
+**Objetivo:** Panel admin de órdenes + productos reales + inventario sincronizado
 
 ---
 
