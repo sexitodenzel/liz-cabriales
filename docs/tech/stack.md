@@ -54,6 +54,15 @@
 ### Pendientes
 - [ ] Confirmar si Google OAuth entra en la siguiente fase o se mantiene pendiente
 
+### Requisitos de DB para producción
+
+Antes de cualquier deploy, ejecutar en Supabase SQL Editor:
+- `ALTER TABLE payments ADD COLUMN email_sent BOOLEAN NOT NULL DEFAULT false`
+- `CREATE OR REPLACE FUNCTION create_order_atomic(...)` — cuerpo completo en `app/api/webhooks/mercadopago/route.ts`
+
+Sin estos dos pasos el webhook falla y la creación de órdenes lanza error.
+
+
 ---
 
 ## Impacto en el desarrollo

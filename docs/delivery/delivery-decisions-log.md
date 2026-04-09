@@ -69,3 +69,17 @@ Cada vez que Liz (u otro stakeholder) apruebe, rechace o cambie algo relevante:
 ---
 
 <!-- Plantilla para nuevas entradas: ### AAAA-MM-DD — [Tema de la decisión] **Decidido por:** [Nombre] **Canal:** [WhatsApp / Reunión / Email] **Decisiones:** - ✅ [Qué se aprobó] - ❌ [Qué se rechazó] - 🔄 [Qué cambió] **Impacto:** [Cómo afecta al proyecto, alcance o fechas] -->
+
+### AAAA-MM-DD — Aceptación del acuerdo de servicio
+
+**Decidido por:** Liz Cabriales  
+**Canal:** WhatsApp — captura en `delivery/meetings/aceptacion-acuerdo.png`
+
+**Decisiones:**
+
+- ✅ Acuerdo de servicio versión 1.0 aceptado — $22,000 MXN en 3 fases
+- ✅ Esquema de cobro 50/50 por fase aceptado
+
+**Impacto:** Protección contractual del proyecto. Sin esta entrada, el acuerdo no tiene registro formal en el vault.
+
+> ⚠️ Si aún no hay captura de WhatsApp: solicitar a Liz que responda "acepto" al PDF del acuerdo esta semana.

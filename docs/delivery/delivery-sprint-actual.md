@@ -1,209 +1,103 @@
-
-```md
-# Sprint Actual — Sprint 1
+# Sprint Actual — Sprint 2
 
 > Este archivo dice exactamente qué estás construyendo HOY. Léelo al iniciar cada sesión de trabajo. Actualízalo al terminar cada sesión con el estado real.
 
 ---
 
-## Sprint 1 — Checkout con MercadoPago
+## Sprint 2 — Panel admin de órdenes + deuda técnica
 
-**Objetivo concreto:** Un cliente puede agregar productos al carrito, ir al checkout, pagar con tarjeta/OXXO/SPEI vía MercadoPago, y recibir confirmación de su compra.
+**Objetivo concreto:** El admin puede ver todas las órdenes paginadas, cambiar su estado manualmente, y el flujo de pago es atómico e idempotente.
 
-**Inicio:** 29 marzo 2026 **Fin:** 11 abril 2026 **Sprint review con Liz:** ~12 abril 2026
+**Inicio:** 9 abril 2026  
+**Fin estimado:** 25 abril 2026  
+**Sprint review con Liz:** semana del 14 abril 2026
 
 ---
 
-```
 ## Scope — qué SÍ entra en este sprint
 
-[x] Drift corregido, página implementada, conectada a `POST /api/orders`, CTA placeholder para MP
-[x] API Route POST /api/orders — crear orden en Supabase  
-[ ] API Route POST /api/payments/mercadopago — crear preferencia de pago  
-[ ] Webhook POST /api/webhooks/mercadopago — confirmar pago y actualizar orden  
-[ ] Página /orden/[id] — confirmación de compra exitosa  
-[ ] Página /orden/[id]/error — manejo de pago fallido o cancelado  
-[ ] Email de confirmación al comprador (Resend)  
-[x] Tablas en Supabase: orders, order_items (verificadas en schema real)  
-[ ] Estados de orden: pending → paid → shipped → delivered
+- [x] Transacción atómica — función `create_order_atomic` en PostgreSQL vía `rpc()`
+- [x] Idempotencia del webhook — columna `email_sent` en tabla `payments`
+- [x] Limpiar `cart_items` tras pago confirmado — bloque `approved` del webhook
+- [x] Panel admin `/admin/orders` — lista paginada con filtros y badges por estado
+- [x] Detalle `/admin/orders/[id]` — cliente, ítems, cambio manual de estado
+- [x] `GET /api/admin/orders` — page + limit + status + count:exact
+- [x] `PATCH /api/admin/orders/[id]/status` — solo shipped / delivered / cancelled
+- [x] Alerta de stock bajo en panel admin
+- [ ] Importar base de datos de productos reales ← BLOQUEADO por visita a Liz
+- [ ] Script de migración con validación previa a importación
 
 ## Scope — qué NO entra en este sprint
 
-```
-
-✗ Panel admin de órdenes (Sprint 2)  
-✗ Importar productos reales de Liz (Sprint 2, visita acordada)  
-✗ Sincronización de inventario (Sprint 2)  
 ✗ Módulo de citas (Fase 2)  
-✗ Módulo de cursos (Fase 2)
+✗ Módulo de cursos (Fase 2)  
+✗ Admin multi-rol / recepcionista (Fase 2)  
+✗ Shadcn/ui completo — las pantallas usan tabla HTML + Tailwind (consistente con admin/products)
 
-```
+---
 
-> Si algo no está en el scope de arriba → va al backlog, no se construye ahora.
+## ⚠️ Pendientes operativos — ejecutar antes de QA
+
+| Acción                                                                                                                                    | Responsable | Estado         |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
+| Ejecutar `ALTER TABLE payments ADD COLUMN email_sent BOOLEAN NOT NULL DEFAULT false` en Supabase SQL Editor                               | Denzel      | ✅ Ejecutado \| |
+| Ejecutar `CREATE OR REPLACE FUNCTION create_order_atomic(...)` en Supabase SQL Editor — cuerpo en `app/api/webhooks/mercadopago/route.ts` | Denzel      | ✅ Ejecutado    |
+| Agregar enlace a `/admin/orders` desde dashboard `/admin`                                                                                 | Denzel      | ⏳ Pendiente    |
 
 ---
 
 ## Estado de tareas
 
-| Tarea                          | Estado       | Notas                                                                                             |
-| ------------------------------ | ------------ | ------------------------------------------------------------------------------------------------- |
-| Página /checkout               | ⏳ Pendiente  | Siguiente frente de trabajo; conectar con `POST /api/orders`                                      |
-| POST /api/orders               | ✅ Hecho      | Auth, Zod, `CART_EMPTY`, `OUT_OF_STOCK`, snapshot de `order_items.unit_price`, `status = pending` |
-| POST /api/payments/mercadopago | ✅ Hecho      |                                                                                                   |
-| Webhook MercadoPago            | ✅ Hecho      |                                                                                                   |
-| Página /orden/[id]             | ✅ Hecho      |                                                                                                   |
-| Página /orden/[id]/error       | ✅ Hecho      |                                                                                                   |
-| Email de confirmación          | ✅ Hecho      | Resend — `lib/email/resend.ts` + template HTML, dispara desde webhook                             |
-| Tablas orders + order_items    | ✅ Verificado | Existen en Supabase y soportan las columnas requeridas                                            |
+| Tarea | Estado | Notas |
+|---|---|---|
+| `create_order_atomic` PostgreSQL + rpc() | ✅ Hecho | `lib/supabase/orders.ts` — requiere SQL en Supabase |
+| `email_sent` en tabla payments | ✅ Hecho | `lib/supabase/payments.ts` — requiere ALTER TABLE en Supabase |
+| Limpiar carrito tras pago aprobado | ✅ Hecho | `clearCartForUser` — bloque approved del webhook |
+| Panel admin `/admin/orders` | ✅ Hecho | Tabla paginada, filtros, badges, fila clicable |
+| Detalle `/admin/orders/[id]` | ✅ Hecho | Cliente, ítems, select de estado, botón guardar |
+| `GET /api/admin/orders` | ✅ Hecho | page + limit + status + count:exact |
+| `GET /api/admin/orders/[id]` | ✅ Hecho | Necesario para cargar detalle con cookie de sesión |
+| `PATCH /api/admin/orders/[id]/status` | ✅ Hecho | Zod, role admin, solo shipped/delivered/cancelled |
+| Alerta de stock bajo en panel admin | ⏳ Pendiente | Siguiente frente |
+| Importar productos reales | 🔴 Bloqueado | Esperando visita a Liz |
+| Script de migración con validación | ⏳ Pendiente | Depende de importación |
 
 ---
 
 ## Bloqueadores de este sprint
 
-| Bloqueador                                | Responsable       | Estado                                         |
-| ----------------------------------------- | ----------------- | ---------------------------------------------- |
-| Credenciales MercadoPago (producción)     | Liz               | ⚠️ Pendiente solicitar                         |
-| Definir proveedor de email (Resend?)      | Denzel            | ⏳ Decidir                                      |
-| Drift del módulo carrito vs schema activo | Equipo desarrollo | ✅ Resuelto — cart_items ahora usa joins reales |
-
-> Mientras no llegan las credenciales de producción, trabajar con credenciales sandbox de MercadoPago.
+| Bloqueador | Responsable | Estado |
+|---|---|---|
+| SQL sin ejecutar en Supabase (`email_sent` + `create_order_atomic`) | Denzel | ⏳ Pendiente — bloquea QA |
+| Credenciales MercadoPago producción | Liz | ⚠️ Pendiente |
+| Base de datos real de productos | Liz / visita | 🔴 Bloqueado |
 
 ---
 
-## Orden recomendado de construcción
+## Archivos creados en este sprint
 
-Esto importa — construir en este orden evita retrabajos:
+lib/ ├── supabase/ │ ├── adminOrders.ts — listado paginado, detalle admin, actualización de estado │ └── payments.ts — claimApprovedPaymentForOrder, updateOrderStatusToPaid, clearCartForUser ├── validations/ │ └── adminOrders.ts — adminOrdersQuerySchema + adminOrderStatusPatchSchema
 
-```
+app/ ├── admin/orders/ │ ├── page.tsx — lista paginada con filtros y badges │ └── [id]/page.tsx — detalle de orden + cambio de estado └── api/admin/orders/ ├── route.ts — GET paginado └── [id]/ ├── route.ts — GET detalle └── status/route.ts — PATCH cambio de estado
 
-1. Verificar/crear tablas orders y order_items en Supabase ✅  
-    ↓
-    
-2. POST /api/orders — lógica de crear orden (sin pago aún) ✅  
-    ↓
-    
-3. 3. Alinear carrito con schema real + Página /checkout — UI + conectar con /api/orders ✅ 
-    ↓
-    
-4. POST /api/payments/mercadopago — generar preferencia de pago  
-    ↓
-    
-5. Conectar checkout con MercadoPago (redirigir a pago)  
-    ↓
-    
-6. Webhook /api/webhooks/mercadopago — confirmar pago  
-    ↓
-    
-7. Página /orden/[id] — mostrar confirmación  
-    ↓
-    
-8. Página /orden/[id]/error — manejar fallo  
-    ↓
-    
-9. Email de confirmación
-    
+## Archivos modificados en este sprint
 
-```
-
----
-
-## Archivos a crear en este sprint
-
-```
-
-app/  
-├── checkout/  
-│ └── page.tsx  
-├── orden/  
-│ └── [id]/  
-│ ├── page.tsx  
-│ └── error/page.tsx  
-└── api/  
-├── orders/  
-│ └── route.ts  
-├── payments/  
-│ └── mercadopago/  
-│ └── route.ts  
-└── webhooks/  
-└── mercadopago/  
-└── route.ts
-
-lib/  
-└── supabase/  
-└── orders.ts ← queries de órdenes
-
-```
-
----
-
-## .md que necesita Cursor para este sprint
-
-Pegar siempre en el prompt de Cursor:
-
-- `tech/database-schema.md`
-- `commerce/order-flow.md`
-- `payments/proveedorpagos.md`
-- `tech/dev-rules.md`
-- `tech/api-design.md`
+- `lib/supabase/orders.ts` — usa `create_order_atomic` vía rpc()
+- `app/api/orders/route.ts` — comentario que enlaza con la RPC
+- `app/api/webhooks/mercadopago/route.ts` — idempotencia, limpieza de carrito, SQL documentado en comentario
 
 ---
 
 ## Notas de sesiones
 
-### 29 marzo 2026
-
-- Sprint 1 definido y documentado
-- Vault reorganizado — carpeta delivery/ creada
-- claude-prompt.md y ai-context.md actualizados
-- Pendiente: pegar tech/database-schema.md para generar api-design.md y security-model.md
-- Pendiente: solicitar credenciales sandbox de MercadoPago a Liz o crearlas en cuenta propia para desarrollo
-
-### 7 abril 2026
-
-- Codex cerró `POST /api/orders`
-- `orders` y `order_items` verificados contra Supabase real
-- La lógica reusable quedó en `lib/supabase/orders.ts`
-- `POST /api/orders` valida auth, body, carrito vacío y stock
-- La orden se crea en `pending` y genera snapshot en `order_items`
-- No se creó `payments`, no se descontó stock y no se limpió carrito todavía
-- Se detectó drift entre módulo de carrito y schema activo; corregir antes de conectar `/checkout`
-- Siguiente tarea recomendada: alinear carrito con schema real y conectar `/checkout` a los helpers de órdenes
-
-### 8 abril 2026
-- Drift del módulo carrito corregido — cart_items ya usa joins reales a products y product_variants
-- /api/cart alineado al schema activo
-- CartContext actualizado — hidrata carrito desde /api/cart, sincroniza tras login
-- /checkout implementado — resumen real del carrito, formulario shipping/pickup, submit a POST /api/orders
-- Al éxito muestra order_id y CTA placeholder para siguiente paso de pago
-- No se limpió carrito todavía — pendiente decidir si al crear orden o al confirmar pago
-- Siguiente frente: POST /api/payments/mercadopago (bloqueado por credenciales sandbox)
-
-### 8 abril 2026 (segundo bloque)
-- POST /api/payments/mercadopago implementado — genera preferencia real en MP sandbox
-- POST /api/webhooks/mercadopago implementado — verifica firma HMAC-SHA256
-- Webhook actualiza orders.status y payments.status, descuenta stock al confirmar approved
-- /orden/[id] y /orden/[id]/error operativas
-- Checkout conectado — flujo completo: carrito → orden → MP → confirmación
-- Pendiente operativo: configurar MERCADOPAGO_WEBHOOK_SECRET real en dashboard MP
-- Pendiente operativo: exponer con ngrok para prueba end-to-end en sandbox
-- Siguiente: Email de confirmación (Resend) — último item del Sprint 1
-
-### 8 abril 2026 (tercer bloque)
-- Email de confirmación implementado con Resend
-- `lib/email/resend.ts` y `lib/email/templates/order-confirmation.ts` creados
-- Template incluye: productos, total, tipo de entrega (shipping/pickup), enlace WhatsApp
-- Build corregido para Next.js 16 — params como Promise en route handlers dinámicos
-- Deploy en Vercel exitoso — https://liz-cabriales.vercel.app
-- 7 variables de entorno configuradas en Vercel
-- Webhook MP configurado con URL real — MERCADOPAGO_WEBHOOK_SECRET pendiente (bug en panel MP)
-- Sprint 1 cerrado — todos los ítems completados
-
 ### 9 abril 2026
-- MERCADOPAGO_WEBHOOK_SECRET real obtenido del panel de MP y configurado en Vercel
-- Webhook MP verificado — simulación respondió 200 OK con firma válida
-- Bug crítico resuelto en producción: NEXT_PUBLIC_SUPABASE_URL tenía .com en lugar de .co
-- force-dynamic agregado en /tienda — resuelve problema de caché en Vercel
-- Políticas RLS creadas para todas las tablas faltantes del proyecto
-- Flujo checkout → MP sandbox verificado hasta redirect de pago
-- Sprint 1 oficialmente cerrado — todos los ítems completados y verificados en producción
-- Sprint 2 inicia próxima sesión: Panel admin de órdenes
+- Sprint 1 cerrado al 100% — producción estable
+- Análisis de deuda técnica realizado — 8 puntos clasificados
+- Backlog actualizado con deuda técnica y nuevos ítems de Sprint 2
+
+### 9 abril 2026 (segundo bloque)
+- Sprint 2 arrancado — primera tarea entregada
+- `create_order_atomic`, `email_sent`, limpieza de carrito implementados
+- Panel admin `/admin/orders` y detalle `/admin/orders/[id]` operativos
+- Build correcto — lint falla en archivos previos fuera de scope, no en los nuevos
+- Pendiente crítico: ejecutar 2 SQL en Supabase antes de QA

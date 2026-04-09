@@ -1,7 +1,14 @@
+import { createClient as createServiceClient } from "@supabase/supabase-js"
+
 import type { DeliveryType, OrderStatus } from "@/types"
 import type { CreateOrderInput } from "@/lib/validations/orders"
 
 import { createClient } from "./server"
+
+const supabaseAdmin = createServiceClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 type SupabaseError = {
   message: string
@@ -271,62 +278,41 @@ export async function createOrderFromActiveCart(
   const shippingCity =
     input.delivery_type === "shipping" ? input.shipping_city ?? null : null
 
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      user_id: userId,
-      status: "pending",
-      total: draftResult.data.total,
-      delivery_type: input.delivery_type,
-      shipping_address: shippingAddress,
-      shipping_state: shippingState,
-      shipping_city: shippingCity,
-      shipping_cost: draftResult.data.shipping_cost,
-    })
-    .select("id, total")
-    .single()
+  const pItems = draftResult.data.items.map((item) => ({
+    product_id: item.product_id,
+    variant_id: item.variant_id,
+    quantity: item.quantity,
+    unit_price: item.unit_price,
+  }))
 
-  if (orderError || !order) {
-    return {
-      data: null,
-      error: {
-        message: orderError?.message ?? "No se pudo crear la orden",
-        code: orderError?.code ?? "ORDER_CREATE_FAILED",
-      },
+  const { data: orderId, error: rpcError } = await supabaseAdmin.rpc(
+    "create_order_atomic",
+    {
+      p_user_id: userId,
+      p_delivery_type: input.delivery_type,
+      p_shipping_address: shippingAddress,
+      p_shipping_state: shippingState,
+      p_shipping_city: shippingCity,
+      p_shipping_cost: draftResult.data.shipping_cost,
+      p_total: draftResult.data.total,
+      p_items: pItems,
     }
-  }
-
-  const { error: itemsError } = await supabase.from("order_items").insert(
-    draftResult.data.items.map((item) => ({
-      order_id: order.id,
-      product_id: item.product_id,
-      variant_id: item.variant_id,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-    }))
   )
 
-  if (itemsError) {
-    const { error: rollbackError } = await supabase
-      .from("orders")
-      .delete()
-      .eq("id", order.id)
-
+  if (rpcError || !orderId) {
     return {
       data: null,
       error: {
-        message: rollbackError
-          ? "No se pudo completar la orden y no fue posible revertir el registro base"
-          : "No se pudieron guardar los productos de la orden",
-        code: itemsError.code ?? "ORDER_ITEMS_CREATE_FAILED",
+        message: rpcError?.message ?? "No se pudo crear la orden",
+        code: rpcError?.code ?? "ORDER_CREATE_FAILED",
       },
     }
   }
 
   return {
     data: {
-      order_id: order.id as string,
-      total: Number(order.total),
+      order_id: String(orderId),
+      total: draftResult.data.total,
     },
     error: null,
   }

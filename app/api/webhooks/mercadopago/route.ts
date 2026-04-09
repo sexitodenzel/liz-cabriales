@@ -3,10 +3,57 @@ import { NextRequest, NextResponse } from "next/server"
 import { MercadoPagoConfig, Payment } from "mercadopago"
 
 import {
+  claimApprovedPaymentForOrder,
+  clearCartForUser,
   deductStockForOrder,
+  updateOrderStatusToPaid,
   updatePaymentStatusByOrderId,
 } from "@/lib/supabase/payments"
 import { sendOrderConfirmationEmail } from "@/lib/email/resend"
+
+/**
+ * ─── SQL ejecutado manualmente en Supabase SQL Editor (sin migraciones formales) ───
+ *
+ * 1) Columna `email_sent` en `payments` (idempotencia del webhook aprobado):
+ *    ALTER TABLE payments ADD COLUMN email_sent BOOLEAN NOT NULL DEFAULT false;
+ *
+ * 2) Función transaccional `create_order_atomic` (orden + ítems en una sola transacción):
+ *
+ *    CREATE OR REPLACE FUNCTION create_order_atomic(
+ *      p_user_id UUID,
+ *      p_delivery_type TEXT,
+ *      p_shipping_address TEXT,
+ *      p_shipping_state TEXT,
+ *      p_shipping_city TEXT,
+ *      p_shipping_cost NUMERIC,
+ *      p_total NUMERIC,
+ *      p_items JSONB
+ *    ) RETURNS UUID AS $$
+ *    DECLARE
+ *      v_order_id UUID;
+ *      v_item JSONB;
+ *    BEGIN
+ *      INSERT INTO orders (user_id, status, total, delivery_type,
+ *        shipping_address, shipping_state, shipping_city, shipping_cost)
+ *      VALUES (p_user_id, 'pending', p_total, p_delivery_type,
+ *        p_shipping_address, p_shipping_state, p_shipping_city, p_shipping_cost)
+ *      RETURNING id INTO v_order_id;
+ *
+ *      FOR v_item IN SELECT * FROM jsonb_array_elements(p_items) LOOP
+ *        INSERT INTO order_items (order_id, product_id, variant_id, quantity, unit_price)
+ *        VALUES (
+ *          v_order_id,
+ *          (v_item->>'product_id')::UUID,
+ *          (v_item->>'variant_id')::UUID,
+ *          (v_item->>'quantity')::INT,
+ *          (v_item->>'unit_price')::NUMERIC
+ *        );
+ *      END LOOP;
+ *
+ *      RETURN v_order_id;
+ *    END;
+ *    $$ LANGUAGE plpgsql SECURITY DEFINER;
+ */
 
 type WebhookBody = {
   type?: string
@@ -115,18 +162,39 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     if (mpStatus === "approved") {
-      const updateResult = await updatePaymentStatusByOrderId(
-        orderId,
-        "approved",
-        "paid"
-      )
-      if (updateResult.error) {
+      const claimResult = await claimApprovedPaymentForOrder(orderId)
+      if (claimResult.error) {
         console.error(
-          `[webhook] Error actualizando estado para orden ${orderId}:`,
-          updateResult.error
+          `[webhook] Error al reclamar pago aprobado para orden ${orderId}:`,
+          claimResult.error
+        )
+        return NextResponse.json({ received: true }, { status: 200 })
+      }
+
+      if (!claimResult.data.claimed) {
+        return NextResponse.json({ ok: true }, { status: 200 })
+      }
+
+      const userId = claimResult.data.userId
+
+      const orderPaidResult = await updateOrderStatusToPaid(orderId)
+      if (orderPaidResult.error) {
+        console.error(
+          `[webhook] Error marcando orden ${orderId} como pagada:`,
+          orderPaidResult.error
         )
       }
+
       await deductStockForOrder(orderId)
+
+      try {
+        await clearCartForUser(userId)
+      } catch (cartError) {
+        console.error(
+          `[webhook] Error vaciando carrito para usuario ${userId}:`,
+          cartError
+        )
+      }
 
       try {
         await sendOrderConfirmationEmail(orderId)

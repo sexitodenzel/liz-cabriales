@@ -26,9 +26,14 @@ export type PaymentRecord = {
   provider: string
   provider_ref: string
   status: PaymentStatus
+  email_sent: boolean
   created_at: string
   updated_at: string
 }
+
+export type ClaimApprovedPaymentResult =
+  | { claimed: true; userId: string }
+  | { claimed: false }
 
 export async function createPayment(
   input: CreatePaymentInput
@@ -58,6 +63,75 @@ export async function createPayment(
   }
 
   return { data: data as PaymentRecord, error: null }
+}
+
+/**
+ * Marca el pago como aprobado y email_sent=true solo si aún no se procesó (email_sent=false).
+ * Devuelve claimed:false si otro webhook ya actualizó la fila (idempotencia).
+ */
+export async function claimApprovedPaymentForOrder(
+  orderId: string
+): Promise<Result<ClaimApprovedPaymentResult>> {
+  const { data, error } = await supabaseAdmin
+    .from("payments")
+    .update({
+      status: "approved",
+      email_sent: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("order_id", orderId)
+    .eq("email_sent", false)
+    .select("user_id")
+
+  if (error) {
+    return {
+      data: null,
+      error: { message: error.message, code: error.code },
+    }
+  }
+
+  const rows = (data ?? []) as Array<{ user_id: string }>
+  if (rows.length === 0) {
+    return { data: { claimed: false }, error: null }
+  }
+
+  return {
+    data: { claimed: true, userId: rows[0].user_id },
+    error: null,
+  }
+}
+
+export async function updateOrderStatusToPaid(
+  orderId: string
+): Promise<Result<null>> {
+  const { error } = await supabaseAdmin
+    .from("orders")
+    .update({
+      status: "paid",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+
+  if (error) {
+    return {
+      data: null,
+      error: { message: error.message, code: error.code },
+    }
+  }
+
+  return { data: null, error: null }
+}
+
+export async function clearCartForUser(userId: string): Promise<void> {
+  const { data: cart } = await supabaseAdmin
+    .from("carts")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle()
+
+  if (!cart?.id) return
+
+  await supabaseAdmin.from("cart_items").delete().eq("cart_id", cart.id)
 }
 
 export async function updatePaymentStatusByOrderId(

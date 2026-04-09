@@ -85,6 +85,8 @@ export async function POST(
       return errorResponse("Datos invalidos", 400, "VALIDATION_ERROR")
     }
 
+    // La creación usa la RPC `create_order_atomic` en Supabase (lib/supabase/orders.ts)
+    // para insertar orden + ítems en una sola transacción.
     const createResult = await createOrderFromActiveCart(
       userId,
       parseResult.data

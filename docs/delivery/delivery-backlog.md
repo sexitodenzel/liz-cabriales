@@ -8,24 +8,26 @@
 
 Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
-|Insumo|Bloqueado por|Impacto|
-|---|---|---|
-|Credenciales de MercadoPago (producción)|Liz|Sin esto no hay checkout real con dinero real|
-|Base de datos de productos reales (precios + fotos)|Liz / visita en sitio|Sin esto Sprint 2 de ecommerce no cierra completo|
-|Lista de servicios del salón (nombre, precio, duración)|Liz|Sin esto no hay módulo de citas|
-|Lista de cursos activos (fechas, precio, cupo)|Liz|Sin esto no hay módulo de cursos|
-|Logos de marcas en PNG/SVG|Liz|Sin esto el slider usa placeholders|
-|Fotos reales del negocio y productos|Liz|Sin esto las imágenes son de picsum|
-|% adicional para CFDI|Contadora de Liz|Sin esto no hay flujo de facturación|
+| Insumo                                                  | Bloqueado por         | Impacto                                           |
+| ------------------------------------------------------- | --------------------- | ------------------------------------------------- |
+| Credenciales de MercadoPago (producción)                | Liz                   | Sin esto no hay checkout real con dinero real     |
+| Base de datos de productos reales (precios + fotos)     | Liz / visita en sitio | Sin esto Sprint 2 de ecommerce no cierra completo |
+| Lista de servicios del salón (nombre, precio, duración) | Liz                   | Sin esto no hay módulo de citas                   |
+| Lista de cursos activos (fechas, precio, cupo)          | Liz                   | Sin esto no hay módulo de cursos                  |
+| Logos de marcas en PNG/SVG                              | Liz                   | Sin esto el slider usa placeholders               |
+| Fotos reales del negocio y productos                    | Liz                   | Sin esto las imágenes son de picsum               |
+| % adicional para CFDI                                   | Contadora de Liz      | Sin esto no hay flujo de facturación              |
+|                                                         |                       |                                                   |
 
 ---
 
 ## ⚠️ Bloqueadores técnicos
 
-| Bloqueo técnico | Responsable | Impacto |
-|---|---|---|
-| No hay transacción SQL real en creación de orden | Equipo desarrollo | Riesgo controlado; no bloquea Sprint 2 pero hay que resolverlo |
+| Bloqueo técnico                                  | Responsable       | Impacto                                        |
+| ------------------------------------------------ | ----------------- | ---------------------------------------------- |
+| No hay transacción SQL real en creación de orden | Equipo desarrollo | ✅ Resuelto — `create_order_atomic` Sprint 2 \| |
 | Typecheck/lint global con errores fuera de scope | Equipo desarrollo | Reduce confianza de validación global del repo |
+|                                                  |                   |                                                |
 
 ---
 
@@ -75,15 +77,19 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
 ### Sprint 2 ← SIGUIENTE
 
-- [ ] Panel admin `/admin/orders` — lista de órdenes con filtros
-- [ ] Detalle de orden — dirección, productos, estado, cliente
-- [ ] Cambio manual de estado de orden en admin (pending → shipped → delivered)
+- [x] Panel admin `/admin/orders` — lista de órdenes con filtros
+- [x] Detalle de orden — dirección, productos, estado, cliente
+- [x] Cambio manual de estado de orden en admin (pending → shipped → delivered)
 - [ ] Importar base de datos de productos reales ← BLOQUEADO por visita a Liz
 - [ ] Script de migración con validación previa a importación
 - [x] Descuento automático de stock al confirmar pago
 - [ ] Alerta de stock bajo en panel admin
 - [ ] Limpiar carrito después de pago confirmado
 - [ ] Idempotencia del email — campo `email_sent` en tabla `payments`
+- [x] Transacción atómica en creación de orden — función `create_order_atomic` en PostgreSQL vía `rpc()`
+- [x] Paginación en `GET /api/admin/orders` — `page`, `limit`, `count: 'exact'` desde el primer commit
+- [x] Idempotencia del webhook — columna `email_sent` en tabla `payments` antes de enviar email y descontar stock
+- [x] Limpiar `cart_items` tras pago confirmado — bloque `approved` del webhook
 
 ---
 
@@ -142,6 +148,16 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
 ---
 
+## 🔜 Deuda técnica — backlog
+
+| Ítem                                                                                                                            | Prioridad | Cuándo activar                         |
+| ------------------------------------------------------------------------------------------------------------------------------- | --------- | -------------------------------------- |
+| Trigger OAuth — adaptar trigger `public.users` para separar `full_name` de Google en `first_name` / `last_name`                 | Media     | Antes de activar Google OAuth          |
+| Carritos vencidos — job `pg_cron` diario que elimina `cart_items` y `carts` donde `expires_at < now()`                          | Baja      | Antes del launch                       |
+| Onboarding Liz — crear `docs/delivery/onboarding-liz.md` con qué hacer si Vercel cae, variables de entorno, contacto de soporte | Media     | Antes de entrega Fase 1                |
+| Filtros de stock bajo — mover filtros `deleted_at` / `is_active` de código a query PostgREST en `getLowStockVariants()`         | Baja      | Cuando haya productos reales cargados  |
+
+---
 ## Pendientes para reunión con Liz
 
 ### Insumos que necesitamos de Liz
