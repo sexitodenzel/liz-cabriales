@@ -18,9 +18,9 @@ export default function BrandsSlider() {
   const items = [...BRANDS, ...BRANDS]
 
   return (
-    <section className="bg-white py-5">
-      <div className="max-w-[1400px] mx-auto px-6">
-        <p className="text-sm font-light text-gray-400 mb-6 text-center">
+    <section className="border-b border-t border-neutral-100 bg-white py-5">
+      <div className="mx-auto max-w-[1400px] px-6">
+        <p className="mb-6 text-center text-[10px] font-light uppercase tracking-[0.3em] text-neutral-400">
           Nuestras marcas
         </p>
 
@@ -29,7 +29,7 @@ export default function BrandsSlider() {
             {items.map((brand, index) => (
               <div
                 key={`${brand}-${index}`}
-                className="flex items-center justify-center px-6 md:px-10 py-3 md:py-3 rounded-full bg-gray-100 text-sm md:text-base font-light tracking-wide text-gray-700 whitespace-nowrap border border-gray-100"
+                className="flex cursor-default items-center justify-center whitespace-nowrap rounded-full border border-[#C6A75E]/30 bg-white px-6 py-3 text-sm font-light tracking-wide text-[#0a0a0a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E] md:px-10 md:py-3 md:text-base"
               >
                 {brand}
               </div>

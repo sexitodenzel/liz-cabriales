@@ -7,63 +7,85 @@ type PromoCardProps = {
   description: string
   buttonLabel: string
   href: string
+  img: string
+  external?: boolean
 }
 
 const cards: PromoCardProps[] = [
   {
     title: "Conoce nuestra tienda",
-    description: "Productos profesionales para uñas con envío a todo México",
-    buttonLabel: "Descubre ahora",
+    description: "Productos profesionales con envío a todo México",
+    buttonLabel: "Descubrir",
     href: "/tienda",
+    img: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&h=400&fit=crop",
   },
   {
-    title: "Colores de Primavera",
-    description: "Descubre los nuevos colores de primavera",
-    buttonLabel: "Descubre ahora",
-    href: "/cursos",
+    title: "Colores de temporada",
+    description: "Descubre los nuevos colores de la colección",
+    buttonLabel: "Ver colores",
+    href: "/tienda",
+    img: "https://images.unsplash.com/photo-1583001809873-a128495da465?w=600&h=400&fit=crop",
   },
   {
-    title: "Encuentra tu manicure",
-    description: "Descubre que tipo de manicure te queda mejor",
-    buttonLabel: "Descubre ahora",
-    href: "/servicios",
+    title: "Agenda tu cita",
+    description: "Atención profesional en Tampico, Tamaulipas",
+    buttonLabel: "WhatsApp",
+    href: "https://wa.me/528332183399",
+    img: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=600&h=400&fit=crop",
+    external: true,
   },
 ]
 
 export default function PromoCards() {
   return (
-    <section className="py-8 px-6"> 
-      <div className="max-w-[px1400] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {cards.map((card) => (
-            <article
-              key={card.title}
-              className="flex flex-row rounded-xl bg-gray-50 overflow-hidden h-44"
-            >
-              <div className="flex-1 flex flex-col justify-center items-center text-center p-8">
-                <div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">
-                    {card.title}
-                  </h3>
-                  <p className="text-xs text-gray-600 mb-6">
-                    {card.description}
-                  </p>
+    <section className="px-6 py-8">
+      <div className="mx-auto max-w-[1400px]">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          {cards.map((card) => {
+            const buttonClass =
+              "mt-4 inline-flex rounded-full bg-[#C6A75E] px-5 py-2 text-xs font-semibold text-black transition-colors hover:bg-white"
+
+            const inner = (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-6 text-white">
+                  <h3 className="text-lg font-semibold">{card.title}</h3>
+                  <p className="mt-1 text-xs text-white/80">{card.description}</p>
+                  {card.external ? (
+                    <a
+                      href={card.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonClass}
+                    >
+                      {card.buttonLabel}
+                    </a>
+                  ) : (
+                    <Link href={card.href} className={buttonClass}>
+                      {card.buttonLabel}
+                    </Link>
+                  )}
                 </div>
+              </>
+            )
 
-                <Link
-                  href={card.href}
-                  className="inline-flex w-fit items-center justify-center px-7 py-3 rounded-md bg-black text-white text-[11px] font-medium hover:bg-gray-900 transition-colors"
-                >
-                  {card.buttonLabel}
-                </Link>
-              </div>
-
-              <div className="w-1/3 h-full bg-gray-200" />
-            </article>
-          ))}
+            return (
+              <article
+                key={card.title}
+                className="relative h-64 overflow-hidden rounded-2xl"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={card.img}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                {inner}
+              </article>
+            )
+          })}
         </div>
       </div>
     </section>
   )
 }
-

@@ -10,8 +10,8 @@ type FeaturedKit = {
   currentPrice: string
   originalPrice: string
   discountLabel: string
-  imageSeed: number
-  imageHoverSeed: number
+  image: string
+  imageHover: string
 }
 
 const featuredKits: FeaturedKit[] = [
@@ -22,8 +22,10 @@ const featuredKits: FeaturedKit[] = [
     currentPrice: "$899 MXN",
     originalPrice: "$1,199 MXN",
     discountLabel: "25% OFF",
-    imageSeed: 21,
-    imageHoverSeed: 31,
+    image:
+      "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400&h=400&fit=crop",
+    imageHover:
+      "https://images.unsplash.com/photo-1583001809873-a128495da465?w=400&h=400&fit=crop",
   },
   {
     id: 2,
@@ -32,8 +34,10 @@ const featuredKits: FeaturedKit[] = [
     currentPrice: "$699 MXN",
     originalPrice: "$899 MXN",
     discountLabel: "25% OFF",
-    imageSeed: 22,
-    imageHoverSeed: 32,
+    image:
+      "https://images.unsplash.com/photo-1596704017254-9756e98c3c54?w=400&h=400&fit=crop",
+    imageHover:
+      "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=400&h=400&fit=crop",
   },
   {
     id: 3,
@@ -42,8 +46,10 @@ const featuredKits: FeaturedKit[] = [
     currentPrice: "$499 MXN",
     originalPrice: "$649 MXN",
     discountLabel: "25% OFF",
-    imageSeed: 23,
-    imageHoverSeed: 33,
+    image:
+      "https://images.unsplash.com/photo-1583001809873-a128495da465?w=400&h=400&fit=crop",
+    imageHover:
+      "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400&h=400&fit=crop",
   },
   {
     id: 4,
@@ -52,8 +58,10 @@ const featuredKits: FeaturedKit[] = [
     currentPrice: "$599 MXN",
     originalPrice: "$799 MXN",
     discountLabel: "25% OFF",
-    imageSeed: 24,
-    imageHoverSeed: 34,
+    image:
+      "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=400&h=400&fit=crop",
+    imageHover:
+      "https://images.unsplash.com/photo-1596704017254-9756e98c3c54?w=400&h=400&fit=crop",
   },
 ]
 
@@ -90,7 +98,7 @@ export default function FeaturedKits() {
         <div className="flex flex-col lg:w-1/3">
           <div className="relative flex-1 overflow-hidden rounded-2xl bg-black text-white">
             <img
-              src="https://picsum.photos/600/700?random=10"
+              src="https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&h=700&fit=crop"
               alt="Kits de uñas Liz Cabriales"
               className="absolute inset-0 h-full w-full object-cover opacity-40"
             />
@@ -141,14 +149,14 @@ export default function FeaturedKits() {
                     <Link href="/tienda" className="block">
                       <div className="relative aspect-square w-full">
                         <img
-                          src={`https://picsum.photos/300/300?random=${kit.imageSeed}`}
+                          src={kit.image}
                           alt={kit.name}
                           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
                             hoveredId === kit.id ? "opacity-0" : "opacity-100"
                           }`}
                         />
                         <img
-                          src={`https://picsum.photos/300/300?random=${kit.imageHoverSeed}`}
+                          src={kit.imageHover}
                           alt=""
                           aria-hidden
                           className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${

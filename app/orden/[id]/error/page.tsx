@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
@@ -27,6 +28,12 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
   return (
     <main className="min-h-screen bg-[#f8f6f1] px-6 py-10 text-[#0a0a0a]">
       <div className="mx-auto max-w-[720px]">
+        <Link
+          href="/"
+          className="mb-4 inline-flex items-center gap-2 text-xs text-neutral-500 transition-colors hover:text-black"
+        >
+          <ChevronLeft className="h-3 w-3" /> Volver al inicio
+        </Link>
         {/* Banner de error */}
         <div className="rounded-[28px] border border-[#e7b8b8] bg-[#fff2f2] p-8 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8a2f2f]">

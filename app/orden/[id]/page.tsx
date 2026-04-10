@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
@@ -65,7 +66,14 @@ export default async function OrdenPage({ params, searchParams }: Props) {
   if (!result.data) {
     return (
       <main className="min-h-screen bg-[#f8f6f1] px-6 py-10 text-[#0a0a0a]">
-        <div className="mx-auto max-w-[720px] rounded-3xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto max-w-[720px]">
+          <Link
+            href="/"
+            className="mb-4 inline-flex items-center gap-2 text-xs text-neutral-500 transition-colors hover:text-black"
+          >
+            <ChevronLeft className="h-3 w-3" /> Volver al inicio
+          </Link>
+          <div className="rounded-3xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             Mi orden
           </p>
@@ -81,6 +89,7 @@ export default async function OrdenPage({ params, searchParams }: Props) {
               Ir a la tienda
             </Link>
           </div>
+          </div>
         </div>
       </main>
     )
@@ -93,6 +102,12 @@ export default async function OrdenPage({ params, searchParams }: Props) {
   return (
     <main className="min-h-screen bg-[#f8f6f1] text-[#0a0a0a]">
       <div className="mx-auto max-w-[1060px] px-6 py-10">
+        <Link
+          href="/"
+          className="mb-6 inline-flex items-center gap-2 text-xs text-neutral-500 transition-colors hover:text-black"
+        >
+          <ChevronLeft className="h-3 w-3" /> Volver al inicio
+        </Link>
         {/* Banner de estado */}
         {isSuccess && (
           <div className="mb-8 rounded-[24px] border border-[#b8d9b8] bg-[#f0faf0] p-6">

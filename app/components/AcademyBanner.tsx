@@ -1,12 +1,11 @@
 "use client"
 
-import Link from "next/link"
 
 const collageImages = [
-  "https://picsum.photos/seed/30/800/1200",
-  "https://picsum.photos/seed/31/800/1200",
-  "https://picsum.photos/seed/32/800/1200",
-  "https://picsum.photos/seed/33/800/1200",
+  "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800",
+  "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&h=600&fit=crop",
+  "https://images.unsplash.com/photo-1583001809873-a128495da465?w=800",
+  "https://images.unsplash.com/photo-1596704017254-9756e98c3c54?w=800",
 ]
 
 export default function AcademyBanner() {
@@ -39,12 +38,14 @@ export default function AcademyBanner() {
             Masters Internacionales y Nacionales en Tampico, Tamaulipas
           </p>
           <div className="mt-8">
-            <Link
-              href="/cursos"
+            <a
+              href="https://wa.me/528332183399"
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-full bg-brand-gold px-8 py-3 text-sm font-semibold uppercase tracking-wide text-brand-black transition hover:bg-brand-gold/90"
             >
               Ver próximos cursos
-            </Link>
+            </a>
           </div>
         </div>
       </div>

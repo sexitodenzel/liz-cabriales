@@ -5,7 +5,7 @@
    ========================================= */
 
 import Link from "next/link"
-import { Search, Heart, User, ShoppingBag } from "lucide-react"
+import { Search, Heart, User, ShoppingBag, Home } from "lucide-react"
 import { useState, useEffect } from "react"
 import { menuData } from "./menuData"
 import MegaMenu from "./dropdowns/MegaMenu"
@@ -20,8 +20,6 @@ import { useCart } from "../cart/CartContext"
 
    export type MenuType =
    | "Tienda"
-   | "Cursos"
-   | "Servicios"
    | "search"
    | "cart"
    | "user"
@@ -38,7 +36,7 @@ export default function Navbar() {
   // Controlador central de todos los menús del navbar.
   // Solo un menú puede estar activo a la vez.
   // Ejemplos de valores:
-  // "Tienda", "Cursos", "Servicios", "search", "cart", etc.
+  // "Tienda", "search", "cart", etc.
 
   const [activeMenu, setActiveMenu] = useState<MenuType>(null)
   const {
@@ -120,17 +118,20 @@ return (
 
 <div className="flex items-center gap-8 justify-start">
 
+<Link href="/" className="inline-flex items-center text-[var(--foreground)] hover:text-[#C6A75E] transition-colors">
+  <Home className="w-5 h-5" />
+</Link>
+
 <nav className="hidden md:flex gap-13 text-[16px] tracking-[0.06em] capitalize font-medium">
 
 {/* Render dinámico de links del navbar */}
 {(Object.keys(menuData) as (keyof typeof menuData)[]).map((item) => {
-  const isTienda = item === "Tienda"
   const label = (
-    <button className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none">
+    <button className="relative group cursor-pointer border-none bg-transparent text-[13px] tracking-[0.05em] text-[var(--foreground)]">
       <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
         {item}
       </span>
-      <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full"></span>
+      <span className="absolute -bottom-1 left-0 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full"></span>
     </button>
   )
 
@@ -140,13 +141,7 @@ return (
       onMouseEnter={() => setActiveMenu(item)}
       className="flex items-center"
     >
-      {isTienda ? (
-        <Link href="/tienda">
-          {label}
-        </Link>
-      ) : (
-        label
-      )}
+      <Link href="/tienda">{label}</Link>
     </div>
   )
 })}

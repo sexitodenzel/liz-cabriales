@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import { ChevronLeft } from "lucide-react"
 
 import { useCart } from "@/app/components/cart/CartContext"
 
@@ -38,6 +39,12 @@ export default function CartPage() {
       <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6 py-10 lg:flex-row">
         {/* Columna izquierda */}
         <section className="flex-1 space-y-6">
+          <Link
+            href="/tienda"
+            className="mb-4 inline-flex items-center gap-2 text-xs text-neutral-500 transition-colors hover:text-black"
+          >
+            <ChevronLeft className="h-3 w-3" /> Seguir comprando
+          </Link>
           <header className="space-y-2">
             <h1 className="text-xl font-semibold tracking-[0.12em] text-[#0a0a0a]">
               CARRITO{" "}

@@ -5,19 +5,16 @@ import { ChevronLeft, ChevronRight, Star } from "lucide-react"
 
 const testimonials = [
   {
-    quote:
-      "Hermoso, se robó el corazón de todas. Súper atento y profesional 🔥",
+    quote: "Hermoso, se robó el corazón de todas. Súper atento y profesional 🔥",
     author: "Alumna curso Rock Lab, Tampico",
   },
   {
-    quote:
-      "La mejor educadora de la mano de la mejor organizadora 😍",
+    quote: "La mejor educadora de la mano de la mejor organizadora 😍",
     author: "Alumna curso Pedicure Pro",
   },
   {
-    quote:
-      "Fue un honor aprender de su experiencia. Gracias por transmitir su pasión con humildad.",
-    author: "Teté Abrego, Mérida",
+    quote: "Fue un honor aprender de su experiencia. Gracias por transmitir su pasión con humildad.",
+    author: "Tete Abrego, Mérida",
   },
 ]
 

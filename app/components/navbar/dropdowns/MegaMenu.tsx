@@ -5,6 +5,7 @@
    UI DEL MEGA MENU 
    ========================================= */
 
+import Link from "next/link"
 import { useEffect, useState } from "react"
 
 type MenuColumn = {
@@ -21,6 +22,11 @@ type MegaMenuProps = {
   } | null
 }
 
+function megaMenuItemHref(label: string): "/tienda" | "/inspiracion" {
+  if (label === "Inspiración") return "/inspiracion"
+  return "/tienda"
+}
+
 export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
   const isOpen = Boolean(currentMenu)
 
@@ -29,6 +35,18 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
     { delayMs: 150, col: currentMenu?.col2 },
     { delayMs: 300, col: currentMenu?.col3 },
   ]
+
+  const visibleColumns = columns.filter(
+    (entry): entry is { delayMs: number; col: MenuColumn } =>
+      entry.col != null && entry.col.items.length > 0
+  )
+
+  const gridColsClass =
+    visibleColumns.length >= 3
+      ? "md:grid-cols-3"
+      : visibleColumns.length === 2
+        ? "md:grid-cols-2"
+        : "md:grid-cols-1"
 
   const [contentOpen, setContentOpen] = useState(false)
 
@@ -61,9 +79,9 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
     `}
     >
       <div
-        className="max-w-[1400px] mx-auto px-6 py-14 grid grid-cols-3 gap-20 transition-all duration-300 ease-out"
+        className={`mx-auto grid max-w-[1400px] grid-cols-1 gap-20 px-6 py-14 transition-all duration-300 ease-out ${gridColsClass}`}
       >
-        {columns.map(({ delayMs, col }) => (
+        {visibleColumns.map(({ delayMs, col }) => (
           <div
             key={delayMs}
             className={`transition-all duration-500 ease-out ${
@@ -71,25 +89,32 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
             }`}
             style={{ transitionDelay: `${delayMs}ms` }}
           >
-            <p
-              className={`text-gray-400 text-sm mb-6 transition-all duration-500 ease-out ${
-                contentOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-              }`}
-              style={{ transitionDelay: `${delayMs}ms` }}
-            >
-              {col?.title}
-            </p>
+            {col.title ? (
+              <p
+                className={`mb-6 text-sm text-gray-400 transition-all duration-500 ease-out ${
+                  contentOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+                }`}
+                style={{ transitionDelay: `${delayMs}ms` }}
+              >
+                {col.title}
+              </p>
+            ) : null}
 
             <ul className="space-y-3 text-[18px]">
-              {col?.items?.map((item, idx) => (
+              {col.items.map((item, idx) => (
                 <li
-                  key={item}
-                  className={`cursor-pointer transition-all duration-500 ease-out hover:text-[#C6A75E] ${
+                  key={`${col.title}-${item}`}
+                  className={`transition-all duration-500 ease-out ${
                     contentOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
                   }`}
                   style={{ transitionDelay: `${delayMs + 90 + idx * 45}ms` }}
                 >
-                  {item}
+                  <Link
+                    href={megaMenuItemHref(item)}
+                    className="block text-inherit transition-colors hover:text-[#C6A75E]"
+                  >
+                    {item}
+                  </Link>
                 </li>
               ))}
             </ul>

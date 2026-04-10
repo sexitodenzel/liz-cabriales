@@ -15,15 +15,18 @@ interface InspirationPost {
 const POSTS: InspirationPost[] = [
   {
     id: "1",
-    image_url: "https://picsum.photos/seed/liz-nails-1/900/900",
+    image_url:
+      "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=900&h=900&fit=crop",
     category: "Gel UV",
     title: "Gel UV rosa nude",
-    description: "Look sofisticado con acabado brillante ideal para el día a día.",
+    description:
+      "Look sofisticado con acabado brillante ideal para el día a día.",
     product_ids: ["prod-gel-uv-1"],
   },
   {
     id: "2",
-    image_url: "https://picsum.photos/seed/liz-nails-2/600/800",
+    image_url:
+      "https://images.unsplash.com/photo-1583001809873-a128495da465?w=600&h=800&fit=crop",
     category: "Nail Art",
     title: "Nail art minimalista",
     description: "Diseño delicado con detalles finos para un estilo elegante.",
@@ -31,26 +34,32 @@ const POSTS: InspirationPost[] = [
   },
   {
     id: "3",
-    image_url: "https://picsum.photos/seed/liz-nails-3/600/800",
+    image_url:
+      "https://images.unsplash.com/photo-1596704017254-9756e98c3c54?w=600&h=800&fit=crop",
     category: "Acrílico",
     title: "Estructura acrílica almond",
-    description: "Uñas alargadas con forma almond para un look estilizado.",
+    description:
+      "Uñas alargadas con forma almond para un look estilizado.",
     product_ids: ["prod-acrilico-1"],
   },
   {
     id: "4",
-    image_url: "https://picsum.photos/seed/liz-nails-4/600/800",
+    image_url:
+      "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=600&h=800&fit=crop",
     category: "Manicure Natural",
     title: "Manicure natural glow",
-    description: "Acabado natural que resalta el brillo saludable de la uña.",
+    description:
+      "Acabado natural que resalta el brillo saludable de la uña.",
     product_ids: ["prod-natural-1"],
   },
   {
     id: "5",
-    image_url: "https://picsum.photos/seed/liz-nails-5/600/800",
+    image_url:
+      "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&h=800&fit=crop&crop=right",
     category: "Nail Art",
     title: "Nail art con brillo",
-    description: "Toques de brillo para un look de noche moderno y llamativo.",
+    description:
+      "Toques de brillo para un look de noche moderno y llamativo.",
     product_ids: ["prod-art-3"],
   },
 ]
@@ -84,8 +93,9 @@ export default function InspirationGallery({ preview }: { preview?: boolean }) {
                 Más de 10,000 clientas felices
               </h2>
             </div>
-            <p className=" text-sm md:text-base text-gray-600 mb-4">
-            Tag @lizcabriales o usa el hashtag #lizcabriales para ser incluido en nuestra galería!
+            <p className="mb-4 text-sm text-gray-600 md:text-base">
+              Tag @lizcabriales o usa el hashtag #lizcabriales para ser incluido
+              en nuestra galería!
             </p>
           </>
         ) : (
@@ -95,10 +105,10 @@ export default function InspirationGallery({ preview }: { preview?: boolean }) {
                 Nail Inspiration
               </h2>
             </div>
-            <p className="text-center text-sm md:text-base text-gray-600 mb-10">
+            <p className="mb-10 text-center text-sm text-gray-600 md:text-base">
               Etiquétanos en Instagram como{" "}
-              <span className="font-semibold text-gray-900">@lizcabriales</span> para aparecer en
-              nuestra galería
+              <span className="font-semibold text-gray-900">@lizcabriales</span>{" "}
+              para aparecer en nuestra galería
             </p>
           </>
         )}
