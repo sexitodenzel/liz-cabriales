@@ -27,7 +27,7 @@ El público es mayoritariamente femenino. El mercado es México. Los colores de 
 
 ---
 
-## Estado actual — 8 abril 2026
+## Estado actual — 20 abril 2026
 
 | Área                          | Estado                                                                                            |
 | ----------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -39,18 +39,18 @@ El público es mayoritariamente femenino. El mercado es México. Los colores de 
 | Catálogo `/tienda`            | ✅ Conectado a Supabase, filtros por categoría y marca                                             |
 | Carrito                       | ✅ Persistente + drift corregido — joins reales a products/product_variants                        |
 | Página `/carrito`             | ✅ Con resumen, barra envío gratis y CTA a checkout                                                |
-| Checkout y pagos              | ✅ Flujo completo con MercadoPago — deploy activo en Vercel, pendiente credenciales producción<br> |
+| Checkout y pagos              | ✅ Ecommerce + citas + cursos con MercadoPago (`order:`, `appointment:`, `course:` en webhook)    |
 | Deploy                        | ✅ Vercel activo — https://liz-cabriales.vercel.app \|                                             |
-| Email confirmación            | ✅ Implementado con Resend — pendiente prueba end-to-end                                           |
-| Órdenes admin                 | ⏳ Sprint 2                                                                                        |
-| Módulo de citas               | ⏳ Fase 2                                                                                          |
-| Módulo de cursos              | ⏳ Fase 2                                                                                          |
-| Admin multi-rol               | ⏳ Fase 2                                                                                          |
+| Email confirmación            | ✅ Templates activos: órdenes, cita (confirmación/recordatorio/reprogramación), curso y bienvenida |
+| Órdenes admin                 | ✅ Sprint 2 cerrado — enlace `/admin/orders` en dashboard                                          |
+| Módulo de citas               | ✅ Sprint 3 cerrado                                                                                |
+| Módulo de cursos              | ✅ Sprint 4 cerrado                                                                                |
+| Admin multi-rol               | ⏳ Sprint 5 activo                                                                                 |
 
 ---
 
-## Sprint actual — Sprint 2
-**Objetivo:** Panel admin de órdenes + productos reales + inventario sincronizado
+## Sprint actual — Sprint 5
+**Objetivo:** Rol recepcionista, vistas limitadas, `/perfil` cliente, CFDI en checkout, QA móvil y checklist pre-lanzamiento
 
 ---
 

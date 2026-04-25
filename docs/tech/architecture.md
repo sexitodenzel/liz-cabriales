@@ -44,7 +44,7 @@ liz-cabriales/
 │   └── users.ts              — getUserRole()
 ├── types/
 │   └── index.ts              — tipos de dominio
-├── middleware.ts              — protección de rutas por rol
+├── proxy.ts                   — protección de rutas por rol
 └── docs/                     — vault Obsidian
 ```
 

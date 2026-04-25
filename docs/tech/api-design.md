@@ -296,7 +296,7 @@ Endpoints previstos:
 
 Manejado directamente por Supabase Auth. No hay API Routes propias para login/registro — se usa el SDK de Supabase en el cliente.
 
-El middleware de Next.js (`middleware.ts`) protege las rutas según el rol del usuario.
+El middleware de Next.js (`proxy.ts`) protege las rutas según el rol del usuario.
 
 ---
 

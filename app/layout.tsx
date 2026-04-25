@@ -5,6 +5,7 @@
 import "./globals.css";
 import { CartProvider } from "./components/cart/CartContext";
 import Navbar from "./components/navbar/Navbar";
+import { createClient } from "@/lib/supabase/server";
 
 /* =========================
    IMPORTACIÓN DE FUENTES
@@ -36,16 +37,21 @@ const parisienne = Parisienne({
    (NO TOCAR estructura base)
    ========================= */
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="es">
       <body className={inter.className}>
         <CartProvider>
-          <Navbar />
+          <Navbar isLoggedIn={Boolean(user)} />
           {children}
         </CartProvider>
       </body>

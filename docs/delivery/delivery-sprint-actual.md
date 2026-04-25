@@ -1,38 +1,34 @@
-# Sprint Actual — Sprint 2
+# Sprint Actual — Sprint 5
 
 > Este archivo dice exactamente qué estás construyendo HOY. Léelo al iniciar cada sesión de trabajo. Actualízalo al terminar cada sesión con el estado real.
 
 ---
 
-## Sprint 2 — Panel admin de órdenes + deuda técnica
+## Sprint 5 — Recepción, perfil cliente y pre-lanzamiento
 
-**Objetivo concreto:** El admin puede ver todas las órdenes paginadas, cambiar su estado manualmente, y el flujo de pago es atómico e idempotente.
+**Objetivo concreto:** Cerrar el acceso por roles para operación diaria, completar perfil cliente unificado y dejar checklist técnico/funcional listo para deploy.
 
-**Inicio:** 9 abril 2026  
-**Fin estimado:** 25 abril 2026  
-**Sprint review con Liz:** semana del 14 abril 2026
+**Inicio:** 20 abril 2026  
+**Fin estimado:** 10 mayo 2026  
+**Sprint review con Liz:** primera semana de mayo 2026
 
 ---
 
 ## Scope — qué SÍ entra en este sprint
 
-- [x] Transacción atómica — función `create_order_atomic` en PostgreSQL vía `rpc()`
-- [x] Idempotencia del webhook — columna `email_sent` en tabla `payments`
-- [x] Limpiar `cart_items` tras pago confirmado — bloque `approved` del webhook
-- [x] Panel admin `/admin/orders` — lista paginada con filtros y badges por estado
-- [x] Detalle `/admin/orders/[id]` — cliente, ítems, cambio manual de estado
-- [x] `GET /api/admin/orders` — page + limit + status + count:exact
-- [x] `PATCH /api/admin/orders/[id]/status` — solo shipped / delivered / cancelled
-- [x] Alerta de stock bajo en panel admin
-- [ ] Importar base de datos de productos reales ← BLOQUEADO por visita a Liz
-- [ ] Script de migración con validación previa a importación
+- [ ] Rol recepcionista (`users.role` + middleware)
+- [ ] Permisos recepcionista — acceso limitado a `/admin/appointments`
+- [ ] Página `/perfil` cliente con historial de pedidos, citas y cursos
+- [ ] Flujo CFDI en checkout (checkbox, RFC, razón social, % adicional)
+- [ ] Nav público actualizado con nuevas rutas activas
+- [ ] QA general móvil (flujo ecommerce, citas y cursos)
+- [ ] Checklist pre-lanzamiento completo
 
 ## Scope — qué NO entra en este sprint
 
-✗ Módulo de citas (Fase 2)  
-✗ Módulo de cursos (Fase 2)  
-✗ Admin multi-rol / recepcionista (Fase 2)  
-✗ Shadcn/ui completo — las pantallas usan tabla HTML + Tailwind (consistente con admin/products)
+✗ Nuevos módulos funcionales fuera de recepción/perfil/CFDI  
+✗ Rediseño visual completo de UI  
+✗ Integraciones externas adicionales no críticas para lanzamiento
 
 ---
 
@@ -40,9 +36,9 @@
 
 | Acción                                                                                                                                    | Responsable | Estado         |
 | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
-| Ejecutar `ALTER TABLE payments ADD COLUMN email_sent BOOLEAN NOT NULL DEFAULT false` en Supabase SQL Editor                               | Denzel      | ✅ Ejecutado \| |
-| Ejecutar `CREATE OR REPLACE FUNCTION create_order_atomic(...)` en Supabase SQL Editor — cuerpo en `app/api/webhooks/mercadopago/route.ts` | Denzel      | ✅ Ejecutado    |
-| Agregar enlace a `/admin/orders` desde dashboard `/admin`                                                                                 | Denzel      | ⏳ Pendiente    |
+| Configurar `CRON_SECRET` en Vercel (`openssl rand -hex 32`)                                                                               | Denzel      | ⏳ Pendiente    |
+| Actualizar `SALON_ADDRESS` real en `lib/email/templates/_shared.ts`                                                                       | Denzel + Liz| ⏳ Pendiente    |
+| Verificar dominio de envío en Resend para salida de sandbox                                                                               | Liz         | ⏳ Pendiente    |
 
 ---
 
@@ -50,17 +46,14 @@
 
 | Tarea | Estado | Notas |
 |---|---|---|
-| `create_order_atomic` PostgreSQL + rpc() | ✅ Hecho | `lib/supabase/orders.ts` — requiere SQL en Supabase |
-| `email_sent` en tabla payments | ✅ Hecho | `lib/supabase/payments.ts` — requiere ALTER TABLE en Supabase |
-| Limpiar carrito tras pago aprobado | ✅ Hecho | `clearCartForUser` — bloque approved del webhook |
-| Panel admin `/admin/orders` | ✅ Hecho | Tabla paginada, filtros, badges, fila clicable |
-| Detalle `/admin/orders/[id]` | ✅ Hecho | Cliente, ítems, select de estado, botón guardar |
-| `GET /api/admin/orders` | ✅ Hecho | page + limit + status + count:exact |
-| `GET /api/admin/orders/[id]` | ✅ Hecho | Necesario para cargar detalle con cookie de sesión |
-| `PATCH /api/admin/orders/[id]/status` | ✅ Hecho | Zod, role admin, solo shipped/delivered/cancelled |
-| Alerta de stock bajo en panel admin | ⏳ Pendiente | Siguiente frente |
-| Importar productos reales | 🔴 Bloqueado | Esperando visita a Liz |
-| Script de migración con validación | ⏳ Pendiente | Depende de importación |
+| Sprint 2 — enlace `/admin/orders` en dashboard admin | ✅ Hecho | Cierre administrativo del sprint |
+| Sprint 3 — módulo de citas completo | ✅ Hecho | API + páginas + admin + emails + cron + DB |
+| Sprint 4 — módulo de cursos completo | ✅ Hecho | API + páginas + admin + email + DB |
+| Webhook MP para `appointment:` y `course:` | ✅ Hecho | Ruta `app/api/webhooks/mercadopago/route.ts` |
+| Typecheck global (`tsc --noEmit`) | ✅ Hecho | Limpio en todo el proyecto |
+| Rol recepcionista | ⏳ Pendiente | Sprint 5 |
+| `/perfil` cliente consolidado | ⏳ Pendiente | Sprint 5 |
+| CFDI en checkout | ⏳ Pendiente | Sprint 5 |
 
 ---
 
@@ -68,23 +61,63 @@
 
 | Bloqueador | Responsable | Estado |
 |---|---|---|
-| SQL sin ejecutar en Supabase (`email_sent` + `create_order_atomic`) | Denzel | ⏳ Pendiente — bloquea QA |
-| Credenciales MercadoPago producción | Liz | ⚠️ Pendiente |
-| Base de datos real de productos | Liz / visita | 🔴 Bloqueado |
+| `CRON_SECRET` faltante en Vercel | Denzel | ⚠️ Pendiente |
+| Dirección real del salón para emails | Liz | ⚠️ Pendiente |
+| Dominio Resend sin verificar | Liz | ⚠️ Pendiente |
 
 ---
 
 ## Archivos creados en este sprint
 
-lib/ ├── supabase/ │ ├── adminOrders.ts — listado paginado, detalle admin, actualización de estado │ └── payments.ts — claimApprovedPaymentForOrder, updateOrderStatusToPaid, clearCartForUser ├── validations/ │ └── adminOrders.ts — adminOrdersQuerySchema + adminOrderStatusPatchSchema
-
-app/ ├── admin/orders/ │ ├── page.tsx — lista paginada con filtros y badges │ └── [id]/page.tsx — detalle de orden + cambio de estado └── api/admin/orders/ ├── route.ts — GET paginado └── [id]/ ├── route.ts — GET detalle └── status/route.ts — PATCH cambio de estado
+- `app/admin/appointments/page.tsx`
+- `app/admin/appointments/AdminAppointmentsClient.tsx`
+- `app/admin/appointments/components/NewAppointmentModal.tsx`
+- `app/admin/appointments/components/BlockSlotModal.tsx`
+- `app/admin/appointments/components/RescheduleAppointmentModal.tsx`
+- `lib/supabase/appointments.ts`
+- `lib/validations/appointments.ts`
+- `app/citas/page.tsx`
+- `app/citas/CitasClient.tsx`
+- `app/cita/[id]/page.tsx`
+- `app/cita/[id]/error/page.tsx`
+- `app/api/appointments/route.ts`
+- `app/api/appointments/availability/route.ts`
+- `app/api/admin/appointments/route.ts`
+- `app/api/admin/blocked-slots/route.ts`
+- `app/api/payments/appointment/route.ts`
+- `app/api/cron/appointment-reminders/route.ts`
+- `app/admin/courses/page.tsx`
+- `app/admin/courses/AdminCoursesClient.tsx`
+- `app/admin/courses/components/CourseForm.tsx`
+- `app/admin/courses/[id]/registrations/page.tsx`
+- `app/admin/courses/[id]/registrations/RegistrationsClient.tsx`
+- `app/admin/courses/[id]/registrations/components/ManualRegistrationModal.tsx`
+- `lib/supabase/courses.ts`
+- `lib/validations/courses.ts`
+- `lib/utils.ts`
+- `app/cursos/page.tsx`
+- `app/cursos/[id]/page.tsx`
+- `app/curso/[courseId]/inscripcion/[id]/page.tsx`
+- `app/curso/[courseId]/inscripcion/[id]/error/page.tsx`
+- `app/api/courses/route.ts`
+- `app/api/course-registrations/route.ts`
+- `app/api/payments/course/route.ts`
+- `app/api/admin/courses/route.ts`
+- `app/api/admin/courses/[id]/registrations/route.ts`
+- `lib/email/templates/_shared.ts`
+- `lib/email/templates/appointment-confirmation.ts`
+- `lib/email/templates/appointment-reminder.ts`
+- `lib/email/templates/appointment-rescheduled.ts`
+- `lib/email/templates/course-registration.ts`
+- `lib/email/templates/welcome-client.ts`
+- `lib/supabase/adminUsers.ts`
+- `app/api/admin/users/route.ts`
+- `vercel.json`
 
 ## Archivos modificados en este sprint
 
-- `lib/supabase/orders.ts` — usa `create_order_atomic` vía rpc()
-- `app/api/orders/route.ts` — comentario que enlaza con la RPC
-- `app/api/webhooks/mercadopago/route.ts` — idempotencia, limpieza de carrito, SQL documentado en comentario
+- `app/admin/AdminDashboardClient.tsx` — enlace a `/admin/orders`
+- `app/api/webhooks/mercadopago/route.ts` — soporte de prefijos `appointment:` y `course:`
 
 ---
 
@@ -101,3 +134,11 @@ app/ ├── admin/orders/ │ ├── page.tsx — lista paginada con filtr
 - Panel admin `/admin/orders` y detalle `/admin/orders/[id]` operativos
 - Build correcto — lint falla en archivos previos fuera de scope, no en los nuevos
 - Pendiente crítico: ejecutar 2 SQL en Supabase antes de QA
+
+### 20 abril 2026
+- Sprint 2 cerrado formalmente con enlace `/admin/orders` en dashboard admin
+- Sprint 3 cerrado: citas completas (wizard, agenda admin, bloqueo, reprogramación, pagos, emails, cron)
+- Sprint 4 cerrado: cursos completos (catálogo, inscripción, pagos, admin cursos/inscritos, email)
+- Se incorporó creación de cliente desde admin y email de bienvenida
+- Webhook MercadoPago extendido para `appointment:` y `course:`
+- Typecheck global limpio con `tsc --noEmit`

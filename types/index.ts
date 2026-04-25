@@ -1,4 +1,4 @@
-export type UserRole = "client" | "admin"
+export type UserRole = "client" | "admin" | "receptionist"
 export type OrderStatus =
   | "pending"
   | "paid"

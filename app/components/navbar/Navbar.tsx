@@ -28,7 +28,11 @@ import { useCart } from "../cart/CartContext"
    | "favorites"
    | null
 
-export default function Navbar() {
+type NavbarProps = {
+  isLoggedIn?: boolean
+}
+
+export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
 
 /* =========================================
@@ -125,6 +129,8 @@ return (
 {/* Render dinámico de links del navbar */}
 {(Object.keys(menuData) as (keyof typeof menuData)[]).map((item) => {
   const isTienda = item === "Tienda"
+  const isCursos = item === "Cursos"
+  const isServicios = item === "Servicios"
   const label = (
     <button className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none">
       <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
@@ -142,6 +148,14 @@ return (
     >
       {isTienda ? (
         <Link href="/tienda">
+          {label}
+        </Link>
+      ) : isCursos ? (
+        <Link href="/cursos">
+          {label}
+        </Link>
+      ) : isServicios ? (
+        <Link href="/citas">
           {label}
         </Link>
       ) : (
@@ -210,7 +224,11 @@ setActiveMenu(activeMenu === "search" ? null : "search")
 
 {/* USER ICON */}
 
-<Link href="/login" className="inline-flex">
+<Link
+  href={isLoggedIn ? "/perfil" : "/login"}
+  className="inline-flex"
+  aria-label={isLoggedIn ? "Mi perfil" : "Iniciar sesión"}
+>
   <User className="w-5 h-5 cursor-pointer hover:text-[#C6A75E] transition-colors" />
 </Link>
 

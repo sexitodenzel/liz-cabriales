@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 
 import {
   createOrderFromActiveCart,
+  getUserOrdersSummaries,
   type CreateOrderResult,
+  type UserOrderSummary,
 } from "@/lib/supabase/orders"
 import { createClient } from "@/lib/supabase/server"
 import { createOrderSchema } from "@/lib/validations/orders"
@@ -39,6 +41,35 @@ function mapErrorStatus(code?: string): number {
   if (code === "CART_EMPTY") return 400
   if (code === "OUT_OF_STOCK") return 409
   return 500
+}
+
+export async function GET(): Promise<
+  NextResponse<ApiResponse<{ orders: UserOrderSummary[] }>>
+> {
+  try {
+    const { userId, response } = await requireAuthenticatedUser()
+    if (!userId || response) {
+      return response as NextResponse<ApiResponse<{ orders: UserOrderSummary[] }>>
+    }
+
+    const listResult = await getUserOrdersSummaries(userId)
+    if (!listResult.data) {
+      return errorResponse(
+        listResult.error.message,
+        500,
+        listResult.error.code
+      ) as NextResponse<ApiResponse<{ orders: UserOrderSummary[] }>>
+    }
+
+    return NextResponse.json({
+      data: { orders: listResult.data },
+      error: null,
+    })
+  } catch {
+    return errorResponse("Error interno del servidor", 500) as NextResponse<
+      ApiResponse<{ orders: UserOrderSummary[] }>
+    >
+  }
 }
 
 async function requireAuthenticatedUser() {

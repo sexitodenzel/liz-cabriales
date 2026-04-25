@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "ai-context.md",
+                "file": "delivery/delivery-backlog.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ai-context"
+              "title": "delivery-backlog"
             }
           }
         ]
@@ -183,16 +183,18 @@
   },
   "active": "0cbafa2721adfed3",
   "lastOpenFiles": [
+    "delivery/checklist-prelanzamiento.md",
+    "delivery/sql-sprint5-supabase.sql",
+    "delivery/delivery-sprint-actual.md",
+    "delivery/delivery-project-charter.md",
+    "delivery/delivery-roadmap.md",
+    "ai-context.md",
     "ai-workflow-kit.md",
     "chatgptprompt.md",
-    "ai-context.md",
-    "delivery/delivery-project-charter.md",
     "delivery/delivery-entregables.md",
     "delivery/delivery-decisions-log.md",
     "delivery/delivery-backlog.md",
-    "delivery/delivery-roadmap.md",
     "delivery/session-continuity.md",
-    "delivery/delivery-sprint-actual.md",
     "tech/stack.md",
     "delivery/Meetings/sprint1-closed.md",
     "delivery/Meetings",
@@ -210,7 +212,6 @@
     "tech/api.md",
     "tasks-DEPRECAR/roadmap.md.md",
     "tech/database-schema.md",
-    "tech/dev-rules.md",
     "random",
     "meetings",
     "ux",
@@ -218,7 +219,6 @@
     "tasks",
     "product",
     "payments",
-    "marketing",
-    "legal"
+    "marketing"
   ]
 }

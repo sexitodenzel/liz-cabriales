@@ -65,7 +65,7 @@ liz-cabriales/
 ├── scripts/
 │   └── seed-products.ts
 ├── types/index.ts
-├── middleware.ts
+├── proxy.ts
 ├── docs/                   ← vault de Obsidian
 ├── tsconfig.scripts.json
 └── .env.local

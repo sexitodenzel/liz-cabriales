@@ -1,5 +1,6 @@
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
+import { computeInvoiceSurchargeMxn } from "@/constants/cfdi"
 import type { DeliveryType, OrderStatus } from "@/types"
 import type { CreateOrderInput } from "@/lib/validations/orders"
 
@@ -75,6 +76,52 @@ export type CreateOrderResult = {
 }
 
 const DEFAULT_SHIPPING_COST = 0
+
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
+export type UserOrderSummary = {
+  id: string
+  total: number
+  status: OrderStatus
+  created_at: string
+}
+
+export async function getUserOrdersSummaries(
+  userId: string
+): Promise<Result<UserOrderSummary[]>> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id, total, status, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    return {
+      data: null,
+      error: { message: error.message, code: error.code },
+    }
+  }
+
+  const rows = (data ?? []) as Array<{
+    id: string
+    total: number | string
+    status: string
+    created_at: string
+  }>
+
+  return {
+    data: rows.map((r) => ({
+      id: r.id,
+      total: Number(r.total),
+      status: r.status as OrderStatus,
+      created_at: r.created_at,
+    })),
+    error: null,
+  }
+}
 
 function unwrapJoin<T>(value: T | T[] | null): T | null {
   if (Array.isArray(value)) {
@@ -278,6 +325,14 @@ export async function createOrderFromActiveCart(
   const shippingCity =
     input.delivery_type === "shipping" ? input.shipping_city ?? null : null
 
+  const requiresInvoice = Boolean(input.requires_invoice)
+  const invoiceSurcharge = requiresInvoice
+    ? computeInvoiceSurchargeMxn(draftResult.data.subtotal)
+    : 0
+  const totalWithInvoice = roundMoney(
+    draftResult.data.subtotal + draftResult.data.shipping_cost + invoiceSurcharge
+  )
+
   const pItems = draftResult.data.items.map((item) => ({
     product_id: item.product_id,
     variant_id: item.variant_id,
@@ -294,7 +349,7 @@ export async function createOrderFromActiveCart(
       p_shipping_state: shippingState,
       p_shipping_city: shippingCity,
       p_shipping_cost: draftResult.data.shipping_cost,
-      p_total: draftResult.data.total,
+      p_total: totalWithInvoice,
       p_items: pItems,
     }
   )
@@ -309,10 +364,35 @@ export async function createOrderFromActiveCart(
     }
   }
 
+  const idStr = String(orderId)
+
+  if (requiresInvoice && input.rfc && input.razon_social) {
+    const { error: invError } = await supabaseAdmin
+      .from("orders")
+      .update({
+        requires_invoice: true,
+        rfc: input.rfc,
+        razon_social: input.razon_social,
+        invoice_surcharge: invoiceSurcharge,
+      })
+      .eq("id", idStr)
+      .eq("user_id", userId)
+
+    if (invError) {
+      return {
+        data: null,
+        error: {
+          message: invError.message,
+          code: invError.code ?? "ORDER_INVOICE_UPDATE_FAILED",
+        },
+      }
+    }
+  }
+
   return {
     data: {
-      order_id: String(orderId),
-      total: draftResult.data.total,
+      order_id: idStr,
+      total: totalWithInvoice,
     },
     error: null,
   }

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AlertTriangle, PackageOpen } from "lucide-react"
+import { AlertTriangle, CalendarDays, GraduationCap, PackageOpen } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
 type Props = {
@@ -27,11 +27,13 @@ export default function AdminDashboardClient({
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <header className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-[#C9A84C]">
-          Panel Administrador
-        </h1>
-        <div className="flex items-center gap-4">
+      <header className="border-b border-white/10 px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
+          <h1 className="text-lg font-semibold text-[#C9A84C]">
+            Panel Administrador
+          </h1>
+        </div>
+        <div className="flex items-center gap-4 shrink-0">
           <span className="text-sm text-white/80">{userName}</span>
           <button
             type="button"
@@ -73,6 +75,44 @@ export default function AdminDashboardClient({
                 <p className="text-xs text-white/70">
                   Consultar pedidos, estados y detalle de cada orden.
                 </p>
+              </div>
+            </Link>
+
+            <Link
+              href="/admin/appointments"
+              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-[#C9A84C] hover:bg-white/10"
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-gradient-to-br from-[#C9A84C] to-transparent transition-opacity" />
+              <div className="relative flex items-start gap-3">
+                <CalendarDays
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]"
+                  aria-hidden
+                />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-white">Agenda</p>
+                  <p className="text-xs text-white/70">
+                    Citas del día, bloqueos de horario y reservas manuales.
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              href="/admin/courses"
+              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-[#C9A84C] hover:bg-white/10"
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-gradient-to-br from-[#C9A84C] to-transparent transition-opacity" />
+              <div className="relative flex items-start gap-3">
+                <GraduationCap
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]"
+                  aria-hidden
+                />
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-white">Cursos</p>
+                  <p className="text-xs text-white/70">
+                    Administra cursos presenciales, cupos e inscripciones.
+                  </p>
+                </div>
               </div>
             </Link>
 

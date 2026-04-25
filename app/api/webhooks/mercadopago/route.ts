@@ -9,7 +9,21 @@ import {
   updateOrderStatusToPaid,
   updatePaymentStatusByOrderId,
 } from "@/lib/supabase/payments"
+import {
+  claimApprovedPaymentForAppointment,
+  markAppointmentPaymentRejected,
+  updateAppointmentStatusToCancelledFromPayment,
+  updateAppointmentStatusToPaid,
+} from "@/lib/supabase/appointments"
+import {
+  claimApprovedPaymentForRegistration,
+  markRegistrationPaymentRejected,
+  updateRegistrationStatusToCancelledFromPayment,
+  updateRegistrationStatusToPaid,
+} from "@/lib/supabase/courses"
 import { sendOrderConfirmationEmail } from "@/lib/email/resend"
+import { sendAppointmentConfirmationEmail } from "@/lib/email/templates/appointment-confirmation"
+import { sendCourseRegistrationEmail } from "@/lib/email/templates/course-registration"
 
 /**
  * ─── SQL ejecutado manualmente en Supabase SQL Editor (sin migraciones formales) ───
@@ -53,6 +67,10 @@ import { sendOrderConfirmationEmail } from "@/lib/email/resend"
  *      RETURN v_order_id;
  *    END;
  *    $$ LANGUAGE plpgsql SECURITY DEFINER;
+ *
+ * 3) Columnas CFDI en `orders` (Sprint 5) — ver `docs/delivery/sql-sprint5-supabase.sql`.
+ *    Tras ejecutar el SQL, `create_order_atomic` puede seguir igual: el total con cargo
+ *    CFDI se envía en `p_total` y los metadatos de factura se actualizan vía servicio.
  */
 
 type WebhookBody = {
@@ -152,14 +170,131 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const mpStatus = paymentInfo.status
-    const orderId = paymentInfo.external_reference
+    const externalRef = paymentInfo.external_reference
 
-    if (!orderId) {
+    if (!externalRef) {
       console.warn(
-        `[webhook] El pago ${dataId} no tiene external_reference (order_id)`
+        `[webhook] El pago ${dataId} no tiene external_reference`
       )
       return NextResponse.json({ received: true }, { status: 200 })
     }
+
+    // ── Dispatch: pago de cita (prefix "appointment:") ─────────────────────
+    if (externalRef.startsWith("appointment:")) {
+      const appointmentId = externalRef.slice("appointment:".length)
+
+      if (mpStatus === "approved") {
+        const claimResult = await claimApprovedPaymentForAppointment(
+          appointmentId
+        )
+        if (claimResult.error) {
+          console.error(
+            `[webhook] Error reclamando pago de cita ${appointmentId}:`,
+            claimResult.error
+          )
+          return NextResponse.json({ received: true }, { status: 200 })
+        }
+        if (!claimResult.data.claimed) {
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        const paidResult = await updateAppointmentStatusToPaid(appointmentId)
+        if (paidResult.error) {
+          console.error(
+            `[webhook] Error marcando cita ${appointmentId} como pagada:`,
+            paidResult.error
+          )
+        }
+
+        try {
+          await sendAppointmentConfirmationEmail(appointmentId)
+        } catch (emailError) {
+          console.error(
+            `[webhook] Error enviando email de confirmación para cita ${appointmentId}:`,
+            emailError
+          )
+          // El fallo del email no interrumpe ni revierte el flujo del webhook
+        }
+      } else if (mpStatus === "rejected" || mpStatus === "cancelled") {
+        const rejResult = await markAppointmentPaymentRejected(appointmentId)
+        if (rejResult.error) {
+          console.error(
+            `[webhook] Error marcando pago de cita ${appointmentId} como rechazado:`,
+            rejResult.error
+          )
+        }
+        const cancelResult = await updateAppointmentStatusToCancelledFromPayment(
+          appointmentId
+        )
+        if (cancelResult.error) {
+          console.error(
+            `[webhook] Error cancelando cita ${appointmentId}:`,
+            cancelResult.error
+          )
+        }
+      }
+
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
+
+    // ── Dispatch: pago de curso (prefix "course:") ─────────────────────────
+    if (externalRef.startsWith("course:")) {
+      const registrationId = externalRef.slice("course:".length)
+
+      if (mpStatus === "approved") {
+        const claimResult = await claimApprovedPaymentForRegistration(
+          registrationId
+        )
+        if (claimResult.error) {
+          console.error(
+            `[webhook] Error reclamando pago de curso ${registrationId}:`,
+            claimResult.error
+          )
+          return NextResponse.json({ received: true }, { status: 200 })
+        }
+        if (!claimResult.data.claimed) {
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        const paidResult = await updateRegistrationStatusToPaid(registrationId)
+        if (paidResult.error) {
+          console.error(
+            `[webhook] Error marcando inscripción ${registrationId} como pagada:`,
+            paidResult.error
+          )
+        }
+
+        try {
+          await sendCourseRegistrationEmail(registrationId)
+        } catch (emailError) {
+          console.error(
+            `[webhook] Error enviando email de inscripción para ${registrationId}:`,
+            emailError
+          )
+        }
+      } else if (mpStatus === "rejected" || mpStatus === "cancelled") {
+        const rejResult = await markRegistrationPaymentRejected(registrationId)
+        if (rejResult.error) {
+          console.error(
+            `[webhook] Error marcando pago de curso ${registrationId} como rechazado:`,
+            rejResult.error
+          )
+        }
+        const cancelResult =
+          await updateRegistrationStatusToCancelledFromPayment(registrationId)
+        if (cancelResult.error) {
+          console.error(
+            `[webhook] Error cancelando inscripción ${registrationId}:`,
+            cancelResult.error
+          )
+        }
+      }
+
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
+
+    // ── Dispatch por defecto: pago de orden (external_reference = order_id) ─
+    const orderId = externalRef
 
     if (mpStatus === "approved") {
       const claimResult = await claimApprovedPaymentForOrder(orderId)

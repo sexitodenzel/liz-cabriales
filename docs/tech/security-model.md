@@ -17,7 +17,7 @@
 
 ---
 
-## Protección de rutas (middleware.ts)
+## Protección de rutas (proxy.ts)
 
 ### Rutas públicas — cualquiera puede acceder
 

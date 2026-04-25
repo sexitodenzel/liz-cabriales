@@ -62,7 +62,7 @@ liz-cabriales/
 │   └── users.ts
 ├── scripts/seed-products.ts
 ├── types/index.ts
-├── middleware.ts
+├── proxy.ts
 ├── docs/                   ← vault del proyecto
 └── .env.local
 ```

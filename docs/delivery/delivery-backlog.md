@@ -95,36 +95,36 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
 ## Fase 2 — Operación del salón
 
-### Sprint 3 — Citas
+### Sprint 3 ✅ CERRADO — Módulo de citas
 
-- [ ] Tablas `services`, `staff`, `appointments` en Supabase
-- [ ] Página `/citas` — seleccionar servicio, estilista, fecha y hora
-- [ ] Bloqueo de horarios ya reservados
-- [ ] Panel recepcionista — agendar cita manualmente para cliente presencial
-- [ ] Vista de agenda del día/semana en admin
-- [ ] Notificación de confirmación de cita (WhatsApp o email)
-- [ ] Recordatorio automático 24h antes
+- [x] `lib/supabase/appointments.ts` y `lib/validations/appointments.ts`
+- [x] API pública: `POST /api/appointments`, `GET /api/appointments/availability`, `PATCH /api/appointments/[id]/cancel`, `POST /api/payments/appointment`
+- [x] API admin: `GET|POST /api/admin/appointments`, `PATCH /api/admin/appointments/[id]/reschedule`, `POST|DELETE /api/admin/blocked-slots`
+- [x] Páginas: `/citas` (wizard 4 pasos), `/cita/[id]`, `/cita/[id]/error`
+- [x] Admin: `/admin/appointments` con agenda + modal cita manual + modal bloqueo + modal reprogramación
+- [x] Emails de cita: confirmación, recordatorio 24h, reprogramación
+- [x] Vercel Cron para recordatorios: `0 10 * * *`
+- [x] DB: `reminder_sent BOOLEAN` en `appointments`
 
-### Sprint 4 — Cursos
+### Sprint 4 ✅ CERRADO — Módulo de cursos
 
-- [ ] Tablas `courses`, `enrollments` en Supabase
-- [ ] Página `/cursos` — listado y detalle de cada curso
-- [ ] Sistema de apartado — pago mínimo para reservar lugar
-- [ ] Pago del resto antes del curso
-- [ ] Control de cupo — cerrar inscripción al llenarse
-- [ ] Panel admin — crear/editar cursos y ver inscritos
-- [ ] Lista de asistencia en admin
+- [x] `lib/supabase/courses.ts`, `lib/validations/courses.ts`, `lib/utils.ts` (`getMinDeposit`)
+- [x] API pública: `GET /api/courses`, `GET /api/courses/[id]`, `POST /api/course-registrations`, `GET /api/course-registrations/user`, `POST /api/payments/course`
+- [x] API admin: `GET|POST /api/admin/courses`, `PATCH|DELETE /api/admin/courses/[id]`, `GET|POST /api/admin/courses/[id]/registrations`
+- [x] Páginas: `/cursos`, `/cursos/[id]`, `/curso/[courseId]/inscripcion/[id]`, error de pago
+- [x] Admin: `/admin/courses` con CRUD + inscritos + inscripción manual
+- [x] Email de confirmación de inscripción a curso
+- [x] DB: `client_name`, `client_email` en `course_registrations`, `user_id` nullable
 
-### Sprint 5 — Admin multi-rol y cierre
+### Sprint 5 — ACTIVO — Admin multi-rol y cierre
 
-- [ ] Tabla `admin_roles` con permisos granulares
-- [ ] Rol recepcionista — acceso solo a: citas, agenda, clientes
-- [ ] Rol admin completo — acceso total
-- [ ] Flujo CFDI — checkbox en checkout, % adicional, registro en orden
-- [ ] QA general en dispositivos móviles
-- [ ] Pruebas de flujo completo con Liz (UAT)
-- [ ] Deploy final a producción
-- [ ] Capacitación a Liz y recepcionista
+- [ ] Rol recepcionista (`users.role` + middleware)
+- [ ] Vistas limitadas de recepcionista (solo `/admin/appointments`)
+- [ ] Página `/perfil` cliente con historial de pedidos, citas y cursos
+- [ ] CFDI en checkout (checkbox, RFC, razón social, % adicional)
+- [ ] Nav público actualizado
+- [ ] QA general móvil
+- [ ] Checklist pre-lanzamiento
 
 ---
 

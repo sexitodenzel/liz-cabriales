@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Rutas /admin/* — solo role = 'admin'
+  // Rutas /admin/* — admin: todo el panel; receptionist: solo /admin/appointments/*
   if (pathname.startsWith("/admin")) {
     if (!user) {
       return NextResponse.redirect(new URL("/login", request.url))
@@ -39,10 +39,29 @@ export async function middleware(request: NextRequest) {
       .select("role")
       .eq("id", user.id)
       .single()
-    if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/login", request.url))
+
+    const role = profile?.role
+    const isAppointmentsArea =
+      pathname === "/admin/appointments" ||
+      pathname.startsWith("/admin/appointments/")
+
+    if (role === "admin") {
+      return response
     }
-    return response
+
+    if (role === "receptionist") {
+      if (pathname === "/admin") {
+        return NextResponse.redirect(
+          new URL("/admin/appointments", request.url)
+        )
+      }
+      if (isAppointmentsArea) {
+        return response
+      }
+      return NextResponse.redirect(new URL("/", request.url))
+    }
+
+    return NextResponse.redirect(new URL("/", request.url))
   }
 
   // Rutas /perfil/* y /checkout/* — sesión activa
@@ -59,5 +78,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/perfil/:path*", "/checkout/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/perfil",
+    "/perfil/:path*",
+    "/checkout/:path*",
+  ],
 }

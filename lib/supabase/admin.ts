@@ -80,6 +80,29 @@ export async function requireAdmin(
   return { data: role, error: null }
 }
 
+/** Admin o recepcionista (p. ej. agenda y citas). */
+export async function requireAdminOrReceptionist(
+  userId: string | undefined | null
+): Promise<Result<UserRole>> {
+  if (!userId) {
+    return {
+      data: null,
+      error: { message: "No autorizado", code: "UNAUTHENTICATED" },
+    }
+  }
+
+  const role = await getUserRole(userId)
+
+  if (role !== "admin" && role !== "receptionist") {
+    return {
+      data: null,
+      error: { message: "Acceso denegado", code: "FORBIDDEN" },
+    }
+  }
+
+  return { data: role, error: null }
+}
+
 export async function getAdminCategories(): Promise<Result<AdminCategory[]>> {
   const { data, error } = await supabaseAdmin
     .from("categories")

@@ -3,6 +3,10 @@
 import Link from "next/link"
 import { useMemo, useState, type FormEvent } from "react"
 
+import {
+  CFDI_SURCHARGE_PERCENT,
+  computeInvoiceSurchargeMxn,
+} from "@/constants/cfdi"
 import type { CartSnapshot } from "@/lib/supabase/cart"
 import { createOrderSchema } from "@/lib/validations/orders"
 import type { DeliveryType } from "@/types"
@@ -65,6 +69,20 @@ export default function CheckoutClient({ initialCart }: Props) {
   const [createdOrder, setCreatedOrder] = useState<OrderCreateData | null>(null)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [isRetryingPayment, setIsRetryingPayment] = useState(false)
+  const [requiresInvoice, setRequiresInvoice] = useState(false)
+  const [rfc, setRfc] = useState("")
+  const [razonSocial, setRazonSocial] = useState("")
+
+  const invoiceSurcharge = useMemo(
+    () =>
+      requiresInvoice ? computeInvoiceSurchargeMxn(initialCart.total) : 0,
+    [requiresInvoice, initialCart.total]
+  )
+
+  const orderTotalWithInvoice = useMemo(
+    () => initialCart.total + invoiceSurcharge,
+    [initialCart.total, invoiceSurcharge]
+  )
 
   const totalItems = useMemo(
     () => initialCart.items.reduce((sum, item) => sum + item.quantity, 0),
@@ -106,6 +124,10 @@ export default function CheckoutClient({ initialCart }: Props) {
       shipping_address: shippingAddress,
       shipping_state: shippingState,
       shipping_city: shippingCity,
+      requires_invoice: requiresInvoice,
+      ...(requiresInvoice
+        ? { rfc: rfc.trim(), razon_social: razonSocial.trim() }
+        : {}),
     }
 
     const parseResult = createOrderSchema.safeParse(payload)
@@ -355,6 +377,64 @@ export default function CheckoutClient({ initialCart }: Props) {
                 </div>
               )}
 
+              <div className="space-y-4 border-t border-neutral-200 pt-8">
+                <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-200 bg-[#fcfbf8] p-4 transition-colors has-[:checked]:border-[#C9A84C] has-[:checked]:bg-[#fff8e7]">
+                  <input
+                    type="checkbox"
+                    checked={requiresInvoice}
+                    onChange={(e) => {
+                      setRequiresInvoice(e.target.checked)
+                      if (!e.target.checked) {
+                        setRfc("")
+                        setRazonSocial("")
+                      }
+                    }}
+                    className="mt-1 h-4 w-4 accent-[#C9A84C]"
+                  />
+                  <span>
+                    <span className="block text-sm font-semibold text-[#0a0a0a]">
+                      Requiero factura (CFDI)
+                    </span>
+                    <span className="mt-1 block text-sm text-neutral-600">
+                      Se aplica un cargo adicional del {CFDI_SURCHARGE_PERCENT}%
+                      por facturación sobre el subtotal del carrito.
+                    </span>
+                  </span>
+                </label>
+
+                {requiresInvoice && (
+                  <div className="grid gap-4 rounded-2xl border border-neutral-200 bg-white p-4">
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-neutral-700">
+                        RFC
+                      </span>
+                      <input
+                        type="text"
+                        value={rfc}
+                        onChange={(e) =>
+                          setRfc(e.target.value.slice(0, 13).toUpperCase())
+                        }
+                        maxLength={13}
+                        className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm uppercase text-[#0a0a0a] outline-none transition-colors focus:border-[#C9A84C]"
+                        placeholder="XAXX010101000"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-neutral-700">
+                        Razón social
+                      </span>
+                      <input
+                        type="text"
+                        value={razonSocial}
+                        onChange={(e) => setRazonSocial(e.target.value)}
+                        className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-[#0a0a0a] outline-none transition-colors focus:border-[#C9A84C]"
+                        placeholder="Nombre o denominación fiscal"
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <button
                   type="submit"
@@ -418,6 +498,14 @@ export default function CheckoutClient({ initialCart }: Props) {
                 {formatPrice(initialCart.total)}
               </span>
             </div>
+            {requiresInvoice && invoiceSurcharge > 0 && (
+              <div className="flex items-center justify-between text-sm text-neutral-600">
+                <span>Cargo CFDI ({CFDI_SURCHARGE_PERCENT}%)</span>
+                <span className="font-medium text-[#0a0a0a]">
+                  {formatPrice(invoiceSurcharge)}
+                </span>
+              </div>
+            )}
             <div className="flex items-center justify-between text-sm text-neutral-600">
               <span>Envio</span>
               <span className="font-medium text-[#0a0a0a]">Se define despues</span>
@@ -429,7 +517,7 @@ export default function CheckoutClient({ initialCart }: Props) {
               Total
             </span>
             <span className="text-lg font-semibold">
-              {formatPrice(initialCart.total)}
+              {formatPrice(orderTotalWithInvoice)}
             </span>
           </div>
 

@@ -57,6 +57,8 @@ export default function LoginPage() {
       console.log("[handleLogin] Rol obtenido:", role, "profile:", profile)
       if (role === "admin") {
         router.push("/admin")
+      } else if (role === "receptionist") {
+        router.push("/admin/appointments")
       } else {
         router.push("/")
       }
