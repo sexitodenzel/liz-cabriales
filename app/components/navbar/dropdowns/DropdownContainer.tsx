@@ -14,7 +14,7 @@ export type DropdownRenderCtx = {
   close: () => void
 }
 
-type DropdownPanelKey = Exclude<MenuType, "Tienda" | "Cursos" | "Servicios" | null>
+type DropdownPanelKey = Exclude<MenuType, "Tienda" | "Academia" | "Servicios" | null>
 
 type DropdownPanelProps = {
   menu: DropdownPanelKey

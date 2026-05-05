@@ -253,12 +253,6 @@ export default function InstagramFeed() {
         >
           #lizcabriales
         </h2>
-        <span
-          className="hidden md:block absolute right-0 bottom-3 font-light"
-          style={{ fontSize: 13, color: "#a3a3a3", letterSpacing: "0.02em" }}
-        >
-          #lizcabrialesstudio
-        </span>
       </div>
 
       {/* Subtext */}

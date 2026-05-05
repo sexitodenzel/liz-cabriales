@@ -140,7 +140,7 @@ export default function CourseDetail({
         {/* Breadcrumb */}
         <nav className="mb-6 flex flex-wrap items-center gap-2 text-[13px] text-[#6b6b6b]">
           <Link
-            href="/cursos"
+            href="/academia"
             className="flex items-center gap-2 transition-colors hover:text-[#a8893a]"
           >
             <ChevLeftIcon />

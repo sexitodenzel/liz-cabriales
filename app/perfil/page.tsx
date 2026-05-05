@@ -193,7 +193,7 @@ export default async function PerfilPage() {
           {registrations.length === 0 ? (
             <p className="mt-4 text-sm text-neutral-600">
               No tienes inscripciones. Consulta los{" "}
-              <Link href="/cursos" className="font-medium text-[#9b7a1f] underline">
+              <Link href="/academia" className="font-medium text-[#9b7a1f] underline">
                 cursos disponibles
               </Link>
               .

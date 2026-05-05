@@ -40,10 +40,10 @@ export default function AcademyBanner() {
           </p>
           <div className="mt-8">
             <Link
-              href="/cursos"
+              href="/academia"
               className="rounded-full bg-brand-gold px-8 py-3 text-sm font-semibold uppercase tracking-wide text-brand-black transition hover:bg-brand-gold/90"
             >
-              Ver próximos cursos
+              Ver academia
             </Link>
           </div>
         </div>

@@ -81,7 +81,7 @@ export default function RegisterModal({
 
   async function handleConfirm() {
     if (!isAuthenticated) {
-      router.push(`/login?redirect=${encodeURIComponent(`/cursos/${course.id}`)}`)
+      router.push(`/login?redirect=${encodeURIComponent(`/academia/${course.id}`)}`)
       return
     }
 

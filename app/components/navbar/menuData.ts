@@ -9,8 +9,8 @@ export const menuData = {
       col2: { title: "Más", items: ["Ofertas", "Nuevos productos", "Más vendidos"] },
       col3: { title: "Explorar", items: ["Guía de compra", "Colecciones", "Inspiración"] }
     },
-    Cursos: {
-      col1: { title: "Cursos", items: ["Curso básico", "Curso avanzado", "Masterclass"] },
+    Academia: {
+      col1: { title: "Academia", items: ["Curso básico", "Curso avanzado", "Masterclass"] },
       col2: { title: "Certificaciones", items: ["Certificado profesional", "Especialización"] },
       col3: { title: "Aprender", items: ["Tips", "Técnicas", "Tutoriales"] }
     },

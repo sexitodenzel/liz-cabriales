@@ -55,8 +55,8 @@ const promoSections: PromoSection[] = [
     headline: "Formación de alto nivel, donde tú estés.",
     description:
       "Cursos presenciales impartidos por masters nacionales e internacionales. Desde nivel principiante hasta avanzado. Todo incluido: certificado, coffee break, comida y material de marca.",
-    href: "/cursos",
-    cta: "Ver Cursos",
+    href: "/academia",
+    cta: "Ver Academia",
     textAlign: "right",
     imagesAlign: "left",
     images: [

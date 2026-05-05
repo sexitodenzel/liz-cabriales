@@ -148,16 +148,23 @@ export default function ShopByNailPolishColors() {
   }, [addItem, closeModal, isLoggedIn, openCart, selected])
 
   return (
-    <section className="bg-white py-14 text-black">
+    <section className="bg-white pt-14 text-black">
       <div className="mx-auto max-w-[1400px] px-6">
-        <div className="mb-8 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-neutral-500">
-            Colección
-          </p>
-          <h2 className="mt-2 font-[family-name:var(--font-cormorant-garamond),Georgia,serif] text-[clamp(1.75rem,3vw,2.5rem)] font-semibold tracking-tight text-neutral-900">
-            Shop By Nail Polish Colors
+        <header className="mb-10 max-w-[720px]">
+          <h2 className="mb-[18px] mt-3.5 font-[family-name:var(--font-playfair),serif] text-[clamp(36px,4.4vw,56px)] font-medium leading-[1.05] tracking-[-0.01em] text-black">
+            Compra por Color de{" "}
+            <em className="font-medium italic text-[#a8862f]">
+              Esmalte
+            </em>
           </h2>
-        </div>
+          <div
+            className="mb-[18px] h-0.5 w-16 rounded-sm bg-[#c9a84c]"
+            aria-hidden
+          />
+          <p className="max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">
+            Explora nuestra paleta completa y encuentra el tono perfecto para cada ocasión — desde neutros elegantes hasta colores vibrantes.
+          </p>
+        </header>
 
         <div className="w-full">
           <div

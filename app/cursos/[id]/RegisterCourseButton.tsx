@@ -39,7 +39,7 @@ export default function RegisterCourseButton({
 
   const handleRegister = async () => {
     if (!isAuthenticated) {
-      const redirectTo = `/cursos/${courseId}`
+      const redirectTo = `/academia/${courseId}`
       router.push(`/login?redirect=${encodeURIComponent(redirectTo)}`)
       return
     }

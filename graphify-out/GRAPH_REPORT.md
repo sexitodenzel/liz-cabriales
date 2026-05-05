@@ -1,16 +1,16 @@
 # Graph Report - liz-cabriales  (2026-05-05)
 
 ## Corpus Check
-- 367 files · ~1,081,503 words
+- 371 files · ~1,082,686 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1877 nodes · 3529 edges · 77 communities detected
-- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 312 edges (avg confidence: 0.8)
+- 1889 nodes · 3550 edges · 72 communities detected
+- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 317 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0eec8fd5`
+- Built from commit: `16f01046`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -66,35 +66,30 @@
 - [[_COMMUNITY_Community 48|Community 48]]
 - [[_COMMUNITY_Community 49|Community 49]]
 - [[_COMMUNITY_Community 50|Community 50]]
-- [[_COMMUNITY_Community 51|Community 51]]
+- [[_COMMUNITY_Community 52|Community 52]]
 - [[_COMMUNITY_Community 53|Community 53]]
-- [[_COMMUNITY_Community 54|Community 54]]
-- [[_COMMUNITY_Community 56|Community 56]]
+- [[_COMMUNITY_Community 55|Community 55]]
 - [[_COMMUNITY_Community 58|Community 58]]
+- [[_COMMUNITY_Community 59|Community 59]]
 - [[_COMMUNITY_Community 60|Community 60]]
 - [[_COMMUNITY_Community 61|Community 61]]
-- [[_COMMUNITY_Community 62|Community 62]]
 - [[_COMMUNITY_Community 63|Community 63]]
+- [[_COMMUNITY_Community 64|Community 64]]
 - [[_COMMUNITY_Community 65|Community 65]]
 - [[_COMMUNITY_Community 66|Community 66]]
 - [[_COMMUNITY_Community 67|Community 67]]
 - [[_COMMUNITY_Community 70|Community 70]]
 - [[_COMMUNITY_Community 71|Community 71]]
-- [[_COMMUNITY_Community 72|Community 72]]
-- [[_COMMUNITY_Community 73|Community 73]]
+- [[_COMMUNITY_Community 75|Community 75]]
 - [[_COMMUNITY_Community 76|Community 76]]
-- [[_COMMUNITY_Community 77|Community 77]]
 - [[_COMMUNITY_Community 78|Community 78]]
 - [[_COMMUNITY_Community 79|Community 79]]
-- [[_COMMUNITY_Community 81|Community 81]]
-- [[_COMMUNITY_Community 82|Community 82]]
-- [[_COMMUNITY_Community 86|Community 86]]
+- [[_COMMUNITY_Community 83|Community 83]]
+- [[_COMMUNITY_Community 85|Community 85]]
 - [[_COMMUNITY_Community 87|Community 87]]
-- [[_COMMUNITY_Community 89|Community 89]]
-- [[_COMMUNITY_Community 91|Community 91]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `createClient()` - 54 edges
+1. `createClient()` - 55 edges
 2. `requireAdmin()` - 30 edges
 3. `POST()` - 22 edges
 4. `renderDesignSystemShowcase()` - 21 edges
@@ -102,42 +97,42 @@
 6. `DELETE()` - 16 edges
 7. `requireAdminOrReceptionist()` - 16 edges
 8. `main()` - 15 edges
-9. `listSkills()` - 14 edges
-10. `createAppointment()` - 13 edges
+9. `getCourseById()` - 14 edges
+10. `listSkills()` - 14 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `AcademiaPage()` --calls--> `getPublishedCourses()`  [INFERRED]
+  app/academia/page.tsx → lib/supabase/courses.ts
+- `AcademiaDetallePage()` --calls--> `getCourseById()`  [INFERRED]
+  app/academia/[id]/page.tsx → lib/supabase/courses.ts
 - `AdminPage()` --calls--> `getLowStockVariants()`  [INFERRED]
   app/admin/page.tsx → lib/supabase/adminProducts.ts
 - `AdminCoursesPage()` --calls--> `getAdminCourses()`  [INFERRED]
   app/admin/courses/page.tsx → lib/supabase/courses.ts
-- `assertAdminOrReceptionist()` --calls--> `requireAdminOrReceptionist()`  [INFERRED]
-  app/api/admin/appointments/route.ts → lib/supabase/admin.ts
-- `POST()` --calls--> `adminCreateManualAppointment()`  [INFERRED]
-  app/api/appointments/route.ts → lib/supabase/appointments.ts
 - `POST()` --calls--> `sendAppointmentConfirmationEmail()`  [INFERRED]
   app/api/appointments/route.ts → lib/email/templates/appointment-confirmation.ts
 
-## Communities (197 total, 6 thin omitted)
+## Communities (193 total, 6 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.05
-Nodes (86): open(), isToolDevAppName(), parsePortOption(), resolveElectronBinaryPath(), resolveRunApps(), resolveStartApps(), resolveStopApps(), resolveTargetApps() (+78 more)
+Cohesion: 0.06
+Nodes (84): isToolDevAppName(), parsePortOption(), resolveElectronBinaryPath(), resolveRunApps(), resolveStartApps(), resolveStopApps(), resolveTargetApps(), resolveTsxCliPath() (+76 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.06
 Nodes (71): inferLegacyManifest(), isPlainObject(), parsePersistedManifest(), sanitizeManifest(), validateArtifactManifestInput(), validateBoundedString(), validateSupportingPath(), chooseEntryFile() (+63 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.08
-Nodes (63): collect(), exists(), main(), walk(), resolveElectronBuilderCliPath(), resolveElectronDistPath(), resolveElectronVersion(), resolveToolPackBuildOutput() (+55 more)
+Cohesion: 0.05
+Nodes (48): buildExternalRef(), errorResponse(), POST(), AdminAppointmentsPage(), assertAdminOrReceptionist(), errorResponse(), GET(), POST() (+40 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.08
-Nodes (48): errorResponse(), GET(), tomorrowInTampicoTz(), buildEmailPayload(), sendOrderConfirmationEmail(), unwrap(), errorResponse(), POST() (+40 more)
+Nodes (63): collect(), exists(), main(), walk(), resolveElectronBuilderCliPath(), resolveElectronDistPath(), resolveElectronVersion(), resolveToolPackBuildOutput() (+55 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.08
-Nodes (42): AdminPage(), GET(), mapAuthStatus(), POST(), GET(), mapAuthStatus(), POST(), assertAdmin() (+34 more)
+Nodes (48): errorResponse(), GET(), tomorrowInTampicoTz(), buildEmailPayload(), sendOrderConfirmationEmail(), unwrap(), errorResponse(), POST() (+40 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.06
@@ -149,67 +144,67 @@ Nodes (28): buildElementLifecycles(), captureSnapshots(), findLastBbox(), markCo
 
 ### Community 7 - "Community 7"
 Cohesion: 0.08
-Nodes (27): renderCategory(), matchesSurface(), surfaceOf(), isGerman(), localizeDesignSystemCategory(), localizeDesignSystemSummary(), localizePromptTemplateCategory(), localizePromptTemplateSummary() (+19 more)
+Nodes (30): attachParentMonitor(), createWebDiscovery(), runDesktopMain(), createDesktopRuntime(), createPendingHtml(), installWindowChromeCssHook(), normalizeScreenshotPath(), showWindowButtons() (+22 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.1
-Nodes (42): buildWorkspaceArtifacts(), cleanBuilderScratchMetadata(), cleanupPackedMacNamespace(), clearQuarantine(), collectWorkspaceTarballs(), commandMatchesDesktopMarker(), copyResourceTree(), desktopIdentityPath() (+34 more)
+Cohesion: 0.08
+Nodes (27): renderCategory(), matchesSurface(), surfaceOf(), isGerman(), localizeDesignSystemCategory(), localizeDesignSystemSummary(), localizePromptTemplateCategory(), localizePromptTemplateSummary() (+19 more)
 
 ### Community 9 - "Community 9"
+Cohesion: 0.1
+Nodes (43): collectProcessTreePids(), buildWorkspaceArtifacts(), cleanBuilderScratchMetadata(), cleanupPackedMacNamespace(), clearQuarantine(), collectWorkspaceTarballs(), commandMatchesDesktopMarker(), copyResourceTree() (+35 more)
+
+### Community 10 - "Community 10"
 Cohesion: 0.11
 Nodes (34): buildDeployFileSet(), checkDeploymentUrl(), deployConfigPath(), DeployError, deploymentUrl(), deploymentUrlCandidates(), deployToVercel(), escapeHtmlAttribute() (+26 more)
 
-### Community 10 - "Community 10"
+### Community 11 - "Community 11"
 Cohesion: 0.09
 Nodes (36): closeDatabase(), deleteConversation(), deleteProject(), deleteTemplate(), getConversation(), getDeployment(), getDeploymentById(), getProject() (+28 more)
 
-### Community 11 - "Community 11"
-Cohesion: 0.09
-Nodes (27): attachRecoverableRuns(), listActiveChatRuns(), daemonIsLive(), fetchAgents(), fetchDesignSystems(), fetchProjectFiles(), fetchPromptTemplates(), fetchSkills() (+19 more)
-
 ### Community 12 - "Community 12"
-Cohesion: 0.12
-Nodes (21): main(), attachParentMonitor(), closeHttpServer(), isDaemonProxyPathname(), isProcessAlive(), listen(), parsePort(), prepareNextApp() (+13 more)
+Cohesion: 0.08
+Nodes (21): clip(), escapeRe(), lintArtifact(), renderFindingsForAgent(), listPromptTemplates(), readPromptTemplate(), validateTemplate(), createChatRunService() (+13 more)
 
 ### Community 13 - "Community 13"
 Cohesion: 0.09
 Nodes (18): formatFormAnswers(), parseAttrs(), splitOnQuestionForms(), tryParseForm(), streaming(), t(), handleSubmit(), missingRequired() (+10 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.12
-Nodes (27): commandArgs(), createCommandInvocation(), createLoggedStdio(), createProcessStampArgs(), errorCode(), errorMessage(), isProcessAlive(), jsonIpcError() (+19 more)
+Cohesion: 0.1
+Nodes (26): daemonIsLive(), fetchAgents(), fetchDesignSystem(), fetchProjectFiles(), fetchPromptTemplates(), fetchSkill(), fetchSkills(), hasAnyConfiguredProvider() (+18 more)
 
 ### Community 15 - "Community 15"
+Cohesion: 0.15
+Nodes (26): GET(), mapAuthStatus(), POST(), GET(), mapAuthStatus(), POST(), GET(), mapResultStatus() (+18 more)
+
+### Community 16 - "Community 16"
 Cohesion: 0.07
 Nodes (9): CenteredLoader(), Skeleton(), clear(), onChange(), onScroll(), pickTemplate(), updateTabScrollState(), findProvider() (+1 more)
 
-### Community 16 - "Community 16"
+### Community 17 - "Community 17"
 Cohesion: 0.13
 Nodes (23): callPaymentEndpoint(), getCheckoutErrorMessage(), handleRetryPayment(), handleSubmit(), computeInvoiceSurchargeMxn(), roundMoney(), errorResponse(), GET() (+15 more)
 
-### Community 17 - "Community 17"
-Cohesion: 0.1
-Nodes (15): createChatRunService(), appendTaskProgress(), assembleExample(), composeProjectDisplayStatus(), createCompatApiError(), createCompatApiErrorResponse(), createSseErrorPayload(), createSseResponse() (+7 more)
-
 ### Community 18 - "Community 18"
-Cohesion: 0.16
-Nodes (22): AdminAppointmentsPage(), errorResponse(), GET(), adminCreateManualAppointment(), buildSlotStarts(), createAppointment(), filterAvailableStartsForProfessional(), getAppointmentForUser() (+14 more)
+Cohesion: 0.13
+Nodes (23): commandArgs(), createCommandInvocation(), createLoggedStdio(), createProcessStampArgs(), isProcessAlive(), listPosixProcessSnapshots(), listProcessSnapshots(), listWindowsProcessSnapshots() (+15 more)
 
 ### Community 19 - "Community 19"
-Cohesion: 0.15
-Nodes (23): resolveAppConfig(), resolveToolDevConfig(), assertMatchingEnv(), bootstrapSidecarRuntime(), createJsonIpcServer(), createSidecarLaunchEnv(), prepareIpcPath(), removeFile() (+15 more)
-
-### Community 20 - "Community 20"
 Cohesion: 0.2
 Nodes (24): assertKnownKeys(), assertKnownStampKeys(), assertObject(), assertSidecarStamp(), isAppKey(), isSidecarMode(), isSidecarSource(), isWindowsNamedPipePath() (+16 more)
 
+### Community 20 - "Community 20"
+Cohesion: 0.17
+Nodes (20): resolveAppConfig(), resolveToolDevConfig(), assertMatchingEnv(), bootstrapSidecarRuntime(), createSidecarLaunchEnv(), removeFile(), removePointerIfCurrent(), resolveAppIpcPath() (+12 more)
+
 ### Community 21 - "Community 21"
-Cohesion: 0.23
-Nodes (22): DELETE(), errorResponse(), GET(), loadCartSnapshot(), PATCH(), POST(), requireUser(), CheckoutPage() (+14 more)
+Cohesion: 0.11
+Nodes (10): AdminPage(), formatDate(), formatPrice(), formatTimeLabel(), statusBadge(), GET(), getLowStockVariants(), unwrapProduct() (+2 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.17
-Nodes (20): errorResponse(), POST(), AdminCourseRegistrationsPage(), assertAdmin(), errorResponse(), GET(), POST(), addManualRegistration() (+12 more)
+Cohesion: 0.23
+Nodes (22): DELETE(), errorResponse(), GET(), loadCartSnapshot(), PATCH(), POST(), requireUser(), CheckoutPage() (+14 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.11
@@ -232,174 +227,154 @@ Cohesion: 0.21
 Nodes (21): activityRow(), cleanTitle(), escapeHtml(), extractColors(), extractFonts(), extractSubtitle(), faq(), featureCard() (+13 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.12
-Nodes (13): DesignFilesPanel(), DesignSystemPreviewModal(), deleteProjectFile(), fetchAppVersionInfo(), fetchDesignSystem(), fetchDesignSystemPreview(), fetchDesignSystemShowcase(), fetchProjectFilePreview() (+5 more)
-
-### Community 29 - "Community 29"
 Cohesion: 0.17
 Nodes (14): createProject(), createProjectNameOnly(), expectArtifactVisible(), getCurrentProjectContext(), listProjectFilesFromApi(), runConversationDeleteRecoveryFlow(), runConversationPersistenceFlow(), runDeepLinkPreviewFlow() (+6 more)
 
-### Community 30 - "Community 30"
-Cohesion: 0.13
-Nodes (7): formatDate(), formatPrice(), formatTimeLabel(), statusBadge(), deleteBlockedSlot(), getInstructors(), createClient()
-
-### Community 31 - "Community 31"
-Cohesion: 0.14
-Nodes (7): attachAcpSession(), createJsonLineStream(), detectAcpModels(), attachPiRpcSession(), parsePiModels(), sendCommand(), simulateRpcSession()
-
-### Community 32 - "Community 32"
+### Community 29 - "Community 29"
 Cohesion: 0.22
 Nodes (17): assertPreviewInputSize(), assertSafeXml(), assertZipPreviewSize(), buildDocumentPreview(), decodeXml(), extractFirst(), extractParagraphs(), extractTextRuns() (+9 more)
 
-### Community 33 - "Community 33"
+### Community 30 - "Community 30"
+Cohesion: 0.14
+Nodes (7): attachAcpSession(), createJsonLineStream(), detectAcpModels(), attachPiRpcSession(), parsePiModels(), sendCommand(), simulateRpcSession()
+
+### Community 31 - "Community 31"
+Cohesion: 0.15
+Nodes (14): DesignFilesPanel(), activatePending(), closeTab(), handleFilePicked(), hasFiles(), isAllowedDropTarget(), onDragOver(), onDrop() (+6 more)
+
+### Community 32 - "Community 32"
 Cohesion: 0.21
 Nodes (18): cleanTitle(), clearDir(), extractAuthor(), extractBlockquoteSummary(), extractDescription(), extractFirstImage(), extractSourceUrl(), extractVideoLink() (+10 more)
 
+### Community 33 - "Community 33"
+Cohesion: 0.23
+Nodes (15): errorResponse(), POST(), AdminCourseRegistrationsPage(), attachStats(), createCourse(), createRegistration(), findExistingActiveRegistration(), getCourseById() (+7 more)
+
 ### Community 34 - "Community 34"
+Cohesion: 0.18
+Nodes (10): AcademiaPage(), AdminCoursesPage(), assertAdmin(), errorResponse(), GET(), POST(), CursosPage(), getAdminCourses() (+2 more)
+
+### Community 35 - "Community 35"
 Cohesion: 0.24
 Nodes (17): cleanTitle(), escapeHtml(), extractColors(), extractFonts(), extractSubtitle(), firstNonNeutral(), inline(), isTableSeparator() (+9 more)
 
-### Community 35 - "Community 35"
-Cohesion: 0.18
-Nodes (13): activatePending(), closeTab(), handleFilePicked(), hasFiles(), isAllowedDropTarget(), onDragOver(), onDrop(), openFile() (+5 more)
-
 ### Community 36 - "Community 36"
+Cohesion: 0.16
+Nodes (11): DesignSystemPreviewModal(), deleteProjectFile(), fetchAppVersionInfo(), fetchDesignSystemPreview(), fetchDesignSystems(), fetchDesignSystemShowcase(), fetchProjectFilePreview(), fetchProjectFileText() (+3 more)
+
+### Community 37 - "Community 37"
 Cohesion: 0.2
 Nodes (12): buildCaseRow(), buildMarkdown(), compactError(), escapeCell(), formatDuration(), MarkdownReporter, normalizeStatus(), parseCaseTitle() (+4 more)
 
-### Community 37 - "Community 37"
+### Community 38 - "Community 38"
 Cohesion: 0.15
 Nodes (4): onKey(), onTouchEnd(), goNext(), goPrev()
 
-### Community 38 - "Community 38"
-Cohesion: 0.2
-Nodes (9): AdminCoursesPage(), assertAdmin(), errorResponse(), GET(), POST(), CursosPage(), getAdminCourses(), getPaidCountsForCourses() (+1 more)
-
 ### Community 39 - "Community 39"
+Cohesion: 0.24
+Nodes (11): assertAdmin(), DELETE(), errorResponse(), mapResultStatus(), mapResultToStatus(), PATCH(), deleteAdminBrand(), deleteAdminCategory() (+3 more)
+
+### Community 40 - "Community 40"
+Cohesion: 0.23
+Nodes (10): buildExternalRef(), errorResponse(), POST(), AcademiaDetallePage(), CursoDetallePage(), isCoursePast(), getMinDeposit(), getRegistrationForPayment() (+2 more)
+
+### Community 41 - "Community 41"
 Cohesion: 0.19
 Nodes (5): renderDirectionFormBody(), renderDirectionSpecBlock(), composeSystemPrompt(), derivePreflight(), renderMetadataBlock()
 
-### Community 40 - "Community 40"
-Cohesion: 0.22
-Nodes (10): errorResponse(), POST(), errorResponse(), PATCH(), GET(), requireAdminOrReceptionist(), createClientFromAdmin(), createBlockedSlot() (+2 more)
-
-### Community 41 - "Community 41"
-Cohesion: 0.23
-Nodes (9): buildExternalRef(), errorResponse(), POST(), CursoDetallePage(), isCoursePast(), getMinDeposit(), getRegistrationForPayment(), getUserRegistrations() (+1 more)
-
 ### Community 42 - "Community 42"
-Cohesion: 0.24
-Nodes (7): assertAdminOrReceptionist(), errorResponse(), GET(), POST(), todayString(), getAdminAppointments(), listAppointmentsForUser()
+Cohesion: 0.21
+Nodes (9): NuevosLanzamientos(), generateMetadata(), getBrands(), getCategories(), getFeaturedProducts(), getProductBySlug(), getProducts(), firstString() (+1 more)
 
 ### Community 43 - "Community 43"
-Cohesion: 0.21
-Nodes (10): detectAgents(), fetchModels(), getAgentDef(), isKnownModel(), probe(), rememberLiveModels(), resolveAgentBin(), resolveOnPath() (+2 more)
+Cohesion: 0.22
+Nodes (11): open(), closeManagedChild(), createPackagedDaemonManagedPathEnv(), extractPort(), logPathFor(), openLog(), resolvePackagedChildBaseEnv(), resolvePackagedPathEnv() (+3 more)
 
 ### Community 44 - "Community 44"
 Cohesion: 0.22
-Nodes (8): attachParentMonitor(), createWebDiscovery(), runDesktopMain(), createDesktopRuntime(), createPendingHtml(), installWindowChromeCssHook(), normalizeScreenshotPath(), showWindowButtons()
+Nodes (10): attachRecoverableRuns(), consumeDaemonRun(), fetchChatRunStatus(), isChatRunStatus(), listActiveChatRuns(), reattachDaemonRun(), streamViaDaemon(), translateAgentEvent() (+2 more)
 
 ### Community 45 - "Community 45"
-Cohesion: 0.19
-Nodes (5): errorResponse(), PATCH(), appointmentAllowsClientCancel(), adminCancelAppointment(), cancelAppointment()
+Cohesion: 0.21
+Nodes (10): detectAgents(), fetchModels(), getAgentDef(), isKnownModel(), probe(), rememberLiveModels(), resolveAgentBin(), resolveOnPath() (+2 more)
 
 ### Community 46 - "Community 46"
-Cohesion: 0.24
-Nodes (8): consumeDaemonRun(), fetchChatRunStatus(), isChatRunStatus(), reattachDaemonRun(), streamViaDaemon(), translateAgentEvent(), createDaemonHandlers(), createStreamHandlers()
-
-### Community 47 - "Community 47"
 Cohesion: 0.22
 Nodes (7): ensureProject(), handleDrop(), handlePaste(), reset(), submit(), uploadFiles(), uploadProjectFiles()
 
-### Community 48 - "Community 48"
-Cohesion: 0.27
-Nodes (7): NuevosLanzamientos(), getBrands(), getCategories(), getFeaturedProducts(), getProducts(), firstString(), StorePage()
-
-### Community 49 - "Community 49"
+### Community 47 - "Community 47"
 Cohesion: 0.27
 Nodes (9): createJsonEventStreamHandler(), emitCursorTextDelta(), extractCursorText(), formatOpenCodeUsage(), handleCodexEvent(), handleCursorEvent(), handleOpenCodeEvent(), safeParseJson() (+1 more)
 
-### Community 50 - "Community 50"
+### Community 48 - "Community 48"
 Cohesion: 0.23
 Nodes (7): extractBetaVersion(), extractBetaVersionFromLatestMacYml(), extractStableVersion(), fail(), parseBetaParts(), parseStableVersion(), readPackagedVersion()
 
-### Community 51 - "Community 51"
+### Community 49 - "Community 49"
+Cohesion: 0.24
+Nodes (11): allocateDynamicPort(), allocateForcedPort(), allocatePort(), closeServer(), errorCode(), errorMessage(), jsonIpcError(), listenOnPort() (+3 more)
+
+### Community 50 - "Community 50"
 Cohesion: 0.33
 Nodes (6): streamMessageAnthropicProxy(), makeClient(), streamMessage(), isOpenAICompatible(), streamMessageOpenAI(), parseSseFrame()
 
-### Community 53 - "Community 53"
-Cohesion: 0.38
-Nodes (9): createPackagedDaemonManagedPathEnv(), extractPort(), logPathFor(), openLog(), resolvePackagedChildBaseEnv(), resolvePackagedPathEnv(), resolveSidecarEntry(), spawnSidecarChild() (+1 more)
+### Community 52 - "Community 52"
+Cohesion: 0.29
+Nodes (6): GET(), PATCH(), getAdminOrderById(), unwrapUserEmail(), unwrapUserNames(), updateAdminOrderStatusById()
 
-### Community 54 - "Community 54"
+### Community 53 - "Community 53"
 Cohesion: 0.36
 Nodes (7): collectSseEvents(), log(), logSseProgress(), parseSseEvent(), renderEvents(), runRuntime(), stringData()
 
-### Community 56 - "Community 56"
+### Community 55 - "Community 55"
 Cohesion: 0.36
 Nodes (7): cleanTitle(), extractCategory(), extractSurface(), extractSwatches(), listDesignSystems(), readDesignSystem(), summarize()
 
 ### Community 58 - "Community 58"
-Cohesion: 0.5
-Nodes (6): pathExists(), readJsonIfExists(), readPackagedConfig(), readRawPackagedConfig(), resolveDefaultConfigPath(), resolveOptionalPath()
-
-### Community 60 - "Community 60"
 Cohesion: 0.32
 Nodes (3): handlePointerDown(), handlePointerMove(), pointerPos()
 
-### Community 61 - "Community 61"
+### Community 59 - "Community 59"
 Cohesion: 0.32
 Nodes (4): extractStableVersion(), fail(), parseStableVersion(), readPackagedVersion()
 
-### Community 65 - "Community 65"
+### Community 64 - "Community 64"
 Cohesion: 0.62
 Nodes (5): cleanString(), isPackagedRuntime(), readCurrentAppVersionInfo(), readPackageMetadata(), resolveAppVersionInfo()
+
+### Community 66 - "Community 66"
+Cohesion: 0.57
+Nodes (6): pathExists(), readJsonIfExists(), readPackagedConfig(), readRawPackagedConfig(), resolveDefaultConfigPath(), resolveOptionalPath()
 
 ### Community 67 - "Community 67"
 Cohesion: 0.52
 Nodes (6): loadEnvLocal(), main(), seedCategories(), seedProducts(), toSku(), toSlug()
 
 ### Community 70 - "Community 70"
-Cohesion: 0.53
-Nodes (4): GET(), getAdminOrderById(), unwrapUserEmail(), unwrapUserNames()
-
-### Community 71 - "Community 71"
 Cohesion: 0.6
 Nodes (5): handleBrandsChange(), handleCategoryChange(), handleClearAll(), handleSearchChange(), updateUrl()
 
-### Community 72 - "Community 72"
-Cohesion: 0.47
-Nodes (4): clip(), escapeRe(), lintArtifact(), renderFindingsForAgent()
-
-### Community 73 - "Community 73"
-Cohesion: 0.47
-Nodes (6): allocateDynamicPort(), allocateForcedPort(), allocatePort(), closeServer(), listenOnPort(), parsePort()
+### Community 71 - "Community 71"
+Cohesion: 0.67
+Nodes (5): assertAdmin(), errorResponse(), GET(), POST(), addManualRegistration()
 
 ### Community 76 - "Community 76"
-Cohesion: 0.7
-Nodes (4): buildExternalRef(), errorResponse(), POST(), getAppointmentForPayment()
-
-### Community 79 - "Community 79"
 Cohesion: 0.5
 Nodes (3): buildPath(), navigate(), useRoute()
 
-### Community 81 - "Community 81"
+### Community 78 - "Community 78"
 Cohesion: 0.7
 Nodes (4): collectResidualJavaScript(), isAllowedOutputPath(), isSkippedDirectoryName(), toRepositoryPath()
 
-### Community 82 - "Community 82"
+### Community 79 - "Community 79"
 Cohesion: 0.7
 Nodes (4): errorMessage(), main(), readManifest(), slugOf()
 
-### Community 86 - "Community 86"
-Cohesion: 0.83
-Nodes (3): listPromptTemplates(), readPromptTemplate(), validateTemplate()
-
-### Community 87 - "Community 87"
+### Community 83 - "Community 83"
 Cohesion: 0.83
 Nodes (3): resolveDevTsconfigPath(), resolveDistDir(), toPosixPath()
 
-### Community 89 - "Community 89"
+### Community 85 - "Community 85"
 Cohesion: 0.83
 Nodes (3): createArtifactParser(), findOpenTag(), parseAttrs()
 
@@ -410,11 +385,9 @@ Nodes (3): createArtifactParser(), findOpenTag(), parseAttrs()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `renderMarkdownToSafeHtml()` connect `Community 26` to `Community 23`?**
-  _High betweenness centrality (0.085) - this node is a cross-community bridge._
-- **Why does `startDaemonSidecar()` connect `Community 12` to `Community 19`?**
-  _High betweenness centrality (0.073) - this node is a cross-community bridge._
-- **Why does `RendererRegistry` connect `Community 26` to `Community 58`?**
-  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+  _High betweenness centrality (0.104) - this node is a cross-community bridge._
+- **Why does `RendererRegistry` connect `Community 26` to `Community 20`?**
+  _High betweenness centrality (0.079) - this node is a cross-community bridge._
 - **Are the 16 inferred relationships involving `requireAdmin()` (e.g. with `assertAdmin()` and `assertAdmin()`) actually correct?**
   _`requireAdmin()` has 16 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 18 inferred relationships involving `POST()` (e.g. with `getOrderForPayment()` and `createPayment()`) actually correct?**
@@ -422,4 +395,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 5 inferred relationships involving `generateMedia()` (e.g. with `modelsForSurface()` and `sanitizeName()`) actually correct?**
   _`generateMedia()` has 5 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.05 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06 - nodes in this community are weakly interconnected._
+- **Should `Community 1` be split into smaller, more focused modules?**
+  _Cohesion score 0.06 - nodes in this community are weakly interconnected._

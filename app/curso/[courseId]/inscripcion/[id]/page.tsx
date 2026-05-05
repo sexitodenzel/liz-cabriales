@@ -111,7 +111,7 @@ export default async function InscripcionSuccessPage({
             No pudimos encontrar esta inscripción o no tienes acceso a ella.
           </p>
           <Link
-            href="/cursos"
+            href="/academia"
             className="mt-6 inline-flex rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
           >
             Ver cursos
@@ -123,7 +123,7 @@ export default async function InscripcionSuccessPage({
 
   const registration = result.data
   if (!registration.course) {
-    redirect("/cursos")
+    redirect("/academia")
   }
   const course = registration.course
   const paidAmount = await getLastPaymentAmount(registration.id)
@@ -251,7 +251,7 @@ export default async function InscripcionSuccessPage({
 
             <div className="mt-6 flex flex-col gap-3">
               <Link
-                href="/cursos"
+                href="/academia"
                 className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
               >
                 Ver más cursos

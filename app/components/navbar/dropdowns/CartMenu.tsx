@@ -37,8 +37,7 @@ export default function CartMenu() {
 
   return (
     <div
-      className="fixed top-[60px] right-0 z-50 flex w-[380px] flex-col bg-white shadow-xl"
-      style={{ maxHeight: "calc(100vh - 60px)" }}
+      className="fixed inset-y-0 right-0 z-50 flex h-screen w-[380px] flex-col border-l border-black/5 bg-white shadow-xl"
     >
       {/* Header — FIJO */}
       <div className="flex flex-shrink-0 items-center justify-between border-b p-4">

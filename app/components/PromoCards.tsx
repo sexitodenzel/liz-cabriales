@@ -20,7 +20,7 @@ const cards: PromoCardProps[] = [
     title: "Colores de Primavera",
     description: "Descubre los nuevos colores de primavera",
     buttonLabel: "Descubre ahora",
-    href: "/cursos",
+    href: "/academia",
   },
   {
     title: "Encuentra tu manicure",

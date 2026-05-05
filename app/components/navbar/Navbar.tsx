@@ -20,7 +20,7 @@ import { useCart } from "../cart/CartContext"
 
    export type MenuType =
    | "Tienda"
-   | "Cursos"
+   | "Academia"
    | "Servicios"
    | "search"
    | "cart"
@@ -42,7 +42,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   // Controlador central de todos los menús del navbar.
   // Solo un menú puede estar activo a la vez.
   // Ejemplos de valores:
-  // "Tienda", "Cursos", "Servicios", "search", "cart", etc.
+  // "Tienda", "Academia", "Servicios", "search", "cart", etc.
 
   const [activeMenu, setActiveMenu] = useState<MenuType>(null)
   const {
@@ -129,7 +129,7 @@ return (
 {/* Render dinámico de links del navbar */}
 {(Object.keys(menuData) as (keyof typeof menuData)[]).map((item) => {
   const isTienda = item === "Tienda"
-  const isCursos = item === "Cursos"
+  const isAcademia = item === "Academia"
   const isServicios = item === "Servicios"
   const label = (
     <button className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none">
@@ -150,8 +150,8 @@ return (
         <Link href="/tienda">
           {label}
         </Link>
-      ) : isCursos ? (
-        <Link href="/cursos">
+      ) : isAcademia ? (
+        <Link href="/academia">
           {label}
         </Link>
       ) : isServicios ? (

@@ -33,10 +33,10 @@ export default function Footer() {
                 Tienda
               </Link>
               <Link
-                href="/cursos"
+                href="/academia"
                 className="transition-colors hover:text-brand-gold"
               >
-                Cursos
+                Academia
               </Link>
               <Link
                 href="/servicios"
