@@ -27,7 +27,6 @@ liz-cabriales/
 │   │   │   └── Navbar.tsx
 │   │   ├── AcademyBanner.tsx
 │   │   ├── Benefits.tsx
-│   │   ├── BrandsSlider.tsx
 │   │   ├── FeaturedColors.tsx
 │   │   ├── FeaturedKits.tsx
 │   │   ├── Footer.tsx
@@ -73,15 +72,14 @@ liz-cabriales/
 - Orden de secciones en `app/page.tsx`:
   1. Navbar
   2. HeroSlider
-  3. BrandsSlider
-  4. PromoCards
-  5. InspirationGallery (preview)
-  6. FeaturedKits
-  7. FeaturedColors
-  8. AcademyBanner
-  9. Testimonials
-  10. Benefits
-  11. Footer
+  3. PromoCards
+  4. InspirationGallery (preview)
+  5. FeaturedKits
+  6. FeaturedColors
+  7. AcademyBanner
+  8. Testimonials
+  9. Benefits
+  10. Footer
 - Todas las imágenes son placeholders (picsum) — pendiente reemplazar con fotos reales post-reunión con Liz
 - Copy real pendiente en todas las secciones
 

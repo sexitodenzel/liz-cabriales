@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import type {
+  AdminBrand,
   AdminCategory,
   AdminProductWithCategory,
 } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/client"
 
 type ToastState = {
   id: number
@@ -22,10 +24,142 @@ type CreateFormState = {
   brand: string
   imagesInput: string
   isActive: boolean
+  isFeatured: boolean
+}
+
+type ManagedCategory = AdminCategory & {
+  productCount: number
+}
+
+type ManagedBrand = AdminBrand & {
+  productCount: number
 }
 
 const BRAND_GOLD = "#C9A84C"
 const BRAND_BLACK = "#000000"
+
+function ImageUploader({
+  onUpload,
+  onError,
+  compact = false,
+  folder = "products",
+}: {
+  onUpload: (url: string) => void
+  onError: (msg: string) => void
+  compact?: boolean
+  folder?: string
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [preview, setPreview] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ""
+
+    const objectUrl = URL.createObjectURL(file)
+    setPreview(objectUrl)
+    setUploading(true)
+
+    try {
+      const supabase = createClient()
+      const ext = file.name.split(".").pop() ?? "jpg"
+      const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+      const { error: uploadError } = await supabase.storage
+        .from("images")
+        .upload(path, file, { cacheControl: "3600", upsert: false })
+
+      if (uploadError) throw uploadError
+
+      const { data } = supabase.storage.from("images").getPublicUrl(path)
+      onUpload(data.publicUrl)
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Error al subir la imagen."
+      onError(msg)
+    } finally {
+      setUploading(false)
+      setPreview(null)
+    }
+  }
+
+  const btnClass = compact
+    ? "inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-neutral-700 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
+    : "inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
+
+  return (
+    <div className={compact ? "flex items-center gap-2" : "flex items-center gap-3"}>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleChange}
+      />
+
+      {preview && (
+        <div className="relative shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={preview}
+            alt="Vista previa"
+            className={
+              compact
+                ? "h-10 w-10 rounded object-cover"
+                : "h-16 w-16 rounded-lg object-cover"
+            }
+          />
+          {uploading && (
+            <div className="absolute inset-0 flex items-center justify-center rounded bg-black/40">
+              <svg
+                className="h-4 w-4 animate-spin text-white"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  className="opacity-25"
+                />
+                <path
+                  d="M12 2a10 10 0 0110 10"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  className="opacity-75"
+                />
+              </svg>
+            </div>
+          )}
+        </div>
+      )}
+
+      <button
+        type="button"
+        disabled={uploading}
+        onClick={() => inputRef.current?.click()}
+        className={btnClass}
+      >
+        <svg
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className={compact ? "h-3 w-3" : "h-3.5 w-3.5"}
+          aria-hidden
+        >
+          <path d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L11 6.414V13a1 1 0 11-2 0V6.414L7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3z" />
+          <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+        </svg>
+        {uploading ? "Subiendo…" : "Subir imagen"}
+      </button>
+    </div>
+  )
+}
 
 function slugify(value: string): string {
   return value
@@ -40,7 +174,16 @@ export default function AdminProductsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState<ToastState>(null)
   const [categories, setCategories] = useState<AdminCategory[]>([])
+  const [managedCategories, setManagedCategories] = useState<ManagedCategory[]>([])
+  const [brands, setBrands] = useState<ManagedBrand[]>([])
   const [products, setProducts] = useState<AdminProductWithCategory[]>([])
+  const [categoryName, setCategoryName] = useState("")
+  const [categorySubmitting, setCategorySubmitting] = useState(false)
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null)
+  const [brandName, setBrandName] = useState("")
+  const [brandLogoUrl, setBrandLogoUrl] = useState("")
+  const [brandSubmitting, setBrandSubmitting] = useState(false)
+  const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null)
   const [form, setForm] = useState<CreateFormState>({
     name: "",
     slug: "",
@@ -50,12 +193,28 @@ export default function AdminProductsPage() {
     brand: "",
     imagesInput: "",
     isActive: true,
+    isFeatured: false,
   })
   const [slugTouched, setSlugTouched] = useState(false)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<CreateFormState | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+  function syncCategories(nextCategories: ManagedCategory[]) {
+    setManagedCategories(nextCategories)
+    setCategories(
+      nextCategories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+      }))
+    )
+  }
+
+  function syncBrands(nextBrands: ManagedBrand[]) {
+    setBrands(nextBrands)
+  }
 
   async function fetchProducts() {
     try {
@@ -84,16 +243,85 @@ export default function AdminProductsPage() {
         return
       }
 
-      setCategories(json.data.categories ?? [])
       setProducts(json.data.products ?? [])
-    } catch (error) {
+    } catch {
       setToast({
         id: Date.now(),
         type: "error",
         message: "Error de red al cargar los productos.",
       })
-    } finally {
-      setLoading(false)
+    }
+  }
+
+  async function fetchCategories() {
+    try {
+      const res = await fetch("/api/admin/products/categories", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (res.status === 401 || res.status === 403) {
+        router.replace("/login")
+        return
+      }
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ??
+            "No se pudieron cargar las categorías. Intenta de nuevo.",
+        })
+        return
+      }
+
+      syncCategories((json.data ?? []) as ManagedCategory[])
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al cargar las categorías.",
+      })
+    }
+  }
+
+  async function fetchBrands() {
+    try {
+      const res = await fetch("/api/admin/products/brands", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (res.status === 401 || res.status === 403) {
+        router.replace("/login")
+        return
+      }
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ??
+            "No se pudieron cargar las marcas. Intenta de nuevo.",
+        })
+        return
+      }
+
+      syncBrands((json.data ?? []) as ManagedBrand[])
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al cargar las marcas.",
+      })
     }
   }
 
@@ -110,7 +338,78 @@ export default function AdminProductsPage() {
   }, [toast])
 
   useEffect(() => {
-    fetchProducts()
+    const init = async () => {
+      setLoading(true)
+      await Promise.all([fetchProducts(), fetchCategories(), fetchBrands()])
+      setLoading(false)
+    }
+    init()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!form.categoryId) return
+    const stillExists = categories.some((category) => category.id === form.categoryId)
+    if (!stillExists) {
+      setForm((prev) => ({ ...prev, categoryId: "" }))
+    }
+  }, [categories, form.categoryId])
+
+  useEffect(() => {
+    if (!editForm?.categoryId) return
+    const stillExists = categories.some(
+      (category) => category.id === editForm.categoryId
+    )
+    if (!stillExists) {
+      setEditForm((prev) => (prev ? { ...prev, categoryId: "" } : prev))
+    }
+  }, [categories, editForm?.categoryId])
+
+  useEffect(() => {
+    if (!form.brand) return
+    const stillExists = brands.some((brand) => brand.name === form.brand)
+    if (!stillExists) {
+      setForm((prev) => ({ ...prev, brand: "" }))
+    }
+  }, [brands, form.brand])
+
+  useEffect(() => {
+    if (!editForm?.brand) return
+    const stillExists = brands.some((brand) => brand.name === editForm.brand)
+    if (!stillExists) {
+      setEditForm((prev) => (prev ? { ...prev, brand: "" } : prev))
+    }
+  }, [brands, editForm?.brand])
+
+  useEffect(() => {
+    const supabase = createClient()
+    const categoriesChannel = supabase
+      .channel("admin-products-categories")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "categories" },
+        () => {
+          fetchCategories()
+          fetchProducts()
+        }
+      )
+      .subscribe()
+
+    const brandsChannel = supabase
+      .channel("admin-products-brands")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "brands" },
+        () => {
+          fetchBrands()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(categoriesChannel)
+      void supabase.removeChannel(brandsChannel)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -127,6 +426,7 @@ export default function AdminProductsPage() {
     () => products.filter((p) => p.deleted_at === null),
     [products]
   )
+  const brandOptions = useMemo(() => brands.map((brand) => brand.name), [brands])
 
   const handleFormChange = (
     field: keyof CreateFormState,
@@ -149,6 +449,219 @@ export default function AdminProductsPage() {
     })
   }
 
+  async function handleCreateCategory(event: React.FormEvent) {
+    event.preventDefault()
+    const name = categoryName.trim()
+    if (!name) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "El nombre de la categoría es obligatorio.",
+      })
+      return
+    }
+
+    setCategorySubmitting(true)
+    try {
+      const res = await fetch("/api/admin/products/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ?? "No se pudo crear la categoría. Intenta de nuevo.",
+        })
+        return
+      }
+
+      setCategoryName("")
+      await fetchCategories()
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: "Categoría creada correctamente.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al crear la categoría.",
+      })
+    } finally {
+      setCategorySubmitting(false)
+    }
+  }
+
+  async function handleDeleteCategory(category: ManagedCategory) {
+    if (category.productCount > 0) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "No puedes eliminar categorías con productos asociados.",
+      })
+      return
+    }
+
+    const confirmed = window.confirm(
+      `¿Eliminar la categoría "${category.name}"? Esta acción no se puede deshacer.`
+    )
+    if (!confirmed) return
+
+    setDeletingCategoryId(category.id)
+    try {
+      const res = await fetch(`/api/admin/products/categories/${category.id}`, {
+        method: "DELETE",
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ??
+            "No se pudo eliminar la categoría. Intenta de nuevo.",
+        })
+        return
+      }
+
+      await fetchCategories()
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: "Categoría eliminada correctamente.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al eliminar la categoría.",
+      })
+    } finally {
+      setDeletingCategoryId(null)
+    }
+  }
+
+  async function handleCreateBrand() {
+    const name = brandName.trim()
+    if (!name) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "El nombre de la marca es obligatorio.",
+      })
+      return
+    }
+
+    setBrandSubmitting(true)
+    try {
+      const res = await fetch("/api/admin/products/brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          logoUrl: brandLogoUrl.trim() || null,
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message: json?.error?.message ?? "No se pudo crear la marca. Intenta de nuevo.",
+        })
+        return
+      }
+
+      const createdBrand = json.data as AdminBrand
+      setBrands((prev) => {
+        if (prev.some((brand) => brand.id === createdBrand.id)) {
+          return prev
+        }
+        return [
+          ...prev,
+          {
+            ...createdBrand,
+            productCount: 0,
+          },
+        ].sort((a, b) => a.name.localeCompare(b.name, "es"))
+      })
+
+      setBrandName("")
+      setBrandLogoUrl("")
+      void fetchBrands()
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: "Marca creada correctamente.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al crear la marca.",
+      })
+    } finally {
+      setBrandSubmitting(false)
+    }
+  }
+
+  async function handleDeleteBrand(brand: ManagedBrand) {
+    if (brand.productCount > 0) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "No puedes eliminar marcas con productos asociados.",
+      })
+      return
+    }
+
+    const confirmed = window.confirm(
+      `¿Eliminar la marca "${brand.name}"? Esta acción no se puede deshacer.`
+    )
+    if (!confirmed) return
+
+    setDeletingBrandId(brand.id)
+    try {
+      const res = await fetch(`/api/admin/products/brands/${brand.id}`, {
+        method: "DELETE",
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ?? "No se pudo eliminar la marca. Intenta de nuevo.",
+        })
+        return
+      }
+
+      await fetchBrands()
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: "Marca eliminada correctamente.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al eliminar la marca.",
+      })
+    } finally {
+      setDeletingBrandId(null)
+    }
+  }
+
   async function handleCreateProduct(event: React.FormEvent) {
     event.preventDefault()
     if (!form.categoryId) {
@@ -156,6 +669,22 @@ export default function AdminProductsPage() {
         id: Date.now(),
         type: "error",
         message: "Selecciona una categoría.",
+      })
+      return
+    }
+    if (!categories.some((category) => category.id === form.categoryId)) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "La categoría seleccionada ya no está disponible.",
+      })
+      return
+    }
+    if (form.brand && !brands.some((brand) => brand.name === form.brand)) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "La marca seleccionada ya no está disponible.",
       })
       return
     }
@@ -191,6 +720,7 @@ export default function AdminProductsPage() {
           brand: form.brand || null,
           images,
           isActive: form.isActive,
+          isFeatured: form.isFeatured,
         }),
       })
 
@@ -207,7 +737,7 @@ export default function AdminProductsPage() {
         return
       }
 
-      await fetchProducts()
+      await Promise.all([fetchProducts(), fetchCategories(), fetchBrands()])
 
       setForm({
         name: "",
@@ -218,6 +748,7 @@ export default function AdminProductsPage() {
         brand: "",
         imagesInput: "",
         isActive: true,
+        isFeatured: false,
       })
       setSlugTouched(false)
 
@@ -226,7 +757,7 @@ export default function AdminProductsPage() {
         type: "success",
         message: "Producto creado correctamente.",
       })
-    } catch (error) {
+    } catch {
       setToast({
         id: Date.now(),
         type: "error",
@@ -248,6 +779,7 @@ export default function AdminProductsPage() {
       brand: product.brand ?? "",
       imagesInput: (product.images ?? []).join(", "),
       isActive: product.is_active,
+      isFeatured: product.is_featured,
     })
   }
 
@@ -258,6 +790,30 @@ export default function AdminProductsPage() {
 
   async function saveEditing() {
     if (!editingId || !editForm) return
+    if (!editForm.categoryId) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Selecciona una categoría.",
+      })
+      return
+    }
+    if (!categories.some((category) => category.id === editForm.categoryId)) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "La categoría seleccionada ya no está disponible.",
+      })
+      return
+    }
+    if (editForm.brand && !brands.some((brand) => brand.name === editForm.brand)) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "La marca seleccionada ya no está disponible.",
+      })
+      return
+    }
 
     const basePriceNumber = Number(editForm.basePrice)
     if (Number.isNaN(basePriceNumber)) {
@@ -291,6 +847,7 @@ export default function AdminProductsPage() {
           brand: editForm.brand || null,
           images: images.length > 0 ? images : undefined,
           isActive: editForm.isActive,
+          isFeatured: editForm.isFeatured,
         }),
       })
 
@@ -310,6 +867,7 @@ export default function AdminProductsPage() {
       setProducts((prev) =>
         prev.map((p) => (p.id === editingId ? json.data : p))
       )
+      await Promise.all([fetchCategories(), fetchBrands()])
 
       setToast({
         id: Date.now(),
@@ -317,7 +875,7 @@ export default function AdminProductsPage() {
         message: "Producto actualizado correctamente.",
       })
       cancelEditing()
-    } catch (error) {
+    } catch {
       setToast({
         id: Date.now(),
         type: "error",
@@ -363,11 +921,53 @@ export default function AdminProductsPage() {
         type: "success",
         message: "Estado del producto actualizado.",
       })
-    } catch (error) {
+    } catch {
       setToast({
         id: Date.now(),
         type: "error",
         message: "Error de red al actualizar el estado del producto.",
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function toggleFeatured(product: AdminProductWithCategory) {
+    setSubmitting(true)
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeatured: !product.is_featured }),
+      })
+
+      const json = await res.json()
+
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message: json?.error?.message ?? "No se pudo actualizar el destacado.",
+        })
+        return
+      }
+
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? json.data : p))
+      )
+
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: json.data.is_featured
+          ? "Producto marcado como destacado."
+          : "Producto quitado de destacados.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al actualizar el destacado.",
       })
     } finally {
       setSubmitting(false)
@@ -400,6 +1000,7 @@ export default function AdminProductsPage() {
           p.id === confirmDeleteId ? { ...p, deleted_at: new Date().toISOString() } : p
         )
       )
+      await Promise.all([fetchCategories(), fetchBrands()])
 
       setToast({
         id: Date.now(),
@@ -407,7 +1008,7 @@ export default function AdminProductsPage() {
         message: "Producto eliminado correctamente.",
       })
       setConfirmDeleteId(null)
-    } catch (error) {
+    } catch {
       setToast({
         id: Date.now(),
         type: "error",
@@ -573,8 +1174,7 @@ export default function AdminProductsPage() {
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
                     MARCA
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={form.brand}
                     onChange={(event) =>
                       handleFormChange("brand", event.target.value)
@@ -585,13 +1185,31 @@ export default function AdminProductsPage() {
                         "--brand-gold": BRAND_GOLD,
                       } as React.CSSProperties
                     }
-                    placeholder="Ej. Exotic, Miss Nails…"
-                  />
+                  >
+                    <option value="">Selecciona una marca (opcional)</option>
+                    {brandOptions.map((brandName) => (
+                      <option key={brandName} value={brandName}>
+                        {brandName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
-                    IMÁGENES (URLs separadas por coma)
+                    IMÁGENES
                   </label>
+                  <ImageUploader
+                    onUpload={(url) => {
+                      const current = form.imagesInput.trim()
+                      handleFormChange(
+                        "imagesInput",
+                        current ? `${current}, ${url}` : url
+                      )
+                    }}
+                    onError={(msg) =>
+                      setToast({ id: Date.now(), type: "error", message: msg })
+                    }
+                  />
                   <input
                     type="text"
                     value={form.imagesInput}
@@ -599,35 +1217,44 @@ export default function AdminProductsPage() {
                       handleFormChange("imagesInput", event.target.value)
                     }
                     className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                    style={
-                      {
-                        "--brand-gold": BRAND_GOLD,
-                      } as React.CSSProperties
-                    }
-                    placeholder="https://... , https://..."
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                    placeholder="O pega URLs separadas por coma"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-1">
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={form.isActive}
-                    onChange={(event) =>
-                      handleFormChange("isActive", event.target.checked)
-                    }
-                    className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-[color:var(--brand-gold)]"
-                    style={
-                      {
-                        "--brand-gold": BRAND_GOLD,
-                      } as React.CSSProperties
-                    }
-                  />
-                  <span className="text-xs font-medium text-neutral-700">
-                    PRODUCTO ACTIVO
-                  </span>
-                </label>
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-4">
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={form.isActive}
+                      onChange={(event) =>
+                        handleFormChange("isActive", event.target.checked)
+                      }
+                      className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-[color:var(--brand-gold)]"
+                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                    />
+                    <span className="text-xs font-medium text-neutral-700">
+                      ACTIVO
+                    </span>
+                  </label>
+
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={form.isFeatured}
+                      onChange={(event) =>
+                        handleFormChange("isFeatured", event.target.checked)
+                      }
+                      className="h-4 w-4 rounded border-neutral-300 focus:ring-[color:var(--brand-gold)]"
+                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                    />
+                    <span className="text-xs font-medium text-[#c9a84c]">
+                      ★ DESTACADO
+                    </span>
+                  </label>
+                </div>
 
                 <button
                   type="submit"
@@ -659,6 +1286,7 @@ export default function AdminProductsPage() {
                     <th className="px-4 py-3 font-semibold">CATEGORÍA</th>
                     <th className="px-4 py-3 font-semibold">PRECIO</th>
                     <th className="px-4 py-3 font-semibold">ESTADO</th>
+                    <th className="px-4 py-3 font-semibold text-center">DESTACADO</th>
                     <th className="px-4 py-3 font-semibold text-right">
                       ACCIONES
                     </th>
@@ -668,7 +1296,7 @@ export default function AdminProductsPage() {
                   {activeProducts.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="px-6 py-8 text-center text-sm text-neutral-500"
                       >
                         Aún no hay productos creados.
@@ -715,6 +1343,18 @@ export default function AdminProductsPage() {
                             >
                               {product.is_active ? "ACTIVO" : "INACTIVO"}
                             </span>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleFeatured(product)}
+                              disabled={submitting}
+                              title={product.is_featured ? "Quitar de destacados" : "Marcar como destacado"}
+                              className="text-xl leading-none transition-opacity disabled:opacity-40"
+                              style={{ color: product.is_featured ? BRAND_GOLD : "#d4d4d4" }}
+                            >
+                              {product.is_featured ? "★" : "☆"}
+                            </button>
                           </td>
                           <td className="px-4 py-4">
                             <div className="flex items-center justify-end gap-3 text-xs font-semibold">
@@ -882,8 +1522,7 @@ export default function AdminProductsPage() {
                                     <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
                                       MARCA
                                     </label>
-                                    <input
-                                      type="text"
+                                    <select
                                       value={editForm.brand}
                                       onChange={(event) =>
                                         handleEditFormChange(
@@ -897,12 +1536,42 @@ export default function AdminProductsPage() {
                                           "--brand-gold": BRAND_GOLD,
                                         } as React.CSSProperties
                                       }
-                                    />
+                                    >
+                                      <option value="">Selecciona (opcional)</option>
+                                      {brandOptions.map((brandName) => (
+                                        <option key={brandName} value={brandName}>
+                                          {brandName}
+                                        </option>
+                                      ))}
+                                      {editForm.brand &&
+                                        !brandOptions.includes(editForm.brand) && (
+                                          <option value={editForm.brand}>
+                                            {editForm.brand} (no disponible)
+                                          </option>
+                                        )}
+                                    </select>
                                   </div>
                                   <div className="space-y-1">
                                     <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
-                                      IMÁGENES (URLs)
+                                      IMÁGENES
                                     </label>
+                                    <ImageUploader
+                                      compact
+                                      onUpload={(url) => {
+                                        const current = editForm.imagesInput.trim()
+                                        handleEditFormChange(
+                                          "imagesInput",
+                                          current ? `${current}, ${url}` : url
+                                        )
+                                      }}
+                                      onError={(msg) =>
+                                        setToast({
+                                          id: Date.now(),
+                                          type: "error",
+                                          message: msg,
+                                        })
+                                      }
+                                    />
                                     <input
                                       type="text"
                                       value={editForm.imagesInput}
@@ -913,37 +1582,50 @@ export default function AdminProductsPage() {
                                         )
                                       }
                                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[11px] outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                                      style={
-                                        {
-                                          "--brand-gold": BRAND_GOLD,
-                                        } as React.CSSProperties
-                                      }
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      placeholder="O pega URLs separadas por coma"
                                     />
                                   </div>
                                 </div>
 
-                                <div className="flex items-center justify-between pt-1">
-                                  <label className="inline-flex items-center gap-2">
-                                    <input
-                                      type="checkbox"
-                                      checked={editForm.isActive}
-                                      onChange={(event) =>
-                                        handleEditFormChange(
-                                          "isActive",
-                                          event.target.checked
-                                        )
-                                      }
-                                      className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-[color:var(--brand-gold)]"
-                                      style={
-                                        {
-                                          "--brand-gold": BRAND_GOLD,
-                                        } as React.CSSProperties
-                                      }
-                                    />
-                                    <span className="text-[11px] font-medium text-neutral-700">
-                                      PRODUCTO ACTIVO
-                                    </span>
-                                  </label>
+                                <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                                  <div className="flex items-center gap-4">
+                                    <label className="inline-flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={editForm.isActive}
+                                        onChange={(event) =>
+                                          handleEditFormChange(
+                                            "isActive",
+                                            event.target.checked
+                                          )
+                                        }
+                                        className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-[color:var(--brand-gold)]"
+                                        style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      />
+                                      <span className="text-[11px] font-medium text-neutral-700">
+                                        ACTIVO
+                                      </span>
+                                    </label>
+
+                                    <label className="inline-flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={editForm.isFeatured}
+                                        onChange={(event) =>
+                                          handleEditFormChange(
+                                            "isFeatured",
+                                            event.target.checked
+                                          )
+                                        }
+                                        className="h-4 w-4 rounded border-neutral-300 focus:ring-[color:var(--brand-gold)]"
+                                        style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      />
+                                      <span className="text-[11px] font-medium text-[#c9a84c]">
+                                        ★ DESTACADO
+                                      </span>
+                                    </label>
+                                  </div>
 
                                   <div className="flex items-center gap-2">
                                     <button
@@ -975,6 +1657,230 @@ export default function AdminProductsPage() {
             </div>
           </section>
         </div>
+
+        <section className="mt-8 rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
+          <header className="border-b border-neutral-100 px-6 py-4">
+            <h2 className="text-sm font-semibold tracking-[0.18em] text-neutral-500">
+              GESTIONAR CATEGORÍAS
+            </h2>
+          </header>
+
+          <div className="grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <form onSubmit={handleCreateCategory} className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  NUEVA CATEGORÍA
+                </label>
+                <input
+                  type="text"
+                  value={categoryName}
+                  onChange={(event) => setCategoryName(event.target.value)}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  placeholder="Ej. Acrílico"
+                />
+                <p className="text-[11px] text-neutral-500">
+                  El slug se genera automáticamente a partir del nombre.
+                </p>
+              </div>
+              <button
+                type="submit"
+                disabled={categorySubmitting}
+                className="inline-flex items-center justify-center rounded-full bg-[#c9a84c] px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-[#a8893a] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {categorySubmitting ? "CREANDO..." : "CREAR CATEGORÍA"}
+              </button>
+            </form>
+
+            <div className="overflow-hidden rounded-xl border border-neutral-200">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">NOMBRE</th>
+                    <th className="px-4 py-3 font-semibold">SLUG</th>
+                    <th className="px-4 py-3 font-semibold text-center">PRODUCTOS</th>
+                    <th className="px-4 py-3 font-semibold text-right">ACCIÓN</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {managedCategories.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-6 text-center text-sm text-neutral-500">
+                        No hay categorías registradas.
+                      </td>
+                    </tr>
+                  ) : (
+                    managedCategories.map((category) => {
+                      const isDeleting = deletingCategoryId === category.id
+                      const canDelete = category.productCount === 0
+                      return (
+                        <tr key={category.id}>
+                          <td className="px-4 py-3 font-medium text-neutral-900">
+                            {category.name}
+                          </td>
+                          <td className="px-4 py-3 font-mono text-xs text-neutral-600">
+                            {category.slug}
+                          </td>
+                          <td className="px-4 py-3 text-center text-neutral-700">
+                            {category.productCount}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCategory(category)}
+                              disabled={!canDelete || isDeleting}
+                              className="text-xs font-semibold text-red-600 transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                              title={
+                                canDelete
+                                  ? "Eliminar categoría"
+                                  : "No se puede eliminar: tiene productos asociados"
+                              }
+                            >
+                              {isDeleting ? "ELIMINANDO..." : "ELIMINAR"}
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
+          <header className="border-b border-neutral-100 px-6 py-4">
+            <h2 className="text-sm font-semibold tracking-[0.18em] text-neutral-500">
+              GESTIONAR MARCAS
+            </h2>
+          </header>
+
+          <div className="grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault()
+                void handleCreateBrand()
+              }}
+              className="space-y-3"
+            >
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  NUEVA MARCA
+                </label>
+                <input
+                  type="text"
+                  value={brandName}
+                  onChange={(event) => setBrandName(event.target.value)}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  placeholder="Ej. Exotic"
+                />
+                <p className="text-[11px] text-neutral-500">
+                  El slug se genera automáticamente a partir del nombre.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  LOGO
+                </label>
+                <ImageUploader
+                  folder="brands"
+                  onUpload={(url) => setBrandLogoUrl(url)}
+                  onError={(msg) =>
+                    setToast({ id: Date.now(), type: "error", message: msg })
+                  }
+                />
+                <input
+                  type="text"
+                  value={brandLogoUrl}
+                  onChange={(event) => setBrandLogoUrl(event.target.value)}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  placeholder="O pega URL del logo"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={brandSubmitting}
+                className="inline-flex items-center justify-center rounded-full bg-[#c9a84c] px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-[#a8893a] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {brandSubmitting ? "CREANDO..." : "CREAR MARCA"}
+              </button>
+            </form>
+
+            <div className="overflow-hidden rounded-xl border border-neutral-200">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">MARCA</th>
+                    <th className="px-4 py-3 font-semibold">SLUG</th>
+                    <th className="px-4 py-3 font-semibold text-center">PRODUCTOS</th>
+                    <th className="px-4 py-3 font-semibold text-right">ACCIÓN</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {brands.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-6 text-center text-sm text-neutral-500">
+                        No hay marcas registradas.
+                      </td>
+                    </tr>
+                  ) : (
+                    brands.map((brand) => {
+                      const isDeleting = deletingBrandId === brand.id
+                      const canDelete = brand.productCount === 0
+                      return (
+                        <tr key={brand.id}>
+                          <td className="px-4 py-3 font-medium text-neutral-900">
+                            <div className="flex items-center gap-2">
+                              {brand.logo_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={brand.logo_url}
+                                  alt={brand.name}
+                                  className="h-6 w-6 rounded object-cover"
+                                />
+                              ) : (
+                                <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-neutral-100 text-[10px] text-neutral-500">
+                                  —
+                                </span>
+                              )}
+                              <span>{brand.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-xs text-neutral-600">
+                            {brand.slug}
+                          </td>
+                          <td className="px-4 py-3 text-center text-neutral-700">
+                            {brand.productCount}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteBrand(brand)}
+                              disabled={!canDelete || isDeleting}
+                              className="text-xs font-semibold text-red-600 transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                              title={
+                                canDelete
+                                  ? "Eliminar marca"
+                                  : "No se puede eliminar: tiene productos asociados"
+                              }
+                            >
+                              {isDeleting ? "ELIMINANDO..." : "ELIMINAR"}
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
       </div>
 
       {toast && (

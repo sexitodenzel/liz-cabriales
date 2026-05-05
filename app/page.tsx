@@ -1,7 +1,9 @@
 import BrandDescription from "./components/BrandDescription"
+import NuevosLanzamientos from "./components/NuevosLanzamientos"
 import PillarCards from "./components/PillarCards"
 import ShopByNailPolishColors from "./components/ShopByNailPolishColors"
 import HeroSlider from "./components/hero/HeroSlider"
+import InstagramFeed from "./components/InstagramFeed"
 import Footer from "./components/Footer"
 
 export default function Home() {
@@ -15,6 +17,8 @@ export default function Home() {
         <PillarCards />
         <ShopByNailPolishColors />
       </div>
+      <NuevosLanzamientos />
+      <InstagramFeed />
       <Footer />
     </main>
   )

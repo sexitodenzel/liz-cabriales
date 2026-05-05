@@ -17,10 +17,27 @@ export const createProductSchema = z.object({
   brand: z.string().nullable().optional(),
   images: z.array(z.string().url("URL de imagen inválida")).optional(),
   isActive: z.boolean().optional().default(true),
+  isFeatured: z.boolean().optional().default(false),
 })
 
 export const updateProductSchema = createProductSchema.partial()
 
 export type CreateProductInput = z.infer<typeof createProductSchema>
 export type UpdateProductInput = z.infer<typeof updateProductSchema>
+
+export const createCategorySchema = z.object({
+  name: z.string().trim().min(1, "El nombre es obligatorio"),
+})
+
+export const createBrandSchema = z.object({
+  name: z.string().trim().min(1, "El nombre es obligatorio"),
+  logoUrl: z.string().url("URL de logo inválida").nullable().optional(),
+})
+
+export const deleteCategorySchema = z.object({
+  id: z.string().uuid("Categoría inválida"),
+})
+
+export type CreateCategoryInput = z.infer<typeof createCategorySchema>
+export type CreateBrandInput = z.infer<typeof createBrandSchema>
 

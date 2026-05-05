@@ -41,7 +41,6 @@ liz-cabriales/
 │   │   │   └── menuData.ts
 │   │   ├── AcademyBanner.tsx
 │   │   ├── Benefits.tsx
-│   │   ├── BrandsSlider.tsx
 │   │   ├── FeaturedColors.tsx
 │   │   ├── FeaturedKits.tsx
 │   │   ├── Footer.tsx

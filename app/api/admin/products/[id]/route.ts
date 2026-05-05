@@ -22,6 +22,7 @@ function mapResultToStatus(result: Result<unknown>, successStatus = 200) {
   if (result.error.code === "UNAUTHENTICATED") return 401
   if (result.error.code === "FORBIDDEN") return 403
   if (result.error.code === "NOT_FOUND") return 404
+  if (result.error.code === "BRANDS_TABLE_MISSING") return 500
   return 400
 }
 
@@ -69,7 +70,7 @@ export async function PATCH(
       { data: updateResult.data, error: updateResult.error },
       { status }
     )
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         data: null,
@@ -109,7 +110,7 @@ export async function DELETE(
       { data: deleteResult.data, error: deleteResult.error },
       { status }
     )
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         data: null,

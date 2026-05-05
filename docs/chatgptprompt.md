@@ -45,7 +45,7 @@ liz-cabriales/
 │   │   ├── cart/CartContext.tsx
 │   │   ├── hero/HeroSlider.tsx
 │   │   ├── navbar/ (Navbar, CartMenu, DropdownContainer, MegaMenu, SearchMenu, menuData)
-│   │   └── (AcademyBanner, Benefits, BrandsSlider, FeaturedColors, FeaturedKits,
+│   │   └── (AcademyBanner, Benefits, FeaturedColors, FeaturedKits,
 │   │       Footer, InspirationGallery, PromoCards, Testimonials)
 │   ├── globals.css
 │   ├── layout.tsx

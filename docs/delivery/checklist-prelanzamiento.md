@@ -17,7 +17,6 @@
 
 - [ ] Productos reales importados
 - [ ] Fotos reales de productos
-- [ ] Logos de marcas en BrandsSlider
 - [ ] Textos reales en landing (no placeholders)
 - [ ] Al menos 1 curso publicado
 - [ ] Servicios con precios reales

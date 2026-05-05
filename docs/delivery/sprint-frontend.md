@@ -22,7 +22,6 @@
 |---|---|---|
 | Navbar | `app/components/navbar/` | ⏳ Pendiente |
 | Hero | `app/components/hero/` | ⏳ Pendiente |
-| Brands strip | `app/components/BrandsSlider.tsx` | ⏳ Pendiente |
 | 3 Pilares | nuevo | ⏳ Pendiente |
 | Productos destacados | `app/components/FeaturedKits.tsx` | ⏳ Pendiente |
 | Sección colores OPI | `app/components/FeaturedColors.tsx` | ⏳ Pendiente |
@@ -49,14 +48,13 @@
 
 1. Navbar
 2. Hero
-3. Brands strip
-4. 3 Pilares
-5. Productos destacados
-6. Sección colores
-7. Cursos
-8. Feed academia
-9. Testimonios
-10. Beneficios + Footer
+3. 3 Pilares
+4. Productos destacados
+5. Sección colores
+6. Cursos
+7. Feed academia
+8. Testimonios
+9. Beneficios + Footer
 
 ---
 

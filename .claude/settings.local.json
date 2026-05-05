@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "WebFetch(domain:api.anthropic.com)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Copy-Item *)",
+      "Bash(mkdir -p /tmp/design-extract)",
+      "Bash(tar -xf C:/Users/migue/AppData/Local/Temp/design-extract2/design.tar -C /tmp/design-extract)",
+      "Read(//tmp/**)"
+    ]
+  }
+}

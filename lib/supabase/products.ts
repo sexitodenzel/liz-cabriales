@@ -57,6 +57,43 @@ export type ProductFilters = {
   search?: string
 }
 
+type ProductVariantRow = {
+  id: string
+  product_id: string
+  sku: string
+  variant_name: string
+  price: number | string
+  stock: number | string
+  is_active: boolean
+}
+
+type ProductRow = {
+  id: string
+  category_id: string
+  name: string
+  slug: string
+  description: string | null
+  base_price: number | string
+  images: string[] | null
+  brand: string | null
+  is_featured: boolean
+  is_active: boolean
+  categories?: Category | null
+  product_variants?: ProductVariantRow[] | ProductVariantRow | null
+}
+
+function mapVariantRow(variant: ProductVariantRow): ProductVariant {
+  return {
+    id: variant.id,
+    product_id: variant.product_id,
+    sku: variant.sku,
+    variant_name: variant.variant_name,
+    price: Number(variant.price),
+    stock: Number(variant.stock),
+    is_active: Boolean(variant.is_active),
+  }
+}
+
 export async function getCategories(): Promise<Result<Category[]>> {
   const supabase = await createClient()
 
@@ -79,10 +116,9 @@ export async function getBrands(): Promise<Result<string[]>> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from("products")
-    .select("brand")
-    .not("brand", "is", null)
-    .order("brand", { ascending: true })
+    .from("brands")
+    .select("name")
+    .order("name", { ascending: true })
 
   if (error) {
     return {
@@ -91,18 +127,13 @@ export async function getBrands(): Promise<Result<string[]>> {
     }
   }
 
-  const unique =
-    data && Array.isArray(data)
-      ? [
-          ...new Set(
-            data
-              .map((row: any) => row.brand as string | null)
-              .filter((value): value is string => Boolean(value))
-          ),
-        ]
-      : []
+  const names =
+    data?.flatMap((row) => {
+      const value = row.name
+      return typeof value === "string" && value.trim().length > 0 ? [value] : []
+    }) ?? []
 
-  return { data: unique, error: null }
+  return { data: names, error: null }
 }
 
 export async function getProducts(
@@ -193,42 +224,70 @@ export async function getProducts(
   }
 
   const products = (data ?? [])
-    .map((row: any) => {
-      const cat = row.categories as Category | null | undefined
+    .map((row) => {
+      const productRow = row as unknown as ProductRow
+      const cat = productRow.categories
       if (!cat?.id) return null
-      const rawVariants = row.product_variants
+      const rawVariants = productRow.product_variants
       const variantRows = Array.isArray(rawVariants)
         ? rawVariants
         : rawVariants
           ? [rawVariants]
           : []
       return {
-        id: row.id as string,
-        category_id: row.category_id as string,
-        name: row.name as string,
-        slug: row.slug as string,
-        description: (row.description as string) ?? null,
-        base_price: Number(row.base_price),
-        images: (row.images as string[] | null) ?? null,
-        brand: (row.brand as string | null) ?? null,
-        is_featured: Boolean(row.is_featured),
-        is_active: Boolean(row.is_active),
+        id: productRow.id,
+        category_id: productRow.category_id,
+        name: productRow.name,
+        slug: productRow.slug,
+        description: productRow.description ?? null,
+        base_price: Number(productRow.base_price),
+        images: productRow.images ?? null,
+        brand: productRow.brand ?? null,
+        is_featured: Boolean(productRow.is_featured),
+        is_active: Boolean(productRow.is_active),
         category: { id: cat.id, name: cat.name, slug: cat.slug },
-        variants:
-          variantRows.map((variant: any) => ({
-            id: variant.id as string,
-            product_id: variant.product_id as string,
-            sku: variant.sku as string,
-            variant_name: variant.variant_name as string,
-            price: Number(variant.price),
-            stock: Number(variant.stock),
-            is_active: Boolean(variant.is_active),
-          })),
+        variants: variantRows.map(mapVariantRow),
       }
     })
-    .filter((p) => p !== null)
+    .filter((p) => p !== null) as ProductWithCategory[]
 
-  return { data: products as ProductWithCategory[], error: null }
+  return { data: products, error: null }
+}
+
+export async function getFeaturedProducts(): Promise<Result<Product[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, category_id, name, slug, description, base_price, images, brand, is_featured, is_active")
+    .eq("is_featured", true)
+    .eq("is_active", true)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(12)
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return {
+    data: (data ?? []).map((row) => {
+      const productRow = row as ProductRow
+      return {
+        id: productRow.id,
+        category_id: productRow.category_id,
+        name: productRow.name,
+        slug: productRow.slug,
+        description: productRow.description ?? null,
+        base_price: Number(productRow.base_price),
+        images: productRow.images ?? null,
+        brand: productRow.brand ?? null,
+        is_featured: Boolean(productRow.is_featured),
+        is_active: Boolean(productRow.is_active),
+      }
+    }),
+    error: null,
+  }
 }
 
 export async function getProductBySlug(
@@ -281,29 +340,35 @@ export async function getProductBySlug(
     }
   }
 
-  const cat = (data as any).categories as Category
+  const productRow = data as unknown as ProductRow
+  const cat = productRow.categories
+  if (!cat?.id) {
+    return {
+      data: null,
+      error: { message: "Producto sin categoría", code: "MISSING_CATEGORY" },
+    }
+  }
+
+  const rawVariants = productRow.product_variants
+  const variantRows = Array.isArray(rawVariants)
+    ? rawVariants
+    : rawVariants
+      ? [rawVariants]
+      : []
+
   const product: ProductWithVariants = {
-    id: data.id as string,
-    category_id: data.category_id as string,
-    name: data.name as string,
-    slug: data.slug as string,
-    description: (data.description as string) ?? null,
-    base_price: Number(data.base_price),
-    images: (data.images as string[] | null) ?? null,
-    brand: (data.brand as string | null) ?? null,
-    is_featured: Boolean(data.is_featured),
-    is_active: Boolean(data.is_active),
+    id: productRow.id,
+    category_id: productRow.category_id,
+    name: productRow.name,
+    slug: productRow.slug,
+    description: productRow.description ?? null,
+    base_price: Number(productRow.base_price),
+    images: productRow.images ?? null,
+    brand: productRow.brand ?? null,
+    is_featured: Boolean(productRow.is_featured),
+    is_active: Boolean(productRow.is_active),
     category: { id: cat.id, name: cat.name, slug: cat.slug },
-    variants:
-      ((data as any).product_variants ?? []).map((variant: any) => ({
-        id: variant.id as string,
-        product_id: variant.product_id as string,
-        sku: variant.sku as string,
-        variant_name: variant.variant_name as string,
-        price: Number(variant.price),
-        stock: Number(variant.stock),
-        is_active: Boolean(variant.is_active),
-      })) ?? [],
+    variants: variantRows.map(mapVariantRow),
   }
 
   return { data: product, error: null }

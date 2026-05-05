@@ -46,7 +46,7 @@ const parisienne = Parisienne({
 
 const cormorantGaramond = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["300", "400", "600", "700"],
   variable: "--font-cormorant-garamond",
 });
 

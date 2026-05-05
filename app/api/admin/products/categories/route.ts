@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import {
-  createAdminProduct,
-  getAdminCategories,
-  getAdminProducts,
+  createAdminCategory,
+  getAdminCategoriesWithProductCount,
   requireAdmin,
 } from "@/lib/supabase/admin"
-import { createProductSchema } from "@/lib/validations/products"
+import { createCategorySchema } from "@/lib/validations/products"
 
-function mapResultStatus(code?: string): number {
+function mapAuthStatus(code?: string): number {
   if (code === "UNAUTHENTICATED") return 401
   if (code === "FORBIDDEN") return 403
-  if (code === "BRANDS_TABLE_MISSING") return 500
   return 400
 }
 
@@ -26,43 +24,27 @@ export async function GET() {
     if (authResult.error) {
       return NextResponse.json(
         { data: null, error: authResult.error },
-        { status: mapResultStatus(authResult.error.code) }
+        { status: mapAuthStatus(authResult.error.code) }
       )
     }
 
-    const [productsResult, categoriesResult] = await Promise.all([
-      getAdminProducts(),
-      getAdminCategories(),
-    ])
-
-    if (productsResult.error) {
-      return NextResponse.json(
-        { data: null, error: productsResult.error },
-        { status: 500 }
-      )
-    }
-
+    const categoriesResult = await getAdminCategoriesWithProductCount()
     if (categoriesResult.error) {
       return NextResponse.json(
         { data: null, error: categoriesResult.error },
-        { status: 500 }
+        { status: 400 }
       )
     }
 
     return NextResponse.json({
-      data: {
-        products: productsResult.data,
-        categories: categoriesResult.data,
-      },
+      data: categoriesResult.data,
       error: null,
     })
   } catch {
     return NextResponse.json(
       {
         data: null,
-        error: {
-          message: "Error interno del servidor",
-        },
+        error: { message: "Error interno del servidor" },
       },
       { status: 500 }
     )
@@ -80,50 +62,43 @@ export async function POST(request: Request) {
     if (authResult.error) {
       return NextResponse.json(
         { data: null, error: authResult.error },
-        { status: mapResultStatus(authResult.error.code) }
+        { status: mapAuthStatus(authResult.error.code) }
       )
     }
 
     const json = await request.json()
+    const parsed = createCategorySchema.safeParse(json)
 
-    const parseResult = createProductSchema.safeParse(json)
-    if (!parseResult.success) {
+    if (!parsed.success) {
       return NextResponse.json(
         {
           data: null,
           error: {
             message: "Datos inválidos",
             code: "VALIDATION_ERROR",
-            issues: parseResult.error.issues,
+            issues: parsed.error.issues,
           },
         },
         { status: 400 }
       )
     }
 
-    const createResult = await createAdminProduct(parseResult.data)
-
+    const createResult = await createAdminCategory(parsed.data)
     if (createResult.error) {
       return NextResponse.json(
         { data: null, error: createResult.error },
-        { status: mapResultStatus(createResult.error.code) }
+        { status: 400 }
       )
     }
 
-    return NextResponse.json(
-      { data: createResult.data, error: null },
-      { status: 201 }
-    )
+    return NextResponse.json({ data: createResult.data, error: null }, { status: 201 })
   } catch {
     return NextResponse.json(
       {
         data: null,
-        error: {
-          message: "Error interno del servidor",
-        },
+        error: { message: "Error interno del servidor" },
       },
       { status: 500 }
     )
   }
 }
-
