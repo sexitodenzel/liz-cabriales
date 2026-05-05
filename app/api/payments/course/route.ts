@@ -104,7 +104,14 @@ export async function POST(
       )
     }
 
-    const userEmail = user.email ?? ""
+    const userEmail = user.email?.trim() ?? ""
+    if (!userEmail) {
+      return errorResponse(
+        "Tu cuenta no tiene correo electrónico. Actualiza tu perfil para continuar.",
+        400,
+        "VALIDATION_ERROR"
+      )
+    }
     const { data: userProfile } = await supabase
       .from("users")
       .select("first_name, last_name")
@@ -112,11 +119,21 @@ export async function POST(
       .maybeSingle()
 
     const payerName =
-      (userProfile as { first_name?: string } | null)?.first_name ?? ""
+      (userProfile as { first_name?: string } | null)?.first_name?.trim() ?? ""
     const payerSurname =
-      (userProfile as { last_name?: string } | null)?.last_name ?? ""
+      (userProfile as { last_name?: string } | null)?.last_name?.trim() ?? ""
+    const payer: { email: string; name?: string; surname?: string } = {
+      email: userEmail,
+    }
+    if (payerName) payer.name = payerName
+    if (payerSurname) payer.surname = payerSurname
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000")
+      .trim()
+      .replace(/\/$/, "")
+    const isLocalAppUrl = /:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/i.test(
+      appUrl
+    )
 
     const mpClient = new MercadoPagoConfig({
       accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
@@ -142,18 +159,14 @@ export async function POST(
               currency_id: "MXN",
             },
           ],
-          payer: {
-            name: payerName,
-            surname: payerSurname,
-            email: userEmail,
-          },
+          payer,
           back_urls: {
             success: `${appUrl}/curso/${course.id}/inscripcion/${registration.id}?status=success`,
             failure: `${appUrl}/curso/${course.id}/inscripcion/${registration.id}/error?status=failure`,
             pending: `${appUrl}/curso/${course.id}/inscripcion/${registration.id}?status=pending`,
           },
           notification_url: `${appUrl}/api/webhooks/mercadopago`,
-          auto_return: "approved",
+          ...(isLocalAppUrl ? {} : { auto_return: "approved" as const }),
         },
       })
     } catch (mpError) {

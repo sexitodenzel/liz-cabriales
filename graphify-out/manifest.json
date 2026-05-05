@@ -244,16 +244,16 @@
     "hash": "ba7b0cc80a0eae7ade05a255bc88cc7f"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\payments\\appointment\\route.ts": {
-    "mtime": 1777159211.7583601,
-    "hash": "6988b2563e44889110a8d7801cd73a10"
+    "mtime": 1778017389.7160892,
+    "hash": "23c1176386995eae6ea2f7a9be6e3121"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\payments\\course\\route.ts": {
-    "mtime": 1777159211.7603645,
-    "hash": "9e2dfdaec919c2171251205683cc1b45"
+    "mtime": 1778017384.7129433,
+    "hash": "38aa956e3bf28be2db8086f31291c8e9"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\payments\\mercadopago\\route.ts": {
-    "mtime": 1775678576.006868,
-    "hash": "a774fa7938520e61e5fa5ac79346b22c"
+    "mtime": 1778017394.525883,
+    "hash": "6fcf13f41750dca5b41b2be300a2d6f3"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\webhooks\\mercadopago\\route.ts": {
     "mtime": 1777159211.7629237,
@@ -304,8 +304,8 @@
     "hash": "48736a4d69a717eb8b3a2b7dd55781c1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\BrandDescription.tsx": {
-    "mtime": 1778014124.6045825,
-    "hash": "b6717959e6de78eea699d4a8b74a9732"
+    "mtime": 1778018002.6784523,
+    "hash": "2baaedda66ceb9d1ddbefe9d25a59c18"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\FeaturedColors.tsx": {
     "mtime": 1775678576.0128655,
@@ -324,20 +324,20 @@
     "hash": "0c19a07e245ea604dcb10a55b4210575"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\InstagramFeed.tsx": {
-    "mtime": 1778014496.6527226,
-    "hash": "3265df2b11d252c53488e7f229d0d8e9"
+    "mtime": 1778016950.5378737,
+    "hash": "8d62c2a18c7834e6f7b9cb00b528dc9c"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\NuevosLanzamientos.tsx": {
     "mtime": 1778014124.608097,
     "hash": "fbb4d60f5fb0f047e8b69c0be1ec2a18"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\NuevosLanzamientosCarousel.tsx": {
-    "mtime": 1778015987.324365,
-    "hash": "c47eeefddd56d16bc97d538290155f24"
+    "mtime": 1778017439.4329772,
+    "hash": "1efb472df046806c40d3434aa7815c8c"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\PillarCards.tsx": {
-    "mtime": 1778015634.347968,
-    "hash": "bb7791fda917a1fbd9cdf1c139e86baf"
+    "mtime": 1778017371.3405118,
+    "hash": "3675e2900c2153a3c624635719a74412"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\pillarTextColumn.ts": {
     "mtime": 1778014124.6160946,
@@ -348,8 +348,8 @@
     "hash": "00ef6e64d40c1faf6b8d2b51dc56a2db"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\ShopByNailPolishColors.tsx": {
-    "mtime": 1778015506.5978959,
-    "hash": "55e6fd06af4dc358d7bd440004db3ea1"
+    "mtime": 1778017396.8045764,
+    "hash": "ca7bf2c9c8888b285b295de251450f8d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\Testimonials.tsx": {
     "mtime": 1776724679.6794555,

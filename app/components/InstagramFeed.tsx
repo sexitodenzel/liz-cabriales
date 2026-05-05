@@ -220,11 +220,11 @@ export default function InstagramFeed() {
 
   return (
     <section
-      className="bg-white py-24 px-6 md:px-12"
+      className="bg-white px-6 pb-24 pt-12 md:px-12"
       style={{ color: "#1a1a18" }}
     >
       {/* Eyebrow */}
-      <div className="flex items-center justify-center gap-3 mb-10">
+      <div className="mb-4 flex items-center justify-center gap-3">
         <span className="block w-12 h-px" style={{ background: "#b8922e" }} />
         <span
           className="uppercase font-light"

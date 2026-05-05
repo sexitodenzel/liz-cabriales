@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { createClient } from "@/lib/supabase/client"
 import { useCart } from "@/app/components/cart/CartContext"
@@ -91,6 +91,19 @@ export default function ShopByNailPolishColors() {
   const { addItem, openCart } = useCart()
   const [openId, setOpenId] = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+  const [inView, setInView] = useState(false)
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setInView(true); io.disconnect() } },
+      { threshold: 0.08 }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
     const supabase = createClient()
@@ -148,9 +161,11 @@ export default function ShopByNailPolishColors() {
   }, [addItem, closeModal, isLoggedIn, openCart, selected])
 
   return (
-    <section className="bg-white pt-14 text-black">
+    <section ref={sectionRef} className="bg-white pt-14 text-black">
       <div className="mx-auto max-w-[1400px] px-6">
-        <header className="mb-10 max-w-[720px]">
+        <header
+          className={`mb-10 max-w-[720px] transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
+        >
           <h2 className="mb-[18px] mt-3.5 font-[family-name:var(--font-playfair),serif] text-[clamp(36px,4.4vw,56px)] font-medium leading-[1.05] tracking-[-0.01em] text-black">
             Compra por Color de{" "}
             <em className="font-medium italic text-[#a8862f]">
@@ -166,7 +181,10 @@ export default function ShopByNailPolishColors() {
           </p>
         </header>
 
-        <div className="w-full">
+        <div
+          className={`w-full transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+          style={{ transitionDelay: "180ms" }}
+        >
           <div
             className="grid w-full grid-cols-9 gap-1.5 sm:gap-2"
             role="list"

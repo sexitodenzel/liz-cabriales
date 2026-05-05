@@ -164,6 +164,19 @@ export default function NuevosLanzamientosCarousel({
   const total = products.length
   const maxIndex = Math.max(0, total - visible)
   const [index, setIndex] = useState(0)
+  const sectionRef = useRef<HTMLElement>(null)
+  const [headerInView, setHeaderInView] = useState(false)
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setHeaderInView(true); io.disconnect() } },
+      { threshold: 0.08 }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
     setIndex((i) => Math.min(i, maxIndex))
@@ -227,11 +240,14 @@ export default function NuevosLanzamientosCarousel({
 
   return (
     <section
-      className="mx-auto max-w-[1400px] px-6 pt-6 pb-28 max-[720px]:pt-6 max-[720px]:pb-20"
+      ref={sectionRef}
+      className="mx-auto max-w-[1400px] px-6 pt-6 pb-16 max-[720px]:pt-6 max-[720px]:pb-12"
       aria-labelledby="nuevos-lanzamientos-title"
     >
       <header className="mb-12 flex items-end justify-between gap-8 max-[720px]:flex-col max-[720px]:items-start">
-        <div className="max-w-[720px]">
+        <div
+          className={`max-w-[720px] transition-all duration-700 ease-out ${headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
+        >
           <h2
             id="nuevos-lanzamientos-title"
             className="mb-[18px] mt-3.5 font-[family-name:var(--font-playfair),serif] text-[clamp(36px,4.4vw,56px)] font-medium leading-[1.05] tracking-[-0.01em] text-black"
@@ -251,7 +267,10 @@ export default function NuevosLanzamientosCarousel({
           </p>
         </div>
 
-        <div className="flex items-center gap-3 pb-1.5 max-[720px]:pb-0">
+        <div
+          className={`flex items-center gap-3 pb-1.5 max-[720px]:pb-0 transition-all duration-700 ease-out ${headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
+          style={{ transitionDelay: "150ms" }}
+        >
           <button
             className={arrowBase}
             onClick={goPrev}
