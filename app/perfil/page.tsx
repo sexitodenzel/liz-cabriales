@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import PerfilCitasClient from "./PerfilCitasClient"
+import PerfilSignOutButton from "./PerfilSignOutButton"
 import { listAppointmentsForUser } from "@/lib/supabase/appointments"
 import { getUserRegistrations } from "@/lib/supabase/courses"
 import { getUserOrdersSummaries } from "@/lib/supabase/orders"
@@ -68,7 +69,7 @@ export default async function PerfilPage() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("first_name, last_name, email")
+    .select("first_name, last_name, email, role")
     .eq("id", user.id)
     .single()
 
@@ -76,6 +77,7 @@ export default async function PerfilPage() {
     [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
     "Cliente"
   const email = profile?.email ?? user.email ?? ""
+  const isAdmin = profile?.role === "admin" || profile?.role === "receptionist"
 
   const [ordersRes, apptsRes, regsRes] = await Promise.all([
     getUserOrdersSummaries(user.id),
@@ -90,10 +92,27 @@ export default async function PerfilPage() {
   return (
     <main className="min-h-screen bg-[#f8f6f1] text-[#0a0a0a]">
       <div className="mx-auto max-w-[900px] px-6 py-12">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9b8b65]">
-          Tu cuenta
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Mi perfil</h1>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9b8b65]">
+              Tu cuenta
+            </p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+              Mi perfil
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#a8893a]"
+              >
+                Panel de administrador
+              </Link>
+            )}
+            <PerfilSignOutButton />
+          </div>
+        </div>
 
         <section className="mt-10 rounded-[28px] border border-[#e8e1d3] bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-lg font-semibold text-neutral-900">

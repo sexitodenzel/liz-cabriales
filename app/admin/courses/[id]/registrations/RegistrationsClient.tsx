@@ -73,24 +73,24 @@ export default function RegistrationsClient({
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="border-b border-white/10 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+    <div className="min-h-screen bg-white text-[#1a1a1a]">
+      <header className="border-b border-[#ececec] px-6 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <Link
             href="/admin/courses"
-            className="text-sm font-semibold text-[#C9A84C] hover:text-white"
+            className="text-sm font-semibold text-[#c9a84c] hover:text-[#a8893a]"
           >
             ← Cursos
           </Link>
           <div>
             <h1 className="text-lg font-semibold">{course.title}</h1>
-            <p className="text-xs text-white/60">Inscritos al curso</p>
+            <p className="text-xs text-[#6b6b6b]">Inscritos al curso</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="rounded-lg bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0a0a0a] hover:bg-[#b8962f]"
+          className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors"
         >
           + Agregar alumno manual
         </button>
@@ -98,41 +98,41 @@ export default function RegistrationsClient({
 
       <main className="p-6">
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-wider text-white/60">
+          <div className="rounded-xl border border-[#ececec] bg-white p-4">
+            <p className="text-xs uppercase tracking-wider text-[#6b6b6b]">
               Cupo
             </p>
-            <p className="mt-1 text-2xl font-semibold">
+            <p className="mt-1 text-2xl font-semibold text-[#1a1a1a]">
               {totalPaidAttendees}/{course.capacity}
             </p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-wider text-white/60">
+          <div className="rounded-xl border border-[#ececec] bg-white p-4">
+            <p className="text-xs uppercase tracking-wider text-[#6b6b6b]">
               Inscripciones totales
             </p>
-            <p className="mt-1 text-2xl font-semibold">
+            <p className="mt-1 text-2xl font-semibold text-[#1a1a1a]">
               {registrations.length}
             </p>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-wider text-white/60">
+          <div className="rounded-xl border border-[#ececec] bg-white p-4">
+            <p className="text-xs uppercase tracking-wider text-[#6b6b6b]">
               Total recaudado (aprobado)
             </p>
-            <p className="mt-1 text-2xl font-semibold">
+            <p className="mt-1 text-2xl font-semibold text-[#c9a84c]">
               {formatPrice(totalRecaudado)}
             </p>
           </div>
         </div>
 
         {registrations.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-10 text-center text-sm text-white/70">
+          <div className="rounded-xl border border-[#ececec] bg-[#fafafa] p-10 text-center text-sm text-[#6b6b6b]">
             Aún no hay inscripciones.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/5">
+          <div className="overflow-x-auto rounded-xl border border-[#ececec] bg-white">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wider text-white/60">
+                <tr className="border-b border-[#ececec] text-left text-xs uppercase tracking-wider text-[#6b6b6b] bg-[#fafafa]">
                   <th className="px-4 py-3">Alumno</th>
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">Asistentes</th>
@@ -151,37 +151,37 @@ export default function RegistrationsClient({
                   return (
                     <tr
                       key={r.id}
-                      className="border-b border-white/5 last:border-b-0"
+                      className="border-b border-[#ececec] last:border-b-0 hover:bg-[#fafafa]"
                     >
-                      <td className="px-4 py-3 font-medium">{name}</td>
-                      <td className="px-4 py-3 text-white/80">
+                      <td className="px-4 py-3 font-medium text-[#1a1a1a]">{name}</td>
+                      <td className="px-4 py-3 text-[#3a3a3a]">
                         {r.client_email ?? "—"}
                       </td>
-                      <td className="px-4 py-3">{r.attendees}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-[#3a3a3a]">{r.attendees}</td>
+                      <td className="px-4 py-3 text-[#3a3a3a]">
                         {r.payment_amount != null
                           ? formatPrice(r.payment_amount)
                           : "—"}
                       </td>
                       <td className="px-4 py-3">
                         {r.status === "paid" ? (
-                          <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
                             Pagada
                           </span>
                         ) : r.status === "pending" ? (
-                          <span className="rounded-full bg-yellow-500/20 px-2.5 py-0.5 text-xs font-semibold text-yellow-200">
+                          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200">
                             Pendiente
                           </span>
                         ) : (
-                          <span className="rounded-full bg-red-500/20 px-2.5 py-0.5 text-xs font-semibold text-red-300">
+                          <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700 border border-red-200">
                             Cancelada
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-white/80">
+                      <td className="px-4 py-3 text-[#3a3a3a]">
                         {r.added_by_admin ? "Manual" : "Web"}
                       </td>
-                      <td className="px-4 py-3 text-white/70">
+                      <td className="px-4 py-3 text-[#6b6b6b]">
                         {formatDateTime(r.created_at)}
                       </td>
                     </tr>

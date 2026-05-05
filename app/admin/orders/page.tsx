@@ -143,8 +143,8 @@ function AdminOrdersList() {
 
   if (loading && orders.length === 0 && !error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-950">
-        <p className="text-sm tracking-wide text-neutral-200">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-sm tracking-wide text-[#6b6b6b]">
           Cargando órdenes…
         </p>
       </div>
@@ -152,22 +152,19 @@ function AdminOrdersList() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100 text-neutral-900">
+    <div className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p
-              className="text-xs font-semibold tracking-[0.25em]"
-              style={{ color: BRAND_GOLD }}
-            >
+            <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
               PANEL ADMINISTRADOR
             </p>
-            <h1 className="mt-2 text-3xl font-bold text-neutral-900">
+            <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">
               Órdenes
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <label className="text-xs font-medium text-neutral-600">
+            <label className="text-xs font-medium text-[#6b6b6b]">
               Estado
             </label>
             <select
@@ -175,7 +172,7 @@ function AdminOrdersList() {
               onChange={(e) =>
                 setStatus(e.target.value as "all" | OrderStatus)
               }
-              className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
+              className="rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
             >
               {STATUS_FILTER_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -185,7 +182,7 @@ function AdminOrdersList() {
             </select>
             <Link
               href="/admin"
-              className="text-sm font-medium text-neutral-600 hover:text-neutral-900"
+              className="text-sm font-medium text-[#6b6b6b] hover:text-[#1a1a1a] transition-colors"
             >
               ← Volver al panel
             </Link>
@@ -193,15 +190,15 @@ function AdminOrdersList() {
         </div>
 
         {error && (
-          <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </p>
         )}
 
-        <div className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-[#ececec] bg-white">
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
+              <thead className="bg-[#fafafa] text-xs uppercase tracking-[0.16em] text-[#6b6b6b]">
                 <tr>
                   <th className="px-6 py-3 font-semibold">ID</th>
                   <th className="px-4 py-3 font-semibold">Cliente</th>
@@ -211,12 +208,12 @@ function AdminOrdersList() {
                   <th className="px-4 py-3 font-semibold">Fecha</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[#ececec]">
                 {orders.length === 0 ? (
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-6 py-10 text-center text-neutral-500"
+                      className="px-6 py-10 text-center text-[#6b6b6b]"
                     >
                       No hay órdenes con estos criterios.
                     </td>
@@ -236,15 +233,15 @@ function AdminOrdersList() {
                           router.push(`/admin/orders/${order.id}`)
                         }
                       }}
-                      className="cursor-pointer hover:bg-neutral-50/80"
+                      className="cursor-pointer hover:bg-[#fafafa]"
                     >
-                      <td className="px-6 py-4 font-mono text-xs text-neutral-800">
+                      <td className="px-6 py-4 font-mono text-xs text-[#3a3a3a]">
                         {order.id.slice(0, 8)}
                       </td>
-                      <td className="px-4 py-4 text-neutral-800">
+                      <td className="px-4 py-4 text-[#3a3a3a]">
                         {order.client_email ?? "—"}
                       </td>
-                      <td className="px-4 py-4 font-medium">
+                      <td className="px-4 py-4 font-medium text-[#1a1a1a]">
                         ${order.total.toFixed(2)}
                       </td>
                       <td className="px-4 py-4">
@@ -254,10 +251,10 @@ function AdminOrdersList() {
                           {statusLabel(order.status)}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-neutral-700">
+                      <td className="px-4 py-4 text-[#3a3a3a]">
                         {deliveryLabel(order.delivery_type)}
                       </td>
-                      <td className="px-4 py-4 text-neutral-600">
+                      <td className="px-4 py-4 text-[#6b6b6b]">
                         {new Date(order.created_at).toLocaleString("es-MX", {
                           dateStyle: "short",
                           timeStyle: "short",
@@ -270,25 +267,25 @@ function AdminOrdersList() {
             </table>
           </div>
 
-          <div className="flex flex-col gap-3 border-t border-neutral-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-neutral-600">{paginationLabel}</p>
+          <div className="flex flex-col gap-3 border-t border-[#ececec] px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-[#6b6b6b]">{paginationLabel}</p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={goPrev}
                 disabled={page <= 1 || loading}
-                className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-[#ececec] bg-white px-4 py-2 text-sm font-medium text-[#3a3a3a] hover:border-[#c9a84c] hover:text-[#a8893a] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Anterior
               </button>
-              <span className="text-sm text-neutral-500">
+              <span className="text-sm text-[#6b6b6b]">
                 Página {page} de {totalPages}
               </span>
               <button
                 type="button"
                 onClick={goNext}
                 disabled={page >= totalPages || loading}
-                className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-[#ececec] bg-white px-4 py-2 text-sm font-medium text-[#3a3a3a] hover:border-[#c9a84c] hover:text-[#a8893a] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Siguiente
               </button>
@@ -304,8 +301,8 @@ export default function AdminOrdersPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-neutral-950">
-          <p className="text-sm tracking-wide text-neutral-200">
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <p className="text-sm tracking-wide text-[#6b6b6b]">
             Cargando órdenes…
           </p>
         </div>

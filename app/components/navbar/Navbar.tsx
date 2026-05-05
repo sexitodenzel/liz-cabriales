@@ -185,8 +185,11 @@ return (
    BRAND LOGO
    ========================================= */}
 
-<div className="flex flex-col items-center font-serif leading-tight w-fit mx-auto">
-
+<Link
+  href="/"
+  className="flex flex-col items-center font-serif leading-tight w-fit mx-auto text-inherit no-underline hover:opacity-90 transition-opacity"
+  aria-label="Ir al inicio"
+>
 <div className="self-start text-[28px] tracking-[0.12em]">
   Liz Cabriales
 </div>
@@ -195,7 +198,7 @@ return (
   STUDIO
 </div>
 
-</div>
+</Link>
 
 
 

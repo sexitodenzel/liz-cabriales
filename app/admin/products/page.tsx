@@ -420,8 +420,8 @@ export default function AdminProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-950">
-        <p className="text-sm tracking-wide text-neutral-200">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-sm tracking-wide text-[#6b6b6b]">
           Cargando catálogo de productos…
         </p>
       </div>
@@ -429,16 +429,13 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100 text-neutral-900">
+    <div className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-10">
-          <p
-            className="text-xs font-semibold tracking-[0.25em] text-center sm:text-left"
-            style={{ color: BRAND_GOLD }}
-          >
+          <p className="text-xs font-semibold tracking-[0.25em] text-center sm:text-left text-[#c9a84c]">
             PANEL ADMINISTRADOR
           </p>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-neutral-900">
+          <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-[#1a1a1a]">
             CATÁLOGO DE PRODUCTOS
           </h1>
         </div>
@@ -635,7 +632,7 @@ export default function AdminProductsPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex items-center justify-center rounded-full bg-black px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-neutral-900 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center rounded-full bg-[#c9a84c] px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-[#a8893a] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {submitting ? "CREANDO..." : "CREAR PRODUCTO"}
                 </button>
@@ -960,7 +957,7 @@ export default function AdminProductsPage() {
                                       type="button"
                                       onClick={saveEditing}
                                       disabled={submitting}
-                                      className="rounded-full bg-black px-4 py-1.5 text-[11px] font-semibold tracking-[0.14em] text-white uppercase hover:bg-neutral-900 disabled:opacity-60"
+                                      className="rounded-full bg-[#c9a84c] px-4 py-1.5 text-[11px] font-semibold tracking-[0.14em] text-white uppercase hover:bg-[#a8893a] transition-colors disabled:opacity-60"
                                     >
                                       {submitting ? "GUARDANDO..." : "GUARDAR"}
                                     </button>

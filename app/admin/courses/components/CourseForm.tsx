@@ -103,13 +103,16 @@ export default function CourseForm({
     }
   }
 
+  const inputCls = "mt-1 w-full rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm text-[#1a1a1a] outline-none focus:border-[#c9a84c] transition-colors"
+  const labelCls = "block text-xs font-medium uppercase tracking-wider text-[#6b6b6b]"
+
   return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="border-b border-white/10 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-white text-[#1a1a1a]">
+      <header className="border-b border-[#ececec] px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link
             href="/admin/courses"
-            className="text-sm font-semibold text-[#C9A84C] hover:text-white"
+            className="text-sm font-semibold text-[#c9a84c] hover:text-[#a8893a]"
           >
             ← Cursos
           </Link>
@@ -122,44 +125,38 @@ export default function CourseForm({
       <main className="mx-auto max-w-3xl p-6">
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-xl border border-white/10 bg-white/5 p-6"
+          className="space-y-5 rounded-xl border border-[#ececec] bg-white p-6"
         >
           <div>
-            <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-              Título
-            </label>
+            <label className={labelCls}>Título</label>
             <input
               type="text"
               required
               value={values.title}
               onChange={(e) => update("title", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+              className={inputCls}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-              Descripción
-            </label>
+            <label className={labelCls}>Descripción</label>
             <textarea
               required
               rows={4}
               value={values.description}
               onChange={(e) => update("description", e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+              className={inputCls}
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-                Instructor
-              </label>
+              <label className={labelCls}>Instructor</label>
               <select
                 required
                 value={values.instructor_id}
                 onChange={(e) => update("instructor_id", e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+                className={inputCls}
               >
                 <option value="">Selecciona…</option>
                 {instructors.map((i) => (
@@ -171,15 +168,13 @@ export default function CourseForm({
             </div>
 
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-                Nivel
-              </label>
+              <label className={labelCls}>Nivel</label>
               <select
                 value={values.level}
                 onChange={(e) =>
                   update("level", e.target.value as CourseLevel)
                 }
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+                className={inputCls}
               >
                 {LEVEL_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -192,9 +187,7 @@ export default function CourseForm({
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-                Precio (MXN)
-              </label>
+              <label className={labelCls}>Precio (MXN)</label>
               <input
                 type="number"
                 min="0"
@@ -202,13 +195,11 @@ export default function CourseForm({
                 required
                 value={values.price}
                 onChange={(e) => update("price", e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-                Cupo
-              </label>
+              <label className={labelCls}>Cupo</label>
               <input
                 type="number"
                 min="1"
@@ -216,77 +207,67 @@ export default function CourseForm({
                 required
                 value={values.capacity}
                 onChange={(e) => update("capacity", e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-                Hora de inicio
-              </label>
+              <label className={labelCls}>Hora de inicio</label>
               <input
                 type="time"
                 required
                 value={values.start_time}
                 onChange={(e) => update("start_time", e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+                className={inputCls}
               />
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-                Fecha de inicio
-              </label>
+              <label className={labelCls}>Fecha de inicio</label>
               <input
                 type="date"
                 required
                 value={values.start_date}
                 onChange={(e) => update("start_date", e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-                Fecha de fin (opcional)
-              </label>
+              <label className={labelCls}>Fecha de fin (opcional)</label>
               <input
                 type="date"
                 value={values.end_date}
                 onChange={(e) => update("end_date", e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+                className={inputCls}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-              Ubicación
-            </label>
+            <label className={labelCls}>Ubicación</label>
             <input
               type="text"
               required
               value={values.location}
               onChange={(e) => update("location", e.target.value)}
               placeholder="Estudio, dirección o ciudad"
-              className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+              className={inputCls}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium uppercase tracking-wider text-white/60">
-              Imagen de portada (URL)
-            </label>
+            <label className={labelCls}>Imagen de portada (URL)</label>
             <input
               type="url"
               value={values.cover_image}
               onChange={(e) => update("cover_image", e.target.value)}
               placeholder="https://..."
-              className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#C9A84C]"
+              className={inputCls}
             />
           </div>
 
-          <label className="flex items-center gap-3 text-sm text-white/85">
+          <label className="flex items-center gap-3 text-sm text-[#3a3a3a]">
             <input
               type="checkbox"
               checked={values.is_published}
@@ -298,7 +279,7 @@ export default function CourseForm({
 
           {error && (
             <p
-              className="rounded-lg border border-red-500/40 bg-red-950/30 px-3 py-2 text-sm text-red-300"
+              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
               role="alert"
             >
               {error}
@@ -308,14 +289,14 @@ export default function CourseForm({
           <div className="flex items-center justify-end gap-3">
             <Link
               href="/admin/courses"
-              className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+              className="rounded-lg border border-[#ececec] bg-white px-4 py-2 text-sm font-medium text-[#3a3a3a] hover:border-[#c9a84c] hover:text-[#a8893a] transition-colors"
             >
               Cancelar
             </Link>
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-lg bg-[#C9A84C] px-4 py-2 text-sm font-semibold text-[#0a0a0a] hover:bg-[#b8962f] disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting
                 ? "Guardando…"

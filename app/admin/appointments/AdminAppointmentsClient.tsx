@@ -148,47 +148,44 @@ export default function AdminAppointmentsClient({
   )
 
   return (
-    <div className="min-h-screen bg-neutral-100 text-neutral-900">
+    <div className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p
-              className="text-xs font-semibold tracking-[0.25em]"
-              style={{ color: BRAND_GOLD }}
-            >
+            <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
               PANEL ADMINISTRADOR
             </p>
-            <h1 className="mt-2 text-3xl font-bold">Agenda</h1>
+            <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">Agenda</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setShowBlockModal(true)}
-              className="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50"
+              className="rounded-lg border border-[#ececec] bg-white px-4 py-2 text-sm font-medium text-[#3a3a3a] hover:border-[#c9a84c] hover:text-[#a8893a] transition-colors"
             >
               Bloquear horario
             </button>
             <button
               type="button"
               onClick={() => setShowNewModal(true)}
-              className="rounded-lg bg-[#0a0a0a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+              className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors"
             >
               Nueva cita manual
             </button>
             <Link
               href="/admin"
-              className="text-sm font-medium text-neutral-600 hover:text-neutral-900"
+              className="text-sm font-medium text-[#6b6b6b] hover:text-[#1a1a1a] transition-colors"
             >
               ← Volver al panel
             </Link>
           </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap items-end gap-4 rounded-2xl border border-neutral-200 bg-white p-4">
+        <div className="mb-6 flex flex-wrap items-end gap-4 rounded-2xl border border-[#ececec] bg-white p-4">
           <div>
             <label
               htmlFor="date"
-              className="block text-xs font-medium text-neutral-600"
+              className="block text-xs font-medium text-[#6b6b6b]"
             >
               Fecha
             </label>
@@ -197,13 +194,13 @@ export default function AdminAppointmentsClient({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
+              className="mt-1 rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
             />
           </div>
           <div>
             <label
               htmlFor="professional"
-              className="block text-xs font-medium text-neutral-600"
+              className="block text-xs font-medium text-[#6b6b6b]"
             >
               Profesional
             </label>
@@ -211,7 +208,7 @@ export default function AdminAppointmentsClient({
               id="professional"
               value={professionalId}
               onChange={(e) => setProfessionalId(e.target.value)}
-              className="mt-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
+              className="mt-1 rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
             >
               <option value="all">Todos</option>
               {professionals.map((p) => (
@@ -221,24 +218,24 @@ export default function AdminAppointmentsClient({
               ))}
             </select>
           </div>
-          <div className="ml-auto text-sm text-neutral-600">
+          <div className="ml-auto text-sm text-[#6b6b6b]">
             Total del día:{" "}
-            <span className="font-semibold text-neutral-900">
+            <span className="font-semibold text-[#1a1a1a]">
               {formatPrice(totalDay)}
             </span>
           </div>
         </div>
 
         {error && (
-          <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </p>
         )}
 
-        <div className="overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-[#ececec] bg-white">
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
+              <thead className="bg-[#fafafa] text-xs uppercase tracking-[0.16em] text-[#6b6b6b]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Hora</th>
                   <th className="px-4 py-3 font-semibold">Profesional</th>
@@ -250,12 +247,12 @@ export default function AdminAppointmentsClient({
                   <th className="px-4 py-3 font-semibold">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[#ececec]">
                 {loading ? (
                   <tr>
                     <td
                       colSpan={8}
-                      className="px-6 py-10 text-center text-neutral-500"
+                      className="px-6 py-10 text-center text-[#6b6b6b]"
                     >
                       Cargando…
                     </td>
@@ -264,7 +261,7 @@ export default function AdminAppointmentsClient({
                   <tr>
                     <td
                       colSpan={8}
-                      className="px-6 py-10 text-center text-neutral-500"
+                      className="px-6 py-10 text-center text-[#6b6b6b]"
                     >
                       No hay citas para este día.
                     </td>
@@ -282,31 +279,31 @@ export default function AdminAppointmentsClient({
                       a.client_email ||
                       "—"
                     return (
-                      <tr key={a.id} className="hover:bg-neutral-50/80">
-                        <td className="px-4 py-3 font-medium">
+                      <tr key={a.id} className="hover:bg-[#fafafa]">
+                        <td className="px-4 py-3 font-medium text-[#1a1a1a]">
                           {formatTimeLabel(a.start_time)}
-                          <span className="block text-[10px] text-neutral-500">
+                          <span className="block text-[10px] text-[#6b6b6b]">
                             hasta {formatTimeLabel(a.end_time)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-neutral-800">
+                        <td className="px-4 py-3 text-[#3a3a3a]">
                           {a.professional_name ?? "—"}
                         </td>
-                        <td className="px-4 py-3 text-neutral-800">
+                        <td className="px-4 py-3 text-[#3a3a3a]">
                           <div>{clientName}</div>
                           {a.client_email && (
-                            <div className="text-[11px] text-neutral-500">
+                            <div className="text-[11px] text-[#6b6b6b]">
                               {a.client_email}
                             </div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-neutral-700">
+                        <td className="px-4 py-3 text-[#3a3a3a]">
                           {a.services.map((s) => s.service_name).join(", ")}
                         </td>
-                        <td className="px-4 py-3 text-neutral-700">
+                        <td className="px-4 py-3 text-[#3a3a3a]">
                           {duration} min
                         </td>
-                        <td className="px-4 py-3 font-medium">
+                        <td className="px-4 py-3 font-medium text-[#1a1a1a]">
                           {formatPrice(a.total)}
                         </td>
                         <td className="px-4 py-3">
@@ -323,7 +320,7 @@ export default function AdminAppointmentsClient({
                               <button
                                 type="button"
                                 onClick={() => setRescheduleTarget(a)}
-                                className="rounded-md border border-[#C9A84C]/40 bg-[#fdf8ea] px-3 py-1 text-xs font-semibold text-[#8a6f1a] hover:bg-[#f7edc9]"
+                                className="rounded-md border border-[#e8dcb0] bg-[#f5efdc] px-3 py-1 text-xs font-semibold text-[#a8893a] hover:bg-[#e8dcb0] transition-colors"
                               >
                                 Reprogramar
                               </button>

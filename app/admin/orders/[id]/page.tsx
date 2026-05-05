@@ -151,8 +151,8 @@ export default function AdminOrderDetailPage() {
 
   if (loading && !order) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-950">
-        <p className="text-sm tracking-wide text-neutral-200">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-sm tracking-wide text-[#6b6b6b]">
           Cargando orden…
         </p>
       </div>
@@ -161,11 +161,11 @@ export default function AdminOrderDetailPage() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-neutral-100 px-6 py-10">
+      <div className="min-h-screen bg-white px-6 py-10">
         <p className="text-red-700">{error ?? "Orden no encontrada."}</p>
         <Link
           href="/admin/orders"
-          className="mt-4 inline-block text-sm font-medium text-neutral-700 underline"
+          className="mt-4 inline-block text-sm font-medium text-[#c9a84c] underline"
         >
           Volver a órdenes
         </Link>
@@ -192,13 +192,10 @@ export default function AdminOrderDetailPage() {
     )
 
   return (
-    <div className="min-h-screen bg-neutral-100 text-neutral-900">
+    <div className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="mx-auto max-w-4xl px-6 py-10">
         <div className="mb-8">
-          <p
-            className="text-xs font-semibold tracking-[0.25em]"
-            style={{ color: BRAND_GOLD }}
-          >
+          <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
             PANEL ADMINISTRADOR
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
@@ -207,7 +204,7 @@ export default function AdminOrderDetailPage() {
             </h1>
             <Link
               href="/admin/orders"
-              className="text-sm font-medium text-neutral-600 hover:text-neutral-900"
+              className="text-sm font-medium text-[#6b6b6b] hover:text-[#1a1a1a] transition-colors"
             >
               ← Volver al listado
             </Link>
@@ -215,38 +212,38 @@ export default function AdminOrderDetailPage() {
         </div>
 
         <div className="space-y-6">
-          <section className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+          <section className="rounded-2xl border border-[#ececec] bg-white p-6">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
               Cliente
             </h2>
             <div className="mt-3 space-y-1 text-sm">
               <p>
-                <span className="text-neutral-500">Nombre: </span>
+                <span className="text-[#6b6b6b]">Nombre: </span>
                 {clientName || "—"}
               </p>
               <p>
-                <span className="text-neutral-500">Correo: </span>
+                <span className="text-[#6b6b6b]">Correo: </span>
                 {order.client_email ?? "—"}
               </p>
             </div>
           </section>
 
-          <section className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+          <section className="rounded-2xl border border-[#ececec] bg-white p-6">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
               Entrega
             </h2>
             <div className="mt-3">{shippingBlock}</div>
           </section>
 
-          <section className="rounded-2xl border border-neutral-200/80 bg-white shadow-sm overflow-hidden">
-            <header className="border-b border-neutral-100 px-6 py-4">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+          <section className="rounded-2xl border border-[#ececec] bg-white overflow-hidden">
+            <header className="border-b border-[#ececec] px-6 py-4">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
                 Productos
               </h2>
             </header>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-neutral-50/80 text-xs uppercase tracking-wide text-neutral-500">
+                <thead className="bg-[#fafafa] text-xs uppercase tracking-wide text-[#6b6b6b]">
                   <tr>
                     <th className="px-6 py-3 text-left font-semibold">Producto</th>
                     <th className="px-4 py-3 text-left font-semibold">Variante</th>
@@ -255,18 +252,18 @@ export default function AdminOrderDetailPage() {
                     <th className="px-4 py-3 text-right font-semibold">Subtotal</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[#ececec]">
                   {order.items.map((item, idx) => (
                     <tr key={`${item.product_name}-${idx}`}>
-                      <td className="px-6 py-3">{item.product_name}</td>
-                      <td className="px-4 py-3 text-neutral-700">
+                      <td className="px-6 py-3 text-[#1a1a1a]">{item.product_name}</td>
+                      <td className="px-4 py-3 text-[#3a3a3a]">
                         {item.variant_name}
                       </td>
-                      <td className="px-4 py-3 text-right">{item.quantity}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right text-[#3a3a3a]">{item.quantity}</td>
+                      <td className="px-4 py-3 text-right text-[#3a3a3a]">
                         ${item.unit_price.toFixed(2)}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium">
+                      <td className="px-4 py-3 text-right font-medium text-[#1a1a1a]">
                         ${item.subtotal.toFixed(2)}
                       </td>
                     </tr>
@@ -274,15 +271,15 @@ export default function AdminOrderDetailPage() {
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-neutral-100 px-6 py-4 text-right">
-              <p className="text-lg font-semibold">
+            <div className="border-t border-[#ececec] px-6 py-4 text-right">
+              <p className="text-lg font-semibold text-[#1a1a1a]">
                 Total: ${order.total.toFixed(2)} MXN
               </p>
             </div>
           </section>
 
-          <section className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+          <section className="rounded-2xl border border-[#ececec] bg-white p-6">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
               Estado de la orden
             </h2>
             <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -295,7 +292,7 @@ export default function AdminOrderDetailPage() {
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-neutral-600">
+                <label className="block text-xs font-medium text-[#6b6b6b]">
                   Cambiar estado (envío / entrega / cancelación)
                 </label>
                 <select
@@ -303,7 +300,7 @@ export default function AdminOrderDetailPage() {
                   onChange={(e) =>
                     setSelectedStatus(e.target.value as ManualStatus)
                   }
-                  className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
+                  className="rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
                 >
                   {MANUAL_STATUSES.map((s) => (
                     <option key={s} value={s}>
@@ -316,7 +313,7 @@ export default function AdminOrderDetailPage() {
                 type="button"
                 onClick={saveStatus}
                 disabled={saving}
-                className="rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-900 disabled:opacity-60"
+                className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
               >
                 {saving ? "Guardando…" : "Guardar cambio de estado"}
               </button>

@@ -26,19 +26,19 @@ export default function AdminDashboardClient({
   const hasLowStock = lowStockCount > 0
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="border-b border-white/10 px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-white text-[#1a1a1a]">
+      <header className="border-b border-[#ececec] px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
-          <h1 className="text-lg font-semibold text-[#C9A84C]">
+          <h1 className="text-lg font-semibold text-[#c9a84c]">
             Panel Administrador
           </h1>
         </div>
         <div className="flex items-center gap-4 shrink-0">
-          <span className="text-sm text-white/80">{userName}</span>
+          <span className="text-sm text-[#6b6b6b]">{userName}</span>
           <button
             type="button"
             onClick={handleSignOut}
-            className="rounded-md border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 hover:border-[#C9A84C] transition-colors"
+            className="rounded-lg border border-[#ececec] bg-white px-4 py-2 text-sm font-medium text-[#3a3a3a] hover:border-[#c9a84c] hover:text-[#a8893a] transition-colors"
           >
             Cerrar sesión
           </button>
@@ -46,33 +46,31 @@ export default function AdminDashboardClient({
       </header>
       <main className="p-8">
         <div className="space-y-6">
-          <p className="text-white/80">
+          <p className="text-[#6b6b6b]">
             Bienvenido al panel de administración
           </p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             <Link
               href="/admin/products"
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-[#C9A84C] hover:bg-white/10"
+              className="group overflow-hidden rounded-xl border border-[#ececec] bg-white px-5 py-4 transition hover:border-[#e8dcb0] hover:bg-[#fafafa]"
             >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-gradient-to-br from-[#C9A84C] to-transparent transition-opacity" />
-              <div className="relative space-y-1">
-                <p className="text-sm font-semibold text-white">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-[#1a1a1a]">
                   Gestionar Productos
                 </p>
-                <p className="text-xs text-white/70">
+                <p className="text-xs text-[#6b6b6b]">
                   Crear, editar, activar o eliminar productos del catálogo.
                 </p>
               </div>
             </Link>
             <Link
               href="/admin/orders"
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-[#C9A84C] hover:bg-white/10"
+              className="group overflow-hidden rounded-xl border border-[#ececec] bg-white px-5 py-4 transition hover:border-[#e8dcb0] hover:bg-[#fafafa]"
             >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-gradient-to-br from-[#C9A84C] to-transparent transition-opacity" />
-              <div className="relative space-y-1">
-                <p className="text-sm font-semibold text-white">Ver órdenes</p>
-                <p className="text-xs text-white/70">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-[#1a1a1a]">Ver órdenes</p>
+                <p className="text-xs text-[#6b6b6b]">
                   Consultar pedidos, estados y detalle de cada orden.
                 </p>
               </div>
@@ -80,17 +78,16 @@ export default function AdminDashboardClient({
 
             <Link
               href="/admin/appointments"
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-[#C9A84C] hover:bg-white/10"
+              className="group overflow-hidden rounded-xl border border-[#ececec] bg-white px-5 py-4 transition hover:border-[#e8dcb0] hover:bg-[#fafafa]"
             >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-gradient-to-br from-[#C9A84C] to-transparent transition-opacity" />
-              <div className="relative flex items-start gap-3">
+              <div className="flex items-start gap-3">
                 <CalendarDays
-                  className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]"
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[#c9a84c]"
                   aria-hidden
                 />
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-white">Agenda</p>
-                  <p className="text-xs text-white/70">
+                  <p className="text-sm font-semibold text-[#1a1a1a]">Agenda</p>
+                  <p className="text-xs text-[#6b6b6b]">
                     Citas del día, bloqueos de horario y reservas manuales.
                   </p>
                 </div>
@@ -99,17 +96,16 @@ export default function AdminDashboardClient({
 
             <Link
               href="/admin/courses"
-              className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/5 px-5 py-4 transition hover:border-[#C9A84C] hover:bg-white/10"
+              className="group overflow-hidden rounded-xl border border-[#ececec] bg-white px-5 py-4 transition hover:border-[#e8dcb0] hover:bg-[#fafafa]"
             >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-gradient-to-br from-[#C9A84C] to-transparent transition-opacity" />
-              <div className="relative flex items-start gap-3">
+              <div className="flex items-start gap-3">
                 <GraduationCap
-                  className="mt-0.5 h-5 w-5 shrink-0 text-[#C9A84C]"
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[#c9a84c]"
                   aria-hidden
                 />
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-white">Cursos</p>
-                  <p className="text-xs text-white/70">
+                  <p className="text-sm font-semibold text-[#1a1a1a]">Cursos</p>
+                  <p className="text-xs text-[#6b6b6b]">
                     Administra cursos presenciales, cupos e inscripciones.
                   </p>
                 </div>
@@ -118,41 +114,34 @@ export default function AdminDashboardClient({
 
             <Link
               href="/admin/products"
-              className={`group relative flex flex-col overflow-hidden rounded-xl border px-5 py-4 transition ${
+              className={`group flex flex-col overflow-hidden rounded-xl border px-5 py-4 transition ${
                 hasLowStock
-                  ? "border-amber-400/50 bg-amber-950/20 hover:border-amber-400/80 hover:bg-amber-950/30"
-                  : "border-white/10 bg-white/5 hover:border-emerald-500/40 hover:bg-white/10"
+                  ? "border-amber-200 bg-amber-50 hover:border-amber-300"
+                  : "border-[#ececec] bg-white hover:border-emerald-200 hover:bg-[#fafafa]"
               }`}
             >
-              <div
-                className={`absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100 ${
-                  hasLowStock
-                    ? "bg-gradient-to-br from-yellow-900/10 to-transparent"
-                    : "bg-gradient-to-br from-emerald-900/10 to-transparent"
-                }`}
-              />
-              <div className="relative flex flex-1 flex-col gap-3">
+              <div className="flex flex-1 flex-col gap-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     {hasLowStock ? (
                       <AlertTriangle
-                        className="h-5 w-5 shrink-0 text-amber-400"
+                        className="h-5 w-5 shrink-0 text-amber-500"
                         aria-hidden
                       />
                     ) : (
                       <PackageOpen
-                        className="h-5 w-5 shrink-0 text-emerald-400/90"
+                        className="h-5 w-5 shrink-0 text-emerald-500"
                         aria-hidden
                       />
                     )}
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-[#1a1a1a]">
                       Stock bajo
                     </p>
                   </div>
                 </div>
                 <p
                   className={`text-4xl font-bold tabular-nums leading-none ${
-                    hasLowStock ? "text-amber-300" : "text-neutral-200"
+                    hasLowStock ? "text-amber-600" : "text-[#1a1a1a]"
                   }`}
                 >
                   {lowStockCount}
@@ -160,15 +149,15 @@ export default function AdminDashboardClient({
                 <p
                   className={`text-xs leading-snug ${
                     hasLowStock
-                      ? "text-amber-200/90"
-                      : "text-emerald-300/90"
+                      ? "text-amber-700"
+                      : "text-emerald-700"
                   }`}
                 >
                   {hasLowStock
                     ? "variantes por reabastecer"
                     : "Todo en orden"}
                 </p>
-                <p className="text-xs text-white/60">
+                <p className="text-xs text-[#6b6b6b]">
                   Ir al catálogo para revisar existencias.
                 </p>
               </div>

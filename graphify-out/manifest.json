@@ -1,0 +1,3130 @@
+{
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\eslint.config.mjs": {
+    "mtime": 1772551716.4659932,
+    "hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\next-env.d.ts": {
+    "mtime": 1777938567.6293263,
+    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\next.config.ts": {
+    "mtime": 1777873686.515034,
+    "hash": "d9771d93dc63f471b7ba39c4712ecba3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\postcss.config.mjs": {
+    "mtime": 1772551716.489964,
+    "hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\proxy.ts": {
+    "mtime": 1777159571.9369695,
+    "hash": "ddec3d654153eea5272655381fcc6a0d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\layout.tsx": {
+    "mtime": 1777941073.3103185,
+    "hash": "285d36d952a22c54d219134d2d2bea72"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\page.tsx": {
+    "mtime": 1777933370.4339075,
+    "hash": "eba4e4c065f5761032741e87bea80da6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\(auth)\\layout.tsx": {
+    "mtime": 1775678575.996814,
+    "hash": "1bf168531e21ccad8023830e961596af"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\(auth)\\login\\page.tsx": {
+    "mtime": 1777159211.7185075,
+    "hash": "f51f4248376e61a52f3de8bc7f6d9a2a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\AdminDashboardClient.tsx": {
+    "mtime": 1777159211.7185075,
+    "hash": "81ae14b68d44c56836971405ef042dbe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\layout.tsx": {
+    "mtime": 1777159211.737335,
+    "hash": "03e2b84f53bd845793047bbb8c7a3132"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\page.tsx": {
+    "mtime": 1775756381.9619222,
+    "hash": "811da751265d01834b5fb2b5962397ba"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\AdminAppointmentsClient.tsx": {
+    "mtime": 1777159211.7195272,
+    "hash": "70edd993e2070e07d3cb7d9a0b73f4ad"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\page.tsx": {
+    "mtime": 1777159211.7265255,
+    "hash": "91499f89225895c2f2de1330289c0cd1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\components\\BlockSlotModal.tsx": {
+    "mtime": 1777159211.7215357,
+    "hash": "e7ab6430abbc385d56dad6009622a159"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\components\\NewAppointmentModal.tsx": {
+    "mtime": 1777159211.7235346,
+    "hash": "37c41382550e437c93d73e80e23c6473"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\components\\RescheduleAppointmentModal.tsx": {
+    "mtime": 1777159211.7265255,
+    "hash": "8234bc07fabc6f2f975db187f3a52754"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\components\\AdminReceptionistBar.tsx": {
+    "mtime": 1777159211.72755,
+    "hash": "083787e8d5015391646eccc9f45db057"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\AdminCoursesClient.tsx": {
+    "mtime": 1777159211.728548,
+    "hash": "a0f88d29ae09be3392e93790b7955711"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\page.tsx": {
+    "mtime": 1777159211.737335,
+    "hash": "6b914b4d44c045b0807854aaf17862a2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\components\\CourseForm.tsx": {
+    "mtime": 1777159211.7352986,
+    "hash": "b35ba7284addb2b701d5b1b5d6d06d6f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\new\\page.tsx": {
+    "mtime": 1777159211.7363114,
+    "hash": "6f900b51865dc6ec28b5f01a43061878"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\[id]\\edit\\page.tsx": {
+    "mtime": 1777159211.7305532,
+    "hash": "b130bbda895b58becde845b7f4581061"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\[id]\\registrations\\page.tsx": {
+    "mtime": 1777159211.7345617,
+    "hash": "c4bca5a7f63a7dc349333a458841ee46"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\[id]\\registrations\\RegistrationsClient.tsx": {
+    "mtime": 1777159211.7325425,
+    "hash": "7534725f33d4fce8d80f550d9cbbf93c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\[id]\\registrations\\components\\ManualRegistrationModal.tsx": {
+    "mtime": 1777159211.7335496,
+    "hash": "7932c9b92abd6c3ef0a87a4c5d0051f3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\orders\\page.tsx": {
+    "mtime": 1775753272.003773,
+    "hash": "8f0682dc95c3ee0854ffa904b969804e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\orders\\[id]\\page.tsx": {
+    "mtime": 1775753266.7802393,
+    "hash": "3eef74e0cf26ca1e5253cc1eeba73df8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\products\\page.tsx": {
+    "mtime": 1775678576.0013268,
+    "hash": "47622d71efa3c8b9374d597b29d9b824"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\appointments\\route.ts": {
+    "mtime": 1777159211.7403305,
+    "hash": "6dacc8c69e43766ef080981f78dc8fff"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\appointments\\[id]\\cancel\\route.ts": {
+    "mtime": 1777159211.7393265,
+    "hash": "a87b4c70e90a22f6b81626da1d924ffb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\appointments\\[id]\\reschedule\\route.ts": {
+    "mtime": 1777159211.7403305,
+    "hash": "793d7f9ded801b13e5e6d85f4e54acae"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\blocked-slots\\route.ts": {
+    "mtime": 1777159211.7423327,
+    "hash": "b6fbd6040a0f017b8631153942200cb3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\blocked-slots\\[id]\\route.ts": {
+    "mtime": 1777159211.7423327,
+    "hash": "dbd71879dd0f5378afbab58d543a02ae"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\courses\\route.ts": {
+    "mtime": 1777159211.74533,
+    "hash": "c531ed8afad1e087bf0859759ad32dc9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\courses\\[id]\\route.ts": {
+    "mtime": 1777159211.7443342,
+    "hash": "cbd8c458dacd4b343da4ae19c7d77dc7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\courses\\[id]\\registrations\\route.ts": {
+    "mtime": 1777159211.7443342,
+    "hash": "c3a4cad39e62d68c013140ae28f004a0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\orders\\route.ts": {
+    "mtime": 1775753241.930226,
+    "hash": "53f4efeac4cd6c30c00292402ca0d4c5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\orders\\[id]\\route.ts": {
+    "mtime": 1775753243.461613,
+    "hash": "9d30967db1abb6efbe847a50d89f62e1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\orders\\[id]\\status\\route.ts": {
+    "mtime": 1775753245.2531228,
+    "hash": "ecfe0cf25013ab4eb2aa4f5b64ef49e9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\route.ts": {
+    "mtime": 1775678576.0037491,
+    "hash": "88be563fc9a0afc63c7a3583d9996c5d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\low-stock\\route.ts": {
+    "mtime": 1775756362.8414803,
+    "hash": "405f5b1e0027bfb2c413039ff902030f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\[id]\\route.ts": {
+    "mtime": 1775682953.7605379,
+    "hash": "3496854e5f4a1501105c996d3fa94bcf"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\users\\route.ts": {
+    "mtime": 1777159211.7473638,
+    "hash": "aa48e38bee1348a1ef568e9fdddde23a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\users\\search\\route.ts": {
+    "mtime": 1777159211.7493656,
+    "hash": "e1ca8aed1c0ca35e9e1c264e586719be"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\appointments\\route.ts": {
+    "mtime": 1777159211.7523575,
+    "hash": "fad1b0680c110ca43858163e396f9aa2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\appointments\\availability\\route.ts": {
+    "mtime": 1777159211.7513514,
+    "hash": "eec6910d3023af53a14b91858fe5688a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\appointments\\[id]\\cancel\\route.ts": {
+    "mtime": 1777159211.750357,
+    "hash": "e430be1bb24565615d826bb4f10effe2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\cart\\route.ts": {
+    "mtime": 1775678576.0048606,
+    "hash": "3263392d98aeab625cf49825e8fc14cb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\course-registrations\\route.ts": {
+    "mtime": 1777159211.7533581,
+    "hash": "e350e5e55adde2b50f6698c50aa083ac"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\course-registrations\\user\\route.ts": {
+    "mtime": 1777159211.7533581,
+    "hash": "e6b0a76665cfaac0e7e81cf0210dc050"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\courses\\route.ts": {
+    "mtime": 1777159211.756354,
+    "hash": "80442535e6105c593975956e53ddc770"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\courses\\[id]\\route.ts": {
+    "mtime": 1777159211.7553613,
+    "hash": "3cc9968fe1b4002d4b2b476b7fe86432"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\cron\\appointment-reminders\\route.ts": {
+    "mtime": 1777159211.7573607,
+    "hash": "e8dc5e6397e457c6bb5881189d72d7ae"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\orders\\route.ts": {
+    "mtime": 1777159211.7583601,
+    "hash": "ba7b0cc80a0eae7ade05a255bc88cc7f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\payments\\appointment\\route.ts": {
+    "mtime": 1777159211.7583601,
+    "hash": "6988b2563e44889110a8d7801cd73a10"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\payments\\course\\route.ts": {
+    "mtime": 1777159211.7603645,
+    "hash": "9e2dfdaec919c2171251205683cc1b45"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\payments\\mercadopago\\route.ts": {
+    "mtime": 1775678576.006868,
+    "hash": "a774fa7938520e61e5fa5ac79346b22c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\webhooks\\mercadopago\\route.ts": {
+    "mtime": 1777159211.7629237,
+    "hash": "06c55cc572b69fa116709261d7728d61"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\carrito\\page.tsx": {
+    "mtime": 1776724679.672452,
+    "hash": "8609229b235024764a4c8c7957d07e22"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\checkout\\CheckoutClient.tsx": {
+    "mtime": 1777159211.7659254,
+    "hash": "24ee3523d821fa5573ce2eee3a5bd129"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\checkout\\page.tsx": {
+    "mtime": 1775678576.009867,
+    "hash": "dd180d6a325b937587e3627d952eb6ef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cita\\[id]\\CancelAppointmentButton.tsx": {
+    "mtime": 1777159211.7669256,
+    "hash": "7ac560c613b1bc10171227bd61c470fa"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cita\\[id]\\page.tsx": {
+    "mtime": 1777159211.768936,
+    "hash": "d0f9135ef58dd96e8ea5f61735592293"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cita\\[id]\\error\\page.tsx": {
+    "mtime": 1777159211.767928,
+    "hash": "b2cdb4d98a1b3df69afe84c6378ad350"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cita\\[id]\\error\\RetryAppointmentPaymentButton.tsx": {
+    "mtime": 1777159211.767928,
+    "hash": "54f2f52cbf2d1dff02f42cb6836d81c9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\citas\\CitasClient.tsx": {
+    "mtime": 1777159211.7699285,
+    "hash": "e7168b7f1cdf42f15ca2977d0bfed215"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\citas\\page.tsx": {
+    "mtime": 1777159211.7699285,
+    "hash": "27be88801455ebb68eadf4c582b46859"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\AcademyBanner.tsx": {
+    "mtime": 1776724679.6744533,
+    "hash": "73f363c2b62547ce2cf925928cc8f2fe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\Benefits.tsx": {
+    "mtime": 1777666169.3274932,
+    "hash": "48736a4d69a717eb8b3a2b7dd55781c1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\BrandDescription.tsx": {
+    "mtime": 1777929533.638276,
+    "hash": "b6717959e6de78eea699d4a8b74a9732"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\BrandsSlider.tsx": {
+    "mtime": 1776724679.6764517,
+    "hash": "39f4ebe35b273f1b349b8f8f30cadbf6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\FeaturedColors.tsx": {
+    "mtime": 1775678576.0128655,
+    "hash": "a3b4439740d005f90d3a7941e1704299"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\FeaturedKits.tsx": {
+    "mtime": 1776724679.6764517,
+    "hash": "1467b97428ea6ac719124cf3e156ede2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\Footer.tsx": {
+    "mtime": 1777928479.9658418,
+    "hash": "5b4350bec136bfa0e3e6467e2aacdeff"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\InspirationGallery.tsx": {
+    "mtime": 1776724679.6774518,
+    "hash": "0c19a07e245ea604dcb10a55b4210575"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\PillarCards.tsx": {
+    "mtime": 1777926880.7179215,
+    "hash": "f5e96afe205d61d73270628b6ada7777"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\pillarTextColumn.ts": {
+    "mtime": 1777926214.2091892,
+    "hash": "1ed12dcdb7f05d2595fb9b3f2fbf51aa"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\PromoCards.tsx": {
+    "mtime": 1776724679.6784518,
+    "hash": "ba4aaabc936fdd0140ade55aef4c7b98"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\ShopByNailPolishColors.tsx": {
+    "mtime": 1777933866.7591903,
+    "hash": "c0fb1e63fdf7746aa0fd3a101f741324"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\Testimonials.tsx": {
+    "mtime": 1776724679.6794555,
+    "hash": "1557f36f8fb40290662ccad045f15a69"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\cart\\CartContext.tsx": {
+    "mtime": 1775678576.0163755,
+    "hash": "82014b6af248487f57f46adf37c2f621"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\hero\\HeroSlider.tsx": {
+    "mtime": 1777926490.9853423,
+    "hash": "99584f545c1f66cdb0e6d44ed9179505"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\menuData.ts": {
+    "mtime": 1776724679.684455,
+    "hash": "c43abfc4c4f08d22680ee01535b6de39"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\Navbar.tsx": {
+    "mtime": 1777951265.4353037,
+    "hash": "5eaeecfecceaef158cf72f4b8886d347"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\CartMenu.tsx": {
+    "mtime": 1775678576.018376,
+    "hash": "1af5a0f61db0c8a1d82a8fe69f08e290"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\DropdownContainer.tsx": {
+    "mtime": 1776724679.682457,
+    "hash": "8f083e7ceaf2e56262c4e47a5c4149b8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\MegaMenu.tsx": {
+    "mtime": 1776724679.6834545,
+    "hash": "2d4eabc9ab5d7027ed8a573d4bba00fd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\SearchMenu.tsx": {
+    "mtime": 1775678576.0213761,
+    "hash": "1f3b4d8a1eb5867fe3f8f869e96a30cd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\curso\\[courseId]\\inscripcion\\[id]\\page.tsx": {
+    "mtime": 1777159211.7744324,
+    "hash": "040e39f024751126041167f6c15c3c2a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\curso\\[courseId]\\inscripcion\\[id]\\error\\page.tsx": {
+    "mtime": 1777159211.7734332,
+    "hash": "08d3eb2eaa05a4f457e7dbab5fec9c70"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\curso\\[courseId]\\inscripcion\\[id]\\error\\RetryCoursePaymentButton.tsx": {
+    "mtime": 1777159211.7734332,
+    "hash": "6820f04bb41cee3071d69c25abac5744"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cursos\\CourseGrid.tsx": {
+    "mtime": 1777941169.840521,
+    "hash": "868c1f12eadf04a5ce43f0ebdd15b580"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cursos\\page.tsx": {
+    "mtime": 1777941081.142362,
+    "hash": "b49fe2ab67a3e4e45af9885e49c07b41"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cursos\\[id]\\CourseDetail.tsx": {
+    "mtime": 1777950970.434898,
+    "hash": "b4c31752c440ba2eda47eda5a9a10ff2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cursos\\[id]\\page.tsx": {
+    "mtime": 1777941300.1044288,
+    "hash": "faf0ba99db1dbc9fbfdd6c59a0c79e43"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cursos\\[id]\\RegisterCourseButton.tsx": {
+    "mtime": 1777159211.7754314,
+    "hash": "258be5386f0de6ab99cfbf6eefa7508e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\inspiracion\\page.tsx": {
+    "mtime": 1775678576.0233784,
+    "hash": "cdc6bb6b44a08a9cb063f77fc2a5bdb0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\orden\\[id]\\page.tsx": {
+    "mtime": 1776724679.686455,
+    "hash": "32e0665bc2bd62ff32b8c116892a1f20"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\orden\\[id]\\error\\page.tsx": {
+    "mtime": 1776724679.685455,
+    "hash": "559d07727f96f1a50365334869303fba"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\orden\\[id]\\error\\RetryPaymentButton.tsx": {
+    "mtime": 1775678576.0253768,
+    "hash": "16ae7ded0aaeefc1db20b4f227a41dc6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\perfil\\page.tsx": {
+    "mtime": 1777951484.127078,
+    "hash": "eda0c9d19d928466888b8830f416d89d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\perfil\\PerfilCitasClient.tsx": {
+    "mtime": 1777159211.7784305,
+    "hash": "227dd57074ad38dabdc04fc0ec17c094"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\perfil\\PerfilSignOutButton.tsx": {
+    "mtime": 1777951482.596197,
+    "hash": "c603671ade17410ae8c2a9952e897f7c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\page.tsx": {
+    "mtime": 1775709404.965852,
+    "hash": "577c55dab5a9be5ad7ce2468e25c1f64"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\FilterSidebar.tsx": {
+    "mtime": 1775678576.0279367,
+    "hash": "3561a590a712041823bcc3a8ea011a11"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductCard.tsx": {
+    "mtime": 1775678576.0289414,
+    "hash": "678a95616d2e9c3f1e4b39e7a53fb633"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductGrid.tsx": {
+    "mtime": 1775678576.0289414,
+    "hash": "d7610245025f9a6f3c99759d029b08b4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\components\\courses\\RegisterModal.tsx": {
+    "mtime": 1777941211.5119126,
+    "hash": "4c3c916cb457f9740817f3e7442ade4f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\constants\\cfdi.ts": {
+    "mtime": 1777159211.779942,
+    "hash": "19af0e9fdeb0af74eb2ac3a05b364c0c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\constants\\stock.ts": {
+    "mtime": 1775756358.154025,
+    "hash": "032b13f1a3c62587f44074dad6bf8dbe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-sprint5-supabase.sql": {
+    "mtime": 1777159211.7861292,
+    "hash": "2115535729ba7d330281f3fdc37a36b9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\appointmentCancelPolicy.ts": {
+    "mtime": 1777159211.7897618,
+    "hash": "ee14e6eeb3a8923d6d0d5410cf72f9d9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\cart.ts": {
+    "mtime": 1775678576.0654895,
+    "hash": "53ed7b5101936a86d8a5206209ca3196"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\utils.ts": {
+    "mtime": 1777159211.7968502,
+    "hash": "252ce07a8ca4cba704f12949394b6435"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\email\\resend.ts": {
+    "mtime": 1775680332.1339977,
+    "hash": "69b84559ab37f97da3dba83cb74639b7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\email\\templates\\appointment-confirmation.ts": {
+    "mtime": 1777159211.790272,
+    "hash": "a6e175abd3d2a662057bd4b6576e9a31"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\email\\templates\\appointment-reminder.ts": {
+    "mtime": 1777159211.7912838,
+    "hash": "6c82c77ce21c3aeadeab3750c4ade7e4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\email\\templates\\appointment-rescheduled.ts": {
+    "mtime": 1777159211.7912838,
+    "hash": "e1da1ca71280e1d9cfe5dac230217da2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\email\\templates\\course-registration.ts": {
+    "mtime": 1777159211.7922847,
+    "hash": "41d57dfef2a0483a2ad99770d1fd269f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\email\\templates\\order-confirmation.ts": {
+    "mtime": 1775680296.9426956,
+    "hash": "2324241de32531f61038f0b28edcc347"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\email\\templates\\welcome-client.ts": {
+    "mtime": 1777159211.7922847,
+    "hash": "3973bb8dc6f88e4ee6607655e640c68b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\email\\templates\\_shared.ts": {
+    "mtime": 1777159755.3040135,
+    "hash": "debe7fd7b4fe927b801fbebb7f4ce450"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\admin.ts": {
+    "mtime": 1777159211.793286,
+    "hash": "68faf6e2009662acde45222cdfa4fdfe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\adminOrders.ts": {
+    "mtime": 1775753272.6049712,
+    "hash": "fd5b47952c95507bf09ca9dd7ea783bb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\adminProducts.ts": {
+    "mtime": 1775756381.779954,
+    "hash": "6377d3a4c4075f494dc7c4e4cf99f0d1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\adminUsers.ts": {
+    "mtime": 1777159211.793286,
+    "hash": "ce30114878b419298972c235c63b5cd9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\appointments.ts": {
+    "mtime": 1777159211.7944665,
+    "hash": "5faf5254e234d1cf7b46de8f8a34729a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\cart.ts": {
+    "mtime": 1775678576.06649,
+    "hash": "748ce3f35dea811f5012d399fc233fdc"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\client.ts": {
+    "mtime": 1775678576.0677326,
+    "hash": "8d63e62cd890f47583d341c2e9ac1f06"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\courses.ts": {
+    "mtime": 1777159211.7954783,
+    "hash": "77d439c20a040f02243750316abb795e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\orders.ts": {
+    "mtime": 1777159211.7954783,
+    "hash": "9c7abcb542b3a3433609def153047f39"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\payments.ts": {
+    "mtime": 1775753217.8798618,
+    "hash": "873872795581d8f022ec39995c507300"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\products.ts": {
+    "mtime": 1775678576.0697374,
+    "hash": "51a5d30b32452fc552789585c1b67e22"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\server.ts": {
+    "mtime": 1775678576.0697374,
+    "hash": "55c672629f325d230d8f2286c0e52e65"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\users.ts": {
+    "mtime": 1775678576.0707376,
+    "hash": "ee2fb6302bb754602dfba5d7af38a6be"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\adminOrders.ts": {
+    "mtime": 1775753239.999431,
+    "hash": "ab83e74e45979a6bfc7a97d844c5785a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\adminUsers.ts": {
+    "mtime": 1777159211.7968502,
+    "hash": "aa47140797f9f5e6dda2d83faf738bad"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\appointments.ts": {
+    "mtime": 1777159211.797996,
+    "hash": "ef7690e0b11e8763effdc280e10efceb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\cart.ts": {
+    "mtime": 1775678576.0707376,
+    "hash": "b2f1ecd7b0082411dd4aef7169d2f8c4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\courses.ts": {
+    "mtime": 1777159211.799078,
+    "hash": "f24660e676c7a9f5bef3962e7ce85c58"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\orders.ts": {
+    "mtime": 1777159211.799078,
+    "hash": "296278532506d64be7944a72c7995393"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\payments.ts": {
+    "mtime": 1775678576.0717368,
+    "hash": "fa34c65c40f42ffb4f6d15e46ddfa183"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\products.ts": {
+    "mtime": 1775678576.0717368,
+    "hash": "973098a71a7b265bff56f9df78498995"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\vitest.config.ts": {
+    "mtime": 1777668213.6288126,
+    "hash": "08bbd15adc7455ba4fb880bc3d267994"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\sidecar\\index.ts": {
+    "mtime": 1777668213.5764897,
+    "hash": "41b5e9c936c34d49ca831b232ff977cb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\sidecar\\server.ts": {
+    "mtime": 1777668213.577498,
+    "hash": "e8449752e2c5a237873de1a3da875c31"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\acp.ts": {
+    "mtime": 1777668213.5787704,
+    "hash": "7bc090ad81511e43833c79be1e05da4d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\agents.ts": {
+    "mtime": 1777668213.5798452,
+    "hash": "ca552b6b63af1455ed51df1002368e5a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\app-version.ts": {
+    "mtime": 1777668213.5807831,
+    "hash": "f1408bb0b6c2b13f897308a5eaa81550"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\artifact-manifest.ts": {
+    "mtime": 1777668213.5818474,
+    "hash": "bfc3b54085c5d631c53db8e59d2992b4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\claude-design-import.ts": {
+    "mtime": 1777668213.5818474,
+    "hash": "20234e4e56b8c27c067012894a8b8499"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\claude-stream.ts": {
+    "mtime": 1777668213.5838473,
+    "hash": "e6172e1407ab8a41424a918311a9be13"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\cli.ts": {
+    "mtime": 1777668213.5847912,
+    "hash": "5c52bb6259e18dbc3809c731ec9544b9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\copilot-stream.ts": {
+    "mtime": 1777668213.5847912,
+    "hash": "9c82e192d1ba792b175bf807d6c3ac7c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\db.ts": {
+    "mtime": 1777668213.5857804,
+    "hash": "b0608d260558a0f7a581c442640671cc"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\deploy.ts": {
+    "mtime": 1777668213.5873766,
+    "hash": "090aeab3568bc1b1ac361031aab4afe1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\design-system-preview.ts": {
+    "mtime": 1777668213.588287,
+    "hash": "f98d98a91c60deff111ec7e791a428a6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\design-system-showcase.ts": {
+    "mtime": 1777668213.588287,
+    "hash": "83fc25195615d4be4370e6a5fd3081ff"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\design-systems.ts": {
+    "mtime": 1777668213.5894032,
+    "hash": "acb94fb593fa922a983e9b054326a20a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\document-preview.ts": {
+    "mtime": 1777668213.5908318,
+    "hash": "06d0e8de6704b2817ef54c4a11686393"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\frontmatter.ts": {
+    "mtime": 1777668213.5908318,
+    "hash": "93011088fa52f6597beb49427d6273ed"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\json-event-stream.ts": {
+    "mtime": 1777668213.591826,
+    "hash": "ded59ed811db69484196cdd552fe1efa"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\lint-artifact.ts": {
+    "mtime": 1777668213.5928276,
+    "hash": "c8e9bbd6a0a0e7e54e7e78ff3b770d35"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\media-config.ts": {
+    "mtime": 1777668213.5928276,
+    "hash": "d6cf38039425ee46d37387cd00d9d444"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\media-models.ts": {
+    "mtime": 1777668213.5938268,
+    "hash": "c7da604231d7099b5f835ebc77c36569"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\media.ts": {
+    "mtime": 1777668213.5958562,
+    "hash": "329bbce4bc78c31340e0e5aedd28853c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\pi-rpc.ts": {
+    "mtime": 1777668213.5968661,
+    "hash": "9f213e434083f9f171e29c096bc69f8a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\projects.ts": {
+    "mtime": 1777668213.597845,
+    "hash": "78286bb516a5510ea1918f9fdefbf20c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\prompt-templates.ts": {
+    "mtime": 1777668213.5988505,
+    "hash": "6d800fcdf13b529e4b72069c2b07904e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\runs.ts": {
+    "mtime": 1777668213.6058283,
+    "hash": "a2c9c436f16e95b03ad86039bfba39ed"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\server.ts": {
+    "mtime": 1777668213.608389,
+    "hash": "4a9524f980d66a3a206392423e0c17fe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\skills.ts": {
+    "mtime": 1777668213.609671,
+    "hash": "4b1f309fb37817bd77504b8405220309"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\prompts\\deck-framework.ts": {
+    "mtime": 1777668213.60085,
+    "hash": "10d37333c0a943aadc158d73640d6d07"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\prompts\\directions.ts": {
+    "mtime": 1777668213.6018286,
+    "hash": "1223435f4685a1e37a420c1a67c8a751"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\prompts\\discovery.ts": {
+    "mtime": 1777668213.6028314,
+    "hash": "c333ad82333075c1576adb61d7f0ecb0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\prompts\\media-contract.ts": {
+    "mtime": 1777668213.6038325,
+    "hash": "c646a1db04cb5be11250ad3e54d83762"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\prompts\\official-system.ts": {
+    "mtime": 1777668213.6048503,
+    "hash": "651abfa80259359bbceab21e436dfca1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\src\\prompts\\system.ts": {
+    "mtime": 1777668213.6048503,
+    "hash": "937bef4c1f8919e25e76f993a2530855"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\agents.test.ts": {
+    "mtime": 1777668213.6117048,
+    "hash": "232b17680a7a1d213d85f25ae8d4241f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\app-version.test.ts": {
+    "mtime": 1777668213.6126933,
+    "hash": "76b0b2b3e5e0ddedb44daecd22d1c4a4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\artifact-manifest.test.ts": {
+    "mtime": 1777668213.61469,
+    "hash": "634f40eb21eb00ff4a8f444fe7e466c9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\deploy.test.ts": {
+    "mtime": 1777668213.6167047,
+    "hash": "bd4c875698d4e7b170543a8bcc73ccd1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\json-event-stream.test.ts": {
+    "mtime": 1777668213.6176848,
+    "hash": "b54534157dd25b75b9fe0f594da091ef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\pi-rpc.test.ts": {
+    "mtime": 1777668213.6187065,
+    "hash": "f3460193a8346d13538f693af1b464d1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\project-status.test.ts": {
+    "mtime": 1777668213.6196826,
+    "hash": "17bbc1a4f2c2364e69ad1e055142de0c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\sanitize-name.test.ts": {
+    "mtime": 1777668213.6196826,
+    "hash": "15e79c4227135f9c1a254e815aad3db3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\server-cors.test.ts": {
+    "mtime": 1777668213.6207013,
+    "hash": "c30002042cfdb18cca180ed3365faf16"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\server-paths.test.ts": {
+    "mtime": 1777668213.621693,
+    "hash": "aa90f4dec0cd7fc9dd33448dc2a09968"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\sse-response.test.ts": {
+    "mtime": 1777668213.6227005,
+    "hash": "3365b0fe2e4d956b175078e4483bda4d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\system-prompt-template.test.ts": {
+    "mtime": 1777668213.6227005,
+    "hash": "b7ce09b7e913c4524f758f9858eba77b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\daemon\\tests\\version-route.test.ts": {
+    "mtime": 1777668213.6242118,
+    "hash": "b92577f21d02ce96ada59f4bd99294ba"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\desktop\\src\\main\\index.ts": {
+    "mtime": 1777668213.6331396,
+    "hash": "5da1a673fccd0dfab53e68bd3bfc2333"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\desktop\\src\\main\\runtime.ts": {
+    "mtime": 1777668213.6331396,
+    "hash": "408e62b4d3cad9429b4370e0eabc0dc9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\esbuild.config.mjs": {
+    "mtime": 1777668213.6366816,
+    "hash": "c8d1218102b68f8dff247aed9efb41b6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\src\\config.ts": {
+    "mtime": 1777668213.639843,
+    "hash": "e64a3a70682b22b96fdbf26039f9a370"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\src\\identity.ts": {
+    "mtime": 1777668213.639843,
+    "hash": "ebc07818d731332f4e1e07850432f442"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\src\\index.ts": {
+    "mtime": 1777668213.6420836,
+    "hash": "57b62dae20954846c6f0288dfbe7e730"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\src\\launch.ts": {
+    "mtime": 1777668213.643077,
+    "hash": "7677f598a36d1d59dbf3466a327db897"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\src\\logging.ts": {
+    "mtime": 1777668213.644091,
+    "hash": "d10c6a2ed7cb7eebbd5cc35a379ad9e9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\src\\paths.ts": {
+    "mtime": 1777668213.6451433,
+    "hash": "5a7c2e009a544729c3d1e320d0521605"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\src\\protocol.ts": {
+    "mtime": 1777668213.6463134,
+    "hash": "991498e7a978dc94f9dd2935738866a3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\src\\sidecars.ts": {
+    "mtime": 1777668213.648526,
+    "hash": "5c8555e3f07b2c51578e03b16b6d2791"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\next-env.d.ts": {
+    "mtime": 1777854954.0094907,
+    "hash": "b698cdd97fe8e3bd16dcd74899ad7cef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\next.config.ts": {
+    "mtime": 1777668213.6566648,
+    "hash": "aaa32ed033100e684247b262030f8dd8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\vitest.config.ts": {
+    "mtime": 1777668213.7728593,
+    "hash": "f05f49b03dce827b4ad5f1df75a723bb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\app\\layout.tsx": {
+    "mtime": 1777668213.6546018,
+    "hash": "992500cc4b507da90254a7e046f7e0d3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\app\\[[...slug]]\\client-app.tsx": {
+    "mtime": 1777668213.6525524,
+    "hash": "20192ee247a867cb07c1f2f7d775bcf9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\app\\[[...slug]]\\page.tsx": {
+    "mtime": 1777668213.6535933,
+    "hash": "bae6c7b77c058400779ccf5c66d0551e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\sidecar\\index.ts": {
+    "mtime": 1777668213.664259,
+    "hash": "f5f3d0f3639aeba8442cfa077fb2fd06"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\sidecar\\server.ts": {
+    "mtime": 1777668213.6652713,
+    "hash": "7089d3fc9e274ba9f83e5709e080950c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\App.tsx": {
+    "mtime": 1777668213.6678016,
+    "hash": "8640be5fd1de54f2ba53b9106b3b43d6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\router.ts": {
+    "mtime": 1777668213.758124,
+    "hash": "325d32f7e6c40d9b8277b3eb94477b96"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\sidecar-proxy.test.ts": {
+    "mtime": 1777668213.7656784,
+    "hash": "afaa9c2d2cb8e5781358286b7a237f0d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\types.ts": {
+    "mtime": 1777668213.7688584,
+    "hash": "868155e1999325312dad25fc624353e5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\manifest.test.ts": {
+    "mtime": 1777668213.6688287,
+    "hash": "e29f93d20ee16a10067e06933252e98d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\manifest.ts": {
+    "mtime": 1777668213.6698196,
+    "hash": "38b6e48fcffc5d49e8a219c4116052f1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\markdown.test.ts": {
+    "mtime": 1777668213.6708107,
+    "hash": "fe5180c41b5beb40ec76c9817e0e3544"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\markdown.ts": {
+    "mtime": 1777668213.6708107,
+    "hash": "f9a9e4dec821b9c46b079d158164aa28"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\parser.ts": {
+    "mtime": 1777668213.6731188,
+    "hash": "afd22bb03adefc7af3a20aaecf89009d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\question-form.ts": {
+    "mtime": 1777668213.6746356,
+    "hash": "36a426d9287d2cea345ef722735514f0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\renderer-registry.test.ts": {
+    "mtime": 1777668213.6766493,
+    "hash": "dc1976c5a9b2eadd2a1ff2df6e9c77cb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\renderer-registry.ts": {
+    "mtime": 1777668213.6786716,
+    "hash": "3a97cbab6d21748ffaa988847aaada7a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\artifacts\\types.ts": {
+    "mtime": 1777668213.680651,
+    "hash": "a8ed14ea43f6275a98bfa96f1b06cd6b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\AgentIcon.tsx": {
+    "mtime": 1777668213.68415,
+    "hash": "bdf1f807e6705efc5147ff4d62524554"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\AgentPicker.tsx": {
+    "mtime": 1777668213.68415,
+    "hash": "3a21511789693b634b3253c5687028f9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\AppChromeHeader.tsx": {
+    "mtime": 1777668213.692762,
+    "hash": "b349c67a230b06807e388745b1fc09d9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\AssistantMessage.tsx": {
+    "mtime": 1777668213.6937633,
+    "hash": "1f16bf37b9ced3226c97882858898855"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\AvatarMenu.tsx": {
+    "mtime": 1777668213.694764,
+    "hash": "a37ad1aed2a97b83a76eb72848e553e6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\ChatComposer.tsx": {
+    "mtime": 1777668213.6967623,
+    "hash": "4f0e3cb41c656e9658cc17754b34c1f7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\ChatPane.tsx": {
+    "mtime": 1777668213.6967623,
+    "hash": "d5af74b68f75e89edda3e940e6e65879"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\ConversationsMenu.tsx": {
+    "mtime": 1777668213.6979904,
+    "hash": "3882ad661084559513d2cda496ccdc13"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\DesignFilesPanel.tsx": {
+    "mtime": 1777668213.699,
+    "hash": "d30ee402ab3d639889c6f999499a7785"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\DesignsTab.test.ts": {
+    "mtime": 1777668213.70199,
+    "hash": "95148e8c5aa7c064c87a5570c282e08a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\DesignsTab.tsx": {
+    "mtime": 1777668213.7030046,
+    "hash": "80a400300a929e5c278ebf086a7fcd42"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\DesignSystemPreviewModal.tsx": {
+    "mtime": 1777668213.699,
+    "hash": "e5f38bb353462d30bcc33b4292a519ca"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\DesignSystemsTab.tsx": {
+    "mtime": 1777668213.7004788,
+    "hash": "5a59c5136b92b14c71f3ef4f1b4b140e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\EntryView.tsx": {
+    "mtime": 1777668213.7042623,
+    "hash": "eb2cd2399ef2a909ab4f57c3178fa27c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\ExamplesTab.tsx": {
+    "mtime": 1777668213.7052777,
+    "hash": "5eb879db5818b0da3c70c7f89db8b99f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\FileViewer.test.tsx": {
+    "mtime": 1777668213.7052777,
+    "hash": "baf0f72d785d8c9f6f4358d4d217d1e0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\FileViewer.tsx": {
+    "mtime": 1777668213.7062733,
+    "hash": "18c7b595ccf2c64e152dbe15b8321a09"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\FileWorkspace.test.tsx": {
+    "mtime": 1777668213.7077663,
+    "hash": "e6889b3b14fdd7bc76d46e615a32ea48"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\FileWorkspace.tsx": {
+    "mtime": 1777668213.708786,
+    "hash": "0a579856896edb648e30946b353e3c16"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\Icon.tsx": {
+    "mtime": 1777668213.708786,
+    "hash": "311f7fbc0d34ff8cfab794a89c1e2e0c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\LanguageMenu.tsx": {
+    "mtime": 1777668213.711089,
+    "hash": "f1e87c8fe3381c5ec44fabbd31fec0ef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\Loading.tsx": {
+    "mtime": 1777668213.711089,
+    "hash": "b07b4c46d9d0cf6e99499d09738ccb48"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\modelOptions.tsx": {
+    "mtime": 1777668213.7223036,
+    "hash": "cdf6e2b597beeae6e08f96ba0e8ae034"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\NewProjectPanel.tsx": {
+    "mtime": 1777668213.7120743,
+    "hash": "05262443a10e43742b2b45d45e99b61c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\PasteTextDialog.tsx": {
+    "mtime": 1777668213.7135568,
+    "hash": "9a4aae133334ee5b02fd607d30f23d0e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\PreviewModal.tsx": {
+    "mtime": 1777668213.7135568,
+    "hash": "2e0d9a34baa5a7756cfe3e69fa5b8748"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\ProjectView.tsx": {
+    "mtime": 1777668213.7150648,
+    "hash": "db94dd9c297876162337d344ba402caa"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\PromptTemplatePreviewModal.tsx": {
+    "mtime": 1777668213.716489,
+    "hash": "e6737d6f20f35b6d2402a67563374a9f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\PromptTemplatesTab.tsx": {
+    "mtime": 1777668213.7175996,
+    "hash": "89bd176abd8aefb45844c21803f1657e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\QuestionForm.tsx": {
+    "mtime": 1777668213.7188218,
+    "hash": "b10f7b90090a21ab52dc2cfc79a224e4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\SettingsDialog.tsx": {
+    "mtime": 1777668213.72029,
+    "hash": "e2351edf0985426d2d08ee7f56325076"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\SketchEditor.tsx": {
+    "mtime": 1777668213.7213027,
+    "hash": "3f9c4a8ad5d3bbd8ad756d046f2a5bf6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\components\\ToolCard.tsx": {
+    "mtime": 1777668213.7213027,
+    "hash": "9745570c8a7661882ee25366fe67a3ae"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\content.test.ts": {
+    "mtime": 1777668213.7233086,
+    "hash": "49e950ce3499b26ab70934152124719c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\content.ts": {
+    "mtime": 1777668213.7248135,
+    "hash": "0dc05073a344c23cbd5384e6fe8a18aa"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\design-files-agent-copy.test.ts": {
+    "mtime": 1777668213.7248135,
+    "hash": "18c331580e348b9e2c1ad8c72d7cbc76"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\design-files-dropzone-copy.test.ts": {
+    "mtime": 1777668213.7268305,
+    "hash": "ddf28c96990de7564d999200e3530221"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\index.tsx": {
+    "mtime": 1777668213.7278287,
+    "hash": "cb81a8e743839e83f2cce7643b34a087"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales.test.ts": {
+    "mtime": 1777668213.7278287,
+    "hash": "a1d09569082deb4cb54b60f4163e4685"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\types.ts": {
+    "mtime": 1777668213.7420156,
+    "hash": "dd3e1c9d65eda6f71ac3d4af34d3e94f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\de.ts": {
+    "mtime": 1777668213.7298665,
+    "hash": "d1084a681fc394f851a555bfb4b29d31"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\en.ts": {
+    "mtime": 1777668213.7309942,
+    "hash": "964ab64fe89aeb57ec150bff19066f65"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\es-ES.ts": {
+    "mtime": 1777668213.7320068,
+    "hash": "68f91873ca15f9c3e88541a54ed35486"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\fa.ts": {
+    "mtime": 1777668213.7340076,
+    "hash": "f7053e144096aa46a9178557361286a0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\ja.ts": {
+    "mtime": 1777668213.735008,
+    "hash": "8bf54bad49548733950d2ad5675b4078"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\pt-BR.ts": {
+    "mtime": 1777668213.7370124,
+    "hash": "d91eaedc8bea7257e5f2bafbf1dec2f1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\ru.ts": {
+    "mtime": 1777668213.7380123,
+    "hash": "51274b15f13ff9919742e8dd7a6524af"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\zh-CN.ts": {
+    "mtime": 1777668213.7400088,
+    "hash": "e6daa767949245e5a6cc412cbee8c861"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\i18n\\locales\\zh-TW.ts": {
+    "mtime": 1777668213.741024,
+    "hash": "10d9bed6f886957720ee43ebb02cd0eb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\media\\models.ts": {
+    "mtime": 1777668213.7465422,
+    "hash": "a1008011748d70b3ddf9abae83389e2c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\anthropic-compatible.ts": {
+    "mtime": 1777668213.7490342,
+    "hash": "24c9b45b6419d85e8d97f350e8ca6a07"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\anthropic.ts": {
+    "mtime": 1777668213.750046,
+    "hash": "2234b356d3fa638418504e96d81bdc7c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\daemon.ts": {
+    "mtime": 1777668213.7521117,
+    "hash": "5fb7c87ec3e04125e9f87129cd1aacb4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\openai-compatible.test.ts": {
+    "mtime": 1777668213.753126,
+    "hash": "93363fbd0fa5fd065de8c4b700207df9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\openai-compatible.ts": {
+    "mtime": 1777668213.7541275,
+    "hash": "2176d9c5b32b1a6f974ec27b0f7c5717"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\registry.test.ts": {
+    "mtime": 1777668213.7551258,
+    "hash": "8c04f8046d8cc08cd01f0b1acf203d61"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\registry.ts": {
+    "mtime": 1777668213.7561293,
+    "hash": "cf24f7b30720e04d6ea07f2e69551054"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\sse.test.ts": {
+    "mtime": 1777668213.7571347,
+    "hash": "0b50e3d2c8ef7b9cae1998c1f058ad0c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\providers\\sse.ts": {
+    "mtime": 1777668213.758124,
+    "hash": "ecaa5ecbb3661bd2fe907ef6ffb24caf"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\runtime\\exports.ts": {
+    "mtime": 1777668213.7606297,
+    "hash": "19147408902696c6cc7aa918381d42fe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\runtime\\markdown.tsx": {
+    "mtime": 1777668213.7616248,
+    "hash": "14f90d9fd03a94e4874f26a6ebe50d0f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\runtime\\srcdoc.ts": {
+    "mtime": 1777668213.762616,
+    "hash": "cd8eee553e2e996496b03345469f8408"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\runtime\\todos.ts": {
+    "mtime": 1777668213.7636602,
+    "hash": "5a0e7ca14f2d3b085a5d3140c59bf6e2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\runtime\\zip.ts": {
+    "mtime": 1777668213.7646756,
+    "hash": "32bc4bff0106b125685d4e4df5355e61"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\state\\config.ts": {
+    "mtime": 1777668213.7678483,
+    "hash": "fd29a3467bebecea7b5aa7b9ded9250c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\state\\projects.ts": {
+    "mtime": 1777668213.7688584,
+    "hash": "6db44f6574bb2d10b1f44d1c74030f41"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\src\\utils\\agentLabels.ts": {
+    "mtime": 1777668213.7708592,
+    "hash": "bb34e9b8fea62e7703916d62f191dbd2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\playwright.config.ts": {
+    "mtime": 1777668214.2898946,
+    "hash": "6b1f8ad050228d78a8079858f752bc34"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\vitest.config.ts": {
+    "mtime": 1777668214.3039055,
+    "hash": "3146f2a0833172538275abec635f1e19"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\cases\\index.ts": {
+    "mtime": 1777668214.283876,
+    "hash": "081fc615471ef7cae1de60a1bbe14672"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\cases\\report-metadata.ts": {
+    "mtime": 1777668214.2873826,
+    "hash": "d4f85d6d3b64701fa55a5abe32188f15"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\cases\\types.ts": {
+    "mtime": 1777668214.2873826,
+    "hash": "2d3f878105b0ae662df4be8023dba2e0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\reporters\\markdown-reporter.ts": {
+    "mtime": 1777668214.2909005,
+    "hash": "27f872460b34ef1fbb42637b449509f7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\scripts\\reset-artifacts.ts": {
+    "mtime": 1777668214.295919,
+    "hash": "a9f752fedd2733f4c650d1abf8e9e212"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\scripts\\runtime-adapter.e2e.live.test.ts": {
+    "mtime": 1777668214.296902,
+    "hash": "2d1c1398320ccc036db38c40a73f867a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\specs\\app.spec.ts": {
+    "mtime": 1777668214.297901,
+    "hash": "3ccd81f439ee510d1c10c1f8eb976a57"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\tests\\assistant-message.test.tsx": {
+    "mtime": 1777668214.298901,
+    "hash": "daf579b3fd733ed73fdaef2cc645fc31"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\tests\\preview-modal-fullscreen.test.tsx": {
+    "mtime": 1777668214.299902,
+    "hash": "030166c9bdb0430cb058d79ed8dc80bc"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\tests\\structured-streams.test.ts": {
+    "mtime": 1777668214.3009017,
+    "hash": "c7c6de5fb82c1efaa8d2dd515c84fd02"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\tests\\todos.test.ts": {
+    "mtime": 1777668214.3009017,
+    "hash": "70dd055aec2003b0d8c339b056948486"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\common.ts": {
+    "mtime": 1777668214.316805,
+    "hash": "d282582666d43c0508f9b96997350ee8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\errors.ts": {
+    "mtime": 1777668214.316805,
+    "hash": "5e1a0806f35847bef02dffeb1436ebaf"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\examples.ts": {
+    "mtime": 1777668214.3177955,
+    "hash": "ad010c0dfabdda83bbee3412d1e1d9b5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\index.ts": {
+    "mtime": 1777668214.3188086,
+    "hash": "79aab20c4ff2c353532c94613897813c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\tasks.ts": {
+    "mtime": 1777668214.3283188,
+    "hash": "f42b2446cf39cd82a122321470dd7329"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\api\\artifacts.ts": {
+    "mtime": 1777668214.309926,
+    "hash": "1d600f3d108047d5b31ddbae3309400d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\api\\chat.ts": {
+    "mtime": 1777668214.3113048,
+    "hash": "6020acbe9a734f2a0ffda132655ab5b5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\api\\files.ts": {
+    "mtime": 1777668214.3123121,
+    "hash": "4b5652756e6ed4db842941338d60f989"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\api\\projects.ts": {
+    "mtime": 1777668214.3123121,
+    "hash": "9c46f83200636a3eb6187a3d7ada1cf7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\api\\proxy.ts": {
+    "mtime": 1777668214.3133118,
+    "hash": "5fd06919c8fd2c4c825364d7ecd2e8e8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\api\\registry.ts": {
+    "mtime": 1777668214.3143153,
+    "hash": "32a6e8af92d5aeb9b726d52517128935"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\api\\version.ts": {
+    "mtime": 1777668214.3143153,
+    "hash": "849d602c1ea3e297374bc9560c03e5c3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\prompts\\deck-framework.ts": {
+    "mtime": 1777668214.320069,
+    "hash": "10d37333c0a943aadc158d73640d6d07"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\prompts\\directions.ts": {
+    "mtime": 1777668214.320069,
+    "hash": "1223435f4685a1e37a420c1a67c8a751"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\prompts\\discovery.ts": {
+    "mtime": 1777668214.321076,
+    "hash": "3f73094531823a3e92611e2e7a97a6a0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\prompts\\media-contract.ts": {
+    "mtime": 1777668214.3220763,
+    "hash": "261d6c03458f4d7c63cef6fe008f173f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\prompts\\official-system.ts": {
+    "mtime": 1777668214.3230765,
+    "hash": "651abfa80259359bbceab21e436dfca1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\prompts\\system.ts": {
+    "mtime": 1777668214.3240755,
+    "hash": "8b2ddb87653ed79eb55966438eeb46cc"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\sse\\chat.ts": {
+    "mtime": 1777668214.3261397,
+    "hash": "d80f987ab70b0ed60e55d26a79963845"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\sse\\common.ts": {
+    "mtime": 1777668214.3272316,
+    "hash": "d3f4b8e79a83c3816c18c001bdc306a9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\contracts\\src\\sse\\proxy.ts": {
+    "mtime": 1777668214.3283188,
+    "hash": "3926d1a559c67e0a95ec32a82ecdf524"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\platform\\esbuild.config.mjs": {
+    "mtime": 1777668214.330331,
+    "hash": "c8d1218102b68f8dff247aed9efb41b6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\platform\\src\\index.test.ts": {
+    "mtime": 1777668214.3327243,
+    "hash": "a8394f0064081fbe03492ebaca66bb59"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\platform\\src\\index.ts": {
+    "mtime": 1777668214.3337338,
+    "hash": "12283baba532f736fd8a621d9d189c56"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\sidecar\\esbuild.config.mjs": {
+    "mtime": 1777668214.342627,
+    "hash": "c8d1218102b68f8dff247aed9efb41b6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\sidecar\\src\\index.test.ts": {
+    "mtime": 1777668214.344653,
+    "hash": "5928e76b990d7449e2de49c6602ac283"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\sidecar\\src\\index.ts": {
+    "mtime": 1777668214.346116,
+    "hash": "c9fe45891727db44c939c7bb18d03d98"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\sidecar-proto\\esbuild.config.mjs": {
+    "mtime": 1777668214.3356762,
+    "hash": "99cfef0e11f3ee931aea1773e718ed84"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\sidecar-proto\\src\\index.test.ts": {
+    "mtime": 1777668214.3377104,
+    "hash": "25cea07f6d7789f4988632c81e69dc5b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\sidecar-proto\\src\\index.ts": {
+    "mtime": 1777668214.3390405,
+    "hash": "7d642dddfb066e6cd3e44fd7b936c465"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\scripts\\check-residual-js.ts": {
+    "mtime": 1777668214.4267087,
+    "hash": "cdda0cadde5088ba38d66e1e8abec1d5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\scripts\\import-prompt-templates.mjs": {
+    "mtime": 1777668214.4277165,
+    "hash": "19d7b2e7b99f57394b25c2808830242a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\scripts\\postinstall.mjs": {
+    "mtime": 1777668214.428715,
+    "hash": "b498b21d6803e3f76bf104557504ede8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\scripts\\release-beta.ts": {
+    "mtime": 1777668214.4297137,
+    "hash": "665ee7e9723f272386f1184e3197e7cb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\scripts\\release-stable.ts": {
+    "mtime": 1777668214.4307115,
+    "hash": "c6988909af5eb8e7d9c31603bc34cada"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\scripts\\sync-design-systems.ts": {
+    "mtime": 1777668214.4307115,
+    "hash": "713396576ce3d281c5a97b3dd69fafc7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\scripts\\sync-hyperframes-skill.mjs": {
+    "mtime": 1777668214.4317086,
+    "hash": "06db69565ae29ac0920d1b0992355feb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\scripts\\verify-media-models.mjs": {
+    "mtime": 1777668214.4343638,
+    "hash": "d38414af338c2c248ede630ea4f5226a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\scripts\\animation-map.mjs": {
+    "mtime": 1777668214.5267847,
+    "hash": "0ec9c5ed47496b8b972109969dfdd671"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\scripts\\contrast-report.mjs": {
+    "mtime": 1777668214.5280683,
+    "hash": "00edd9e94b97ee306ea2f54be98bbc7a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\scripts\\package-loader.mjs": {
+    "mtime": 1777668214.5290818,
+    "hash": "a5149d66bb8b0701a8d7a3f692c1e120"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\dev\\esbuild.config.mjs": {
+    "mtime": 1777668214.6350648,
+    "hash": "6d9a101e9ec6d83cb6f95a9c18298662"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\dev\\bin\\tools-dev.mjs": {
+    "mtime": 1777668214.634072,
+    "hash": "6facb3d446a739678d1348995cc11718"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\dev\\src\\config.ts": {
+    "mtime": 1777668214.637298,
+    "hash": "1c97f0b782ff78075878f46aa2d650e1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\dev\\src\\diagnostics.test.ts": {
+    "mtime": 1777668214.63828,
+    "hash": "96238fe43d6aff4cabc876f04c0e04e4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\dev\\src\\diagnostics.ts": {
+    "mtime": 1777668214.6392663,
+    "hash": "0bea0ef6176db887e7f54075ba0a48e3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\dev\\src\\index.ts": {
+    "mtime": 1777668214.6402657,
+    "hash": "9da230fb17276a115664dbf7beaf255c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\dev\\src\\sidecar-client.ts": {
+    "mtime": 1777668214.6412747,
+    "hash": "c5a0dcd732076c9b4b4f3426be9d68d4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\esbuild.config.mjs": {
+    "mtime": 1777668214.6468287,
+    "hash": "6a98bb1ce232ee4102248dcb6fd898e6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\bin\\tools-pack.mjs": {
+    "mtime": 1777668214.6468287,
+    "hash": "1a7f6f204d60520ced331ecce38312b9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\src\\config.ts": {
+    "mtime": 1777668214.6649723,
+    "hash": "194983a7b0acb12543a5ba16ca0ce952"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\src\\index.ts": {
+    "mtime": 1777668214.6659691,
+    "hash": "0b15ab67bc90b955d331a9dd417cbc63"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\src\\mac.ts": {
+    "mtime": 1777668214.6670165,
+    "hash": "416ef3c75062d01fbeab7ce6fbc97a8e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\src\\resources.ts": {
+    "mtime": 1777668214.6680944,
+    "hash": "8eb960d37092d3799950efc8d3019e4e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\src\\win.ts": {
+    "mtime": 1777668214.6690397,
+    "hash": "da0e724b7edfabea98ab658d17482b4f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\scripts\\seed-products.ts": {
+    "mtime": 1775678576.076738,
+    "hash": "f8df7882473aa39bc74888242196289a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\supabase\\seed-phase2.sql": {
+    "mtime": 1777159211.800949,
+    "hash": "bdac630fd4728fa32f8c14d21cee3cf4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\types\\index.ts": {
+    "mtime": 1777159211.8021944,
+    "hash": "d60e88c4dcbcd541bf3dcd453a070639"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\DEPLOY.md": {
+    "mtime": 1775683278.716146,
+    "hash": "4440397572000bc8b213b250a602e1f4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\README.md": {
+    "mtime": 1772551716.4446783,
+    "hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\ai-context.md": {
+    "mtime": 1777159211.780953,
+    "hash": "4dbbfe532bc2c18762547b13e3e593a6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\ai-workflow-kit.md": {
+    "mtime": 1775681930.305014,
+    "hash": "6b003fe066559311ae0709bbaadb8380"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\chatgptprompt.md": {
+    "mtime": 1777159211.7824664,
+    "hash": "a23742a136d19b28d3e411c681cec087"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\claudeprompt.md": {
+    "mtime": 1777159211.7824664,
+    "hash": "cc44f5d6510c38389654eeae2d528375"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\README.md": {
+    "mtime": 1775678576.0329404,
+    "hash": "78dff0e33bf87d78e1c00d6fcef26684"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\admin\\admin-permissions.md": {
+    "mtime": 1775678576.0339441,
+    "hash": "4432f4cdfc120f573130619fba4e7c6e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\booking\\booking-rules.md": {
+    "mtime": 1775678576.03595,
+    "hash": "667bd142dd89cb2f4e650f55921ad5da"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\booking\\booking-services.md": {
+    "mtime": 1775678576.0374339,
+    "hash": "7cef63d5006a53d5bbca82600f1ef889"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\commerce\\commerce-order-flow.md": {
+    "mtime": 1775678576.0404406,
+    "hash": "15f24c39c23c9f736a75dbfbb1f7448a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\context\\context-brand-research.md": {
+    "mtime": 1775678576.0414712,
+    "hash": "ec8d5e2665e148eeec534d7740bafc59"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\context\\context-business-model.md": {
+    "mtime": 1775678576.0414712,
+    "hash": "522f1de8be3cb49266a58ac6d4a1260f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\context\\context-target-users.md": {
+    "mtime": 1775678576.042442,
+    "hash": "20bc5a9070543c1880e1f1781f9ed727"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\context\\context-vision.md": {
+    "mtime": 1775678576.0434399,
+    "hash": "ae5cab7b21f6a769a95cc66c899b4048"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\courses\\courses-rules-dos.md": {
+    "mtime": 1775751362.9202678,
+    "hash": "5fc7e679617b9b96dc37b1f663d89580"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\courses\\courses-rules.md": {
+    "mtime": 1775678576.045441,
+    "hash": "cc0a7c5879d1b03d5bfe6719e1cd7e39"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\checklist-prelanzamiento.md": {
+    "mtime": 1777159211.7839904,
+    "hash": "f7f322a8b6200655e6e4616a819fdae5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\delivery-acuerdo-servicio.md": {
+    "mtime": 1775751360.8646505,
+    "hash": "0a7aedbc6c2c378d7fc8e9953f3d2169"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\delivery-backlog.md": {
+    "mtime": 1777159211.7839904,
+    "hash": "18e5104faa07dc3a41926e4dec27a573"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\delivery-decisions-log.md": {
+    "mtime": 1775752899.910066,
+    "hash": "85612a0c7255afc0eb7d841ddadde08e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\delivery-entregables.md": {
+    "mtime": 1775751364.2952905,
+    "hash": "3eddfeda28998b9a5a43e62251b11211"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\delivery-project-charter.md": {
+    "mtime": 1775751364.9661427,
+    "hash": "068489bbc17e5acf759d59365dd38f8d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\delivery-roadmap.md": {
+    "mtime": 1775754021.9422166,
+    "hash": "e8c3f7759e3c16e9f6cabffb01b20c29"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\delivery-sprint-actual.md": {
+    "mtime": 1777159211.7854228,
+    "hash": "a8d8b8f07d975a4bc8fc34a7b25715d8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\reunion-liz-pendientes.md": {
+    "mtime": 1775751864.2417815,
+    "hash": "ef1b397f2c6b5fda4a15685aa52cdb1a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\session-continuity.md": {
+    "mtime": 1777159211.7861292,
+    "hash": "34aca2b4b9e986f976d21683cb0a6bf4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sprint-frontend.md": {
+    "mtime": 1777856112.7501087,
+    "hash": "1958d57b97dfd06cf464697adf9c5c1e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\Meetings\\sprint1-closed.md": {
+    "mtime": 1775754338.6033306,
+    "hash": "d5e4cf3647541f5ddbcded0f23bcb614"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\meetings\\meetings-meeting16 marzo 2026.md": {
+    "mtime": 1775678576.0513713,
+    "hash": "7ae408a4c0cd026145e8c1ec79b36c68"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\payments\\proveedorpagos.md": {
+    "mtime": 1775678576.0519493,
+    "hash": "bcadf6229b19ec955d2217e2427e2306"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\product\\catalogo.md": {
+    "mtime": 1775678576.0529494,
+    "hash": "bbdc554e55e16e08bd2c38b203717754"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\product\\features.md": {
+    "mtime": 1775678576.053949,
+    "hash": "0779d58fa09a45b6b6a80266a533874d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\product\\pricing.md": {
+    "mtime": 1775678576.0549486,
+    "hash": "d3b2462a44b0a7600383ac6333e7dce0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\product\\product-overview.md": {
+    "mtime": 1775678576.0559742,
+    "hash": "8ec245228cbda4bfe4bfcffbb488bce4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\product\\user-flows.md": {
+    "mtime": 1775678576.0559742,
+    "hash": "f52fcc43901665bcc652c733233c1a94"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\tech\\api-design.md": {
+    "mtime": 1777159211.7874184,
+    "hash": "5164f0ba5cc4953faee85c9312ad7a94"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\tech\\api.md": {
+    "mtime": 1775678576.0579493,
+    "hash": "b6b68dcbca4f0bf7697ca2b491ead439"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\tech\\architecture.md": {
+    "mtime": 1777159211.7884307,
+    "hash": "89114300e865142691b252107b084167"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\tech\\database-entities.md": {
+    "mtime": 1775678576.0589495,
+    "hash": "cb2e447137e838bcf681802a032c58ef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\tech\\database-schema.md": {
+    "mtime": 1775678576.0599492,
+    "hash": "c400ea80344aeec0fe1b2d44fbd16dbc"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\tech\\dev-rules.md": {
+    "mtime": 1775678576.0614793,
+    "hash": "4fc0348f195c94b371ae6d29e42cd294"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\tech\\security-model.md": {
+    "mtime": 1777159211.7884307,
+    "hash": "34eccc2e2c72eb813feb9c687d7d7a58"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\tech\\stack.md": {
+    "mtime": 1775755154.5723052,
+    "hash": "eaf4b1b37b0e1d406b725874084e597a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\ux\\design-notes.md": {
+    "mtime": 1775678576.0634894,
+    "hash": "73d1a3b833086a489bf739c9b61bf17a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\ux\\pages.md": {
+    "mtime": 1775678576.064513,
+    "hash": "24fef6c6ccc72887133eaa6887caaf2d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\AGENTS.md": {
+    "mtime": 1777668213.5533931,
+    "hash": "ebdbc98a5242360d8b96f7733a4840fe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\CHANGELOG.md": {
+    "mtime": 1777668213.5544038,
+    "hash": "62ceaf3db142a86999cef5e3ca5463ae"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\CLAUDE.md": {
+    "mtime": 1777668213.5553975,
+    "hash": "771faa62feb60b7de901a397aebb29b0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\CONTRIBUTING.de.md": {
+    "mtime": 1777668213.556393,
+    "hash": "fcdd8273e927e99bd930238761fb32d3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\CONTRIBUTING.ja-JP.md": {
+    "mtime": 1777668213.557392,
+    "hash": "491822b505683a30ef9f08e9be0ca908"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\CONTRIBUTING.md": {
+    "mtime": 1777668213.5583897,
+    "hash": "5af7bd57eb6bd82bf787b1e3f2b95ebb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\CONTRIBUTING.zh-CN.md": {
+    "mtime": 1777668213.5594032,
+    "hash": "14f9317805d2a71c6b7c30e4cde86609"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\pnpm-workspace.yaml": {
+    "mtime": 1777668214.3511314,
+    "hash": "445c723289de5e1eb8edeb0e884ba6f4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\QUICKSTART.de.md": {
+    "mtime": 1777668213.5619245,
+    "hash": "5e90bdcac59c4f243e6fedf39f844b1f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\QUICKSTART.md": {
+    "mtime": 1777668213.5639527,
+    "hash": "fb1be9c78fcc7dc57b9a50e55cf20549"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\README.de.md": {
+    "mtime": 1777668213.5649557,
+    "hash": "bdc0762b5ce14ece59884f2865484470"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\README.ja-JP.md": {
+    "mtime": 1777668213.5669727,
+    "hash": "08afb515d10c969c2d69db74f70798fe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\README.ko.md": {
+    "mtime": 1777668213.5679655,
+    "hash": "9fdb2540f05df71abf5f17958b303f13"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\README.md": {
+    "mtime": 1777668213.5699644,
+    "hash": "a3b286d527555af02df8d8a06bfaf18f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\README.zh-CN.md": {
+    "mtime": 1777668213.570997,
+    "hash": "1868088fb0d8c635c42477f5097870ee"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\README.zh-TW.md": {
+    "mtime": 1777668213.571967,
+    "hash": "38903eda416286469b001d916e09e63a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\TRANSLATIONS.md": {
+    "mtime": 1777668213.5729604,
+    "hash": "7137e82f14de7e45155b68f6e15a65ef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\AGENTS.md": {
+    "mtime": 1777668213.5744798,
+    "hash": "f70e45e77b3aae441bd648481d87e35d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\AGENTS.md": {
+    "mtime": 1777668213.635641,
+    "hash": "0e7c833ae591b95091b08d33e22dd912"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\packaged\\README.md": {
+    "mtime": 1777668213.6366816,
+    "hash": "7ecab7dc7ed8414231cafd745b0ea3d5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\frames\\android-pixel.html": {
+    "mtime": 1777668213.77545,
+    "hash": "a5d557968e29d540f00f1df5e87093b1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\frames\\browser-chrome.html": {
+    "mtime": 1777668213.77545,
+    "hash": "38e61a7ec1465fe67598bc7a8bf04471"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\frames\\ipad-pro.html": {
+    "mtime": 1777668213.776446,
+    "hash": "bb4ad84968a510b152110c6d685a810f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\frames\\iphone-15-pro.html": {
+    "mtime": 1777668213.777447,
+    "hash": "ed5f55124b745e228bf9a55d2c74c010"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\frames\\macbook.html": {
+    "mtime": 1777668213.77846,
+    "hash": "dc5d636308fc0804581f99a5c9b6179c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\frames\\README.md": {
+    "mtime": 1777668213.7744384,
+    "hash": "f5f29e291cc30f520459a6fdf8261ec3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\README.md": {
+    "mtime": 1777668213.953959,
+    "hash": "0e12b9bd21bfa9a2184afa7e02f0da0c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\agentic\\DESIGN.md": {
+    "mtime": 1777668213.9569564,
+    "hash": "a994ac5516e8915247bab24ca17d6e26"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\airbnb\\DESIGN.md": {
+    "mtime": 1777668213.959967,
+    "hash": "2fcf9b89508c9ee8d8a88176a169091f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\airtable\\DESIGN.md": {
+    "mtime": 1777668213.960966,
+    "hash": "5ca1e2dc9af7626da7b30f338f246f31"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\ant\\DESIGN.md": {
+    "mtime": 1777668213.9634552,
+    "hash": "180b6f7851886f42324ac847a25e7011"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\apple\\DESIGN.md": {
+    "mtime": 1777668213.9664707,
+    "hash": "eeb221cbd272229119523b23eb0c3bef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\application\\DESIGN.md": {
+    "mtime": 1777668213.969564,
+    "hash": "afa2f94d0c54577b45d5ee06d33c9368"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\artistic\\DESIGN.md": {
+    "mtime": 1777668213.9715724,
+    "hash": "bcce1bf48bcaf6fc9e0f41f0a0252c25"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\bento\\DESIGN.md": {
+    "mtime": 1777668213.9725778,
+    "hash": "beb003763aeae929e139724a9ef2f92d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\binance\\DESIGN.md": {
+    "mtime": 1777668213.9750965,
+    "hash": "4e1c92ca836d292be6844af0ff9285f6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\bmw\\DESIGN.md": {
+    "mtime": 1777668213.9771104,
+    "hash": "2e3b88cce02490aa8cd90305bd492c45"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\bold\\DESIGN.md": {
+    "mtime": 1777668213.9791021,
+    "hash": "fa9074c0ec277d6922901f2250076d92"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\brutalism\\DESIGN.md": {
+    "mtime": 1777668213.9801066,
+    "hash": "a95f68a03b5f2aa8e737935d90ffb34a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\bugatti\\DESIGN.md": {
+    "mtime": 1777668213.9820645,
+    "hash": "9df8834c5a455d783f92924744edc7ca"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\cafe\\DESIGN.md": {
+    "mtime": 1777668213.9830768,
+    "hash": "2a1845374a3ad7886766c9eed424f2f3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\cal\\DESIGN.md": {
+    "mtime": 1777668213.985076,
+    "hash": "79db2301fa7e2ae92671ea0a71874aef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\claude\\DESIGN.md": {
+    "mtime": 1777668213.9865847,
+    "hash": "aad9a73f548806f4df4fbfc53cfb9e46"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\clay\\DESIGN.md": {
+    "mtime": 1777668213.988603,
+    "hash": "4d35f9bb5b7724a6b83ce054b2d5e403"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\claymorphism\\DESIGN.md": {
+    "mtime": 1777668213.9894729,
+    "hash": "90e2a4d3290fc1c8d9a15ccc6086fc6b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\clean\\DESIGN.md": {
+    "mtime": 1777668213.991493,
+    "hash": "1405200d31401547c507efed525509f1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\clickhouse\\DESIGN.md": {
+    "mtime": 1777668213.9924839,
+    "hash": "9d85d41950ac51750c9e4a6ca10eea6b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\cohere\\DESIGN.md": {
+    "mtime": 1777668213.994482,
+    "hash": "36f5d73ab53cc5eb608b9b21bf760c79"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\coinbase\\DESIGN.md": {
+    "mtime": 1777668213.9955442,
+    "hash": "a5716f65151ca74538d57ae8c52b2d47"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\colorful\\DESIGN.md": {
+    "mtime": 1777668213.9975464,
+    "hash": "38264bb314a30e138da113935a987989"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\composio\\DESIGN.md": {
+    "mtime": 1777668213.998558,
+    "hash": "9f32c759427dbd09c9839bc1a07ab644"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\contemporary\\DESIGN.md": {
+    "mtime": 1777668214.0005517,
+    "hash": "b7b1adb07b181c2d9fc3e864fd3a80b7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\corporate\\DESIGN.md": {
+    "mtime": 1777668214.002555,
+    "hash": "26262a86cb17ef70e13ff09cced8ad37"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\cosmic\\DESIGN.md": {
+    "mtime": 1777668214.0035534,
+    "hash": "8f7641430364040fd7709481ba962b2c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\creative\\DESIGN.md": {
+    "mtime": 1777668214.0055604,
+    "hash": "86747f8ed488d258e7c1ab7adbf6cb8b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\cursor\\DESIGN.md": {
+    "mtime": 1777668214.0075505,
+    "hash": "f2a6668c28abfd03cf5f0fbd927a7f32"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\dashboard\\DESIGN.md": {
+    "mtime": 1777668214.0095778,
+    "hash": "537db4b7470634de0753af3cf34f1efd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\default\\DESIGN.md": {
+    "mtime": 1777668214.0105894,
+    "hash": "e41d41edb339f22f252ebe841645e79a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\dithered\\DESIGN.md": {
+    "mtime": 1777668214.0125835,
+    "hash": "3b5272e4d9776ea6199eaf21256783a1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\doodle\\DESIGN.md": {
+    "mtime": 1777668214.0145812,
+    "hash": "a8729d67a8accf93b6178513b1fc7d28"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\dramatic\\DESIGN.md": {
+    "mtime": 1777668214.0171568,
+    "hash": "8909bb446bc3a648fb3ec800f939fdab"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\editorial\\DESIGN.md": {
+    "mtime": 1777668214.0191717,
+    "hash": "e432a57b36766b14c7511eb392df9a0c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\elegant\\DESIGN.md": {
+    "mtime": 1777668214.0201666,
+    "hash": "841c23420058ed275ac26f663a69c251"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\elevenlabs\\DESIGN.md": {
+    "mtime": 1777668214.0223448,
+    "hash": "ee0d0e85d538fdf3bb950d3be6b7e491"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\energetic\\DESIGN.md": {
+    "mtime": 1777668214.0233657,
+    "hash": "de667977a559db030abe60a8aa94f3b6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\enterprise\\DESIGN.md": {
+    "mtime": 1777668214.0256493,
+    "hash": "3507d062abb9edc984bce69f9499df98"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\expo\\DESIGN.md": {
+    "mtime": 1777668214.026647,
+    "hash": "413a0f5b6e3fee58caeb9d03b9130030"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\expressive\\DESIGN.md": {
+    "mtime": 1777668214.0286453,
+    "hash": "4b846b68fe452b1cce7779e77e49e738"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\fantasy\\DESIGN.md": {
+    "mtime": 1777668214.0296483,
+    "hash": "6945bb5233b0babb94839c5dc2106321"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\ferrari\\DESIGN.md": {
+    "mtime": 1777668214.0316508,
+    "hash": "15ebcc4bdd210b70cba9e1ab57d7fb35"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\figma\\DESIGN.md": {
+    "mtime": 1777668214.0326378,
+    "hash": "11ad8aed134012ee26dd393aa6501e0e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\flat\\DESIGN.md": {
+    "mtime": 1777668214.0346491,
+    "hash": "440a4537188ecb45a24b7f47fecd6c19"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\framer\\DESIGN.md": {
+    "mtime": 1777668214.035648,
+    "hash": "706a06dd962e80abc96b5dc5d9cf608c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\friendly\\DESIGN.md": {
+    "mtime": 1777668214.0376484,
+    "hash": "90335acd678eada49cc615fa81d2f94c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\futuristic\\DESIGN.md": {
+    "mtime": 1777668214.0386488,
+    "hash": "7435309d916216c52e4d6203b2dd793b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\glassmorphism\\DESIGN.md": {
+    "mtime": 1777668214.0396366,
+    "hash": "418f60320bed3e06799a68994da2c3fb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\gradient\\DESIGN.md": {
+    "mtime": 1777668214.0421612,
+    "hash": "1ef4a0ddfb591b5fd7ac5a3e10021a36"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\hashicorp\\DESIGN.md": {
+    "mtime": 1777668214.043157,
+    "hash": "9e0806116947120fbc967c4cb5145793"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\ibm\\DESIGN.md": {
+    "mtime": 1777668214.0451648,
+    "hash": "6378a2654d1a0de80252cb7440d49473"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\intercom\\DESIGN.md": {
+    "mtime": 1777668214.0471623,
+    "hash": "a0d2a06c3ae4aa8ac96cb5efcce38a63"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\kraken\\DESIGN.md": {
+    "mtime": 1777668214.0481682,
+    "hash": "b94937144408ba76193c6727996564e0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\lamborghini\\DESIGN.md": {
+    "mtime": 1777668214.0501573,
+    "hash": "d26add06c8d43341a735a541b7b76661"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\levels\\DESIGN.md": {
+    "mtime": 1777668214.0511584,
+    "hash": "f29a0332dd7ded556af507b54fe33913"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\linear-app\\DESIGN.md": {
+    "mtime": 1777668214.0521586,
+    "hash": "438158ddbe0f89cc80f174fdfccfa5ad"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\lingo\\DESIGN.md": {
+    "mtime": 1777668214.0531583,
+    "hash": "5887d214fa3544eacb483c9323067c96"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\lovable\\DESIGN.md": {
+    "mtime": 1777668214.0551574,
+    "hash": "5446d19da3ab343d99248681125e7d6a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\luxury\\DESIGN.md": {
+    "mtime": 1777668214.0561745,
+    "hash": "186c3a0a796a70c34e91da056813b447"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\mastercard\\DESIGN.md": {
+    "mtime": 1777668214.0571673,
+    "hash": "707b2c4859a186a8af30b3c9becc30df"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\material\\DESIGN.md": {
+    "mtime": 1777668214.0581677,
+    "hash": "6734c9733eeb628c2deaa37d03366711"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\meta\\DESIGN.md": {
+    "mtime": 1777668214.0591676,
+    "hash": "a95a2bed47df905c8711c2438cbf8315"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\minimal\\DESIGN.md": {
+    "mtime": 1777668214.0611815,
+    "hash": "e5c21111be95358154c53752ac934a24"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\minimax\\DESIGN.md": {
+    "mtime": 1777668214.0621755,
+    "hash": "d2e50b398d31d08893a19c2c5745b8c7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\mintlify\\DESIGN.md": {
+    "mtime": 1777668214.0643513,
+    "hash": "61afbd77a4b6a898b13c710d0b4db01e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\miro\\DESIGN.md": {
+    "mtime": 1777668214.0653691,
+    "hash": "1199a0aee7907e9059a6a99ee291a752"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\mistral-ai\\DESIGN.md": {
+    "mtime": 1777668214.0663784,
+    "hash": "f5f6e52c6f10edb174d92daf7dea25e5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\modern\\DESIGN.md": {
+    "mtime": 1777668214.0673647,
+    "hash": "0d5f76bef46a70c41fbf78e7dd3c8bdf"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\mongodb\\DESIGN.md": {
+    "mtime": 1777668214.0693786,
+    "hash": "0ca53778a452372c3a21dd42fb4258fa"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\mono\\DESIGN.md": {
+    "mtime": 1777668214.070373,
+    "hash": "78f28e02a6ffcbfb253d0c8f8fe3cb59"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\neobrutalism\\DESIGN.md": {
+    "mtime": 1777668214.0713634,
+    "hash": "fd3d3563d7e316f3b73f9e35f3d5accb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\neon\\DESIGN.md": {
+    "mtime": 1777668214.0733843,
+    "hash": "3354b576dbf90567082e41539caa29eb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\neumorphism\\DESIGN.md": {
+    "mtime": 1777668214.0743768,
+    "hash": "28e91d777ab0af595ec378ff4dd84904"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\nike\\DESIGN.md": {
+    "mtime": 1777668214.076656,
+    "hash": "7a4366ea59b3a224d703d1bf85ecf9ff"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\notion\\DESIGN.md": {
+    "mtime": 1777668214.079615,
+    "hash": "e0c2c0ba51dd2b7c3670cdc078950b49"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\nvidia\\DESIGN.md": {
+    "mtime": 1777668214.0816083,
+    "hash": "17521feef6957c373fc13d425e9eb1cf"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\ollama\\DESIGN.md": {
+    "mtime": 1777668214.0826154,
+    "hash": "efde74ed72c6e5a36cf32830eff93747"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\opencode-ai\\DESIGN.md": {
+    "mtime": 1777668214.084604,
+    "hash": "85e710b465428decc9f5f4911de3dc8c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\pacman\\DESIGN.md": {
+    "mtime": 1777668214.085596,
+    "hash": "2d3d59dd8e241f4e550ddef60515e97c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\paper\\DESIGN.md": {
+    "mtime": 1777668214.0866032,
+    "hash": "97a4e25ce57a339f4e5bb85164aafe01"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\perspective\\DESIGN.md": {
+    "mtime": 1777668214.0881548,
+    "hash": "416864e2084a88f0e75379a6584ea0ba"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\pinterest\\DESIGN.md": {
+    "mtime": 1777668214.0901701,
+    "hash": "5a35668e96bee8049d94a4e7cb991a91"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\playstation\\DESIGN.md": {
+    "mtime": 1777668214.0911665,
+    "hash": "96e65dace77d529502212b9500e4b7ee"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\posthog\\DESIGN.md": {
+    "mtime": 1777668214.0931606,
+    "hash": "84ec5626bbd331d82dd18023465a9be9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\premium\\DESIGN.md": {
+    "mtime": 1777668214.0941746,
+    "hash": "82852405136546ddfb740e759d72e1e8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\professional\\DESIGN.md": {
+    "mtime": 1777668214.0956419,
+    "hash": "d63f6306e6c1ee6a9f718f270b4dfe02"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\publication\\DESIGN.md": {
+    "mtime": 1777668214.096654,
+    "hash": "e06414befa631ab9eaad6b8b94ca3e62"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\raycast\\DESIGN.md": {
+    "mtime": 1777668214.0986536,
+    "hash": "d9fdabff7c1e8097b9f3559f59590dc2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\refined\\DESIGN.md": {
+    "mtime": 1777668214.09989,
+    "hash": "501e6d8e0d5e724e5daac3661f9a5d50"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\renault\\DESIGN.md": {
+    "mtime": 1777668214.10108,
+    "hash": "ec2854836c23211416d15148659c3a9d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\replicate\\DESIGN.md": {
+    "mtime": 1777668214.1032927,
+    "hash": "4a996c362574a649a5bae8012b6816a8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\resend\\DESIGN.md": {
+    "mtime": 1777668214.1048896,
+    "hash": "72d5566e1f7da5d5851d64dbc23e9125"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\retro\\DESIGN.md": {
+    "mtime": 1777668214.1059146,
+    "hash": "4e748dd4be7c0115b4ed628376cf6ddc"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\revolut\\DESIGN.md": {
+    "mtime": 1777668214.1068976,
+    "hash": "b7e5b30db170b32639471b725d54b1c1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\runwayml\\DESIGN.md": {
+    "mtime": 1777668214.1089082,
+    "hash": "ba5cf9c30a981323a4870bd4b609c4fa"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\sanity\\DESIGN.md": {
+    "mtime": 1777668214.110913,
+    "hash": "f46158d142ce34efb776030e592e6a2d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\sentry\\DESIGN.md": {
+    "mtime": 1777668214.1119244,
+    "hash": "db977fe497a884aa9a325cd62e97bf87"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\shadcn\\DESIGN.md": {
+    "mtime": 1777668214.1129434,
+    "hash": "aac13927ebcf9dfb8676a0ae6f24f458"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\shopify\\DESIGN.md": {
+    "mtime": 1777668214.1149235,
+    "hash": "d421cca5c655d0282b5231e6c5cdadeb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\simple\\DESIGN.md": {
+    "mtime": 1777668214.1159139,
+    "hash": "edb11d5756d37c0fad68eb1cee59cacc"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\skeumorphism\\DESIGN.md": {
+    "mtime": 1777668214.1169136,
+    "hash": "3f73a9d10aa8613d4c4e48ba3dac0ebb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\sleek\\DESIGN.md": {
+    "mtime": 1777668214.1189215,
+    "hash": "335f749982f420667094756b111bc3d4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\spacex\\DESIGN.md": {
+    "mtime": 1777668214.119915,
+    "hash": "899cecb254d9b2ea92f2434c7166ff97"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\spacious\\DESIGN.md": {
+    "mtime": 1777668214.1209219,
+    "hash": "6ebc003bc4245da48fba8fcc1ca974d0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\spotify\\DESIGN.md": {
+    "mtime": 1777668214.1229181,
+    "hash": "ea96950849f6d767870ba1e334049fdd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\starbucks\\DESIGN.md": {
+    "mtime": 1777668214.1229181,
+    "hash": "94bb30f1a695fff2ea8077df7f8643ad"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\storytelling\\DESIGN.md": {
+    "mtime": 1777668214.1254368,
+    "hash": "992161afba624eb4bdab9010babba966"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\stripe\\DESIGN.md": {
+    "mtime": 1777668214.1264446,
+    "hash": "09908150d770f19274c650fe5f89b487"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\supabase\\DESIGN.md": {
+    "mtime": 1777668214.12844,
+    "hash": "6527ad2208bf4fc14385d1bcf29a7d91"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\superhuman\\DESIGN.md": {
+    "mtime": 1777668214.1294327,
+    "hash": "8db2afac1fecb87767d0c58d0f8e548b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\tesla\\DESIGN.md": {
+    "mtime": 1777668214.1314604,
+    "hash": "c2bfc05769c3c9159040386e46b3d09c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\tetris\\DESIGN.md": {
+    "mtime": 1777668214.1324973,
+    "hash": "79f713056354b087f3fa721b02f4c9c5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\theverge\\DESIGN.md": {
+    "mtime": 1777668214.1335254,
+    "hash": "de65694f4fd40adfd5d496c94c8eacb0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\together-ai\\DESIGN.md": {
+    "mtime": 1777668214.1350584,
+    "hash": "aae58bc78308d8fe82c6fabe671f19ac"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\uber\\DESIGN.md": {
+    "mtime": 1777668214.1360672,
+    "hash": "11faae83e754386c45d1f06c4d40ec77"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\vercel\\DESIGN.md": {
+    "mtime": 1777668214.1380653,
+    "hash": "c7c3c9d70fe53cfab72b1d08b909d3ca"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\vibrant\\DESIGN.md": {
+    "mtime": 1777668214.1390936,
+    "hash": "6053b31e8a5ba96327bc776c3d941417"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\vintage\\DESIGN.md": {
+    "mtime": 1777668214.1413958,
+    "hash": "e349d2a91f41d60ac22dfd7153af2fed"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\vodafone\\DESIGN.md": {
+    "mtime": 1777668214.1434107,
+    "hash": "aab687374e61afc80fa525140398d76d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\voltagent\\DESIGN.md": {
+    "mtime": 1777668214.1454372,
+    "hash": "f3e6f19e1fb4324ea06478e2bf1e5601"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\warm-editorial\\DESIGN.md": {
+    "mtime": 1777668214.1474295,
+    "hash": "4199348b3d3cf64ed92a11719c9ff509"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\warp\\DESIGN.md": {
+    "mtime": 1777668214.149341,
+    "hash": "3ee43536fbef7b7b07681cf0b77a6df4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\webflow\\DESIGN.md": {
+    "mtime": 1777668214.1503577,
+    "hash": "04df00e3d7c7b00e5f1c734f4a80bc97"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\wired\\DESIGN.md": {
+    "mtime": 1777668214.151816,
+    "hash": "2190a5259f62d79b240a7c5de2dc9cd2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\wise\\DESIGN.md": {
+    "mtime": 1777668214.1532953,
+    "hash": "99de7f03e3a279d8745ef30883400dd1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\x-ai\\DESIGN.md": {
+    "mtime": 1777668214.1553187,
+    "hash": "f9b168a9361be8aabe33efa86eaf4ef6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\xiaohongshu\\DESIGN.md": {
+    "mtime": 1777668214.1573086,
+    "hash": "1de72166a78aa40e0e0498fdbcd51442"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\design-systems\\zapier\\DESIGN.md": {
+    "mtime": 1777668214.1583033,
+    "hash": "34d432c7b0914163a1c427f4ed27bdc3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\agent-adapters.md": {
+    "mtime": 1777668214.1603181,
+    "hash": "42b4575dbac1398dec6f65d63ca28b3b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\architecture.md": {
+    "mtime": 1777668214.161319,
+    "hash": "fe14e4a2c4c4a7033be185f9f9b2f531"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\modes.md": {
+    "mtime": 1777668214.2452219,
+    "hash": "8de25d0e7f4828e1f85d08c8d1010a57"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\references.md": {
+    "mtime": 1777668214.2471867,
+    "hash": "f178e25590a320a042b583769385c63c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\roadmap.md": {
+    "mtime": 1777668214.248227,
+    "hash": "fc1fda906ece2bf310e6cbff9840ea7b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\skills-protocol.md": {
+    "mtime": 1777668214.278703,
+    "hash": "427e127c0eb03e355bcc91b2632a3116"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\spec.md": {
+    "mtime": 1777668214.280883,
+    "hash": "b19dcc0aad52ff682332fcbefba3662d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\_cover\\banner.html": {
+    "mtime": 1777668214.163536,
+    "hash": "0bb2ede5fb7821c963b2b51fb53c4d56"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\_cover\\library.html": {
+    "mtime": 1777668214.1645339,
+    "hash": "5606e803afe67bbbd3979ffcc95bd214"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\_cover\\star.html": {
+    "mtime": 1777668214.1655254,
+    "hash": "64d15a643f41d01ddeb43c420a5bbce8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\examples\\DESIGN.sample.md": {
+    "mtime": 1777668214.241831,
+    "hash": "ba5e2f9321c85e4ffa6962b6068ebd4b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\examples\\saas-landing-skill\\SKILL.md": {
+    "mtime": 1777668214.2439525,
+    "hash": "1ed532265e6e37e0fef9cfdd40cd2148"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\cases\\README.zh-CN.md": {
+    "mtime": 1777668214.2828753,
+    "hash": "242f72bd552b8ae1dd217e50eb4e0772"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\cases\\modules\\conversations.md": {
+    "mtime": 1777668214.2848752,
+    "hash": "5d71167c45a7375c1d01dba5a2694a34"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\cases\\modules\\files.md": {
+    "mtime": 1777668214.2858768,
+    "hash": "128528ce7be89d55ecd17b21129a1aff"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\cases\\modules\\project-and-generation.md": {
+    "mtime": 1777668214.2868764,
+    "hash": "c65ce97d0d132bccd4be926e8cf6bee7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\reports\\README.zh-CN.md": {
+    "mtime": 1777668214.2918997,
+    "hash": "0a4eb66d758bd6e48991855e5cc6bbbb"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\e2e\\reports\\ui-test-report.html": {
+    "mtime": 1777668214.292902,
+    "hash": "12b225cdfbdff2d0637d4c71206feb2e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\packages\\AGENTS.md": {
+    "mtime": 1777668214.3059137,
+    "hash": "b7adaf09ba48bc5b783f1d8785ca94c2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\audio-jingle\\example.html": {
+    "mtime": 1777668214.4383645,
+    "hash": "f43624730976e7b1906186773c8cdf8c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\audio-jingle\\SKILL.md": {
+    "mtime": 1777668214.4363647,
+    "hash": "987ea0d82158e76a55b45c1cf0a615f4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\blog-post\\example.html": {
+    "mtime": 1777668214.4403644,
+    "hash": "e781b8f9f1078295a555eaa33b16155f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\blog-post\\SKILL.md": {
+    "mtime": 1777668214.4393642,
+    "hash": "50fc67b341c8d58f6c678c448bb038fd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\critique\\example.html": {
+    "mtime": 1777668214.443869,
+    "hash": "49cbfa0413307abbea8c18d98d3c18e6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\critique\\SKILL.md": {
+    "mtime": 1777668214.4423628,
+    "hash": "5ec0a55c906f4f60e3793a58af2008ed"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\dashboard\\example.html": {
+    "mtime": 1777668214.4468782,
+    "hash": "f00e8783028498c0a2f5b89479a75a50"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\dashboard\\SKILL.md": {
+    "mtime": 1777668214.4458787,
+    "hash": "98e34b3007b5097be1c23527b38046fe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\dating-web\\example.html": {
+    "mtime": 1777668214.4508781,
+    "hash": "58a744c64aec7589c3378acffe4f95d5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\dating-web\\SKILL.md": {
+    "mtime": 1777668214.4488797,
+    "hash": "9f1f8cb6dc84c36fcaa5277d36608143"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\design-brief\\SKILL.md": {
+    "mtime": 1777668214.4528768,
+    "hash": "80427232ccf8b235485295a5956283c3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\digital-eguide\\example.html": {
+    "mtime": 1777668214.4558773,
+    "hash": "a16f5200d8f1095fde4653902fe56f03"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\digital-eguide\\SKILL.md": {
+    "mtime": 1777668214.454877,
+    "hash": "5e694eb3f6786cc476d8cf5adf9a7d94"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\docs-page\\example.html": {
+    "mtime": 1777668214.4588766,
+    "hash": "37f39ab1840e43fdd06920eae1ca8ed2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\docs-page\\SKILL.md": {
+    "mtime": 1777668214.4578767,
+    "hash": "16eac2beba3a325617e1138f82374612"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\email-marketing\\example.html": {
+    "mtime": 1777668214.4618864,
+    "hash": "9135466a3681d3a02e9b699ce196ca68"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\email-marketing\\SKILL.md": {
+    "mtime": 1777668214.4608843,
+    "hash": "1ed6dfe27d8ad0f4a8dd0d91d89e0377"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\eng-runbook\\example.html": {
+    "mtime": 1777668214.463884,
+    "hash": "83665f62de2267283adafb00daa566dd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\eng-runbook\\SKILL.md": {
+    "mtime": 1777668214.4628851,
+    "hash": "8d27fb534db9d610a04e2f12a3b98df0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\finance-report\\example.html": {
+    "mtime": 1777668214.467993,
+    "hash": "105ba60764b71bb4272dd496bfbc4697"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\finance-report\\SKILL.md": {
+    "mtime": 1777668214.4669933,
+    "hash": "1e226c1b3fa1814bbb44e0f2db8a7bfd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\gamified-app\\example.html": {
+    "mtime": 1777668214.4711814,
+    "hash": "99a84eb5f78a205bd45a6f8e9a21fb36"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\gamified-app\\SKILL.md": {
+    "mtime": 1777668214.4701893,
+    "hash": "1632625233fd1ac7044122a79f809d44"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\README.en.md": {
+    "mtime": 1777668214.476068,
+    "hash": "7b25c34ffc7f692ac06c0e421bf8964e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\README.md": {
+    "mtime": 1777668214.4780583,
+    "hash": "98ed935c8cc26b48656798d30bd7df4c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\SKILL.md": {
+    "mtime": 1777668214.4790566,
+    "hash": "684535105314952aa8fecc204ed4f792"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\assets\\example-slides.html": {
+    "mtime": 1777668214.4830549,
+    "hash": "e7ad4487e5f4b126b123f0067c273e12"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\assets\\template.html": {
+    "mtime": 1777668214.4850647,
+    "hash": "4fec1f859a75ee1ca9b5f21a8dacbca9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\references\\checklist.md": {
+    "mtime": 1777668214.486056,
+    "hash": "315d8e77344d23065789d8074fe506ce"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\references\\components.md": {
+    "mtime": 1777668214.4885812,
+    "hash": "c1e94af52b29c5448207840a28c8502b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\references\\layouts.md": {
+    "mtime": 1777668214.4895735,
+    "hash": "4fbd91ef505223a0bc0e366e9dfa6fc4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\references\\styles.md": {
+    "mtime": 1777668214.491718,
+    "hash": "ba411afb7028d41593819d393159d4f8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\guizang-ppt\\references\\themes.md": {
+    "mtime": 1777668214.4927313,
+    "hash": "e52d2c78bfc95ecb2103d00c3bf603b7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hr-onboarding\\example.html": {
+    "mtime": 1777668214.4967196,
+    "hash": "46305ef424b418b43c07635704afa29d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hr-onboarding\\SKILL.md": {
+    "mtime": 1777668214.4947124,
+    "hash": "80a466e2ce58b8448a8436ffb97963a9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\data-in-motion.md": {
+    "mtime": 1777668214.4977298,
+    "hash": "ea5b16e727b80adae8adf3aa12511ff6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\house-style.md": {
+    "mtime": 1777668214.4987123,
+    "hash": "cbd499fca8b51adffdaec7c340c10105"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\patterns.md": {
+    "mtime": 1777668214.5072608,
+    "hash": "1212b75df5f6a60f5ac028d60b6800b7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\SKILL.md": {
+    "mtime": 1777668214.4977298,
+    "hash": "d92ede8585f46959ba980f61a79a9b9e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\visual-styles.md": {
+    "mtime": 1777668214.530086,
+    "hash": "cb62f7ed030102ea2e7f21081d0ee5d6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\bold-energetic.md": {
+    "mtime": 1777668214.5012994,
+    "hash": "8a8ff4be4d393c7ec9914c923c82dfed"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\clean-corporate.md": {
+    "mtime": 1777668214.5012994,
+    "hash": "24835079f6215c4cbe0fddd839e6c864"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\dark-premium.md": {
+    "mtime": 1777668214.5022426,
+    "hash": "a6d2ec33020751f2fef494b5680f62f3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\jewel-rich.md": {
+    "mtime": 1777668214.5032468,
+    "hash": "b218003c2b8ecee5b523e02028225f82"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\monochrome.md": {
+    "mtime": 1777668214.5032468,
+    "hash": "d483eee4df9bc62514877ec3fed1140e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\nature-earth.md": {
+    "mtime": 1777668214.5042465,
+    "hash": "08e80e6b0fd55b07cdf1e5284041745f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\neon-electric.md": {
+    "mtime": 1777668214.5052414,
+    "hash": "6ff9d4cd116da71b72b10a85ef90f2c3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\pastel-soft.md": {
+    "mtime": 1777668214.5062475,
+    "hash": "b62aa314ed067925b1c89f84d78fbd1c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\palettes\\warm-editorial.md": {
+    "mtime": 1777668214.5062475,
+    "hash": "faad305d6c7f36cacd160261e1adfdd0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\audio-reactive.md": {
+    "mtime": 1777668214.5082462,
+    "hash": "d79e87a4b89e420a209761d50db48437"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\captions.md": {
+    "mtime": 1777668214.5092394,
+    "hash": "2523d87265a5af77513bea62f8b3414b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\css-patterns.md": {
+    "mtime": 1777668214.5102592,
+    "hash": "7db2082d8d7a9a699ca5d751e4e7d916"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\dynamic-techniques.md": {
+    "mtime": 1777668214.512259,
+    "hash": "9f3ce123e0e93caae67d25ffced36703"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\motion-principles.md": {
+    "mtime": 1777668214.5133038,
+    "hash": "09b97a4bbacd24c52e32e76c8ce4f6b3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transcript-guide.md": {
+    "mtime": 1777668214.514249,
+    "hash": "7223852593819893c42bbe6be19d9541"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions.md": {
+    "mtime": 1777668214.514249,
+    "hash": "6d0a6effe4dc33fb0726df4ab1a0bee1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\tts.md": {
+    "mtime": 1777668214.5247507,
+    "hash": "daa875c7e6edf5932ed7ad493fefdb1f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\typography.md": {
+    "mtime": 1777668214.5257628,
+    "hash": "3c1f7a0ec0a11905e87c021aeba1791e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\catalog.md": {
+    "mtime": 1777668214.5162501,
+    "hash": "cb0aec8a58a0b394dfeb687fbdf79159"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-3d.md": {
+    "mtime": 1777668214.5162501,
+    "hash": "ee8fed588640eccb2a50e6783081d8c4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-blur.md": {
+    "mtime": 1777668214.517249,
+    "hash": "c67727910f51db7400a35dc17e8fcdc4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-cover.md": {
+    "mtime": 1777668214.518246,
+    "hash": "fa8b380ca25356592f16741ec6bcb23b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-destruction.md": {
+    "mtime": 1777668214.5192463,
+    "hash": "2b38584d1df0966ff99fe9b04d35b330"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-dissolve.md": {
+    "mtime": 1777668214.520251,
+    "hash": "7ce6e35a119a1af2131c65a5951589b2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-distortion.md": {
+    "mtime": 1777668214.520251,
+    "hash": "c4f6444198018fb00304d7c1a478eeb9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-grid.md": {
+    "mtime": 1777668214.5212498,
+    "hash": "46a028aed72c3d915f323f3c82a1428e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-light.md": {
+    "mtime": 1777668214.5212498,
+    "hash": "c8bfe5054092bec1aa19e1b221e91b4b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-mechanical.md": {
+    "mtime": 1777668214.5222661,
+    "hash": "71cb927b398f61e7640a9f13f733171f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-other.md": {
+    "mtime": 1777668214.5232463,
+    "hash": "eed4210a2e134b89bd6b22496218b959"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-push.md": {
+    "mtime": 1777668214.5232463,
+    "hash": "b3a893b875d1df920322b965d3f82e6b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-radial.md": {
+    "mtime": 1777668214.5242443,
+    "hash": "e2a01eaf088eac74c8fca0cc511fe84a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\hyperframes\\references\\transitions\\css-scale.md": {
+    "mtime": 1777668214.5247507,
+    "hash": "ea64a433f5c8b7f2766e4da3746f3492"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\image-poster\\example.html": {
+    "mtime": 1777668214.5320802,
+    "hash": "b24c5828d6c775b9f721042c655ef595"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\image-poster\\SKILL.md": {
+    "mtime": 1777668214.5320802,
+    "hash": "ff3bca9cd9506e7c50a79acc133dacaa"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\invoice\\example.html": {
+    "mtime": 1777668214.5340805,
+    "hash": "2b4bb73eb8f88ca8be8704d5a25649a6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\invoice\\SKILL.md": {
+    "mtime": 1777668214.533082,
+    "hash": "80675534063a7d560f84c8994b535704"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\kanban-board\\example.html": {
+    "mtime": 1777668214.5360954,
+    "hash": "d4be2b78040313b93431543d82252975"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\kanban-board\\SKILL.md": {
+    "mtime": 1777668214.535086,
+    "hash": "654b28e867bd8eebe0e341d2862c6de1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\magazine-poster\\example.html": {
+    "mtime": 1777668214.538214,
+    "hash": "c006df1ee4463ff89860841d1a36af2d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\magazine-poster\\SKILL.md": {
+    "mtime": 1777668214.5370815,
+    "hash": "83158f6314363e2691bf6b1328797eae"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\meeting-notes\\example.html": {
+    "mtime": 1777668214.5402038,
+    "hash": "c5949b2a21b354b100686175f9c7fcde"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\meeting-notes\\SKILL.md": {
+    "mtime": 1777668214.5391965,
+    "hash": "c130423a6758c26a50c0c48910e1c9f9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\mobile-app\\example.html": {
+    "mtime": 1777668214.5471952,
+    "hash": "8fa1df318d7dd46f6b07d61a534ec0e7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\mobile-app\\SKILL.md": {
+    "mtime": 1777668214.5431974,
+    "hash": "f804a18d7e75ba4108058eb2058769a9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\mobile-app\\assets\\template.html": {
+    "mtime": 1777668214.5452144,
+    "hash": "16f81aa3457a8e7b06c65bfae215910d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\mobile-app\\references\\checklist.md": {
+    "mtime": 1777668214.5482028,
+    "hash": "767ed955138a3a3c81e39efbe7c7fced"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\mobile-app\\references\\layouts.md": {
+    "mtime": 1777668214.5491982,
+    "hash": "0bac9dc737e1e314e2c60289f5c2463a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\mobile-onboarding\\example.html": {
+    "mtime": 1777668214.5521972,
+    "hash": "203d3662d6034af33217675f6ba2637a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\mobile-onboarding\\SKILL.md": {
+    "mtime": 1777668214.5512245,
+    "hash": "9019c57be3192c95090e076115faae52"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\motion-frames\\example.html": {
+    "mtime": 1777668214.5531974,
+    "hash": "eb0c40a5c8bdbe6cda21803b72dc0737"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\motion-frames\\SKILL.md": {
+    "mtime": 1777668214.5531974,
+    "hash": "3807b30acc4c46632b768dfbb7ba1a9d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\pm-spec\\example.html": {
+    "mtime": 1777668214.5552225,
+    "hash": "d82c24dff12be5e670ec9d5e39085fb4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\pm-spec\\SKILL.md": {
+    "mtime": 1777668214.554198,
+    "hash": "f6607a8e009bea5052b349a580196a58"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\pricing-page\\example.html": {
+    "mtime": 1777668214.5572193,
+    "hash": "ae4d53b58de783ab9bde131c5282555a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\pricing-page\\SKILL.md": {
+    "mtime": 1777668214.5562017,
+    "hash": "62bc3106fdb5f0d0d110ba119bf48f63"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\SKILL.md": {
+    "mtime": 1777668214.5594406,
+    "hash": "b9e2faf4aef45d9a9a8d5d61ed64ab75"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\assets\\template.html": {
+    "mtime": 1777668214.5614655,
+    "hash": "5b43eb8c7190c9654f767eec892350a0"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\examples\\example-atlas.html": {
+    "mtime": 1777668214.5627594,
+    "hash": "86298570fbc09bf0d6b17ccd5156a34a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\examples\\example-bluehouse.html": {
+    "mtime": 1777668214.5637836,
+    "hash": "23343d58b96240234fa5224ab3ef31a4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\examples\\example-helix.html": {
+    "mtime": 1777668214.5647705,
+    "hash": "c02899b9744720fc40f29fa87e6e3a6b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\examples\\example-holm.html": {
+    "mtime": 1777668214.5657737,
+    "hash": "9fe23b40dfec372e122a72c5b0ab65fe"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\examples\\README.md": {
+    "mtime": 1777668214.5627594,
+    "hash": "79e065b6bffdf1bc200b67c3d42caed8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\references\\checklist.md": {
+    "mtime": 1777668214.5677726,
+    "hash": "f94924cf240140edbf338b726f69f364"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\references\\components.md": {
+    "mtime": 1777668214.5687654,
+    "hash": "fb9495a69b303509dd0a7c3bea36ac11"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\references\\layouts.md": {
+    "mtime": 1777668214.5687654,
+    "hash": "c07684aa268a0937fc3a9692d6329592"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\replit-deck\\references\\themes.md": {
+    "mtime": 1777668214.5697656,
+    "hash": "6e4d784188a11f37a7bc8812e1b1e93a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\saas-landing\\example.html": {
+    "mtime": 1777668214.5727706,
+    "hash": "f6383f7a00d285cdbd766ac7a8aa5f9e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\saas-landing\\SKILL.md": {
+    "mtime": 1777668214.5717678,
+    "hash": "4be92bd88274be4aa27bb9d8abd02aa7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\simple-deck\\example.html": {
+    "mtime": 1777668214.5772932,
+    "hash": "587d922eaf19da609d782729fd2369dd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\simple-deck\\SKILL.md": {
+    "mtime": 1777668214.5742855,
+    "hash": "4a08fada4d14c619147eda92eacabf61"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\simple-deck\\assets\\template.html": {
+    "mtime": 1777668214.5762978,
+    "hash": "67ebcf208480df66aca495f5a3e3fd82"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\simple-deck\\references\\checklist.md": {
+    "mtime": 1777668214.5803769,
+    "hash": "1a29282ba4cdc4c72342471729a1dd1a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\simple-deck\\references\\layouts.md": {
+    "mtime": 1777668214.5813842,
+    "hash": "dc24040da4c0bc67c5cd654fdaf02cd5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\social-carousel\\example.html": {
+    "mtime": 1777668214.584738,
+    "hash": "5a94d9653d457699d89a2ff3aecebcd6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\social-carousel\\SKILL.md": {
+    "mtime": 1777668214.5837138,
+    "hash": "e20dd2fd9ec612fd6f0b6c8313c8cd0f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\sprite-animation\\example.html": {
+    "mtime": 1777668214.5876815,
+    "hash": "796ca55ac9b20dbb3a578c3babb2a86f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\sprite-animation\\SKILL.md": {
+    "mtime": 1777668214.5866735,
+    "hash": "a5716ef8e99e55b1d7df3023db5de744"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\team-okrs\\example.html": {
+    "mtime": 1777668214.5910325,
+    "hash": "426fba98ef7964f5a31d872ec1343c04"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\team-okrs\\SKILL.md": {
+    "mtime": 1777668214.5900378,
+    "hash": "96d655c0c54b416dee4f2505da220790"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\tweaks\\example.html": {
+    "mtime": 1777668214.597045,
+    "hash": "37387bd0b3bb167022728ccf7ddce106"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\tweaks\\SKILL.md": {
+    "mtime": 1777668214.5930302,
+    "hash": "a35e7db230e71d381c84b8990d46fd75"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\tweaks\\assets\\wrap.html": {
+    "mtime": 1777668214.5950336,
+    "hash": "7a7d4e86bd02b81724c2b63d05a264bd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\video-shortform\\example.html": {
+    "mtime": 1777668214.599521,
+    "hash": "348239db3d3a3661107a18f9cbb454a8"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\video-shortform\\SKILL.md": {
+    "mtime": 1777668214.5980315,
+    "hash": "58343100e005a707306fc453cd29d01f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\web-prototype\\example.html": {
+    "mtime": 1777668214.6045303,
+    "hash": "c9f3a0c012aa9aa697ef07b2985f38fd"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\web-prototype\\SKILL.md": {
+    "mtime": 1777668214.6015406,
+    "hash": "873c779855ba6988ccea781812b752f7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\web-prototype\\assets\\template.html": {
+    "mtime": 1777668214.6035419,
+    "hash": "1aa2c558c23cb943f605b5282f6e35c9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\web-prototype\\references\\checklist.md": {
+    "mtime": 1777668214.6065638,
+    "hash": "7bf5d465a7d525639b490ba85bfd338d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\web-prototype\\references\\layouts.md": {
+    "mtime": 1777668214.6085432,
+    "hash": "fcdd0804d7fb10538ebcdaf086218c16"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\weekly-update\\example.html": {
+    "mtime": 1777668214.6125567,
+    "hash": "3b11bc26389f10018fdfca09f133dfe4"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\weekly-update\\SKILL.md": {
+    "mtime": 1777668214.610556,
+    "hash": "833c4cb8a6ca08fb6cacfd39f222f4d9"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\wireframe-sketch\\example.html": {
+    "mtime": 1777668214.617554,
+    "hash": "b9f9fdedc6d82fe38e473c77b8899ba1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\skills\\wireframe-sketch\\SKILL.md": {
+    "mtime": 1777668214.6155992,
+    "hash": "b5ed060ac38e6dddbf6639d1f21e6cc2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\specs\\change\\20260430-implement-maintainability-w2-w3\\spec.md": {
+    "mtime": 1777668214.6209369,
+    "hash": "23ef7b488b98536828ad9146a9c6315c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\specs\\current\\architecture-boundaries.md": {
+    "mtime": 1777668214.6229622,
+    "hash": "8e475a62abfb49b0539c8469c6da06e2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\specs\\current\\maintainability-roadmap.md": {
+    "mtime": 1777668214.6239452,
+    "hash": "2ad94bd2f4a1949bbcf6598ef48d2491"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\specs\\current\\run.md": {
+    "mtime": 1777668214.6239452,
+    "hash": "d0e7aa5a61b82d6d0a2dce3f0077a9e1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\specs\\current\\runtime-adapter.md": {
+    "mtime": 1777668214.625062,
+    "hash": "aa896a5c8757457a65c6eeb3be8b9772"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\specs\\current\\status.md": {
+    "mtime": 1777668214.6260614,
+    "hash": "d92e0b203f96fbd29a78f6483c3d79ae"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\story\\STORY.md": {
+    "mtime": 1777668214.6290653,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\story\\STORY.zh-CN.md": {
+    "mtime": 1777668214.630064,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\templates\\deck-framework.html": {
+    "mtime": 1777668214.631058,
+    "hash": "e6cb7fbc1d4eccb2ee133d9c74b38703"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\AGENTS.md": {
+    "mtime": 1777668214.6320856,
+    "hash": "c452f4419ca91e9ee8825cabf0d42c5c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\AGENTS.md": {
+    "mtime": 1777668214.6432605,
+    "hash": "5515f683a795ba4f02d7d7042c7a1950"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\README.md": {
+    "mtime": 1777668214.644263,
+    "hash": "4f7e2c53ab9aebe91f1c546a46417095"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\public\\app-icon.svg": {
+    "mtime": 1777668213.659857,
+    "hash": "db24ba649afd9e2ca8e8e6176448861a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\public\\avatar.png": {
+    "mtime": 1777668213.662291,
+    "hash": "1493981dd9044720e599a8d7cef17a95"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\apps\\web\\public\\logo.svg": {
+    "mtime": 1777668213.6632576,
+    "hash": "71ead2a65894892da21fca2eb6c59ed1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\image\\game-screenshot-anime-fighting-game-captain-ryuuga-vs-kaze-renshin.jpg": {
+    "mtime": 1777668213.7834435,
+    "hash": "85b7a4676b6a92339315046a8f5c40db"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\image\\game-screenshot-three-kingdoms-guanyu-slaying-yanliang.jpg": {
+    "mtime": 1777668213.7859974,
+    "hash": "f43e48f4d6b6f45e6f11b98d0f36fbef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\image\\game-screenshot-three-kingdoms-lyubu-yuanmen-archery.jpg": {
+    "mtime": 1777668213.7890117,
+    "hash": "79a2ea0114c0ac1f691fddce0dc24451"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\image\\game-screenshot-three-kingdoms-zhaoyun-cradle-escape.jpg": {
+    "mtime": 1777668213.7920082,
+    "hash": "00856745b46f7375cc0c06c1c4edb271"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\image\\game-ui-ancient-china-open-world-mmo-hud.jpg": {
+    "mtime": 1777668213.794129,
+    "hash": "ab0573c64ed27080d4004d8d39f596a3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\image\\infographic-otaku-dance-choreography-breakdown-gokurakujodo-16-panels.jpg": {
+    "mtime": 1777668213.7991307,
+    "hash": "c35549cc401be5259209b1f2dfd4c3f7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\image\\social-media-post-sensational-girl-dance-storyboard-8-shots.jpg": {
+    "mtime": 1777668213.8021,
+    "hash": "409df51517d522e7e95d4e5e4fa3d9b1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\video\\video-seedance-three-kingdoms-guanyu-slaying-yanliang-poster.jpg": {
+    "mtime": 1777668213.80612,
+    "hash": "f43e48f4d6b6f45e6f11b98d0f36fbef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\video\\video-seedance-three-kingdoms-lyubu-yuanmen-archery-poster.jpg": {
+    "mtime": 1777668213.8550277,
+    "hash": "79a2ea0114c0ac1f691fddce0dc24451"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\video\\video-seedance-three-kingdoms-zhaoyun-cradle-escape-poster.jpg": {
+    "mtime": 1777668213.8905194,
+    "hash": "00856745b46f7375cc0c06c1c4edb271"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\banner.png": {
+    "mtime": 1777668214.1865551,
+    "hash": "14eb849134cc6112d31e8ed741211dce"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\banner.svg": {
+    "mtime": 1777668214.1878262,
+    "hash": "04003454d049b79ec5b02fd274db229c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\design-systems-library.png": {
+    "mtime": 1777668214.195827,
+    "hash": "dabf5bbf3765dd2546b6a7d2d51e0d53"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\design-systems-library.svg": {
+    "mtime": 1777668214.1968737,
+    "hash": "576440c801e551224c5517815c9e9567"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\github-metrics.svg": {
+    "mtime": 1777668214.2219555,
+    "hash": "f05c0c5ce14e54005217b70051733765"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\logo.png": {
+    "mtime": 1777668214.2248075,
+    "hash": "e6c16dab8e1c0cb1f3db246f4297eded"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\assets\\star-us.png": {
+    "mtime": 1777668214.2408438,
+    "hash": "69606d72c21346c10a446630b518eecf"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\01-entry-view.png": {
+    "mtime": 1777668214.249611,
+    "hash": "44af9d3dbad91cb223df04e865177d34"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\01-entry-view.svg": {
+    "mtime": 1777668214.249611,
+    "hash": "ffb2b6a81344e532a486ff9427c082bc"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\02-question-form.png": {
+    "mtime": 1777668214.2506194,
+    "hash": "bb0c9287e638c9d7ba48a835b6570a36"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\02-question-form.svg": {
+    "mtime": 1777668214.2520459,
+    "hash": "235c792cd8bba9d099857855baaf19f7"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\03-direction-picker.png": {
+    "mtime": 1777668214.2530544,
+    "hash": "5e980995a5a78aa9ce00f7a0cddaddb6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\03-direction-picker.svg": {
+    "mtime": 1777668214.2540612,
+    "hash": "3e5d905c0bc94e4d8dc4889aa7eb029f"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\04-todo-progress.png": {
+    "mtime": 1777668214.255243,
+    "hash": "24d2101e416f3ffbb698032fc81b1342"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\04-todo-progress.svg": {
+    "mtime": 1777668214.256249,
+    "hash": "57400533783f1d28590c5968d88ee214"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\05-preview-iframe.png": {
+    "mtime": 1777668214.2572544,
+    "hash": "c64855a17e03d62a54ef0000a52f6db6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\05-preview-iframe.svg": {
+    "mtime": 1777668214.258249,
+    "hash": "8ea34d0ccc38afd45e9210eee16b93d5"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\06-design-systems-library.png": {
+    "mtime": 1777668214.2596478,
+    "hash": "19df90a2668a844fb2ba7dddc6998028"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\06-design-systems-library.svg": {
+    "mtime": 1777668214.2606544,
+    "hash": "1560d41a1a553c5135220eba1d61c82a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\07-magazine-deck.png": {
+    "mtime": 1777668214.261654,
+    "hash": "faf9b54b70754377dabfa66604850da6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\07-magazine-deck.svg": {
+    "mtime": 1777668214.261654,
+    "hash": "fd7552864cce567b5587ba89aa43c5d1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\08-mobile-app.png": {
+    "mtime": 1777668214.2636979,
+    "hash": "f37baae21642d4a3f07bea4ff4a19137"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\08-mobile-app.svg": {
+    "mtime": 1777668214.2649443,
+    "hash": "28070a9c508de95da09c5380aeebcdef"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\skills\\dating-web.png": {
+    "mtime": 1777668214.2670014,
+    "hash": "17e824d37dae9bfad4bf356950a5a770"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\skills\\digital-eguide.png": {
+    "mtime": 1777668214.2679996,
+    "hash": "12e83569b66506c8b9d9ba8879d28939"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\skills\\email-marketing.png": {
+    "mtime": 1777668214.269101,
+    "hash": "b0c9f56e18bdf934205961a66b2d7375"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\skills\\gamified-app.png": {
+    "mtime": 1777668214.2705252,
+    "hash": "ee0ca829f2860ab7e24182b2dd699010"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\skills\\mobile-onboarding.png": {
+    "mtime": 1777668214.271615,
+    "hash": "d7194b4359c6be79d4e575827c5e6240"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\skills\\motion-frames.png": {
+    "mtime": 1777668214.2736504,
+    "hash": "b8c18bedffba5606ddd9f9094cc7a79c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\skills\\social-carousel.png": {
+    "mtime": 1777668214.2756922,
+    "hash": "a6f2135d37d15706935a29bf9864bd42"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\docs\\screenshots\\skills\\sprite-animation.png": {
+    "mtime": 1777668214.2767055,
+    "hash": "11e7e3e39e80f447a7e041dc7b1b22c1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\tools\\pack\\resources\\mac\\icon.png": {
+    "mtime": 1777668214.6598103,
+    "hash": "ebcc73d13cd9037ab88af2beb9237199"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\public\\file.svg": {
+    "mtime": 1772551716.4965136,
+    "hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\public\\globe.svg": {
+    "mtime": 1772551716.5087726,
+    "hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\public\\next.svg": {
+    "mtime": 1772551716.520846,
+    "hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\public\\vercel.svg": {
+    "mtime": 1772551716.5319564,
+    "hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\public\\window.svg": {
+    "mtime": 1772551716.5431411,
+    "hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\public\\images\\shop-colors\\artemis.png": {
+    "mtime": 1777933668.6741261,
+    "hash": "612d2ca396b361f17f7debccdbc2da84"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\video\\video-seedance-three-kingdoms-guanyu-slaying-yanliang.mp4": {
+    "mtime": 1777668213.8501236,
+    "hash": "bcf46a032f5ec01108e8693e15f624ff"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\video\\video-seedance-three-kingdoms-lyubu-yuanmen-archery.mp4": {
+    "mtime": 1777668213.8865037,
+    "hash": "9681badca93f2a07758937143eaa5074"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\open-design\\assets\\prompt-templates\\video\\video-seedance-three-kingdoms-zhaoyun-cradle-escape.mp4": {
+    "mtime": 1777668213.9499545,
+    "hash": "dcfad5ea1fdd0d6708d73a2a71583a50"
+  }
+}

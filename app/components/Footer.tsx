@@ -79,7 +79,7 @@ export default function Footer() {
               <p>
                 Facebook:{" "}
                 <Link
-                  href="https://facebook.com/lizcabriales"
+                  href="https://www.facebook.com/profile.php?id=100008326095757"
                   target="_blank"
                   className="text-brand-gold hover:text-white"
                 >
