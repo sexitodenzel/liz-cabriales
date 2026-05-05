@@ -73,11 +73,11 @@ export default function BrandDescription() {
 
   return (
     <section ref={ref} className="bg-white text-black">
-      <div className="mx-auto max-w-7xl px-8 py-24">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:items-stretch lg:gap-16">
+      <div className="mx-auto max-w-[1400px] px-6 py-24">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
 
           {/* Text column */}
-          <div className="order-2 flex min-h-0 min-w-0 flex-col lg:order-1">
+          <div className="order-2 flex min-h-0 min-w-0 flex-col lg:order-2">
 
             {/* Heading + divider */}
             <div
@@ -172,21 +172,11 @@ export default function BrandDescription() {
 
           {/* Image column */}
           <div
-            className={`order-1 mx-auto flex w-full max-w-xs flex-col items-stretch justify-between lg:order-2 lg:mx-0 lg:h-full lg:min-h-0 lg:max-w-none lg:justify-self-end lg:self-stretch transition-all duration-700 ease-out ${inView ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6"}`}
+            className={`order-1 mx-auto flex w-full max-w-xs flex-col items-stretch justify-between lg:order-1 lg:mx-0 lg:h-full lg:min-h-0 lg:max-w-none lg:justify-self-start lg:self-stretch transition-all duration-700 ease-out ${inView ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-6"}`}
             style={{ transitionDelay: "100ms" }}
           >
             <div className="w-full lg:pt-7">
               <div className="relative">
-                {/* Gold corner brackets — relative to the image, not the outer wrapper */}
-                <div
-                  className="pointer-events-none absolute -right-2.5 -top-2.5 z-10 h-14 w-14 rounded-tr-2xl border-r-2 border-t-2 border-[#c9a84c]"
-                  aria-hidden
-                />
-                <div
-                  className="pointer-events-none absolute -bottom-2.5 -left-2.5 z-10 h-14 w-14 rounded-bl-2xl border-b-2 border-l-2 border-[#c9a84c]"
-                  aria-hidden
-                />
-
                 <div className="aspect-[2/3] w-full overflow-hidden rounded-2xl shadow-[0_8px_32px_rgba(201,168,76,0.14)] ring-1 ring-[#c9a84c]/30">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

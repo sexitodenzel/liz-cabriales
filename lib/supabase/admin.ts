@@ -911,6 +911,7 @@ export async function updateAdminProduct(
       input.images && input.images.length > 0 ? input.images : null
   if (input.isActive !== undefined) updatePayload.is_active = input.isActive
   if (input.isFeatured !== undefined) updatePayload.is_featured = input.isFeatured
+  updatePayload.updated_at = new Date().toISOString()
 
   const { data, error } = await supabaseAdmin
     .from("products")

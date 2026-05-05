@@ -24,8 +24,8 @@
     "hash": "30bec35345ff10b608fcdf915b4a618d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\page.tsx": {
-    "mtime": 1778014124.6236274,
-    "hash": "29ef0ea5e64412e39375dfa60f3a721f"
+    "mtime": 1778018551.2623944,
+    "hash": "b337478f592630635c933ad3b619832a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\(auth)\\layout.tsx": {
     "mtime": 1775678575.996814,
@@ -304,8 +304,8 @@
     "hash": "48736a4d69a717eb8b3a2b7dd55781c1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\BrandDescription.tsx": {
-    "mtime": 1778018002.6784523,
-    "hash": "2baaedda66ceb9d1ddbefe9d25a59c18"
+    "mtime": 1778019128.627753,
+    "hash": "7f04c34181eae6f195d117c9ba880e23"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\FeaturedColors.tsx": {
     "mtime": 1775678576.0128655,
@@ -338,6 +338,10 @@
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\PillarCards.tsx": {
     "mtime": 1778017371.3405118,
     "hash": "3675e2900c2153a3c624635719a74412"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\PillarStage.tsx": {
+    "mtime": 1778019018.5880158,
+    "hash": "5df97800f86ada5b0f836c68f849bcae"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\pillarTextColumn.ts": {
     "mtime": 1778014124.6160946,
@@ -528,8 +532,8 @@
     "hash": "debe7fd7b4fe927b801fbebb7f4ce450"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\admin.ts": {
-    "mtime": 1778014125.231925,
-    "hash": "181dafba1cd8b1c9cf9289032810f2c9"
+    "mtime": 1778019212.0222147,
+    "hash": "9d2ffd05c28eba65feaca305f84429c9"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\adminOrders.ts": {
     "mtime": 1775753272.6049712,
@@ -568,8 +572,8 @@
     "hash": "873872795581d8f022ec39995c507300"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\products.ts": {
-    "mtime": 1778014125.2339263,
-    "hash": "81c761909929d5680d042def9a911a16"
+    "mtime": 1778019215.1454997,
+    "hash": "c6403914035a60654462a6ef6f514317"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\server.ts": {
     "mtime": 1775678576.0697374,

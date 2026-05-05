@@ -263,6 +263,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
     .eq("is_featured", true)
     .eq("is_active", true)
     .is("deleted_at", null)
+    .order("updated_at", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(12)
 

@@ -1,6 +1,6 @@
 import BrandDescription from "./components/BrandDescription"
 import NuevosLanzamientos from "./components/NuevosLanzamientos"
-import PillarCards from "./components/PillarCards"
+import PillarStage from "./components/PillarStage"
 import ShopByNailPolishColors from "./components/ShopByNailPolishColors"
 import HeroSlider from "./components/hero/HeroSlider"
 import InstagramFeed from "./components/InstagramFeed"
@@ -14,7 +14,7 @@ export default function Home() {
         <div className="h-16 shrink-0" aria-hidden />
         <BrandDescription />
         <div className="h-16 shrink-0" aria-hidden />
-        <PillarCards />
+        <PillarStage />
         <ShopByNailPolishColors />
       </div>
       <NuevosLanzamientos />
