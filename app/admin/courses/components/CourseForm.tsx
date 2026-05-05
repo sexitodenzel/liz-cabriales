@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
+import ImageUploader from "@/app/admin/components/ImageUploader"
 import type { InstructorRow } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 
@@ -257,14 +258,43 @@ export default function CourseForm({
           </div>
 
           <div>
-            <label className={labelCls}>Imagen de portada (URL)</label>
-            <input
-              type="url"
-              value={values.cover_image}
-              onChange={(e) => update("cover_image", e.target.value)}
-              placeholder="https://..."
-              className={inputCls}
-            />
+            <label className={labelCls}>Imagen de portada</label>
+            <div className="mt-2 flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <ImageUploader
+                  folder="courses"
+                  buttonLabel={
+                    values.cover_image ? "Reemplazar imagen" : "Subir imagen"
+                  }
+                  onUpload={(url) => update("cover_image", url)}
+                  onError={(msg) => setError(msg)}
+                />
+                {values.cover_image && (
+                  <div className="flex items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={values.cover_image}
+                      alt="Vista previa de portada"
+                      className="h-16 w-24 rounded-lg border border-[#ececec] object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => update("cover_image", "")}
+                      className="text-xs font-semibold text-red-600 hover:underline"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                )}
+              </div>
+              <input
+                type="url"
+                value={values.cover_image}
+                onChange={(e) => update("cover_image", e.target.value)}
+                placeholder="O pega una URL: https://..."
+                className={inputCls}
+              />
+            </div>
           </div>
 
           <label className="flex items-center gap-3 text-sm text-[#3a3a3a]">

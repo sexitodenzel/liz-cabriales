@@ -4,6 +4,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { getProductBySlug } from "@/lib/supabase/products"
+import AddToCartButton from "../components/AddToCartButton"
 
 type PageProps = {
   params: Promise<{ slug: string }>
@@ -78,6 +79,25 @@ export default async function ProductPage({ params }: PageProps) {
                 MXN
               </span>
             </p>
+
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <AddToCartButton
+                productId={product.id}
+                productSlug={product.slug}
+                productName={product.name}
+                brand={product.brand ?? null}
+                image={image}
+                basePrice={product.base_price}
+                variants={product.variants}
+                className="inline-flex w-full items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+              />
+              <Link
+                href="/carrito"
+                className="inline-flex w-full items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-800 transition-colors hover:border-[#C9A84C] hover:text-[#a8862f]"
+              >
+                Ir al carrito
+              </Link>
+            </div>
 
             {product.description ? (
               <p className="mt-6 text-[15px] leading-7 text-neutral-700">

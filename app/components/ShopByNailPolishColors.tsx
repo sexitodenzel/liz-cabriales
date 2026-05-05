@@ -11,17 +11,14 @@ type Swatch = {
   id: string
   name: string
   hex: string
-  /** En el modal: título del producto (p. ej. ARTEMIS). Si existe, no se muestra el nombre del shade como título duplicado. */
   productTitle?: string
   collectionLine?: string
   productLine?: string
   imageSrc?: string
-  /** Precio demo para “Añadir al carrito” (invitados). */
   price?: number
   brand?: string | null
 }
 
-/** Producto demo único; variante distinta por swatch (UUID válidos para el carrito). */
 const DEMO_PRODUCT_ID = "10000000-0000-4000-8000-000000000001"
 
 function variantIdForSwatch(swatchId: string): string {
@@ -29,7 +26,7 @@ function variantIdForSwatch(swatchId: string): string {
   return `00000000-0000-4000-8000-${tail}`
 }
 
-const NAIL_POLISH_SWATCHES: Swatch[] = [
+const ALL_SWATCHES: Swatch[] = [
   { id: "1", name: "Alpine Snow", hex: "#F7F5F0" },
   { id: "2", name: "Bubble Bath", hex: "#ECD8CF" },
   { id: "3", name: "Funny Bunny", hex: "#EEE8E2" },
@@ -78,6 +75,38 @@ const NAIL_POLISH_SWATCHES: Swatch[] = [
   { id: "36", name: "Dim Sum Plum", hex: "#6B4E60" },
 ]
 
+function pick(...ids: string[]): Swatch[] {
+  return ids.map((id) => ALL_SWATCHES.find((s) => s.id === id)!).filter(Boolean)
+}
+
+const PALETTES = [
+  {
+    id: "primarios",
+    label: "Primarios",
+    swatches: pick("10", "11", "16", "17", "18", "19", "20", "29", "30", "23", "24", "27", "28"),
+  },
+  {
+    id: "neutros",
+    label: "Neutros",
+    swatches: pick("1", "3", "2", "33", "31", "34", "32", "4", "5", "6", "7"),
+  },
+  {
+    id: "rosas",
+    label: "Rosas & Lilas",
+    swatches: pick("35", "15", "29", "30", "11", "21", "22", "36"),
+  },
+  {
+    id: "oscuros",
+    label: "Oscuros",
+    swatches: pick("12", "13", "14", "36", "25", "26", "24", "8", "9", "7", "27", "28"),
+  },
+  {
+    id: "todos",
+    label: "Todos",
+    swatches: ALL_SWATCHES,
+  },
+]
+
 function textToneForHex(hex: string): "light" | "dark" {
   const h = hex.replace("#", "")
   const r = parseInt(h.slice(0, 2), 16) / 255
@@ -91,6 +120,7 @@ export default function ShopByNailPolishColors() {
   const { addItem, openCart } = useCart()
   const [openId, setOpenId] = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [activePalette, setActivePalette] = useState("primarios")
   const sectionRef = useRef<HTMLElement>(null)
   const [inView, setInView] = useState(false)
 
@@ -118,11 +148,19 @@ export default function ShopByNailPolishColors() {
     return () => subscription.unsubscribe()
   }, [])
 
+  const currentSwatches =
+    PALETTES.find((p) => p.id === activePalette)?.swatches ?? ALL_SWATCHES
+
   const selected = openId
-    ? NAIL_POLISH_SWATCHES.find((s) => s.id === openId) ?? null
+    ? ALL_SWATCHES.find((s) => s.id === openId) ?? null
     : null
 
   const closeModal = useCallback(() => setOpenId(null), [])
+
+  const handlePaletteChange = useCallback((id: string) => {
+    setActivePalette(id)
+    setOpenId(null)
+  }, [])
 
   useEffect(() => {
     if (!openId) return
@@ -162,6 +200,14 @@ export default function ShopByNailPolishColors() {
 
   return (
     <section ref={sectionRef} className="bg-white pt-14 text-black">
+      <style>{`
+        @keyframes paletteIn {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .palette-enter { animation: paletteIn 280ms ease both; }
+      `}</style>
+
       <div className="mx-auto max-w-[1400px] px-6">
         <header
           className={`mb-10 max-w-[720px] transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
@@ -185,12 +231,32 @@ export default function ShopByNailPolishColors() {
           className={`w-full transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
           style={{ transitionDelay: "180ms" }}
         >
+          {/* Palette selector — top right */}
+          <div className="mb-3 flex flex-wrap items-center justify-end gap-1">
+            {PALETTES.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => handlePaletteChange(p.id)}
+                className={`rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] transition-colors duration-200 ${
+                  activePalette === p.id
+                    ? "bg-[#111] text-white"
+                    : "text-[#8a8a8a] hover:text-[#111]"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Swatch grid — key forces remount + fade on palette change */}
           <div
-            className="grid w-full grid-cols-9 gap-1.5 sm:gap-2"
+            key={activePalette}
+            className="palette-enter grid w-full grid-cols-9 gap-1.5 sm:gap-2"
             role="list"
             aria-label="Paleta de esmaltes"
           >
-            {NAIL_POLISH_SWATCHES.map((swatch) => (
+            {currentSwatches.map((swatch) => (
               <div
                 key={swatch.id}
                 className="relative aspect-square min-w-0 overflow-visible"

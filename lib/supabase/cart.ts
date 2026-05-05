@@ -26,6 +26,7 @@ type ExistingCartItemRow = {
 type ProductJoin = {
   id: string
   name: string
+  slug: string
   brand: string | null
   images: string[] | null
 }
@@ -79,6 +80,7 @@ function toCartItemRow(row: CartItemJoinRow): CartItemRow {
     id: row.id,
     cartId: row.cart_id,
     productId: row.product_id,
+    productSlug: product?.slug ?? null,
     variantId: row.variant_id,
     quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 0,
     price: Number.isFinite(price) && price >= 0 ? price : 0,
@@ -245,6 +247,7 @@ export async function getCartItems(
       products (
         id,
         name,
+        slug,
         brand,
         images
       ),

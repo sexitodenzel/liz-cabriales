@@ -88,42 +88,51 @@ export default function CartPage() {
                   key={item.variantId}
                   className="flex gap-4 rounded-2xl border border-neutral-200 bg-white p-4"
                 >
-                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
-                    {item.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-neutral-400">
-                        {item.brand ?? "LC"}
-                      </div>
-                    )}
-                  </div>
+                  <Link
+                    href={item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"}
+                    className="flex min-w-0 flex-1 gap-4 rounded-xl transition-colors hover:bg-neutral-50"
+                  >
+                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
+                      {item.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-neutral-400">
+                          {item.brand ?? "LC"}
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="flex flex-1 flex-col gap-2">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
                       <div>
                         <p className="text-xs uppercase tracking-[0.16em] text-neutral-400">
                           {item.brand ?? "Sin marca"}
                         </p>
-                        <p className="text-sm font-medium text-[#0a0a0a]">
+                        <p className="truncate text-sm font-medium text-[#0a0a0a]">
                           {item.name}
                         </p>
+                        <p className="mt-1 text-xs font-medium text-[#a8862f]">
+                          Ver producto
+                        </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => void removeItem(item.variantId)}
-                        className="text-xs text-neutral-400 hover:text-red-500"
-                        aria-label="Quitar del carrito"
-                      >
-                        ×
-                      </button>
                     </div>
+                  </Link>
 
-                    <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-col items-end justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void removeItem(item.variantId)}
+                      className="text-xs text-neutral-400 hover:text-red-500"
+                      aria-label="Quitar del carrito"
+                    >
+                      ×
+                    </button>
+
+                    <div className="flex flex-col items-end gap-2">
                       <div className="flex items-center gap-2 text-xs text-neutral-600">
                         <button
                           type="button"

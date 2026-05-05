@@ -244,7 +244,7 @@ export default function NuevosLanzamientosCarousel({
       className="mx-auto max-w-[1400px] px-6 pt-6 pb-16 max-[720px]:pt-6 max-[720px]:pb-12"
       aria-labelledby="nuevos-lanzamientos-title"
     >
-      <header className="mb-12 flex items-end justify-between gap-8 max-[720px]:flex-col max-[720px]:items-start">
+      <header className="mb-12">
         <div
           className={`max-w-[720px] transition-all duration-700 ease-out ${headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
         >
@@ -265,28 +265,6 @@ export default function NuevosLanzamientosCarousel({
             Descubre los últimos productos de nuestras marcas aliadas —
             selección curada para elevar cada servicio en tu mesa de trabajo.
           </p>
-        </div>
-
-        <div
-          className={`flex items-center gap-3 pb-1.5 max-[720px]:pb-0 transition-all duration-700 ease-out ${headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
-          style={{ transitionDelay: "150ms" }}
-        >
-          <button
-            className={arrowBase}
-            onClick={goPrev}
-            disabled={index === 0}
-            aria-label="Anterior"
-          >
-            <ChevronLeft />
-          </button>
-          <button
-            className={arrowBase}
-            onClick={goNext}
-            disabled={index >= maxIndex}
-            aria-label="Siguiente"
-          >
-            <ChevronRight />
-          </button>
         </div>
       </header>
 
@@ -331,16 +309,34 @@ export default function NuevosLanzamientosCarousel({
           ))}
         </div>
 
-        <p
-          className="font-[family-name:var(--font-playfair),serif] text-[14px] italic tracking-[0.02em] text-black"
-          aria-live="polite"
-        >
-          <strong>{String(index + 1).padStart(2, "0")}</strong>
-          <span className="mx-1.5 text-[#c9a84c]">/</span>
-          <span className="text-[#8a8a8a]">
-            {String(pageCount).padStart(2, "0")}
-          </span>
-        </p>
+        <div className="flex items-center gap-3">
+          <button
+            className={arrowBase}
+            onClick={goPrev}
+            disabled={index === 0}
+            aria-label="Anterior"
+          >
+            <ChevronLeft />
+          </button>
+          <button
+            className={arrowBase}
+            onClick={goNext}
+            disabled={index >= maxIndex}
+            aria-label="Siguiente"
+          >
+            <ChevronRight />
+          </button>
+          <p
+            className="ml-1 font-[family-name:var(--font-playfair),serif] text-[14px] italic tracking-[0.02em] text-black"
+            aria-live="polite"
+          >
+            <strong>{String(index + 1).padStart(2, "0")}</strong>
+            <span className="mx-1.5 text-[#c9a84c]">/</span>
+            <span className="text-[#8a8a8a]">
+              {String(pageCount).padStart(2, "0")}
+            </span>
+          </p>
+        </div>
       </div>
     </section>
   )
