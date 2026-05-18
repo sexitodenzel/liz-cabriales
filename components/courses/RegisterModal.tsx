@@ -58,7 +58,9 @@ export default function RegisterModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const maxQty = course.spots_remaining
+  const maxQty = course.show_capacity_public
+    ? Math.min(course.spots_remaining, course.public_spots_remaining)
+    : course.spots_remaining
   const subtotal = course.price * qty
   const salesEnd = salesEndStr(course.start_date, course.start_time)
 
@@ -172,15 +174,19 @@ export default function RegisterModal({
               <div className="mb-0.5 text-[15px] font-semibold text-[#1a1a1a]">
                 Inscripción · {course.title}
               </div>
-              <div className="text-[12px] text-[#6b6b6b]">
-                {course.spots_remaining} lugar{course.spots_remaining !== 1 ? "es" : ""} disponible{course.spots_remaining !== 1 ? "s" : ""}
-              </div>
+              {course.show_capacity_public && (
+                <div className="text-[12px] text-[#6b6b6b]">
+                  {course.public_spots_remaining} lugar{course.public_spots_remaining !== 1 ? "es" : ""} disponible{course.public_spots_remaining !== 1 ? "s" : ""}
+                </div>
+              )}
             </div>
 
             {/* Price badge */}
-            <div className="whitespace-nowrap rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-4 py-[6px] text-[14px] font-semibold tracking-[0.02em] text-[#a8893a]">
-              {formatPrice(course.price)}
-            </div>
+            {course.show_price_public && (
+              <div className="whitespace-nowrap rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-4 py-[6px] text-[14px] font-semibold tracking-[0.02em] text-[#a8893a]">
+                {formatPrice(course.price)}
+              </div>
+            )}
 
             {/* Qty control */}
             <div className="flex items-center overflow-hidden rounded-lg border border-[#ececec]">
@@ -211,20 +217,22 @@ export default function RegisterModal({
           </div>
 
           {/* Subtotal */}
-          <div className="mt-[22px] flex items-baseline justify-between border-t border-dashed border-[#ececec] pt-5">
-            <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
-              Subtotal
-            </span>
-            <span
-              className="text-[28px] font-medium text-[#1a1a1a]"
-              style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-            >
-              {formatPrice(subtotal)}
-              <small className="ml-1.5 font-sans text-[12px] font-normal text-[#6b6b6b]">
-                MXN
-              </small>
-            </span>
-          </div>
+          {course.show_price_public && (
+            <div className="mt-[22px] flex items-baseline justify-between border-t border-dashed border-[#ececec] pt-5">
+              <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
+                Subtotal
+              </span>
+              <span
+                className="text-[28px] font-medium text-[#1a1a1a]"
+                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+              >
+                {formatPrice(subtotal)}
+                <small className="ml-1.5 font-sans text-[12px] font-normal text-[#6b6b6b]">
+                  MXN
+                </small>
+              </span>
+            </div>
+          )}
 
           {/* Error */}
           {error && (

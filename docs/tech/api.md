@@ -57,6 +57,8 @@ PUT    /courses/:id        — editar curso (admin)
 DELETE /courses/:id        — eliminar curso (admin)
 ```
 
+Los cursos tienen controles admin por curso: `allow_online_registration`, `show_price_public`, `show_capacity_public`, `public_registered_count` y `public_capacity`.
+
 ### Inscripciones a cursos
 ```
 POST   /course-registrations            — inscribirse a curso
@@ -64,6 +66,8 @@ GET    /course-registrations/admin      — ver inscritos (admin)
 GET    /course-registrations/user       — cursos del usuario
 DELETE /course-registrations/:id        — cancelar inscripción
 ```
+
+`POST /course-registrations` y `POST /payments/course` responden `ONLINE_REGISTRATION_DISABLED` cuando el curso está configurado como solo WhatsApp.
 
 ### Usuarios
 ```

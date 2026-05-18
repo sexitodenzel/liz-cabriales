@@ -3,9 +3,9 @@
 
 Los cursos son eventos presenciales que se anuncian periódicamente. Pueden ser de un solo día o tener una duración de varios días. Son impartidos por técnicas invitadas (instructores externos o colaboradores), no necesariamente por Liz directamente.
 
-Se publican en Instagram y Facebook con: título, descripción breve, instructor, fecha y datos de contacto. El sitio replica y centraliza ese anuncio, permitiendo inscripción y pago directamente sin pasar por WhatsApp.
+Se publican en Instagram y Facebook con: título, descripción breve, instructor, fecha y datos de contacto. El sitio replica y centraliza ese anuncio. Por defecto, la inscripción se canaliza por WhatsApp; desde el admin, Liz puede activar por curso la inscripción y pago directo en el sitio.
 
-Se muestra conteo o lista de asistentes confirmados en la vista pública para generar FOMO.
+El admin puede mostrar u ocultar el precio público y la disponibilidad del curso. No se muestra lista de asistentes por privacidad; solo conteos agregados cuando Liz los habilita. Para esos conteos, Liz puede usar datos reales o capturar manualmente inscritos y cupo públicos por curso.
 
 ---
 

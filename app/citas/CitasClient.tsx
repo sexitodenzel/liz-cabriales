@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 import type {
   ProfessionalRow,
@@ -265,6 +266,13 @@ export default function CitasClient({
   return (
     <main className="min-h-screen bg-[#f8f6f1] px-6 py-12 text-[#0a0a0a]">
       <div className="mx-auto max-w-4xl">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Servicios" },
+            { label: "Agendar Cita" },
+          ]}
+        />
         <header className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9b8b65]">
             Reservar cita

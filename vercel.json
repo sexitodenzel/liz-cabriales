@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/appointment-reminders",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/instagram-token",
+      "schedule": "0 9 1 * *"
     }
   ]
 }

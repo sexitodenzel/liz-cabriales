@@ -4,6 +4,10 @@ import { createClient } from "@/lib/supabase/server"
 import { updateAdminOrderStatusById } from "@/lib/supabase/adminOrders"
 import { requireAdmin } from "@/lib/supabase/admin"
 import { adminOrderStatusPatchSchema } from "@/lib/validations/adminOrders"
+import {
+  sendOrderShippedAlert,
+  sendOrderDeliveredAlert,
+} from "@/lib/notifications/order-notifications"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -70,6 +74,17 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json(
         { data: null, error: updateResult.error },
         { status: 500 }
+      )
+    }
+
+    const newStatus = parseResult.data.status
+    if (newStatus === "shipped") {
+      sendOrderShippedAlert(id).catch((err) =>
+        console.error(`[status] Error enviando WhatsApp shipped para orden ${id}:`, err)
+      )
+    } else if (newStatus === "delivered") {
+      sendOrderDeliveredAlert(id).catch((err) =>
+        console.error(`[status] Error enviando WhatsApp delivered para orden ${id}:`, err)
       )
     }
 

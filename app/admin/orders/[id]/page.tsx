@@ -18,6 +18,10 @@ function statusBadgeClass(status: OrderStatus): string {
       return "bg-neutral-200 text-neutral-800 border-neutral-300"
     case "paid":
       return "bg-blue-100 text-blue-900 border-blue-200"
+    case "awaiting_shipping_payment":
+      return "bg-orange-100 text-orange-900 border-orange-200"
+    case "shipping_paid":
+      return "bg-violet-100 text-violet-900 border-violet-200"
     case "shipped":
       return "bg-amber-100 text-amber-900 border-amber-200"
     case "delivered":
@@ -33,6 +37,8 @@ function statusLabel(status: OrderStatus): string {
   const map: Record<OrderStatus, string> = {
     pending: "Pendiente",
     paid: "Pagado",
+    awaiting_shipping_payment: "Esperando pago de envío",
+    shipping_paid: "Envío pagado",
     shipped: "Enviado",
     delivered: "Entregado",
     cancelled: "Cancelado",
@@ -49,6 +55,145 @@ function manualStatusLabel(status: ManualStatus): string {
   return map[status]
 }
 
+function shippingPaymentStatusLabel(s: string): string {
+  const map: Record<string, string> = {
+    not_required: "No requerido",
+    pending: "Pendiente de pago",
+    paid: "Pagado",
+    waived: "Condonado",
+  }
+  return map[s] ?? s
+}
+
+// ─── Sección de guía y envío ──────────────────────────────────────────────────
+
+type ShippingQuoteFormProps = {
+  orderId: string
+  onSuccess: (paymentUrl: string) => void
+}
+
+function ShippingQuoteForm({ orderId, onSuccess }: ShippingQuoteFormProps) {
+  const [amount, setAmount] = useState("")
+  const [carrier, setCarrier] = useState("")
+  const [trackingNumber, setTrackingNumber] = useState("")
+  const [guideNotes, setGuideNotes] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+
+    const parsedAmount = parseFloat(amount)
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      setError("Ingresa un monto de envío válido.")
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/shipping-quote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shipping_amount_final: parsedAmount,
+          ...(carrier ? { carrier } : {}),
+          ...(trackingNumber ? { tracking_number: trackingNumber } : {}),
+          ...(guideNotes ? { guide_notes: guideNotes } : {}),
+        }),
+      })
+
+      const json = await res.json()
+
+      if (!res.ok || json.error) {
+        setError(json?.error?.message ?? "Error al registrar el cobro de envío.")
+        return
+      }
+
+      onSuccess(json.data.payment_url)
+    } catch {
+      setError("Error de red. Intenta de nuevo.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-[#6b6b6b]">
+            Monto de envío (MXN) *
+          </span>
+          <input
+            type="number"
+            step="0.01"
+            min="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+            placeholder="ej. 150.00"
+            className="w-full rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-[#6b6b6b]">
+            Paquetería
+          </span>
+          <input
+            type="text"
+            value={carrier}
+            onChange={(e) => setCarrier(e.target.value)}
+            placeholder="ej. Estafeta, DHL, Redpack"
+            className="w-full rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
+          />
+        </label>
+      </div>
+
+      <label className="block">
+        <span className="mb-1 block text-xs font-medium text-[#6b6b6b]">
+          Número de guía / tracking
+        </span>
+        <input
+          type="text"
+          value={trackingNumber}
+          onChange={(e) => setTrackingNumber(e.target.value)}
+          placeholder="Número de rastreo (opcional si aún no tienes)"
+          className="w-full rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-1 block text-xs font-medium text-[#6b6b6b]">
+          Notas internas
+        </span>
+        <textarea
+          rows={2}
+          value={guideNotes}
+          onChange={(e) => setGuideNotes(e.target.value)}
+          placeholder="Notas sobre la guía (opcional)"
+          className="w-full rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
+        />
+      </label>
+
+      {error && (
+        <p className="text-sm text-red-700">{error}</p>
+      )}
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
+      >
+        {submitting ? "Enviando cobro…" : "Enviar cobro de envío al cliente"}
+      </button>
+    </form>
+  )
+}
+
+// ─── Página principal ─────────────────────────────────────────────────────────
+
 export default function AdminOrderDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -60,6 +205,7 @@ export default function AdminOrderDetailPage() {
   const [selectedStatus, setSelectedStatus] = useState<ManualStatus>("shipped")
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [quoteSuccess, setQuoteSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -83,9 +229,7 @@ export default function AdminOrderDetailPage() {
 
         if (!res.ok || json.error) {
           if (!cancelled) {
-            setError(
-              json?.error?.message ?? "No se pudo cargar la orden."
-            )
+            setError(json?.error?.message ?? "No se pudo cargar la orden.")
           }
           return
         }
@@ -132,9 +276,7 @@ export default function AdminOrderDetailPage() {
       const json = await res.json()
 
       if (!res.ok || json.error) {
-        setToast(
-          json?.error?.message ?? "No se pudo actualizar el estado."
-        )
+        setToast(json?.error?.message ?? "No se pudo actualizar el estado.")
         return
       }
 
@@ -191,6 +333,15 @@ export default function AdminOrderDetailPage() {
       <p className="text-sm text-neutral-700">Retiro en local</p>
     )
 
+  const showShippingQuoteForm =
+    order.delivery_type === "shipping" && order.status === "paid"
+
+  const showShippingInfo =
+    order.delivery_type === "shipping" &&
+    order.status !== "paid" &&
+    order.status !== "pending" &&
+    order.status !== "cancelled"
+
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="mx-auto max-w-4xl px-6 py-10">
@@ -234,6 +385,104 @@ export default function AdminOrderDetailPage() {
             </h2>
             <div className="mt-3">{shippingBlock}</div>
           </section>
+
+          {/* ── Sección guía y envío ── */}
+          {(showShippingQuoteForm || showShippingInfo) && (
+            <section className="rounded-2xl border border-[#ececec] bg-white p-6">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
+                Guía y envío
+              </h2>
+
+              {showShippingInfo && (
+                <div className="mt-3 space-y-2 text-sm">
+                  <p>
+                    <span className="text-[#6b6b6b]">Estado de pago: </span>
+                    <span className="font-medium">
+                      {shippingPaymentStatusLabel(order.shipping_payment_status)}
+                    </span>
+                  </p>
+                  {order.shipping_amount_final != null && (
+                    <p>
+                      <span className="text-[#6b6b6b]">Costo de envío: </span>
+                      <span className="font-semibold">
+                        ${order.shipping_amount_final.toFixed(2)} MXN
+                      </span>
+                    </p>
+                  )}
+                  {order.carrier && (
+                    <p>
+                      <span className="text-[#6b6b6b]">Paquetería: </span>
+                      {order.carrier}
+                    </p>
+                  )}
+                  {order.tracking_number && (
+                    <p>
+                      <span className="text-[#6b6b6b]">Número de guía: </span>
+                      <span className="font-mono">{order.tracking_number}</span>
+                    </p>
+                  )}
+                  {order.guide_notes && (
+                    <p>
+                      <span className="text-[#6b6b6b]">Notas: </span>
+                      {order.guide_notes}
+                    </p>
+                  )}
+                  {order.shipping_payment_url && order.shipping_payment_status === "pending" && (
+                    <p>
+                      <span className="text-[#6b6b6b]">Link de pago: </span>
+                      <a
+                        href={order.shipping_payment_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#c9a84c] underline"
+                      >
+                        Ver link MP
+                      </a>
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {showShippingQuoteForm && (
+                <>
+                  <p className="mt-3 text-sm text-neutral-600">
+                    Ingresa el costo real del envío. Se creará una preferencia de MercadoPago
+                    y se notificará al cliente por WhatsApp.
+                  </p>
+                  {quoteSuccess ? (
+                    <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm">
+                      <p className="font-semibold text-emerald-800">
+                        Cobro de envío enviado correctamente.
+                      </p>
+                      <p className="mt-1 text-emerald-700 break-all">
+                        Link de pago:{" "}
+                        <a
+                          href={quoteSuccess}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline"
+                        >
+                          {quoteSuccess}
+                        </a>
+                      </p>
+                    </div>
+                  ) : (
+                    <ShippingQuoteForm
+                      orderId={id}
+                      onSuccess={(url) => {
+                        setQuoteSuccess(url)
+                        setOrder((prev) =>
+                          prev
+                            ? { ...prev, status: "awaiting_shipping_payment" }
+                            : prev
+                        )
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </section>
+          )}
 
           <section className="rounded-2xl border border-[#ececec] bg-white overflow-hidden">
             <header className="border-b border-[#ececec] px-6 py-4">

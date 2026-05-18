@@ -72,7 +72,7 @@ export default function BrandDescription() {
   const { ref, inView } = useInView()
 
   return (
-    <section ref={ref} className="bg-white text-black">
+    <section ref={ref} className="bg-[var(--background)] text-black">
       <div className="mx-auto max-w-[1400px] px-6 py-24">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
 

@@ -1,0 +1,5 @@
+{"sessionId":"c1010a","location":"NuevosLanzamientosCarousel.tsx:useVisibleCount","message":"visible count after mount sync","data":{"visible":4,"runId":"post-fix"},"timestamp":1778288737508,"hypothesisId":"H1"}
+{"sessionId":"c1010a","location":"NuevosLanzamientosCarousel.tsx:useVisibleCount","message":"visible count after mount sync","data":{"visible":2,"runId":"post-fix"},"timestamp":1778288737505,"hypothesisId":"H1"}
+{"sessionId":"c1010a","location":"NuevosLanzamientosCarousel.tsx:useVisibleCount","message":"visible count after mount sync","data":{"visible":4,"runId":"post-fix"},"timestamp":1778288756195,"hypothesisId":"H1"}
+{"sessionId":"c1010a","location":"NuevosLanzamientosCarousel.tsx:useVisibleCount","message":"visible count after mount sync","data":{"visible":2,"runId":"post-fix"},"timestamp":1778288807958,"hypothesisId":"H1"}
+{"sessionId":"c1010a","location":"NuevosLanzamientosCarousel.tsx:useVisibleCount","message":"visible count after mount sync","data":{"visible":4,"runId":"post-fix"},"timestamp":1778288808433,"hypothesisId":"H1"}

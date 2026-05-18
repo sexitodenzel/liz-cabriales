@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getOrderWithItemsForUser } from "@/lib/supabase/orders"
 import type { OrderStatus } from "@/types"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -93,6 +94,13 @@ export default async function OrdenPage({ params, searchParams }: Props) {
   return (
     <main className="min-h-screen bg-[#f8f6f1] text-[#0a0a0a]">
       <div className="mx-auto max-w-[1060px] px-6 py-10">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Tienda", href: "/tienda" },
+            { label: "Confirmación de Pedido" },
+          ]}
+        />
         {/* Banner de estado */}
         {isSuccess && (
           <div className="mb-8 rounded-[24px] border border-[#b8d9b8] bg-[#f0faf0] p-6">

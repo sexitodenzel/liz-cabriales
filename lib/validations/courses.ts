@@ -37,6 +37,11 @@ export const createCourseSchema = z
       .nullable()
       .or(z.literal("")),
     is_published: z.boolean().optional().default(false),
+    allow_online_registration: z.boolean().optional().default(false),
+    show_price_public: z.boolean().optional().default(false),
+    show_capacity_public: z.boolean().optional().default(true),
+    public_registered_count: z.coerce.number().int().min(0).optional().nullable(),
+    public_capacity: z.coerce.number().int().min(1).optional().nullable(),
   })
   .superRefine((v, ctx) => {
     if (v.end_date && v.end_date < v.start_date) {
@@ -70,6 +75,11 @@ export const updateCourseSchema = z.object({
     .nullable()
     .or(z.literal("")),
   is_published: z.boolean().optional(),
+  allow_online_registration: z.boolean().optional(),
+  show_price_public: z.boolean().optional(),
+  show_capacity_public: z.boolean().optional(),
+  public_registered_count: z.coerce.number().int().min(0).optional().nullable(),
+  public_capacity: z.coerce.number().int().min(1).optional().nullable(),
 })
 
 export type UpdateCourseInput = z.infer<typeof updateCourseSchema>

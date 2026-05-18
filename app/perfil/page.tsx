@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import PerfilCitasClient from "./PerfilCitasClient"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 import PerfilSignOutButton from "./PerfilSignOutButton"
 import { listAppointmentsForUser } from "@/lib/supabase/appointments"
 import { getUserRegistrations } from "@/lib/supabase/courses"
@@ -24,6 +25,8 @@ function orderStatusLabel(status: OrderStatus): string {
   const map: Record<OrderStatus, string> = {
     pending: "Pendiente",
     paid: "Pagado",
+    awaiting_shipping_payment: "Esperando pago de envío",
+    shipping_paid: "Envío pagado",
     shipped: "Enviado",
     delivered: "Entregado",
     cancelled: "Cancelado",
@@ -92,6 +95,7 @@ export default async function PerfilPage() {
   return (
     <main className="min-h-screen bg-[#f8f6f1] text-[#0a0a0a]">
       <div className="mx-auto max-w-[900px] px-6 py-12">
+        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Mi Perfil" }]} />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9b8b65]">

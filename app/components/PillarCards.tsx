@@ -57,23 +57,6 @@ const promoSections: PromoSection[] = [
       { src: "https://picsum.photos/seed/academia3/400/600", alt: "Academia 3" },
     ],
   },
-  {
-    label: "Servicios",
-    headline: "Quiropodia y uñas profesionales, con quien más sabe.",
-    description:
-      "Atención especializada en quiropodia, reconstrucción ungueal, pedicure spa y tratamientos. Agenda tu cita directamente desde el sitio.",
-    href: "/citas",
-    cta: "Ver Servicios",
-    textAlign: "left",
-    imagesAlign: "right",
-    mediaGroupId: "services-media-grid",
-    mediaTypes: ["video", "before-after", "before-after"],
-    images: [
-      { src: "https://picsum.photos/seed/nails1/400/600", alt: "Servicios — placeholder 1" },
-      { src: "https://picsum.photos/seed/nails2/400/600", alt: "Servicios — placeholder 2" },
-      { src: "https://picsum.photos/seed/nails3/400/600", alt: "Servicios — placeholder 3" },
-    ],
-  },
 ]
 
 function useInView(threshold = 0.08) {

@@ -8,7 +8,7 @@ import Footer from "./components/Footer"
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="min-h-screen bg-[var(--background)] text-black">
       <div className="mx-auto w-full max-w-[1460px] px-6">
         <HeroSlider />
         <div className="h-16 shrink-0" aria-hidden />

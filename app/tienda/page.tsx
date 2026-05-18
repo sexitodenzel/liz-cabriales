@@ -9,6 +9,7 @@ import {
 } from "@/lib/supabase/products"
 
 import ProductGrid from "./components/ProductGrid"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 export const dynamic = 'force-dynamic'
 
@@ -78,6 +79,7 @@ export default async function StorePage({
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
       <div className="mx-auto max-w-[1200px] px-6 py-12">
+        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]} />
         <header className="mb-10 space-y-3 border-b border-neutral-200 pb-6">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-500">
             TIENDA

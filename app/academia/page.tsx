@@ -1,5 +1,6 @@
 import { getPublishedCourses } from "@/lib/supabase/courses"
 import CourseGrid from "../cursos/CourseGrid"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 export const dynamic = "force-dynamic"
 
@@ -21,6 +22,7 @@ export default async function AcademiaPage() {
   return (
     <main className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="mx-auto max-w-[1280px] px-8 py-10 pb-20">
+        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Academia" }]} />
         <CourseGrid courses={result.data} />
       </div>
     </main>

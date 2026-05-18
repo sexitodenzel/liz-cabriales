@@ -16,7 +16,7 @@
     // éxito{ data: T, error: null }// error{ data: null, error: { message: string, code?: string } }
     ```
     
-- Códigos de error propios: `UNAUTHORIZED`, `NOT_FOUND`, `VALIDATION_ERROR`, `PAYMENT_ERROR`, `OUT_OF_STOCK`
+- Códigos de error propios: `UNAUTHORIZED`, `NOT_FOUND`, `VALIDATION_ERROR`, `PAYMENT_ERROR`, `OUT_OF_STOCK`, `ONLINE_REGISTRATION_DISABLED`
 
 ---
 
@@ -282,13 +282,20 @@ Endpoints previstos:
 
 ## Módulo: Cursos _(Fase 2)_
 
-Pendiente de definición. Tablas: `courses`, `course_registrations`, `instructors`.
+Tablas: `courses`, `course_registrations`, `instructors`.
 
-Endpoints previstos:
+Endpoints:
 
 - `GET /api/courses` — listado público
-- `POST /api/course-registrations` — inscribirse con apartado
+- `GET /api/courses/[id]` — detalle público
+- `POST /api/course-registrations` — inscribirse con apartado si `allow_online_registration = true`
+- `GET /api/course-registrations/user` — cursos del usuario
+- `POST /api/payments/course` — crear preferencia MercadoPago para inscripción pendiente
 - `GET /api/admin/courses` — gestión de cursos
+
+Si el curso tiene `allow_online_registration = false`, `POST /api/course-registrations` y `POST /api/payments/course` deben responder con `ONLINE_REGISTRATION_DISABLED`. En ese caso el flujo público se canaliza por WhatsApp.
+
+Los endpoints públicos pueden devolver disponibilidad real o manual según `public_registered_count` y `public_capacity`. Si esos campos son `NULL`, se usa el conteo real de pagos confirmados y `capacity`.
 
 ---
 

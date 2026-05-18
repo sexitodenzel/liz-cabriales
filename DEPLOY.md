@@ -53,6 +53,19 @@ Si usas el dominio `onboarding@resend.dev`:
 - Funciona solo para testing
 - Al verificar un dominio propio en Resend, cambia la variable `from` en `lib/email/resend.ts`
 
+### 6. Configurar Google Login (Supabase OAuth)
+1. Ve a Supabase → **Authentication** → **Providers** → **Google** y habilítalo.
+2. Crea credenciales OAuth en Google Cloud (tipo Web application).
+3. En Google Cloud, agrega como Authorized redirect URI:
+   - `https://[project-id].supabase.co/auth/v1/callback`
+4. Copia el **Client ID** y **Client Secret** en el provider de Google en Supabase.
+5. En Supabase → Authentication → URL Configuration:
+   - Site URL: `https://[tu-proyecto].vercel.app`
+   - Additional Redirect URLs:
+     - `https://[tu-proyecto].vercel.app/auth/callback`
+     - `http://localhost:3000/auth/callback` (desarrollo)
+6. Ejecuta el SQL actualizado en `docs/delivery/sql-sprint5-supabase.sql` para asegurar creación de perfil `public.users` para OAuth (rol default `client`).
+
 ## Variables de Entorno — Referencia Completa
 
 | Variable | Público | Descripción | Donde obtener |
@@ -64,6 +77,10 @@ Si usas el dominio `onboarding@resend.dev`:
 | `MERCADOPAGO_WEBHOOK_SECRET` | ❌ | Secret para validar webhooks | MercadoPago Developers → Webhooks |
 | `NEXT_PUBLIC_APP_URL` | ✅ | URL base de la app | Tu dominio Vercel o propio |
 | `RESEND_API_KEY` | ❌ | API key de Resend | Resend → API Keys |
+| `GOOGLE_CLIENT_ID`* | ❌ | Client ID OAuth de Google | Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET`* | ❌ | Client Secret OAuth de Google | Google Cloud Console |
+
+\* Si usas Supabase Cloud estándar, estas credenciales se configuran en el dashboard de Supabase (provider Google) y no son necesarias como variables de entorno en Vercel.
 
 ## Verificación Pre-Deploy
 

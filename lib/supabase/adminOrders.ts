@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 
-import type { DeliveryType, OrderStatus } from "@/types"
+import type { DeliveryType, OrderStatus, ShippingPaymentStatus } from "@/types"
 
 type SupabaseError = { message: string; code?: string }
 type Result<T> = { data: T; error: null } | { data: null; error: SupabaseError }
@@ -36,6 +36,14 @@ export type AdminOrderDetail = {
   shipping_state: string | null
   shipping_city: string | null
   shipping_cost: number
+  shipping_amount_final: number | null
+  shipping_payment_status: ShippingPaymentStatus
+  shipping_payment_url: string | null
+  carrier: string | null
+  tracking_number: string | null
+  guide_notes: string | null
+  guide_created_at: string | null
+  shipped_at: string | null
   created_at: string
   client_first_name: string | null
   client_last_name: string | null
@@ -134,6 +142,14 @@ type RawOrderRow = {
   shipping_state: string | null
   shipping_city: string | null
   shipping_cost: number | string
+  shipping_amount_final: number | string | null
+  shipping_payment_status: string
+  shipping_payment_url: string | null
+  carrier: string | null
+  tracking_number: string | null
+  guide_notes: string | null
+  guide_created_at: string | null
+  shipped_at: string | null
   created_at: string
   users: unknown
   order_items: unknown
@@ -153,6 +169,14 @@ export async function getAdminOrderById(
        shipping_state,
        shipping_city,
        shipping_cost,
+       shipping_amount_final,
+       shipping_payment_status,
+       shipping_payment_url,
+       carrier,
+       tracking_number,
+       guide_notes,
+       guide_created_at,
+       shipped_at,
        created_at,
        users ( first_name, last_name, email ),
        order_items (
@@ -216,6 +240,14 @@ export async function getAdminOrderById(
       shipping_state: row.shipping_state,
       shipping_city: row.shipping_city,
       shipping_cost: Number(row.shipping_cost),
+      shipping_amount_final: row.shipping_amount_final != null ? Number(row.shipping_amount_final) : null,
+      shipping_payment_status: (row.shipping_payment_status ?? "not_required") as ShippingPaymentStatus,
+      shipping_payment_url: row.shipping_payment_url,
+      carrier: row.carrier,
+      tracking_number: row.tracking_number,
+      guide_notes: row.guide_notes,
+      guide_created_at: row.guide_created_at,
+      shipped_at: row.shipped_at,
       created_at: row.created_at,
       client_first_name: names.first,
       client_last_name: names.last,
@@ -224,6 +256,32 @@ export async function getAdminOrderById(
     },
     error: null,
   }
+}
+
+/**
+ * Marca el pago de envío como pagado (idempotente via .eq shipping_payment_status=pending).
+ * Retorna claimed:false si ya fue procesado.
+ */
+export async function claimShippingPayment(
+  orderId: string
+): Promise<Result<{ claimed: boolean }>> {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .update({
+      shipping_payment_status: "paid",
+      status: "shipping_paid",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .eq("shipping_payment_status", "pending")
+    .select("id")
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  const rows = (data ?? []) as Array<{ id: string }>
+  return { data: { claimed: rows.length > 0 }, error: null }
 }
 
 export async function updateAdminOrderStatusById(

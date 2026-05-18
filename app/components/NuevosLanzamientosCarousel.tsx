@@ -75,8 +75,11 @@ function useVisibleCount() {
     if (w <= 900) return 3
     return 4
   }
-  const [n, setN] = useState(get)
+  // SSR and the client's first paint must both use 4; reading window in useState(get)
+  // breaks hydration because get() differs between server and client.
+  const [n, setN] = useState(4)
   useEffect(() => {
+    setN(get())
     const onResize = () => setN(get())
     window.addEventListener("resize", onResize)
     return () => window.removeEventListener("resize", onResize)

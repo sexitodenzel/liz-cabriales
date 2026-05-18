@@ -115,6 +115,7 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 - [x] Admin: `/admin/courses` con CRUD + inscritos + inscripción manual
 - [x] Email de confirmación de inscripción a curso
 - [x] DB: `client_name`, `client_email` en `course_registrations`, `user_id` nullable
+- [x] Controles admin por curso: solo WhatsApp vs pago en línea, precio público y disponibilidad real/manual
 
 ### Sprint 5 — ACTIVO — Admin multi-rol y cierre
 

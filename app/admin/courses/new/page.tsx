@@ -22,6 +22,11 @@ const EMPTY_VALUES: CourseFormInitialValues = {
   location: "",
   cover_image: "",
   is_published: false,
+  allow_online_registration: false,
+  show_price_public: false,
+  show_capacity_public: true,
+  public_registered_count: "",
+  public_capacity: "",
 }
 
 export default async function NewCoursePage() {

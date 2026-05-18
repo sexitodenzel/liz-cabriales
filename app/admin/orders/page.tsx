@@ -42,6 +42,8 @@ function statusLabel(status: OrderStatus): string {
   const map: Record<OrderStatus, string> = {
     pending: "Pendiente",
     paid: "Pagado",
+    awaiting_shipping_payment: "Esperando pago envío",
+    shipping_paid: "Envío pagado",
     shipped: "Enviado",
     delivered: "Entregado",
     cancelled: "Cancelado",

@@ -25,6 +25,9 @@ export default function CartMenu() {
       items.map((item) => ({
         id: item.variantId,
         name: item.name,
+        brand: item.brand,
+        image: item.image,
+        productSlug: item.productSlug ?? null,
         price: item.price,
         qty: item.quantity,
       })),
@@ -57,17 +60,44 @@ export default function CartMenu() {
       <div className="flex-1 overflow-y-auto p-4">
         <ul className="space-y-5">
           {resolvedItems.map((item) => (
-            <li key={item.id} className="flex items-center gap-4">
-              <div className="h-16 w-16 shrink-0 rounded-xl border border-black/5 bg-gradient-to-br from-gray-100 to-gray-200" />
+            <li key={item.id} className="flex items-start gap-3">
+              <Link
+                href={
+                  item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"
+                }
+                onClick={closeCart}
+                className="flex min-w-0 flex-1 gap-3 rounded-xl transition-colors hover:bg-neutral-50"
+              >
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-black/5 bg-gradient-to-br from-gray-100 to-gray-200">
+                  {item.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-gray-400">
+                      {item.brand ?? "LC"}
+                    </div>
+                  )}
+                </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="cursor-pointer truncate text-[14px] text-gray-800 transition-colors duration-200 hover:text-[#C6A75E]">
-                  {item.name}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[14px] text-gray-800">
+                    {item.name}
+                  </p>
+                  <p className="mt-1 text-[11px] font-medium text-[#a8862f]">
+                    Ver producto
+                  </p>
+                </div>
+              </Link>
+
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                <p className="text-[13px] tabular-nums text-gray-700">
+                  {formatMXN(item.price * item.qty)}
                 </p>
-                <p className="mt-1 text-[12px] text-gray-500">
-                  {item.qty} × {formatMXN(item.price)}
-                </p>
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-500">
+                <div className="flex items-center gap-2 text-[11px] text-gray-500">
                   <button
                     type="button"
                     onClick={() =>
@@ -88,15 +118,11 @@ export default function CartMenu() {
                   <button
                     type="button"
                     onClick={() => removeItem(item.id)}
-                    className="ml-2 text-[11px] uppercase tracking-[0.12em] text-gray-400 hover:text-red-500"
+                    className="text-[11px] uppercase tracking-[0.12em] text-gray-400 hover:text-red-500"
                   >
                     Quitar
                   </button>
                 </div>
-              </div>
-
-              <div className="text-[13px] tabular-nums text-gray-700">
-                {formatMXN(item.price * item.qty)}
               </div>
             </li>
           ))}
@@ -137,4 +163,3 @@ export default function CartMenu() {
     </div>
   )
 }
-

@@ -85,6 +85,14 @@ export async function POST(
       )
     }
 
+    if (!course.allow_online_registration) {
+      return errorResponse(
+        "Este curso solo recibe inscripciones por WhatsApp. Escríbenos para pedir información.",
+        400,
+        "ONLINE_REGISTRATION_DISABLED"
+      )
+    }
+
     // Validar monto: debe ser >= apartado mínimo y <= precio total * attendees
     const totalCourse = course.price * registration.attendees
     const minDeposit = getMinDeposit(course.price)

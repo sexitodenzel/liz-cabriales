@@ -5,6 +5,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
 import { getRegistrationForUser } from "@/lib/supabase/courses"
 import type { RegistrationStatus } from "@/types"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 export const dynamic = "force-dynamic"
 
@@ -137,6 +138,13 @@ export default async function InscripcionSuccessPage({
   return (
     <main className="min-h-screen bg-[#f8f6f1] text-[#0a0a0a]">
       <div className="mx-auto max-w-[960px] px-6 py-10">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Cursos", href: "/academia" },
+            { label: "Inscripción" },
+          ]}
+        />
         {isSuccess && (
           <div className="mb-8 rounded-[24px] border border-[#b8d9b8] bg-[#f0faf0] p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#2d7a2d]">

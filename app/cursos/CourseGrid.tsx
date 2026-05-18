@@ -229,7 +229,9 @@ export default function CourseGrid({ courses }: Props) {
           {pageList.map((course) => {
             const { day, month } = parseDateBadge(course.start_date)
             const past = isCoursePast(course.start_date)
-            const isFull = course.spots_remaining <= 0
+            const isFull = course.show_capacity_public
+              ? course.public_spots_remaining <= 0
+              : course.spots_remaining <= 0
 
             return (
               <Link
@@ -325,13 +327,17 @@ export default function CourseGrid({ courses }: Props) {
                       <span className="ml-auto text-[12.5px] text-[#6b6b6b]">
                         Ver detalle →
                       </span>
-                    ) : isFull ? (
+                    ) : isFull && course.allow_online_registration ? (
                       <span className="ml-auto text-[12px] font-semibold text-red-600">
                         Lleno
                       </span>
-                    ) : (
+                    ) : course.show_price_public ? (
                       <span className="ml-auto font-semibold text-[#a8893a]">
                         {formatPrice(course.price)}
+                      </span>
+                    ) : (
+                      <span className="ml-auto text-[12.5px] text-[#6b6b6b]">
+                        Ver detalle →
                       </span>
                     )}
                   </div>

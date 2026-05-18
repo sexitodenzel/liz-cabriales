@@ -45,6 +45,11 @@ export type CourseRow = {
   start_time: string
   location: string
   is_published: boolean
+  allow_online_registration: boolean
+  show_price_public: boolean
+  show_capacity_public: boolean
+  public_registered_count: number | null
+  public_capacity: number | null
   created_at: string
   updated_at: string
 }
@@ -56,6 +61,9 @@ export type CourseWithInstructor = CourseRow & {
 export type CourseWithStats = CourseWithInstructor & {
   confirmed_count: number
   spots_remaining: number
+  public_confirmed_count: number
+  public_display_capacity: number
+  public_spots_remaining: number
 }
 
 export type RegistrationRow = {
@@ -113,6 +121,11 @@ type RawCourseRow = {
   start_time: string
   location: string
   is_published: boolean
+  allow_online_registration: boolean
+  show_price_public: boolean
+  show_capacity_public: boolean
+  public_registered_count: number | string | null
+  public_capacity: number | string | null
   created_at: string
   updated_at: string
   instructors?: RawInstructor | RawInstructor[] | null
@@ -134,6 +147,15 @@ function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
     start_time: row.start_time,
     location: row.location,
     is_published: Boolean(row.is_published),
+    allow_online_registration: Boolean(row.allow_online_registration),
+    show_price_public: Boolean(row.show_price_public),
+    show_capacity_public: Boolean(row.show_capacity_public),
+    public_registered_count:
+      row.public_registered_count == null
+        ? null
+        : Number(row.public_registered_count),
+    public_capacity:
+      row.public_capacity == null ? null : Number(row.public_capacity),
     created_at: row.created_at,
     updated_at: row.updated_at,
     instructor: ins
@@ -174,16 +196,23 @@ function attachStats(
   course: CourseWithInstructor,
   paidCount: number
 ): CourseWithStats {
+  const publicConfirmed = course.public_registered_count ?? paidCount
+  const publicCapacity = course.public_capacity ?? course.capacity
   return {
     ...course,
     confirmed_count: paidCount,
     spots_remaining: Math.max(0, course.capacity - paidCount),
+    public_confirmed_count: publicConfirmed,
+    public_display_capacity: publicCapacity,
+    public_spots_remaining: Math.max(0, publicCapacity - publicConfirmed),
   }
 }
 
 const COURSE_COLUMNS = `
   id, instructor_id, title, description, cover_image, price, capacity,
   level, start_date, end_date, start_time, location, is_published,
+  allow_online_registration, show_price_public, show_capacity_public,
+  public_registered_count, public_capacity,
   created_at, updated_at,
   instructors ( id, name, bio, photo_url, created_at )
 `
@@ -288,6 +317,17 @@ export async function createRegistration(
       error: {
         message: "El curso no está disponible",
         code: "COURSE_NOT_PUBLISHED",
+      },
+    }
+  }
+
+  if (!course.allow_online_registration) {
+    return {
+      data: null,
+      error: {
+        message:
+          "Este curso solo recibe inscripciones por WhatsApp. Escríbenos para pedir información.",
+        code: "ONLINE_REGISTRATION_DISABLED",
       },
     }
   }
@@ -494,6 +534,16 @@ function normalizeCoursePayload(
       input.cover_image && input.cover_image.length > 0 ? input.cover_image : null
   if (input.is_published !== undefined)
     payload.is_published = input.is_published
+  if (input.allow_online_registration !== undefined)
+    payload.allow_online_registration = input.allow_online_registration
+  if (input.show_price_public !== undefined)
+    payload.show_price_public = input.show_price_public
+  if (input.show_capacity_public !== undefined)
+    payload.show_capacity_public = input.show_capacity_public
+  if (input.public_registered_count !== undefined)
+    payload.public_registered_count = input.public_registered_count
+  if (input.public_capacity !== undefined)
+    payload.public_capacity = input.public_capacity
   return payload
 }
 

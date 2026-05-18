@@ -178,6 +178,7 @@ Archivos legacy, duplicados o variantes fuera de esas rutas no se usan para plan
 - Distribuye 15+ marcas profesionales
 - Red de 20+ masters nacionales e internacionales
 - Cursos con apartado desde $200 hasta $1,000
+- Cursos pueden configurarse por admin como solo WhatsApp o pago en línea; precio y disponibilidad real/manual son visibles u ocultos por curso
 - Acepta 6 meses sin intereses
 - WhatsApp: 833 218 3399
 - Sin reembolsos — solo cambios de producto

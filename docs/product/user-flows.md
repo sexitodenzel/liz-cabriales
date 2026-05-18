@@ -24,9 +24,12 @@
 1. Usuario entra a la sección de cursos
 2. Ve los cursos disponibles
 3. Selecciona un curso
-4. Indica cuántas personas asistirán
-5. Flujo similar a reserva de cita: selección → pago → confirmación
-6. Recibe correo de confirmación con detalles del curso
+4. Si el curso está en modo WhatsApp, el CTA abre conversación con el curso precargado y no se crea inscripción en el sitio
+5. Si el admin habilitó inscripción en línea, el usuario indica cuántas personas asistirán
+6. Flujo de pago: selección → MercadoPago → confirmación
+7. Recibe correo de confirmación con detalles del curso
+
+El admin puede ocultar precio público y disponibilidad por curso. Si muestra disponibilidad, puede usar inscritos/cupo reales o capturar números públicos manuales; el precio y cupo reales se conservan para operación interna.
 
 ### Flujo de registro / login
 Pendiente definir según proveedor de autenticación (Google OAuth o Supabase Auth nativo). El flujo se activa cuando el usuario intenta realizar una acción que requiere cuenta (comprar, reservar, inscribirse).

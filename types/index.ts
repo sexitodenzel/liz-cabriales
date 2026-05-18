@@ -2,9 +2,13 @@ export type UserRole = "client" | "admin" | "receptionist"
 export type OrderStatus =
   | "pending"
   | "paid"
+  | "awaiting_shipping_payment"
+  | "shipping_paid"
   | "shipped"
   | "delivered"
   | "cancelled"
+
+export type ShippingPaymentStatus = "not_required" | "pending" | "paid" | "waived"
 export type AppointmentStatus = "pending" | "paid" | "completed" | "cancelled"
 export type CourseLevel =
   | "beginner"

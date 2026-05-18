@@ -5,9 +5,12 @@
 ===================================== */
 
 :root {
-  --background: #ffffff;
+  /* Marfil cálido (no blanco óptico): más acorde al dorado de marca y menos “clínico” */
+  --background: #faf8f5;
   --foreground: #111111;
-  --gold: #C6A75E;
+  --gold: #c6a75e;
+  /* Tarjetas / superficies que deben resaltar sobre el fondo */
+  --surface: #ffffff;
 }
 
 /* =====================================

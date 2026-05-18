@@ -21,7 +21,6 @@ import { useCart } from "../cart/CartContext"
    export type MenuType =
    | "Tienda"
    | "Academia"
-   | "Servicios"
    | "search"
    | "cart"
    | "user"
@@ -42,7 +41,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   // Controlador central de todos los menús del navbar.
   // Solo un menú puede estar activo a la vez.
   // Ejemplos de valores:
-  // "Tienda", "Academia", "Servicios", "search", "cart", etc.
+  // "Tienda", "Academia", "search", "cart", etc.
 
   const [activeMenu, setActiveMenu] = useState<MenuType>(null)
   const {
@@ -112,7 +111,7 @@ return (
    HEADER
    ========================================= */}
 
-<header className="w-full sticky top-0 bg-white z-50 px-6">
+<header className="w-full sticky top-0 z-50 bg-[var(--background)] px-6">
 
 <div className="max-w-[1400px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center py-4.5">  
 
@@ -130,7 +129,6 @@ return (
 {(Object.keys(menuData) as (keyof typeof menuData)[]).map((item) => {
   const isTienda = item === "Tienda"
   const isAcademia = item === "Academia"
-  const isServicios = item === "Servicios"
   const label = (
     <button className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none">
       <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
@@ -152,10 +150,6 @@ return (
         </Link>
       ) : isAcademia ? (
         <Link href="/academia">
-          {label}
-        </Link>
-      ) : isServicios ? (
-        <Link href="/citas">
           {label}
         </Link>
       ) : (

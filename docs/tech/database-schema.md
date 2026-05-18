@@ -246,6 +246,11 @@
 | start_time     | time        | NOT NULL                                                     |
 | location       | text        | nullable                                                     |
 | is_published   | boolean     | default `false`                                              |
+| allow_online_registration | boolean | default `false`; habilita inscripción/pago en línea |
+| show_price_public | boolean | default `false`; controla si el precio se muestra al público |
+| show_capacity_public | boolean | default `true`; controla conteo/barra de lugares públicos |
+| public_registered_count | integer | nullable; conteo público manual de inscritos, usa datos reales si `NULL` |
+| public_capacity | integer | nullable; cupo público manual, usa `capacity` si `NULL` |
 | created_at     | timestamptz | default `now()`                                              |
 | updated_at     | timestamptz | default `now()`                                              |
 

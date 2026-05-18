@@ -64,6 +64,12 @@ export default async function EditCoursePage({ params }: Props) {
     location: c.location,
     cover_image: c.cover_image ?? "",
     is_published: c.is_published,
+    allow_online_registration: c.allow_online_registration,
+    show_price_public: c.show_price_public,
+    show_capacity_public: c.show_capacity_public,
+    public_registered_count:
+      c.public_registered_count == null ? "" : String(c.public_registered_count),
+    public_capacity: c.public_capacity == null ? "" : String(c.public_capacity),
   }
 
   return (

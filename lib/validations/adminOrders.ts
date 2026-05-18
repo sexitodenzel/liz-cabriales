@@ -4,7 +4,16 @@ export const adminOrdersQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(25),
   status: z
-    .enum(["all", "pending", "paid", "shipped", "delivered", "cancelled"])
+    .enum([
+      "all",
+      "pending",
+      "paid",
+      "awaiting_shipping_payment",
+      "shipping_paid",
+      "shipped",
+      "delivered",
+      "cancelled",
+    ])
     .default("all"),
 })
 

@@ -24,6 +24,11 @@ import {
 import { sendOrderConfirmationEmail } from "@/lib/email/resend"
 import { sendAppointmentConfirmationEmail } from "@/lib/email/templates/appointment-confirmation"
 import { sendCourseRegistrationEmail } from "@/lib/email/templates/course-registration"
+import { claimShippingPayment } from "@/lib/supabase/adminOrders"
+import {
+  sendNewOrderAlerts,
+  sendShippingPaidAlert,
+} from "@/lib/notifications/order-notifications"
 
 /**
  * ─── SQL ejecutado manualmente en Supabase SQL Editor (sin migraciones formales) ───
@@ -293,6 +298,37 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ received: true }, { status: 200 })
     }
 
+    // ── Dispatch: segundo pago de envío (prefix "shipping:") ──────────────────
+    if (externalRef.startsWith("shipping:")) {
+      const orderId = externalRef.slice("shipping:".length)
+
+      if (mpStatus === "approved") {
+        const claimResult = await claimShippingPayment(orderId)
+        if (claimResult.error) {
+          console.error(
+            `[webhook] Error reclamando pago de envío para orden ${orderId}:`,
+            claimResult.error
+          )
+          return NextResponse.json({ received: true }, { status: 200 })
+        }
+
+        if (!claimResult.data.claimed) {
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        try {
+          await sendShippingPaidAlert(orderId)
+        } catch (err) {
+          console.error(
+            `[webhook] Error enviando WhatsApp de envío pagado para orden ${orderId}:`,
+            err
+          )
+        }
+      }
+
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
+
     // ── Dispatch por defecto: pago de orden (external_reference = order_id) ─
     const orderId = externalRef
 
@@ -339,6 +375,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           emailError
         )
         // El fallo del email no interrumpe ni revierte el flujo del webhook
+      }
+
+      try {
+        await sendNewOrderAlerts(orderId)
+      } catch (waError) {
+        console.error(
+          `[webhook] Error enviando alertas WhatsApp para orden ${orderId}:`,
+          waError
+        )
       }
     } else if (mpStatus === "rejected" || mpStatus === "cancelled") {
       const updateResult = await updatePaymentStatusByOrderId(

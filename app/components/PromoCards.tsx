@@ -22,19 +22,13 @@ const cards: PromoCardProps[] = [
     buttonLabel: "Descubre ahora",
     href: "/academia",
   },
-  {
-    title: "Encuentra tu manicure",
-    description: "Descubre que tipo de manicure te queda mejor",
-    buttonLabel: "Descubre ahora",
-    href: "/servicios",
-  },
 ]
 
 export default function PromoCards() {
   return (
     <section className="py-8 px-6"> 
       <div className="max-w-[px1400] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {cards.map((card) => (
             <article
               key={card.title}

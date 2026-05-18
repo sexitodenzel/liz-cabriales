@@ -6,6 +6,7 @@ import { getAppointmentForUser } from "@/lib/supabase/appointments"
 import type { AppointmentStatus } from "@/types"
 
 import CancelAppointmentButton from "./CancelAppointmentButton"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -113,6 +114,13 @@ export default async function CitaPage({ params, searchParams }: Props) {
   return (
     <main className="min-h-screen bg-[#f8f6f1] text-[#0a0a0a]">
       <div className="mx-auto max-w-[1060px] px-6 py-10">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Servicios" },
+            { label: "Confirmación" },
+          ]}
+        />
         {isSuccess && (
           <div className="mb-8 rounded-[24px] border border-[#b8d9b8] bg-[#f0faf0] p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#2d7a2d]">

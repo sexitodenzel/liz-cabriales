@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState, type FormEvent } from "react"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 import {
   CFDI_SURCHARGE_PERCENT,
@@ -191,6 +192,15 @@ export default function CheckoutClient({ initialCart }: Props) {
 
   return (
     <main className="min-h-screen bg-[#f8f6f1] text-[#0a0a0a]">
+      <div className="mx-auto max-w-[1180px] px-6 pt-8">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Tienda", href: "/tienda" },
+            { label: "Checkout" },
+          ]}
+        />
+      </div>
       <div className="mx-auto grid max-w-[1180px] gap-8 px-6 py-10 lg:grid-cols-[1.2fr_0.8fr]">
         <section className="rounded-[28px] border border-[#e8e1d3] bg-white p-6 shadow-sm sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9b8b65]">

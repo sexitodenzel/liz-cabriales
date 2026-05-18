@@ -21,6 +21,11 @@ export type CourseFormInitialValues = {
   location: string
   cover_image: string
   is_published: boolean
+  allow_online_registration: boolean
+  show_price_public: boolean
+  show_capacity_public: boolean
+  public_registered_count: string
+  public_capacity: string
 }
 
 type Props = {
@@ -75,6 +80,15 @@ export default function CourseForm({
         ? values.cover_image.trim()
         : null,
       is_published: values.is_published,
+      allow_online_registration: values.allow_online_registration,
+      show_price_public: values.show_price_public,
+      show_capacity_public: values.show_capacity_public,
+      public_registered_count: values.public_registered_count
+        ? Number(values.public_registered_count)
+        : null,
+      public_capacity: values.public_capacity
+        ? Number(values.public_capacity)
+        : null,
     }
 
     try {
@@ -106,6 +120,7 @@ export default function CourseForm({
 
   const inputCls = "mt-1 w-full rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm text-[#1a1a1a] outline-none focus:border-[#c9a84c] transition-colors"
   const labelCls = "block text-xs font-medium uppercase tracking-wider text-[#6b6b6b]"
+  const checkboxCls = "h-4 w-4 rounded border-[#d8d8d8]"
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
@@ -302,10 +317,118 @@ export default function CourseForm({
               type="checkbox"
               checked={values.is_published}
               onChange={(e) => update("is_published", e.target.checked)}
-              className="h-4 w-4"
+              className={checkboxCls}
             />
             Publicar ahora (visible al público)
           </label>
+
+          <section className="rounded-xl border border-[#ececec] bg-[#fafafa] p-4">
+            <div className="mb-3">
+              <h2 className="text-sm font-semibold text-[#1a1a1a]">
+                Opciones en el sitio público
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-[#6b6b6b]">
+                Controla si el curso se compra en línea o se atiende por
+                WhatsApp, y qué información de disponibilidad se muestra.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 text-sm text-[#3a3a3a]">
+                <input
+                  type="checkbox"
+                  checked={values.allow_online_registration}
+                  onChange={(e) =>
+                    update("allow_online_registration", e.target.checked)
+                  }
+                  className={`${checkboxCls} mt-0.5`}
+                />
+                <span>
+                  <span className="block font-medium text-[#1a1a1a]">
+                    Permitir inscripción y pago en línea
+                  </span>
+                  <span className="block text-xs leading-relaxed text-[#6b6b6b]">
+                    Si está apagado, el botón público mandará a WhatsApp.
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 text-sm text-[#3a3a3a]">
+                <input
+                  type="checkbox"
+                  checked={values.show_price_public}
+                  onChange={(e) =>
+                    update("show_price_public", e.target.checked)
+                  }
+                  className={`${checkboxCls} mt-0.5`}
+                />
+                <span>
+                  <span className="block font-medium text-[#1a1a1a]">
+                    Mostrar precio al público
+                  </span>
+                  <span className="block text-xs leading-relaxed text-[#6b6b6b]">
+                    El precio interno sigue guardado aunque no se muestre.
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 text-sm text-[#3a3a3a]">
+                <input
+                  type="checkbox"
+                  checked={values.show_capacity_public}
+                  onChange={(e) =>
+                    update("show_capacity_public", e.target.checked)
+                  }
+                  className={`${checkboxCls} mt-0.5`}
+                />
+                <span>
+                  <span className="block font-medium text-[#1a1a1a]">
+                    Mostrar disponibilidad pública
+                  </span>
+                  <span className="block text-xs leading-relaxed text-[#6b6b6b]">
+                    Controla el texto de lugares y la barra de disponibilidad.
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            <div className="mt-4 grid gap-4 border-t border-[#ececec] pt-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls}>
+                  Inscritos públicos (opcional)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={values.public_registered_count}
+                  onChange={(e) =>
+                    update("public_registered_count", e.target.value)
+                  }
+                  placeholder="Usar inscritos reales"
+                  className={inputCls}
+                />
+                <p className="mt-1 text-xs text-[#6b6b6b]">
+                  Si lo dejas vacío, se usa el conteo real de pagos confirmados.
+                </p>
+              </div>
+              <div>
+                <label className={labelCls}>Cupo público (opcional)</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={values.public_capacity}
+                  onChange={(e) => update("public_capacity", e.target.value)}
+                  placeholder="Usar cupo real"
+                  className={inputCls}
+                />
+                <p className="mt-1 text-xs text-[#6b6b6b]">
+                  Si lo dejas vacío, se muestra el cupo operativo del curso.
+                </p>
+              </div>
+            </div>
+          </section>
 
           {error && (
             <p

@@ -39,12 +39,6 @@ export default function Footer() {
                 Academia
               </Link>
               <Link
-                href="/servicios"
-                className="transition-colors hover:text-brand-gold"
-              >
-                Servicios
-              </Link>
-              <Link
                 href="/inspiracion"
                 className="transition-colors hover:text-brand-gold"
               >

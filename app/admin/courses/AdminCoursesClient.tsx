@@ -129,7 +129,7 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
 
         {courses.length === 0 ? (
           <div className="rounded-xl border border-[#ececec] bg-[#fafafa] p-10 text-center text-sm text-[#6b6b6b]">
-            Aún no hay cursos. Crea el primero con "Nuevo curso".
+            Aún no hay cursos. Crea el primero desde Nuevo curso.
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-[#ececec] bg-white">
@@ -160,6 +160,35 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
                         <div className="text-xs text-[#6b6b6b]">
                           {c.instructor?.name ?? "Sin instructor"}
                         </div>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          <span
+                            className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                              c.allow_online_registration
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                : "border-[#ececec] bg-[#fafafa] text-[#6b6b6b]"
+                            }`}
+                          >
+                            {c.allow_online_registration
+                              ? "Pago en línea"
+                              : "Solo WhatsApp"}
+                          </span>
+                          {!c.show_price_public && (
+                            <span className="rounded-full border border-[#ececec] bg-[#fafafa] px-2 py-0.5 text-[11px] font-semibold text-[#6b6b6b]">
+                              Precio oculto
+                            </span>
+                          )}
+                          {!c.show_capacity_public && (
+                            <span className="rounded-full border border-[#ececec] bg-[#fafafa] px-2 py-0.5 text-[11px] font-semibold text-[#6b6b6b]">
+                              Cupo oculto
+                            </span>
+                          )}
+                          {(c.public_registered_count != null ||
+                            c.public_capacity != null) && (
+                            <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-2 py-0.5 text-[11px] font-semibold text-[#a8893a]">
+                              Disponibilidad manual
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-[#3a3a3a]">
                         {formatDate(c.start_date)}
@@ -177,6 +206,13 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
                       </td>
                       <td className="px-4 py-3 text-[#3a3a3a]">
                         {c.confirmed_count}/{c.capacity}
+                        {(c.public_registered_count != null ||
+                          c.public_capacity != null) && (
+                          <div className="text-xs text-[#6b6b6b]">
+                            Público: {c.public_confirmed_count}/
+                            {c.public_display_capacity}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {c.is_published ? (

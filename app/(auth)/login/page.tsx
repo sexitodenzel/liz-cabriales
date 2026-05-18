@@ -1,17 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 
 type Tab = "login" | "register"
+type RegisterStep = "form" | "otp"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
   const [activeTab, setActiveTab] = useState<Tab>("login")
   const [loading, setLoading] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Login form
@@ -26,6 +29,33 @@ export default function LoginPage() {
   const [regCity, setRegCity] = useState("")
   const [regEmail, setRegEmail] = useState("")
   const [regPassword, setRegPassword] = useState("")
+  const [regPhone, setRegPhone] = useState("")
+  const [regWhatsappOptIn, setRegWhatsappOptIn] = useState(false)
+
+  // OTP step
+  const [registerStep, setRegisterStep] = useState<RegisterStep>("form")
+  const [otpCode, setOtpCode] = useState("")
+  const [registeredUserId, setRegisteredUserId] = useState<string | null>(null)
+  const [otpLoading, setOtpLoading] = useState(false)
+
+  const redirectParam = searchParams.get("redirect") ?? searchParams.get("next")
+
+  const safeInternalRedirect =
+    redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : null
+
+  const buildPostAuthRedirect = () => {
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
+      window.location.origin.replace(/\/$/, "")
+
+    const callbackUrl = new URL("/auth/callback", appUrl)
+    if (safeInternalRedirect) {
+      callbackUrl.searchParams.set("next", safeInternalRedirect)
+    }
+    return callbackUrl.toString()
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +85,11 @@ export default function LoginPage() {
       }
       const role = profile?.role ?? "client"
       console.log("[handleLogin] Rol obtenido:", role, "profile:", profile)
+      if (safeInternalRedirect) {
+        router.push(safeInternalRedirect)
+        router.refresh()
+        return
+      }
       if (role === "admin") {
         router.push("/admin")
       } else if (role === "receptionist") {
@@ -93,7 +128,34 @@ export default function LoginPage() {
         setError(signUpError.message)
         return
       }
-      if (data.session) {
+
+      const userId = data.user?.id
+      const hasSession = Boolean(data.session)
+
+      // Si el usuario ingresó teléfono y aceptó WhatsApp, guardar y enviar OTP
+      if (userId && regPhone && regWhatsappOptIn) {
+        // Actualizar whatsapp_opt_in en el perfil
+        await supabase
+          .from("users")
+          .update({ whatsapp_opt_in: true })
+          .eq("id", userId)
+
+        // Enviar OTP
+        const otpRes = await fetch("/api/phone/send-code", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: regPhone }),
+        })
+
+        if (otpRes.ok) {
+          setRegisteredUserId(userId)
+          setRegisterStep("otp")
+          setLoading(false)
+          return
+        }
+      }
+
+      if (hasSession) {
         router.push("/")
         router.refresh()
       } else {
@@ -103,6 +165,59 @@ export default function LoginPage() {
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setOtpLoading(true)
+    try {
+      const res = await fetch("/api/phone/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: otpCode }),
+      })
+
+      const json = await res.json()
+
+      if (!res.ok || json.error) {
+        setError(json?.error?.message ?? "Código incorrecto. Intenta de nuevo.")
+        return
+      }
+
+      router.push("/")
+      router.refresh()
+    } catch {
+      setError("Error de red. Intenta de nuevo.")
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  const handleSkipOtp = () => {
+    router.push("/")
+    router.refresh()
+  }
+
+  const handleGoogleLogin = async () => {
+    setError(null)
+    setOauthLoading(true)
+    try {
+      const redirectTo = buildPostAuthRedirect()
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      })
+      if (oauthError) {
+        setError(oauthError.message)
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo iniciar Google Login."
+      setError(message)
+    } finally {
+      setOauthLoading(false)
     }
   }
 
@@ -141,6 +256,17 @@ export default function LoginPage() {
 
       {activeTab === "login" ? (
         <form onSubmit={handleLogin} className="space-y-6">
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading || oauthLoading}
+            className="w-full rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {oauthLoading ? "Conectando con Google…" : "Continuar con Google"}
+          </button>
+          <p className="text-center text-xs uppercase tracking-wider text-gray-400">
+            o entra con correo
+          </p>
           <div>
             <label
               htmlFor="email"
@@ -186,7 +312,59 @@ export default function LoginPage() {
             {loading ? "Entrando…" : "Entrar"}
           </button>
         </form>
+      ) : registerStep === "otp" ? (
+        /* ── Paso 2: Verificar OTP ── */
+        <div className="space-y-6">
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-medium">Verifica tu número de WhatsApp</p>
+            <p className="mt-1">
+              Enviamos un código de 6 dígitos al número {regPhone}. Ingrésalo para confirmar.
+            </p>
+          </div>
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <div>
+              <label
+                htmlFor="otpCode"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Código de verificación
+              </label>
+              <input
+                id="otpCode"
+                type="text"
+                inputMode="numeric"
+                pattern="\d{6}"
+                maxLength={6}
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                required
+                placeholder="123456"
+                className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 text-center text-xl tracking-widest focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              />
+            </div>
+            {error && (
+              <p className="text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={otpLoading || otpCode.length !== 6}
+              className="w-full py-3 rounded-md bg-black text-white text-sm font-medium hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {otpLoading ? "Verificando…" : "Verificar código"}
+            </button>
+          </form>
+          <button
+            type="button"
+            onClick={handleSkipOtp}
+            className="w-full text-center text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            Omitir por ahora (puedes verificar desde tu perfil)
+          </button>
+        </div>
       ) : (
+        /* ── Paso 1: Formulario de registro ── */
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -285,6 +463,42 @@ export default function LoginPage() {
               />
             </div>
           </div>
+
+          {/* ── Teléfono + opt-in WhatsApp ── */}
+          <div>
+            <label
+              htmlFor="regPhone"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Teléfono (WhatsApp)
+            </label>
+            <input
+              id="regPhone"
+              type="tel"
+              value={regPhone}
+              onChange={(e) => setRegPhone(e.target.value.replace(/\s/g, ""))}
+              placeholder="5218331234567"
+              className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Formato sin espacios ni guiones: código de país + número (ej. 5218331234567)
+            </p>
+          </div>
+
+          {regPhone && (
+            <label className="flex cursor-pointer items-start gap-3 rounded-md border border-gray-200 bg-gray-50 p-3 transition-colors has-[:checked]:border-black has-[:checked]:bg-gray-100">
+              <input
+                type="checkbox"
+                checked={regWhatsappOptIn}
+                onChange={(e) => setRegWhatsappOptIn(e.target.checked)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span className="text-sm text-gray-700">
+                Acepto recibir actualizaciones de mis pedidos y citas por WhatsApp.
+              </span>
+            </label>
+          )}
+
           <div>
             <label
               htmlFor="regPassword"

@@ -46,8 +46,8 @@ const PILLARS: Pillar[] = [
     eyebrow: "Servicios",
     headingBefore: "Quiropodia y uñas profesionales,",
     headingEm: "con quien más sabe.",
-    body: "Atención especializada en quiropodia, reconstrucción ungueal, pedicure spa y tratamientos. Agenda tu cita directamente desde el sitio.",
-    cta: { label: "Ver servicios", href: "/servicios" },
+    body: "Atención especializada en quiropodia, reconstrucción ungueal, pedicure spa y tratamientos. Muy pronto podrás conocer todo el catálogo y agendar desde el sitio.",
+    cta: { label: "Próximamente", href: "/proximamente" },
     images: [
       "https://picsum.photos/seed/services1/400/600",
       "https://picsum.photos/seed/services4/400/600",
@@ -104,7 +104,7 @@ export default function PillarStage() {
     `transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`
 
   return (
-    <section ref={ref} className="bg-white py-20 text-black">
+    <section ref={ref} className="bg-[var(--background)] py-20 text-black">
       <style>{`
         @keyframes pillarBodyIn {
           from { opacity: 0; transform: translateY(6px); }

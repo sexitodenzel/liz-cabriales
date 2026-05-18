@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import type { CourseWithStats } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
+import { buildWhatsAppHref } from "@/lib/constants/contact"
 import RegisterModal from "@/components/courses/RegisterModal"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type Props = {
   course: CourseWithStats
@@ -54,15 +55,6 @@ function initials(name: string): string {
 }
 
 // ── Icons ──────────────────────────────────────────────────────────────────
-
-function ChevLeftIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  )
-}
 
 function CompassIcon() {
   return (
@@ -127,28 +119,33 @@ export default function CourseDetail({
   const [modalOpen, setModalOpen] = useState(false)
 
   const { day, monthFull, year, dayName } = parseDateFull(course.start_date)
-  const isFull = course.spots_remaining <= 0
+  const isFull = course.show_capacity_public
+    ? course.public_spots_remaining <= 0
+    : course.spots_remaining <= 0
+  const canRegisterOnline = course.allow_online_registration
   const enrolledPct = Math.min(
     100,
-    Math.round((course.confirmed_count / course.capacity) * 100)
+    Math.round(
+      (course.public_confirmed_count / course.public_display_capacity) * 100
+    )
   )
-  const remaining = course.spots_remaining
+  const remaining = course.public_spots_remaining
+  const whatsAppHref = buildWhatsAppHref(
+    `Hola, quiero información sobre el curso "${course.title}".`
+  )
 
   return (
     <>
       <div className="mx-auto max-w-[1280px] px-8 py-10 pb-20">
-        {/* Breadcrumb */}
-        <nav className="mb-6 flex flex-wrap items-center gap-2 text-[13px] text-[#6b6b6b]">
-          <Link
-            href="/academia"
-            className="flex items-center gap-2 transition-colors hover:text-[#a8893a]"
-          >
-            <ChevLeftIcon />
-            {isPast ? "Eventos pasados" : "Todos los eventos"}
-          </Link>
-          <span className="text-[#9a9a9a]">/</span>
-          <span className="font-medium text-[#1a1a1a]">{course.title}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            {
+              label: isPast ? "Eventos pasados" : "Todos los eventos",
+              href: "/academia",
+            },
+            { label: course.title },
+          ]}
+        />
 
         {/* Hero */}
         <div className="relative mb-10 aspect-[16/5.6] w-full overflow-hidden rounded-[14px] bg-[#111]">
@@ -181,10 +178,10 @@ export default function CourseDetail({
               {course.description.slice(0, 160)}
               {course.description.length > 160 ? "…" : ""}
             </p>
-            {isPast && (
+            {isPast && course.show_capacity_public && (
               <div className="mt-4 flex items-center gap-2 text-[13px] text-white/90">
                 <span className="inline-block h-2 w-2 rounded-full bg-[#c9a84c]" />
-                Este evento ya se realizó · {course.confirmed_count} asistentes
+                Este evento ya se realizó · {course.public_confirmed_count} asistentes
               </div>
             )}
           </div>
@@ -356,15 +353,47 @@ export default function CourseDetail({
             <div>
               {isPast ? (
                 <div className="rounded-lg border border-[#ececec] bg-white px-5 py-4 text-center text-[13px] text-[#6b6b6b]">
-                  <div className="mb-1 text-[15px] font-semibold text-[#1a1a1a]">
-                    {course.confirmed_count}
-                  </div>
-                  Asistentes a esta edición
+                  {course.show_capacity_public ? (
+                    <>
+                      <div className="mb-1 text-[15px] font-semibold text-[#1a1a1a]">
+                        {course.public_confirmed_count}
+                      </div>
+                      Asistentes a esta edición
+                    </>
+                  ) : (
+                    "Edición realizada"
+                  )}
                 </div>
               ) : alreadyRegistered ? (
                 <div className="rounded-lg bg-emerald-50 px-5 py-4 text-center text-[13px] font-semibold text-emerald-700">
                   Ya estás inscrito en este curso
                 </div>
+              ) : !canRegisterOnline ? (
+                <>
+                  <a
+                    href={whatsAppHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex w-full flex-col items-center rounded-[10px] bg-[#c9a84c] px-5 py-4 text-center text-[14px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(201,168,76,0.3)] transition-all hover:bg-[#a8893a] hover:shadow-[0_6px_18px_rgba(201,168,76,0.45)] active:translate-y-px"
+                  >
+                    {isFull ? "Consultar disponibilidad" : "Pedir información"}
+                    <span className="mt-1 block text-[11px] font-normal tracking-[0.14em] opacity-85">
+                      Te respondemos por WhatsApp
+                    </span>
+                  </a>
+
+                  {course.show_capacity_public && (
+                    <div className="mt-4 text-center text-[12px] text-[#6b6b6b]">
+                      {course.public_confirmed_count} de {course.public_display_capacity} lugares · quedan {remaining}
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-[#eee]">
+                        <div
+                          className="h-full rounded-full bg-[#c9a84c] transition-all duration-500"
+                          style={{ width: `${enrolledPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : isFull ? (
                 <div className="rounded-lg bg-red-50 px-5 py-4 text-center text-[13px] font-semibold text-red-700">
                   Curso lleno
@@ -376,24 +405,28 @@ export default function CourseDetail({
                     className="flex w-full flex-col items-center rounded-[10px] bg-[#c9a84c] px-5 py-4 text-[14px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(201,168,76,0.3)] transition-all hover:bg-[#a8893a] hover:shadow-[0_6px_18px_rgba(201,168,76,0.45)] active:translate-y-px"
                   >
                     Registrar
-                    <span className="mt-1 block text-[11px] font-normal tracking-[0.14em] opacity-85">
-                      {formatPrice(course.price)} MXN · IVA incluido
-                    </span>
+                    {course.show_price_public && (
+                      <span className="mt-1 block text-[11px] font-normal tracking-[0.14em] opacity-85">
+                        {formatPrice(course.price)} MXN · IVA incluido
+                      </span>
+                    )}
                   </button>
 
                   {/* Capacity bar */}
-                  <div className="mt-4 text-center text-[12px] text-[#6b6b6b]">
-                    {course.confirmed_count} de {course.capacity} lugares · quedan {remaining}
-                    <div className="mt-2 h-1 overflow-hidden rounded-full bg-[#eee]">
-                      <div
-                        className="h-full rounded-full bg-[#c9a84c] transition-all duration-500"
-                        style={{ width: `${enrolledPct}%` }}
-                      />
+                  {course.show_capacity_public && (
+                    <div className="mt-4 text-center text-[12px] text-[#6b6b6b]">
+                      {course.public_confirmed_count} de {course.public_display_capacity} lugares · quedan {remaining}
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-[#eee]">
+                        <div
+                          className="h-full rounded-full bg-[#c9a84c] transition-all duration-500"
+                          style={{ width: `${enrolledPct}%` }}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Deposit info */}
-                  {minDeposit > 0 && minDeposit < course.price && (
+                  {course.show_price_public && minDeposit > 0 && minDeposit < course.price && (
                     <p className="mt-3 text-center text-[11px] leading-relaxed text-[#9a9a9a]">
                       Apartado mínimo {formatPrice(minDeposit)} · el saldo se liquida antes del curso
                     </p>

@@ -1,30 +1,81 @@
 # Checklist pre-lanzamiento
 
+> **Fuente única de verdad:** [`docs/delivery finalll.md`](../delivery%20finalll.md)  
+> Ahí están el resumen para Liz, la **matriz RACI**, el gate Go-Live, riesgos y el anexo técnico (OAuth, MP, Resend, Instagram, crons).
+
+Usa **este archivo** como lista rápida el día del lanzamiento.  
+Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **5** de `delivery finalll.md`.
+
+---
+
 ## Técnico
 
-- [ ] `CRON_SECRET` generado y en variables de entorno de Vercel
-- [ ] `NEXT_PUBLIC_APP_URL` actualizado al dominio real en Vercel
-- [ ] `MERCADOPAGO_ACCESS_TOKEN` de producción en Vercel
-- [ ] `MERCADOPAGO_WEBHOOK_SECRET` de producción en Vercel
-- [ ] Webhook URL registrada en panel MP: `https://[dominio]/api/webhooks/mercadopago`
-- [ ] Dominio de Resend verificado y remitente (`from`) actualizado
-- [ ] `SALON_ADDRESS` real en `lib/email/templates/_shared.ts`
-- [ ] SQL ejecutado: constraint `users_role_check` + columnas CFDI en `orders` (ver `docs/delivery/sql-sprint5-supabase.sql`)
+- [ ] Variables de Vercel completas (ver `.env.example` y sección 1 de `delivery finalll.md`)
+- [ ] `CRON_SECRET` en Vercel
+- [ ] `NEXT_PUBLIC_APP_URL` = dominio real + redeploy
+- [ ] `MERCADOPAGO_ACCESS_TOKEN` y `MERCADOPAGO_WEBHOOK_SECRET` (PROD)
+- [ ] Webhook MP: `https://[dominio]/api/webhooks/mercadopago`
+- [ ] Resend: dominio verificado + remitente actualizado (no `onboarding@resend.dev`)
+- [ ] `RESEND_API_KEY` en Vercel
+- [ ] SQL ejecutado: `docs/delivery/sql-sprint5-supabase.sql` (recepcionista, CFDI, `handle_new_user`)
+- [ ] SQL ejecutado: `docs/delivery/sql-course-display-settings.sql` (toggles públicos de cursos)
+- [ ] SQL ejecutado: `docs/delivery/sql-sprint-whatsapp.sql` (teléfono en users, campos TUA en orders, notification_log)
+- [ ] Google OAuth: provider en Supabase + app publicada en Google Cloud (no testing)
+- [ ] Supabase Auth URLs: Site URL + `https://[dominio]/auth/callback` (+ localhost)
+- [ ] Instagram: token inicial + cron de renovación operativo
+- [ ] Bucket Supabase `images` — upload desde admin OK
+- [ ] `SALON_ADDRESS` y contacto real en `lib/email/templates/_shared.ts`
+- [ ] Secretos rotados si hubo exposición fuera de Vercel
+- [ ] `npm run build` sin errores
 - [ ] `tsc --noEmit` limpio
-- [ ] Build de producción sin errores
+
+**Detalle OAuth / MP / Instagram / WhatsApp:** `delivery finalll.md` → sección **5**.
+
+### WhatsApp Business API (Meta)
+
+- [ ] `WHATSAPP_ACCESS_TOKEN` en Vercel (token permanente de sistema — no el temporal del dashboard)
+- [ ] `WHATSAPP_PHONE_NUMBER_ID` en Vercel
+- [ ] `WHATSAPP_BUSINESS_ACCOUNT_ID` en Vercel
+- [ ] `ADMIN_WHATSAPP_PHONE` en Vercel (número de Liz en E.164, ej. `5218332183399`)
+- [ ] 7 plantillas aprobadas en Meta Business Manager (ver §5.9 de `delivery finalll.md`): `phone_verify_otp`, `admin_new_order`, `order_products_confirmed`, `shipping_payment_request`, `shipping_paid_admin`, `order_shipped`, `order_delivered`
+- [ ] Número de WhatsApp Business registrado y verificado en Meta
+- [ ] Prueba: registro con teléfono → OTP recibido por WhatsApp
+- [ ] Prueba: pago aprobado → WhatsApp llega a Liz y al cliente
+
+---
 
 ## Contenido
 
 - [ ] Productos reales importados
 - [ ] Fotos reales de productos
-- [ ] Textos reales en landing (no placeholders)
+- [ ] Textos reales en landing (sin placeholders tipo picsum)
 - [ ] Al menos 1 curso publicado
+- [ ] Cada curso revisado en admin: WhatsApp vs pago en línea, precio público y disponibilidad real/manual
 - [ ] Servicios con precios reales
+
+---
 
 ## Operativo
 
-- [ ] Liz tiene credenciales de admin
-- [ ] Cuenta de recepcionista creada
-- [ ] Liz aprobó el diseño en staging
-- [ ] Video tutorial grabado
+- [ ] Liz con acceso **admin** en producción
+- [ ] Cuenta recepcionista creada (si aplica)
+- [ ] Liz aprobó diseño en staging / producción
+- [ ] % CFDI confirmado con contadora
+- [ ] Video tutorial entregado
 - [ ] Manual PDF entregado
+
+---
+
+## Gate final (copia de `delivery finalll.md` §3)
+
+- [ ] Dominio real + SSL
+- [ ] Login Google con cuenta externa
+- [ ] Pago MP → webhook → estado pagado
+- [ ] Email transaccional recibido
+- [ ] Feed Instagram visible
+- [ ] WhatsApp OTP recibido al registrarse con teléfono
+- [ ] Pago de productos → WhatsApp a Liz + al cliente
+- [ ] Admin registra guía → cliente recibe cobro de envío por WhatsApp + link MP
+- [ ] Segundo pago MP → estado `shipping_paid` + WhatsApp a Liz
+- [ ] Admin marca enviado → WhatsApp al cliente con tracking
+- [ ] Firmas DEV + LIZ en plan maestro

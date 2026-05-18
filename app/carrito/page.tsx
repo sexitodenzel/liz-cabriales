@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { useCart } from "@/app/components/cart/CartContext"
 
@@ -16,6 +17,7 @@ const FREE_SHIPPING_THRESHOLD = 999
 const SHIPPING_COST = 150
 
 export default function CartPage() {
+  const router = useRouter()
   const { items, itemCount, subtotal, updateQuantity, removeItem } = useCart()
 
   const remainingForFreeShipping = Math.max(
@@ -39,6 +41,16 @@ export default function CartPage() {
         {/* Columna izquierda */}
         <section className="flex-1 space-y-6">
           <header className="space-y-2">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="mb-1 flex items-center gap-2 text-[13px] text-[#6b6b6b] transition-colors hover:text-[#a8893a]"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+              Seguir comprando
+            </button>
             <h1 className="text-xl font-semibold tracking-[0.12em] text-[#0a0a0a]">
               CARRITO{" "}
               <span className="text-sm text-neutral-500">
@@ -212,12 +224,13 @@ export default function CartPage() {
           <div className="space-y-1 text-xs text-neutral-500">
             <p>
               O{" "}
-              <Link
-                href="/tienda"
+              <button
+                type="button"
+                onClick={() => router.back()}
                 className="font-medium text-[#0a0a0a] underline-offset-2 hover:underline"
               >
                 continúa comprando
-              </Link>
+              </button>
               .
             </p>
             <p className="text-[11px] text-neutral-500">

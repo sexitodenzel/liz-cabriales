@@ -5,6 +5,7 @@ import { notFound } from "next/navigation"
 
 import { getProductBySlug } from "@/lib/supabase/products"
 import AddToCartButton from "../components/AddToCartButton"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type PageProps = {
   params: Promise<{ slug: string }>
@@ -41,12 +42,13 @@ export default async function ProductPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
       <div className="mx-auto max-w-[1200px] px-6 py-12">
-        <Link
-          href="/tienda"
-          className="inline-flex items-center text-sm font-medium text-[#a8862f] transition-colors hover:text-[#8f7120]"
-        >
-          Regresar a tienda
-        </Link>
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Tienda", href: "/tienda" },
+            { label: product.name },
+          ]}
+        />
 
         <section className="mt-6 grid gap-8 md:grid-cols-2">
           <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-neutral-100">
