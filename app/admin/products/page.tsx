@@ -103,6 +103,10 @@ export default function AdminProductsPage() {
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all")
   const [filterLowStock, setFilterLowStock] = useState(false)
 
+  const [productsFullscreen, setProductsFullscreen] = useState(false)
+  const [categoriesFullscreen, setCategoriesFullscreen] = useState(false)
+  const [brandsFullscreen, setBrandsFullscreen] = useState(false)
+
   function syncCategories(nextCategories: ManagedCategory[]) {
     setManagedCategories(nextCategories)
     setCategories(
@@ -1383,19 +1387,40 @@ export default function AdminProductsPage() {
             </form>
           </section>
 
-          <section className="rounded-2xl bg-white shadow-sm border border-neutral-200/80 overflow-hidden flex flex-col">
-            <header className="border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
+          <section className={productsFullscreen
+            ? "fixed inset-0 z-50 bg-white flex flex-col shadow-2xl"
+            : "rounded-2xl bg-white shadow-sm border border-neutral-200/80 overflow-hidden flex flex-col"
+          }>
+            <header className="border-b border-neutral-100 px-6 py-4 flex items-center justify-between shrink-0">
               <h2 className="text-sm font-semibold tracking-[0.18em] text-neutral-500">
                 PRODUCTOS
               </h2>
-              <span className="text-xs text-neutral-500">
-                {hasActiveFilters
-                  ? `${filteredProducts.length} de ${activeProducts.length} productos`
-                  : `${activeProducts.length} productos activos`}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-neutral-500">
+                  {hasActiveFilters
+                    ? `${filteredProducts.length} de ${activeProducts.length} productos`
+                    : `${activeProducts.length} productos activos`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setProductsFullscreen((v) => !v)}
+                  title={productsFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                  className="text-neutral-400 hover:text-neutral-700 transition-colors"
+                >
+                  {productsFullscreen ? (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                      <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v2a1 1 0 01-2 0V5a3 3 0 013-3h2a1 1 0 010 2H5zm10 0h-2a1 1 0 010-2h2a3 3 0 013 3v2a1 1 0 01-2 0V5a1 1 0 00-1-1zM5 16a1 1 0 001-1v-2a1 1 0 012 0v2a3 3 0 01-3 3H3a1 1 0 010-2h2zm10 0h2a1 1 0 000-2h-2a1 1 0 01-1-1v-2a1 1 0 00-2 0v2a3 3 0 003 3z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H5.414l2.293 2.293a1 1 0 01-1.414 1.414L4 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V5.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 4H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13 2a1 1 0 01-2 0v-1.586l-2.293 2.293a1 1 0 01-1.414-1.414L13.586 15H12a1 1 0 010-2h4a1 1 0 011 1v4z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </header>
 
-            <div className="border-b border-neutral-100 px-4 py-3 space-y-2 bg-neutral-50/60">
+            <div className="border-b border-neutral-100 px-4 py-3 space-y-2 bg-neutral-50/60 shrink-0">
               <div className="relative">
                 <svg
                   viewBox="0 0 20 20"
@@ -1478,7 +1503,7 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto overflow-y-auto max-h-[640px]">
+            <div className={productsFullscreen ? "overflow-x-auto overflow-y-auto flex-1" : "overflow-x-auto overflow-y-auto max-h-[760px]"}>
               <table className="min-w-full text-left text-sm">
                 <thead className="sticky top-0 z-10 bg-neutral-50 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
@@ -1903,14 +1928,36 @@ export default function AdminProductsPage() {
           </section>
         </div>
 
-        <section className="mt-8 rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
-          <header className="border-b border-neutral-100 px-6 py-4">
+        <section className={categoriesFullscreen
+          ? "fixed inset-0 z-50 bg-white flex flex-col shadow-2xl mt-0"
+          : "mt-8 rounded-2xl border border-neutral-200/80 bg-white shadow-sm"
+        }>
+          <header className="border-b border-neutral-100 px-6 py-4 flex items-center justify-between shrink-0">
             <h2 className="text-sm font-semibold tracking-[0.18em] text-neutral-500">
               GESTIONAR CATEGORÍAS
             </h2>
+            <button
+              type="button"
+              onClick={() => setCategoriesFullscreen((v) => !v)}
+              title={categoriesFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+              className="text-neutral-400 hover:text-neutral-700 transition-colors"
+            >
+              {categoriesFullscreen ? (
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                  <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v2a1 1 0 01-2 0V5a3 3 0 013-3h2a1 1 0 010 2H5zm10 0h-2a1 1 0 010-2h2a3 3 0 013 3v2a1 1 0 01-2 0V5a1 1 0 00-1-1zM5 16a1 1 0 001-1v-2a1 1 0 012 0v2a3 3 0 01-3 3H3a1 1 0 010-2h2zm10 0h2a1 1 0 000-2h-2a1 1 0 01-1-1v-2a1 1 0 00-2 0v2a3 3 0 003 3z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H5.414l2.293 2.293a1 1 0 01-1.414 1.414L4 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V5.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 4H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13 2a1 1 0 01-2 0v-1.586l-2.293 2.293a1 1 0 01-1.414-1.414L13.586 15H12a1 1 0 010-2h4a1 1 0 011 1v4z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
           </header>
 
-          <div className="grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch">
+          <div className={categoriesFullscreen
+            ? "grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch flex-1 overflow-auto"
+            : "grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch"
+          }>
             <form onSubmit={handleCreateCategory} className="space-y-3">
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium tracking-wide text-neutral-600">
@@ -1937,7 +1984,10 @@ export default function AdminProductsPage() {
               </button>
             </form>
 
-            <div className="overflow-auto rounded-xl border border-neutral-200 max-h-[280px]">
+            <div className={categoriesFullscreen
+              ? "overflow-auto rounded-xl border border-neutral-200 h-full"
+              : "overflow-auto rounded-xl border border-neutral-200 max-h-[280px]"
+            }>
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
@@ -1994,14 +2044,36 @@ export default function AdminProductsPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-2xl border border-neutral-200/80 bg-white shadow-sm">
-          <header className="border-b border-neutral-100 px-6 py-4">
+        <section className={brandsFullscreen
+          ? "fixed inset-0 z-50 bg-white flex flex-col shadow-2xl mt-0"
+          : "mt-8 rounded-2xl border border-neutral-200/80 bg-white shadow-sm"
+        }>
+          <header className="border-b border-neutral-100 px-6 py-4 flex items-center justify-between shrink-0">
             <h2 className="text-sm font-semibold tracking-[0.18em] text-neutral-500">
               GESTIONAR MARCAS
             </h2>
+            <button
+              type="button"
+              onClick={() => setBrandsFullscreen((v) => !v)}
+              title={brandsFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+              className="text-neutral-400 hover:text-neutral-700 transition-colors"
+            >
+              {brandsFullscreen ? (
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                  <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v2a1 1 0 01-2 0V5a3 3 0 013-3h2a1 1 0 010 2H5zm10 0h-2a1 1 0 010-2h2a3 3 0 013 3v2a1 1 0 01-2 0V5a1 1 0 00-1-1zM5 16a1 1 0 001-1v-2a1 1 0 012 0v2a3 3 0 01-3 3H3a1 1 0 010-2h2zm10 0h2a1 1 0 000-2h-2a1 1 0 01-1-1v-2a1 1 0 00-2 0v2a3 3 0 003 3z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H5.414l2.293 2.293a1 1 0 01-1.414 1.414L4 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V5.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 4H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13 2a1 1 0 01-2 0v-1.586l-2.293 2.293a1 1 0 01-1.414-1.414L13.586 15H12a1 1 0 010-2h4a1 1 0 011 1v4z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
           </header>
 
-          <div className="grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch">
+          <div className={brandsFullscreen
+            ? "grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch flex-1 overflow-auto"
+            : "grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch"
+          }>
             <form
               onSubmit={(event) => {
                 event.preventDefault()
@@ -2056,7 +2128,10 @@ export default function AdminProductsPage() {
               </button>
             </form>
 
-            <div className="overflow-auto rounded-xl border border-neutral-200 max-h-[280px]">
+            <div className={brandsFullscreen
+              ? "overflow-auto rounded-xl border border-neutral-200 h-full"
+              : "overflow-auto rounded-xl border border-neutral-200 max-h-[280px]"
+            }>
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
