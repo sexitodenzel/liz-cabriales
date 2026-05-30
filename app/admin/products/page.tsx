@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import type {
   AdminBrand,
@@ -47,6 +47,91 @@ type ManagedBrand = AdminBrand & {
 
 const BRAND_GOLD = "#C9A84C"
 const BRAND_BLACK = "#000000"
+
+type MultiSelectOption = { value: string; label: string }
+
+function MultiSelectDropdown({
+  options,
+  selected,
+  onChange,
+  placeholder,
+}: {
+  options: MultiSelectOption[]
+  selected: string[]
+  onChange: (v: string[]) => void
+  placeholder: string
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handleOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("mousedown", handleOutside)
+    document.addEventListener("keydown", handleKey)
+    return () => {
+      document.removeEventListener("mousedown", handleOutside)
+      document.removeEventListener("keydown", handleKey)
+    }
+  }, [open])
+
+  function toggle(value: string) {
+    onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value])
+  }
+
+  const label =
+    selected.length === 0
+      ? placeholder
+      : selected.length === 1
+        ? (options.find((o) => o.value === selected[0])?.label ?? placeholder)
+        : `${selected.length} seleccionados`
+
+  const active = selected.length > 0
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] bg-white outline-none transition-colors ${
+          active
+            ? "border-[#c9a84c] text-[#c9a84c] font-medium"
+            : "border-neutral-200 text-neutral-600 hover:border-neutral-300"
+        }`}
+      >
+        <span className="max-w-[120px] truncate">{label}</span>
+        <svg viewBox="0 0 12 12" className={`h-2.5 w-2.5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M2 4l4 4 4-4" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-30 min-w-[168px] rounded-xl border border-neutral-200 bg-white shadow-lg py-1 max-h-[220px] overflow-y-auto">
+          {options.length === 0 ? (
+            <p className="px-3 py-2 text-[11px] text-neutral-400">Sin opciones</p>
+          ) : (
+            options.map((opt) => (
+              <label key={opt.value} className="flex items-center gap-2.5 px-3 py-1.5 hover:bg-neutral-50 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(opt.value)}
+                  onChange={() => toggle(opt.value)}
+                  className="h-3.5 w-3.5 rounded border-neutral-300 accent-[#c9a84c]"
+                />
+                <span className="text-[11px] text-neutral-700">{opt.label}</span>
+              </label>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function slugify(value: string): string {
   return value
@@ -98,8 +183,8 @@ export default function AdminProductsPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterCategory, setFilterCategory] = useState("")
-  const [filterBrand, setFilterBrand] = useState("")
+  const [filterCategories, setFilterCategories] = useState<string[]>([])
+  const [filterBrands, setFilterBrands] = useState<string[]>([])
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all")
   const [filterLowStock, setFilterLowStock] = useState(false)
 
@@ -345,11 +430,11 @@ export default function AdminProductsPage() {
           p.slug.toLowerCase().includes(q)
       )
     }
-    if (filterCategory) {
-      result = result.filter((p) => p.category_id === filterCategory)
+    if (filterCategories.length > 0) {
+      result = result.filter((p) => filterCategories.includes(p.category_id))
     }
-    if (filterBrand) {
-      result = result.filter((p) => p.brand === filterBrand)
+    if (filterBrands.length > 0) {
+      result = result.filter((p) => p.brand !== null && filterBrands.includes(p.brand))
     }
     if (filterStatus === "active") {
       result = result.filter((p) => p.is_active)
@@ -360,14 +445,14 @@ export default function AdminProductsPage() {
       result = result.filter((p) => p.stock <= p.min_stock)
     }
     return result
-  }, [activeProducts, searchQuery, filterCategory, filterBrand, filterStatus, filterLowStock])
+  }, [activeProducts, searchQuery, filterCategories, filterBrands, filterStatus, filterLowStock])
 
-  const hasActiveFilters = searchQuery.trim() !== "" || filterCategory !== "" || filterBrand !== "" || filterStatus !== "all" || filterLowStock
+  const hasActiveFilters = searchQuery.trim() !== "" || filterCategories.length > 0 || filterBrands.length > 0 || filterStatus !== "all" || filterLowStock
 
   function clearFilters() {
     setSearchQuery("")
-    setFilterCategory("")
-    setFilterBrand("")
+    setFilterCategories([])
+    setFilterBrands([])
     setFilterStatus("all")
     setFilterLowStock(false)
   }
@@ -1449,27 +1534,19 @@ export default function AdminProductsPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <select
-                  value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
-                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-[#c9a84c]"
-                >
-                  <option value="">Todas las categorías</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
+                <MultiSelectDropdown
+                  options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+                  selected={filterCategories}
+                  onChange={setFilterCategories}
+                  placeholder="Todas las categorías"
+                />
 
-                <select
-                  value={filterBrand}
-                  onChange={(e) => setFilterBrand(e.target.value)}
-                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-[#c9a84c]"
-                >
-                  <option value="">Todas las marcas</option>
-                  {brandOptions.map((bn) => (
-                    <option key={bn} value={bn}>{bn}</option>
-                  ))}
-                </select>
+                <MultiSelectDropdown
+                  options={brandOptions.map((bn) => ({ value: bn, label: bn }))}
+                  selected={filterBrands}
+                  onChange={setFilterBrands}
+                  placeholder="Todas las marcas"
+                />
 
                 <select
                   value={filterStatus}
