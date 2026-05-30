@@ -63,6 +63,7 @@ function MultiSelectDropdown({
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -80,6 +81,13 @@ function MultiSelectDropdown({
     }
   }, [open])
 
+  function handleMouseLeave() {
+    closeTimer.current = setTimeout(() => setOpen(false), 180)
+  }
+  function handleMouseEnter() {
+    if (closeTimer.current) clearTimeout(closeTimer.current)
+  }
+
   function toggle(value: string) {
     onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value])
   }
@@ -94,7 +102,7 @@ function MultiSelectDropdown({
   const active = selected.length > 0
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" onMouseLeave={handleMouseLeave} onMouseEnter={handleMouseEnter}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
