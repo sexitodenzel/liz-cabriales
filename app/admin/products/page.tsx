@@ -1478,7 +1478,7 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
+            <div className="overflow-x-auto overflow-y-auto max-h-[640px]">
               <table className="min-w-full text-left text-sm">
                 <thead className="sticky top-0 z-10 bg-neutral-50 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
@@ -1937,7 +1937,7 @@ export default function AdminProductsPage() {
               </button>
             </form>
 
-            <div className="overflow-auto rounded-xl border border-neutral-200 h-full">
+            <div className="overflow-auto rounded-xl border border-neutral-200 max-h-[280px]">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
@@ -2056,7 +2056,7 @@ export default function AdminProductsPage() {
               </button>
             </form>
 
-            <div className="overflow-auto rounded-xl border border-neutral-200 h-full">
+            <div className="overflow-auto rounded-xl border border-neutral-200 max-h-[280px]">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
