@@ -1383,7 +1383,7 @@ export default function AdminProductsPage() {
             </form>
           </section>
 
-          <section className="rounded-2xl bg-white shadow-sm border border-neutral-200/80 overflow-hidden">
+          <section className="rounded-2xl bg-white shadow-sm border border-neutral-200/80 overflow-hidden flex flex-col">
             <header className="border-b border-neutral-100 px-6 py-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold tracking-[0.18em] text-neutral-500">
                 PRODUCTOS
@@ -1478,7 +1478,7 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
+            <div className="overflow-x-auto overflow-y-auto flex-1">
               <table className="min-w-full text-left text-sm">
                 <thead className="sticky top-0 z-10 bg-neutral-50 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
