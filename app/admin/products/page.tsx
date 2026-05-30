@@ -1910,7 +1910,7 @@ export default function AdminProductsPage() {
             </h2>
           </header>
 
-          <div className="grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch">
             <form onSubmit={handleCreateCategory} className="space-y-3">
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium tracking-wide text-neutral-600">
@@ -1937,7 +1937,7 @@ export default function AdminProductsPage() {
               </button>
             </form>
 
-            <div className="overflow-hidden rounded-xl border border-neutral-200">
+            <div className="overflow-auto rounded-xl border border-neutral-200 h-full">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
@@ -2001,7 +2001,7 @@ export default function AdminProductsPage() {
             </h2>
           </header>
 
-          <div className="grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch">
             <form
               onSubmit={(event) => {
                 event.preventDefault()
@@ -2056,7 +2056,7 @@ export default function AdminProductsPage() {
               </button>
             </form>
 
-            <div className="overflow-hidden rounded-xl border border-neutral-200">
+            <div className="overflow-auto rounded-xl border border-neutral-200 h-full">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
