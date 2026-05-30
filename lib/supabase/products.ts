@@ -94,6 +94,34 @@ function mapVariantRow(variant: ProductVariantRow): ProductVariant {
   }
 }
 
+function mapProductWithCategoryRow(
+  row: unknown
+): ProductWithCategory | null {
+  const productRow = row as ProductRow
+  const cat = productRow.categories
+  if (!cat?.id) return null
+  const rawVariants = productRow.product_variants
+  const variantRows = Array.isArray(rawVariants)
+    ? rawVariants
+    : rawVariants
+      ? [rawVariants]
+      : []
+  return {
+    id: productRow.id,
+    category_id: productRow.category_id,
+    name: productRow.name,
+    slug: productRow.slug,
+    description: productRow.description ?? null,
+    base_price: Number(productRow.base_price),
+    images: productRow.images ?? null,
+    brand: productRow.brand ?? null,
+    is_featured: Boolean(productRow.is_featured),
+    is_active: Boolean(productRow.is_active),
+    category: { id: cat.id, name: cat.name, slug: cat.slug },
+    variants: variantRows.map(mapVariantRow),
+  }
+}
+
 export async function getCategories(): Promise<Result<Category[]>> {
   const supabase = await createClient()
 
@@ -373,5 +401,111 @@ export async function getProductBySlug(
   }
 
   return { data: product, error: null }
+}
+
+const RELATED_SELECT = `
+  id,
+  category_id,
+  name,
+  slug,
+  description,
+  base_price,
+  images,
+  brand,
+  is_featured,
+  is_active,
+  deleted_at,
+  categories (
+    id,
+    name,
+    slug
+  ),
+  product_variants (
+    id,
+    product_id,
+    sku,
+    variant_name,
+    price,
+    stock,
+    is_active
+  )
+`
+
+export type RelatedProductsParams = {
+  categoryId: string
+  brand?: string | null
+  excludeId: string
+  limit?: number
+}
+
+/**
+ * Recomendaciones "inteligentes": misma categoria primero, luego se completa
+ * con la misma marca y, si aun faltan, con productos destacados.
+ */
+export async function getRelatedProducts({
+  categoryId,
+  brand,
+  excludeId,
+  limit = 4,
+}: RelatedProductsParams): Promise<Result<ProductWithCategory[]>> {
+  const supabase = await createClient()
+
+  const collected: ProductWithCategory[] = []
+  const seen = new Set<string>([excludeId])
+
+  const baseQuery = () =>
+    supabase
+      .from("products")
+      .select(RELATED_SELECT)
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .neq("id", excludeId)
+      .limit(limit * 3)
+
+  const absorb = (rows: unknown[] | null) => {
+    for (const row of rows ?? []) {
+      if (collected.length >= limit) break
+      const product = mapProductWithCategoryRow(row)
+      if (!product || seen.has(product.id)) continue
+      seen.add(product.id)
+      collected.push(product)
+    }
+  }
+
+  // 1. Misma categoria.
+  {
+    const { data, error } = await baseQuery()
+      .eq("category_id", categoryId)
+      .order("is_featured", { ascending: false })
+      .order("name", { ascending: true })
+    if (error) {
+      return { data: null, error: { message: error.message, code: error.code } }
+    }
+    absorb(data)
+  }
+
+  // 2. Misma marca.
+  if (collected.length < limit && brand) {
+    const { data, error } = await baseQuery()
+      .eq("brand", brand)
+      .order("name", { ascending: true })
+    if (error) {
+      return { data: null, error: { message: error.message, code: error.code } }
+    }
+    absorb(data)
+  }
+
+  // 3. Destacados.
+  if (collected.length < limit) {
+    const { data, error } = await baseQuery()
+      .eq("is_featured", true)
+      .order("updated_at", { ascending: false })
+    if (error) {
+      return { data: null, error: { message: error.message, code: error.code } }
+    }
+    absorb(data)
+  }
+
+  return { data: collected.slice(0, limit), error: null }
 }
 

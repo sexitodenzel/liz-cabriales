@@ -69,10 +69,12 @@ export default function LoginPage() {
       })
       if (signInError) {
         setError(signInError.message)
+        setLoading(false)
         return
       }
       if (!data.user) {
         setError("No se pudo obtener el usuario.")
+        setLoading(false)
         return
       }
       const { data: profile, error: profileError } = await supabase
@@ -87,7 +89,6 @@ export default function LoginPage() {
       console.log("[handleLogin] Rol obtenido:", role, "profile:", profile)
       if (safeInternalRedirect) {
         router.push(safeInternalRedirect)
-        router.refresh()
         return
       }
       if (role === "admin") {
@@ -97,11 +98,9 @@ export default function LoginPage() {
       } else {
         router.push("/")
       }
-      router.refresh()
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error al iniciar sesión."
       setError(message)
-    } finally {
       setLoading(false)
     }
   }

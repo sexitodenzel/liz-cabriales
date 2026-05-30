@@ -3,8 +3,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { getProductBySlug } from "@/lib/supabase/products"
+import { getProductBySlug, getRelatedProducts } from "@/lib/supabase/products"
 import AddToCartButton from "../components/AddToCartButton"
+import ProductCard from "../components/ProductCard"
+import RecentlyViewed from "../components/RecentlyViewed"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type PageProps = {
@@ -38,6 +40,14 @@ export default async function ProductPage({ params }: PageProps) {
   if (error || !product) notFound()
 
   const image = product.images?.[0] ?? null
+
+  const { data: related } = await getRelatedProducts({
+    categoryId: product.category_id,
+    brand: product.brand,
+    excludeId: product.id,
+    limit: 4,
+  })
+  const relatedProducts = related ?? []
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
@@ -135,6 +145,27 @@ export default async function ProductPage({ params }: PageProps) {
             ) : null}
           </div>
         </section>
+
+        {relatedProducts.length > 0 ? (
+          <section className="mt-16">
+            <h2 className="text-xl font-semibold">Tambien te puede gustar</h2>
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {relatedProducts.map((item) => (
+                <ProductCard key={item.id} product={item} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <RecentlyViewed
+          current={{
+            slug: product.slug,
+            name: product.name,
+            image,
+            base_price: product.base_price,
+            brand: product.brand ?? null,
+          }}
+        />
       </div>
     </main>
   )
