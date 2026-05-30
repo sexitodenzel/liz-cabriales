@@ -97,6 +97,12 @@ export default function AdminProductsPage() {
   const [editForm, setEditForm] = useState<CreateFormState | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterCategory, setFilterCategory] = useState("")
+  const [filterBrand, setFilterBrand] = useState("")
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all")
+  const [filterLowStock, setFilterLowStock] = useState(false)
+
   function syncCategories(nextCategories: ManagedCategory[]) {
     setManagedCategories(nextCategories)
     setCategories(
@@ -323,6 +329,44 @@ export default function AdminProductsPage() {
     [products]
   )
   const brandOptions = useMemo(() => brands.map((brand) => brand.name), [brands])
+
+  const filteredProducts = useMemo(() => {
+    let result = activeProducts
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.sku ?? "").toLowerCase().includes(q) ||
+          p.slug.toLowerCase().includes(q)
+      )
+    }
+    if (filterCategory) {
+      result = result.filter((p) => p.category_id === filterCategory)
+    }
+    if (filterBrand) {
+      result = result.filter((p) => p.brand === filterBrand)
+    }
+    if (filterStatus === "active") {
+      result = result.filter((p) => p.is_active)
+    } else if (filterStatus === "inactive") {
+      result = result.filter((p) => !p.is_active)
+    }
+    if (filterLowStock) {
+      result = result.filter((p) => p.stock <= p.min_stock)
+    }
+    return result
+  }, [activeProducts, searchQuery, filterCategory, filterBrand, filterStatus, filterLowStock])
+
+  const hasActiveFilters = searchQuery.trim() !== "" || filterCategory !== "" || filterBrand !== "" || filterStatus !== "all" || filterLowStock
+
+  function clearFilters() {
+    setSearchQuery("")
+    setFilterCategory("")
+    setFilterBrand("")
+    setFilterStatus("all")
+    setFilterLowStock(false)
+  }
 
   const handleFormChange = (
     field: keyof CreateFormState,
@@ -1255,6 +1299,34 @@ export default function AdminProductsPage() {
                     setToast({ id: Date.now(), type: "error", message: msg })
                   }
                 />
+                {(() => {
+                  const urls = form.imagesInput.split(",").map((u) => u.trim()).filter(Boolean)
+                  if (urls.length === 0) return null
+                  return (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {urls.map((url, idx) => (
+                        <div key={idx} className="relative group shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={url}
+                            alt={`imagen ${idx + 1}`}
+                            className="h-14 w-14 rounded-lg object-cover border border-neutral-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = urls.filter((_, i) => i !== idx)
+                              handleFormChange("imagesInput", next.join(", "))
+                            }}
+                            className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity leading-none"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
                 <input
                   type="text"
                   value={form.imagesInput}
@@ -1317,13 +1389,98 @@ export default function AdminProductsPage() {
                 PRODUCTOS
               </h2>
               <span className="text-xs text-neutral-500">
-                {activeProducts.length} productos activos
+                {hasActiveFilters
+                  ? `${filteredProducts.length} de ${activeProducts.length} productos`
+                  : `${activeProducts.length} productos activos`}
               </span>
             </header>
 
-            <div className="overflow-x-auto">
+            <div className="border-b border-neutral-100 px-4 py-3 space-y-2 bg-neutral-50/60">
+              <div className="relative">
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400"
+                  aria-hidden
+                >
+                  <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar por nombre, SKU o código…"
+                  className="w-full rounded-lg border border-neutral-200 bg-white pl-8 pr-8 py-1.5 text-xs outline-none focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c]"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 text-sm leading-none"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-[#c9a84c]"
+                >
+                  <option value="">Todas las categorías</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={filterBrand}
+                  onChange={(e) => setFilterBrand(e.target.value)}
+                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-[#c9a84c]"
+                >
+                  <option value="">Todas las marcas</option>
+                  {brandOptions.map((bn) => (
+                    <option key={bn} value={bn}>{bn}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as "all" | "active" | "inactive")}
+                  className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-[#c9a84c]"
+                >
+                  <option value="all">Todos los estados</option>
+                  <option value="active">Activos</option>
+                  <option value="inactive">Inactivos</option>
+                </select>
+
+                <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filterLowStock}
+                    onChange={(e) => setFilterLowStock(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-neutral-300"
+                  />
+                  <span className="text-[11px] text-neutral-600">Stock bajo</span>
+                </label>
+
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="ml-auto text-[11px] font-medium text-[#c9a84c] hover:underline"
+                  >
+                    Limpiar filtros
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
               <table className="min-w-full text-left text-sm">
-                <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
+                <thead className="sticky top-0 z-10 bg-neutral-50 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
                     <th className="px-6 py-3 font-semibold">PRODUCTO</th>
                     <th className="px-4 py-3 font-semibold">CÓDIGO</th>
@@ -1341,17 +1498,17 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {activeProducts.length === 0 ? (
+                  {filteredProducts.length === 0 ? (
                     <tr>
                       <td
                         colSpan={11}
                         className="px-6 py-8 text-center text-sm text-neutral-500"
                       >
-                        Aún no hay productos creados.
+                        {hasActiveFilters ? "Sin resultados para esta búsqueda." : "Aún no hay productos creados."}
                       </td>
                     </tr>
                   ) : (
-                    activeProducts.map((product) => {
+                    filteredProducts.map((product) => {
                       const isEditing = editingId === product.id
                       return (
                         <tr key={product.id} className="align-top">
@@ -1654,6 +1811,34 @@ export default function AdminProductsPage() {
                                     }}
                                     onError={(msg) => setToast({ id: Date.now(), type: "error", message: msg })}
                                   />
+                                  {(() => {
+                                    const urls = editForm.imagesInput.split(",").map((u) => u.trim()).filter(Boolean)
+                                    if (urls.length === 0) return null
+                                    return (
+                                      <div className="flex flex-wrap gap-1.5 mt-1">
+                                        {urls.map((url, idx) => (
+                                          <div key={idx} className="relative group shrink-0">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                              src={url}
+                                              alt={`imagen ${idx + 1}`}
+                                              className="h-12 w-12 rounded-lg object-cover border border-neutral-200"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const next = urls.filter((_, i) => i !== idx)
+                                                handleEditFormChange("imagesInput", next.join(", "))
+                                              }}
+                                              className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity leading-none"
+                                            >
+                                              ×
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )
+                                  })()}
                                   <input
                                     type="text"
                                     value={editForm.imagesInput}
