@@ -24,12 +24,16 @@ export default function AdminReceptionistBar() {
           <span className="text-xs font-semibold tracking-[0.2em]" style={{ color: GOLD }}>
             RECEPCIÓN
           </span>
-          <nav className="flex items-center gap-2 text-sm" aria-label="Panel recepción">
+          <nav className="flex items-center gap-8 text-sm font-medium" aria-label="Panel recepción">
             <Link
               href="/admin/appointments"
-              className="rounded-md border border-[#e8dcb0] bg-[#f5efdc] px-3 py-1.5 font-medium text-[#a8893a] transition-colors"
+              className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)]"
+              aria-current="page"
             >
-              Agenda
+              <span className="text-[#C6A75E] transition-colors duration-200">
+                Agenda
+              </span>
+              <span className="absolute left-0 -bottom-1 h-[1px] w-full bg-[#C6A75E] transition-all duration-200" />
             </Link>
           </nav>
         </div>

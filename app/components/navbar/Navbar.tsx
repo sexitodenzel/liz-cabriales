@@ -110,7 +110,7 @@ return (
    HEADER
    ========================================= */}
 
-<header className="w-full sticky top-0 z-50 bg-[var(--background)] px-6">
+<header className="w-full sticky top-0 z-50 bg-white px-6">
 
 <div className="max-w-[1400px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center py-4.5">  
 
