@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  if (type === "invite") {
+  if (type === "invite" || type === "recovery") {
     return NextResponse.redirect(new URL("/auth/set-password", requestUrl.origin))
   }
 
