@@ -11,6 +11,18 @@ Los cursos son un pilar secundario del negocio — el fuerte es el ecommerce de 
 
 ---
 
+## Decisión implementada
+
+- Inscripción base: WhatsApp.
+- Inscripción/pago en línea: opcional por curso desde admin.
+- Precio público: visible u oculto por curso.
+- Disponibilidad pública: visible u oculta por curso.
+- Números de disponibilidad: datos reales por defecto; Liz puede capturar inscritos/cupo públicos manuales.
+- Privacidad: nunca se muestran nombres o listas de alumnos inscritos.
+- SQL ejecutado: `docs/delivery/sql-course-display-settings.sql`.
+
+---
+
 ## To-do (pendiente confirmar con Liz)
 
 - [ ]  ¿Los cursos siempre se pagan 100% adelantado o se aceptan apartados?

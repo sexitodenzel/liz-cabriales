@@ -5,7 +5,7 @@
    ========================================= */
 
 import Link from "next/link"
-import { Search, Heart, User, ShoppingBag } from "lucide-react"
+import { Search, User, ShoppingBag } from "lucide-react"
 import { useState, useEffect } from "react"
 import { menuData } from "./menuData"
 import MegaMenu from "./dropdowns/MegaMenu"
@@ -24,7 +24,6 @@ import { useCart } from "../cart/CartContext"
    | "search"
    | "cart"
    | "user"
-   | "favorites"
    | null
 
 type NavbarProps = {
@@ -127,37 +126,35 @@ return (
 
 {/* Render dinámico de links del navbar */}
 {(Object.keys(menuData) as (keyof typeof menuData)[]).map((item) => {
-  const isTienda = item === "Tienda"
-  const isAcademia = item === "Academia"
-  const label = (
-    <button className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none">
+  const href = item === "Tienda" ? "/tienda" : "/academia"
+
+  return (
+    <Link
+      key={item}
+      href={href}
+      onMouseEnter={() => setActiveMenu(item)}
+      onFocus={() => setActiveMenu(item)}
+      className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none"
+    >
       <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
         {item}
       </span>
       <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full"></span>
-    </button>
-  )
-
-  return (
-    <div
-      key={item}
-      onMouseEnter={() => setActiveMenu(item)}
-      className="flex items-center"
-    >
-      {isTienda ? (
-        <Link href="/tienda">
-          {label}
-        </Link>
-      ) : isAcademia ? (
-        <Link href="/academia">
-          {label}
-        </Link>
-      ) : (
-        label
-      )}
-    </div>
+    </Link>
   )
 })}
+
+<Link
+  href="/citas"
+  onMouseEnter={() => setActiveMenu(null)}
+  onFocus={() => setActiveMenu(null)}
+  className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)]"
+>
+  <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
+    Citas
+  </span>
+  <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full"></span>
+</Link>
 
 
 {/* MegaMenu Component */}
@@ -223,20 +220,14 @@ setActiveMenu(activeMenu === "search" ? null : "search")
 
 <Link
   href={isLoggedIn ? "/perfil" : "/login"}
-  className="inline-flex"
-  aria-label={isLoggedIn ? "Mi perfil" : "Iniciar sesión"}
+  className="inline-flex items-center gap-2 text-[13px] tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+  aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
 >
-  <User className="w-5 h-5 cursor-pointer hover:text-[#C6A75E] transition-colors" />
+  <User className="w-5 h-5" />
+  <span className="hidden md:inline">
+    {isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
+  </span>
 </Link>
-
-
-
-{/* FAVORITES ICON */}
-
-<Heart className="w-5 h-5 cursor-pointer hover:text-[#C6A75E] transition-colors" />
-
-
-
 {/* CART ICON */}
 
 <div

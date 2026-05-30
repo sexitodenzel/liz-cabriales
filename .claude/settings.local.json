@@ -7,7 +7,16 @@
       "PowerShell(Copy-Item *)",
       "Bash(mkdir -p /tmp/design-extract)",
       "Bash(tar -xf C:/Users/migue/AppData/Local/Temp/design-extract2/design.tar -C /tmp/design-extract)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(Get-ChildItem *)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Select-Object Name)",
+      "PowerShell(cd \"C:\\\\Users\\\\migue\\\\Desktop\\\\liz-cabriales\"; Get-ChildItem -Force | Where-Object {$_.Name -match \"^\\\\.\"} | Select-Object Name)",
+      "Bash(grep -r \"import.*Benefits\" . --include=\"*.ts\" --include=\"*.tsx\" ! -path \"*/node_modules/*\" ! -path \"*/.next/*\")",
+      "Bash(xargs wc -l)",
+      "Bash(npm audit *)",
+      "Bash(npm ls *)"
     ]
   }
 }

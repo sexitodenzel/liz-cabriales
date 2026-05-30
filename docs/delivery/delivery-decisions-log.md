@@ -19,6 +19,24 @@ Cada vez que Liz (u otro stakeholder) apruebe, rechace o cambie algo relevante:
 
 ---
 
+### 2026-05-18 — Controles públicos para cursos
+
+**Decidido por:** Liz Cabriales + equipo de desarrollo  
+**Canal:** Chat / ajuste de alcance
+
+**Decisiones:**
+
+- ✅ Por privacidad, la inscripción de cursos puede operar solo por WhatsApp.
+- ✅ Liz puede habilitar por curso la inscripción y pago en línea cuando lo necesite.
+- ✅ Liz puede mostrar u ocultar el precio público por curso.
+- ✅ Liz puede mostrar u ocultar la disponibilidad pública del curso.
+- ✅ La disponibilidad pública puede usar datos reales o números manuales de inscritos/cupo.
+- ❌ No se muestran nombres/listas de alumnos inscritos.
+
+**Impacto:** Se agregaron controles admin y columnas en `courses`: `allow_online_registration`, `show_price_public`, `show_capacity_public`, `public_registered_count` y `public_capacity`. El SQL correspondiente (`docs/delivery/sql-course-display-settings.sql`) fue ejecutado en Supabase.
+
+---
+
 ### 2026-03-16 — Reunión de definición de alcance
 
 **Decidido por:** Liz Cabriales + equipo de desarrollo

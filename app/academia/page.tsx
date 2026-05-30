@@ -1,5 +1,5 @@
 import { getPublishedCourses } from "@/lib/supabase/courses"
-import CourseGrid from "../cursos/CourseGrid"
+import CourseGrid from "./CourseGrid"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
 export const dynamic = "force-dynamic"

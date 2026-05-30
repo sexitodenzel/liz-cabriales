@@ -1,10 +1,10 @@
 # Checklist pre-lanzamiento
 
-> **Fuente única de verdad:** [`docs/delivery finalll.md`](../delivery%20finalll.md)  
+> **Fuente única de verdad:** [`docs/delivery/delivery-launch-plan.md`](delivery-launch-plan.md)  
 > Ahí están el resumen para Liz, la **matriz RACI**, el gate Go-Live, riesgos y el anexo técnico (OAuth, MP, Resend, Instagram, crons).
 
 Usa **este archivo** como lista rápida el día del lanzamiento.  
-Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **5** de `delivery finalll.md`.
+Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **5** de `delivery-launch-plan.md`.
 
 ---
 
@@ -18,7 +18,7 @@ Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **
 - [ ] Resend: dominio verificado + remitente actualizado (no `onboarding@resend.dev`)
 - [ ] `RESEND_API_KEY` en Vercel
 - [ ] SQL ejecutado: `docs/delivery/sql-sprint5-supabase.sql` (recepcionista, CFDI, `handle_new_user`)
-- [ ] SQL ejecutado: `docs/delivery/sql-course-display-settings.sql` (toggles públicos de cursos)
+- [x] SQL ejecutado: `docs/delivery/sql-course-display-settings.sql` (toggles públicos de cursos)
 - [ ] SQL ejecutado: `docs/delivery/sql-sprint-whatsapp.sql` (teléfono en users, campos TUA en orders, notification_log)
 - [ ] Google OAuth: provider en Supabase + app publicada en Google Cloud (no testing)
 - [ ] Supabase Auth URLs: Site URL + `https://[dominio]/auth/callback` (+ localhost)

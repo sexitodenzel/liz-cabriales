@@ -9,15 +9,24 @@ export const createProductSchema = z.object({
       message:
         "El slug solo puede contener letras minúsculas, números y guiones",
     }),
+  sku: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
+  longDescription: z.string().nullable().optional(),
   basePrice: z.coerce
-    .number({ message: "El precio base debe ser un número" })
-    .nonnegative("El precio base no puede ser negativo"),
+    .number({ message: "El precio de venta debe ser un número" })
+    .nonnegative("El precio de venta no puede ser negativo"),
+  costPrice: z.coerce.number().nonnegative().nullable().optional(),
+  wholesalePrice: z.coerce.number().nonnegative().nullable().optional(),
   categoryId: z.string().uuid("Categoría inválida"),
+  subcategory: z.string().nullable().optional(),
   brand: z.string().nullable().optional(),
+  department: z.string().nullable().optional(),
   images: z.array(z.string().url("URL de imagen inválida")).optional(),
   isActive: z.boolean().optional().default(true),
   isFeatured: z.boolean().optional().default(false),
+  initialStock: z.coerce.number().int().nonnegative().optional(),
+  minStock: z.coerce.number().int().nonnegative().optional(),
+  stock: z.coerce.number().int().nonnegative().nullable().optional(),
 })
 
 export const updateProductSchema = createProductSchema.partial()
@@ -40,4 +49,3 @@ export const deleteCategorySchema = z.object({
 
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>
 export type CreateBrandInput = z.infer<typeof createBrandSchema>
-

@@ -58,6 +58,21 @@
 
 ---
 
+## Demo para Liz — cursos
+
+Aunque este sprint está enfocado en landing, Liz va a pedir ver los controles nuevos de cursos. Para la demo, validar desde `/admin/courses`:
+
+- Curso en modo **solo WhatsApp**: el detalle público reemplaza el botón de compra por “Pedir información”.
+- Curso con **pago en línea habilitado**: el detalle público abre el modal de inscripción y pago.
+- **Precio público** visible/oculto por curso.
+- **Disponibilidad pública** visible/oculta por curso.
+- Disponibilidad usando datos reales o números manuales: inscritos públicos y cupo público.
+- Confirmar que nunca se muestran nombres/listas de alumnos inscritos.
+
+SQL ya ejecutado: `docs/delivery/sql-course-display-settings.sql`.
+
+---
+
 ## Prompt de arranque para Claude Code
 
 Pegar esto al inicio de cada sesión:

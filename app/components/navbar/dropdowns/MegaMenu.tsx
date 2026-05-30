@@ -6,10 +6,12 @@
    ========================================= */
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
+import type { MenuItem } from "../menuData"
 
 type MenuColumn = {
   title: string
-  items: string[]
+  items: MenuItem[]
 }
 
 type MegaMenuProps = {
@@ -83,13 +85,18 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
             <ul className="space-y-3 text-[18px]">
               {col?.items?.map((item, idx) => (
                 <li
-                  key={item}
-                  className={`cursor-pointer transition-all duration-500 ease-out hover:text-[#C6A75E] ${
+                  key={`${col?.title ?? delayMs}-${item.label}`}
+                  className={`transition-all duration-500 ease-out ${
                     contentOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
                   }`}
                   style={{ transitionDelay: `${delayMs + 90 + idx * 45}ms` }}
                 >
-                  {item}
+                  <Link
+                    href={item.href}
+                    className="transition-colors duration-200 hover:text-[#C6A75E]"
+                  >
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -7,7 +7,7 @@ import Breadcrumb from "@/components/shared/Breadcrumb"
 import {
   CFDI_SURCHARGE_PERCENT,
   computeInvoiceSurchargeMxn,
-} from "@/constants/cfdi"
+} from "@/lib/constants/cfdi"
 import type { CartSnapshot } from "@/lib/supabase/cart"
 import { createOrderSchema } from "@/lib/validations/orders"
 import type { DeliveryType } from "@/types"
@@ -532,8 +532,9 @@ export default function CheckoutClient({ initialCart }: Props) {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-neutral-500">
-            El costo de envio sigue en revision. La orden se crea con envio en
-            cero por ahora. Seran contactados para coordinar el envio.
+            Enviamos por Estafeta y DHL. El costo de envío se cotiza después de
+            confirmar tu orden — te contactaremos por WhatsApp o correo para
+            coordinarlo.
           </p>
         </aside>
       </div>

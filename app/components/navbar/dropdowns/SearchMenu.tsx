@@ -5,6 +5,7 @@
    ========================================= */
 
 import { Search } from "lucide-react"
+import Link from "next/link"
 
 type SearchMenuProps = {
   isOpen: boolean
@@ -49,22 +50,35 @@ export default function SearchMenu({ isOpen }: SearchMenuProps) {
             </p>
 
             <ul className="space-y-4 text-[16px]">
+              <li>
+                <Link
+                  href="/tienda?search=Builder%20Gel"
+                  className="flex items-center gap-3 text-gray-700 hover:text-[#C6A75E] transition-colors duration-200"
+                >
+                  <span>→</span>
+                  Builder Gel
+                </Link>
+              </li>
 
-            <li className="flex items-center gap-3 text-gray-700 cursor-pointer hover:text-[#C6A75E] transition-colors duration-200">
-  <span>→</span>
-  Builder Gel
-</li>
+              <li>
+                <Link
+                  href="/tienda?search=Kit%20profesional"
+                  className="flex items-center gap-3 text-gray-700 hover:text-[#C6A75E] transition-colors duration-200"
+                >
+                  <span>→</span>
+                  Kit profesional
+                </Link>
+              </li>
 
-<li className="flex items-center gap-3 text-gray-700 cursor-pointer hover:text-[#C6A75E] transition-colors duration-200">
-  <span>→</span>
-  Kit profesional
-</li>
-
-<li className="flex items-center gap-3 text-gray-700 cursor-pointer hover:text-[#C6A75E] transition-colors duration-200">
-  <span>→</span>
-  Curso básico
-</li>
-
+              <li>
+                <Link
+                  href="/academia"
+                  className="flex items-center gap-3 text-gray-700 hover:text-[#C6A75E] transition-colors duration-200"
+                >
+                  <span>→</span>
+                  Curso básico
+                </Link>
+              </li>
             </ul>
 
           </div>

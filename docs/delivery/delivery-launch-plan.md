@@ -188,7 +188,7 @@ Plantilla completa: `.env.example` y `DEPLOY.md`.
 - [ ] Resend con dominio verificado + remitente actualizado en código si aplica
 - [ ] `CRON_SECRET` configurado (recordatorios + Instagram)
 - [ ] Feed Instagram operativo
-- [ ] `sql-course-display-settings.sql` ejecutado si se usan controles de cursos
+- [x] `sql-course-display-settings.sql` ejecutado (controles públicos de cursos)
 - [ ] Variables WhatsApp en Vercel: `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `ADMIN_WHATSAPP_PHONE`
 - [ ] 7 plantillas Meta aprobadas: `phone_verify_otp`, `admin_new_order`, `order_products_confirmed`, `shipping_payment_request`, `shipping_paid_admin`, `order_shipped`, `order_delivered`
 - [ ] Prueba E2E flujo TUA: pago → guía → cobro envío → segundo pago → enviado
@@ -218,6 +218,7 @@ Plantilla completa: `.env.example` y `DEPLOY.md`.
 | Token Instagram vencido | Feed vacío en home | Cron mensual + token en `app_settings` |
 | SQL `handle_new_user` no ejecutado | Perfil roto tras login Google | Ejecutar `sql-sprint5-supabase.sql` |
 | SQL `sql-sprint-whatsapp.sql` no ejecutado | Columnas faltantes → error en checkout/panel | Ejecutar antes del go-live |
+| SQL de controles de cursos no ejecutado | Error al cargar/editar cursos por columnas faltantes | Ejecutado el 2026-05-18; re-ejecutar `sql-course-display-settings.sql` si se restaura DB |
 | Variables WhatsApp no configuradas | Sin notificaciones WhatsApp (no rompe el flujo) | El código omite sin error — activar cuando Meta esté lista |
 | Plantillas Meta no aprobadas | Mensajes bloqueados por Meta | Registrar y esperar aprobación (~24 h para Utility) |
 | Token WhatsApp temporal (no de sistema) | Expira en horas → mensajes dejan de salir | Usar token de sistema permanente desde Meta BM |

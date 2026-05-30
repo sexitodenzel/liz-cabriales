@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getCourseById, getUserRegistrations } from "@/lib/supabase/courses"
 import { getMinDeposit } from "@/lib/utils"
 
-import CourseDetail from "../../cursos/[id]/CourseDetail"
+import CourseDetail from "./CourseDetail"
 
 export const dynamic = "force-dynamic"
 

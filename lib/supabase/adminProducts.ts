@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 
-import { LOW_STOCK_THRESHOLD } from "@/constants/stock"
+import { LOW_STOCK_THRESHOLD } from "@/lib/constants/stock"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -38,10 +38,19 @@ export type AdminProduct = {
   category_id: string
   name: string
   slug: string
+  sku: string | null
   description: string | null
+  long_description: string | null
   base_price: number
+  cost_price: number | null
+  wholesale_price: number | null
   images: string[] | null
   brand: string | null
+  department: string | null
+  subcategory: string | null
+  min_stock: number
+  stock: number
+  variant_id: string | null
   is_featured: boolean
   is_active: boolean
   deleted_at: string | null
@@ -54,13 +63,22 @@ export type AdminProductWithCategory = AdminProduct & {
 export type CreateAdminProductInput = {
   name: string
   slug: string
+  sku?: string | null
   description?: string | null
+  longDescription?: string | null
   basePrice: number
+  costPrice?: number | null
+  wholesalePrice?: number | null
   categoryId: string
+  subcategory?: string | null
   brand?: string | null
+  department?: string | null
   images?: string[]
   isActive?: boolean
   isFeatured?: boolean
+  initialStock?: number
+  minStock?: number
+  stock?: number | null
 }
 
 export type UpdateAdminProductInput = Partial<CreateAdminProductInput>
@@ -722,10 +740,17 @@ export async function getAdminProducts(): Promise<
       category_id,
       name,
       slug,
+      sku,
       description,
+      long_description,
       base_price,
+      cost_price,
+      wholesale_price,
       images,
       brand,
+      department,
+      subcategory,
+      min_stock,
       is_featured,
       is_active,
       deleted_at,
@@ -733,6 +758,11 @@ export async function getAdminProducts(): Promise<
         id,
         name,
         slug
+      ),
+      product_variants (
+        id,
+        stock,
+        is_active
       )
     `
     )
@@ -753,26 +783,45 @@ export async function getAdminProducts(): Promise<
         category_id: string
         name: string
         slug: string
+        sku: string | null
         description: string | null
+        long_description: string | null
         base_price: number
+        cost_price: number | null
+        wholesale_price: number | null
         images: string[] | null
         brand: string | null
+        department: string | null
+        subcategory: string | null
+        min_stock: number | null
         is_featured: boolean
         is_active: boolean
         deleted_at: string | null
         categories?: unknown
+        product_variants?: Array<{ id: string; stock: number; is_active: boolean }> | null
       }
       const cat = categoryFromJoin(current)
       if (!cat) return null
+      const variants = current.product_variants ?? []
+      const activeVariant = variants.find((v) => v.is_active) ?? variants[0] ?? null
       return {
         id: current.id,
         category_id: current.category_id,
         name: current.name,
         slug: current.slug,
+        sku: current.sku ?? null,
         description: current.description ?? null,
+        long_description: current.long_description ?? null,
         base_price: Number(current.base_price),
+        cost_price: current.cost_price !== null ? Number(current.cost_price) : null,
+        wholesale_price: current.wholesale_price !== null ? Number(current.wholesale_price) : null,
         images: current.images ?? null,
         brand: current.brand ?? null,
+        department: current.department ?? null,
+        subcategory: current.subcategory ?? null,
+        min_stock: Number(current.min_stock ?? 0),
+        stock: activeVariant ? Number(activeVariant.stock) : 0,
+        variant_id: activeVariant?.id ?? null,
         is_featured: Boolean(current.is_featured),
         is_active: Boolean(current.is_active),
         deleted_at: current.deleted_at,
@@ -797,13 +846,20 @@ export async function createAdminProduct(
     .insert({
       name: input.name,
       slug: input.slug,
+      sku: input.sku ?? null,
       description: input.description ?? null,
+      long_description: input.longDescription ?? null,
       base_price: input.basePrice,
+      cost_price: input.costPrice ?? null,
+      wholesale_price: input.wholesalePrice ?? null,
       category_id: input.categoryId,
+      subcategory: input.subcategory ?? null,
       brand: normalizedBrandResult.data,
+      department: input.department ?? null,
       images: input.images && input.images.length > 0 ? input.images : null,
       is_active: input.isActive ?? true,
       is_featured: input.isFeatured ?? false,
+      min_stock: input.minStock ?? 0,
     })
     .select(
       `
@@ -811,10 +867,17 @@ export async function createAdminProduct(
       category_id,
       name,
       slug,
+      sku,
       description,
+      long_description,
       base_price,
+      cost_price,
+      wholesale_price,
       images,
       brand,
+      department,
+      subcategory,
+      min_stock,
       is_featured,
       is_active,
       deleted_at,
@@ -851,13 +914,13 @@ export async function createAdminProduct(
   const { error: variantError } = await supabaseAdmin
     .from("product_variants")
     .insert({
-    product_id: product.id,
-    sku: input.slug.toUpperCase(),
-    variant_name: input.name,
-    price: input.basePrice,
-    stock: 0,
-    is_active: true,
-  })
+      product_id: product.id,
+      sku: input.sku?.toUpperCase() ?? input.slug.toUpperCase(),
+      variant_name: input.name,
+      price: input.basePrice,
+      stock: input.initialStock ?? 0,
+      is_active: true,
+    })
 
   if (variantError) {
     return {
@@ -874,10 +937,19 @@ export async function createAdminProduct(
     category_id: product.category_id as string,
     name: product.name as string,
     slug: product.slug as string,
+    sku: (product.sku as string | null) ?? null,
     description: (product.description as string) ?? null,
+    long_description: (product.long_description as string | null) ?? null,
     base_price: Number(product.base_price),
+    cost_price: product.cost_price !== null ? Number(product.cost_price) : null,
+    wholesale_price: product.wholesale_price !== null ? Number(product.wholesale_price) : null,
     images: (product.images as string[] | null) ?? null,
     brand: (product.brand as string | null) ?? null,
+    department: (product.department as string | null) ?? null,
+    subcategory: (product.subcategory as string | null) ?? null,
+    min_stock: Number(product.min_stock ?? 0),
+    stock: input.initialStock ?? 0,
+    variant_id: null,
     is_featured: Boolean(product.is_featured),
     is_active: Boolean(product.is_active),
     deleted_at: product.deleted_at as string | null,
@@ -895,10 +967,14 @@ export async function updateAdminProduct(
 
   if (input.name !== undefined) updatePayload.name = input.name
   if (input.slug !== undefined) updatePayload.slug = input.slug
-  if (input.description !== undefined)
-    updatePayload.description = input.description
+  if (input.sku !== undefined) updatePayload.sku = input.sku
+  if (input.description !== undefined) updatePayload.description = input.description
+  if (input.longDescription !== undefined) updatePayload.long_description = input.longDescription
   if (input.basePrice !== undefined) updatePayload.base_price = input.basePrice
+  if (input.costPrice !== undefined) updatePayload.cost_price = input.costPrice
+  if (input.wholesalePrice !== undefined) updatePayload.wholesale_price = input.wholesalePrice
   if (input.categoryId !== undefined) updatePayload.category_id = input.categoryId
+  if (input.subcategory !== undefined) updatePayload.subcategory = input.subcategory
   if (input.brand !== undefined) {
     const normalizedBrandResult = await normalizeBrandValue(input.brand)
     if (normalizedBrandResult.error) {
@@ -906,12 +982,22 @@ export async function updateAdminProduct(
     }
     updatePayload.brand = normalizedBrandResult.data
   }
+  if (input.department !== undefined) updatePayload.department = input.department
   if (input.images !== undefined)
     updatePayload.images =
       input.images && input.images.length > 0 ? input.images : null
   if (input.isActive !== undefined) updatePayload.is_active = input.isActive
   if (input.isFeatured !== undefined) updatePayload.is_featured = input.isFeatured
+  if (input.minStock !== undefined) updatePayload.min_stock = input.minStock
   updatePayload.updated_at = new Date().toISOString()
+
+  if (input.stock !== undefined && input.stock !== null) {
+    await supabaseAdmin
+      .from("product_variants")
+      .update({ stock: input.stock })
+      .eq("product_id", id)
+      .eq("is_active", true)
+  }
 
   const { data, error } = await supabaseAdmin
     .from("products")
@@ -923,10 +1009,17 @@ export async function updateAdminProduct(
       category_id,
       name,
       slug,
+      sku,
       description,
+      long_description,
       base_price,
+      cost_price,
+      wholesale_price,
       images,
       brand,
+      department,
+      subcategory,
+      min_stock,
       is_featured,
       is_active,
       deleted_at,
@@ -934,6 +1027,11 @@ export async function updateAdminProduct(
         id,
         name,
         slug
+      ),
+      product_variants (
+        id,
+        stock,
+        is_active
       )
     `
     )
@@ -960,15 +1058,27 @@ export async function updateAdminProduct(
     }
   }
 
+  const updatedVariants = (data as { product_variants?: Array<{ id: string; stock: number; is_active: boolean }> | null }).product_variants ?? []
+  const updatedActiveVariant = updatedVariants.find((v) => v.is_active) ?? updatedVariants[0] ?? null
+
   const updated: AdminProductWithCategory = {
     id: data.id as string,
     category_id: data.category_id as string,
     name: data.name as string,
     slug: data.slug as string,
+    sku: (data.sku as string | null) ?? null,
     description: (data.description as string) ?? null,
+    long_description: (data.long_description as string | null) ?? null,
     base_price: Number(data.base_price),
+    cost_price: data.cost_price !== null ? Number(data.cost_price) : null,
+    wholesale_price: data.wholesale_price !== null ? Number(data.wholesale_price) : null,
     images: (data.images as string[] | null) ?? null,
     brand: (data.brand as string | null) ?? null,
+    department: (data.department as string | null) ?? null,
+    subcategory: (data.subcategory as string | null) ?? null,
+    min_stock: Number(data.min_stock ?? 0),
+    stock: updatedActiveVariant ? Number(updatedActiveVariant.stock) : (input.stock ?? 0),
+    variant_id: updatedActiveVariant?.id ?? null,
     is_featured: Boolean(data.is_featured),
     is_active: Boolean(data.is_active),
     deleted_at: data.deleted_at as string | null,

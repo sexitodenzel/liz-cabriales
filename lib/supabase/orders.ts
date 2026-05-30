@@ -1,6 +1,6 @@
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
-import { computeInvoiceSurchargeMxn } from "@/constants/cfdi"
+import { computeInvoiceSurchargeMxn } from "@/lib/constants/cfdi"
 import type { DeliveryType, OrderStatus } from "@/types"
 import type { CreateOrderInput } from "@/lib/validations/orders"
 

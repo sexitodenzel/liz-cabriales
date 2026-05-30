@@ -19,11 +19,20 @@ type ToastState = {
 type CreateFormState = {
   name: string
   slug: string
+  sku: string
   description: string
+  longDescription: string
   basePrice: string
+  costPrice: string
+  wholesalePrice: string
   categoryId: string
+  subcategory: string
   brand: string
+  department: string
   imagesInput: string
+  initialStock: string
+  minStock: string
+  stock: string
   isActive: boolean
   isFeatured: boolean
 }
@@ -65,11 +74,20 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState<CreateFormState>({
     name: "",
     slug: "",
+    sku: "",
     description: "",
+    longDescription: "",
     basePrice: "",
+    costPrice: "",
+    wholesalePrice: "",
     categoryId: "",
+    subcategory: "",
     brand: "",
+    department: "",
     imagesInput: "",
+    initialStock: "",
+    minStock: "",
+    stock: "",
     isActive: true,
     isFeatured: false,
   })
@@ -592,13 +610,21 @@ export default function AdminProductsPage() {
         body: JSON.stringify({
           name: form.name,
           slug: form.slug,
+          sku: form.sku || null,
           description: form.description || null,
+          longDescription: form.longDescription || null,
           basePrice: basePriceNumber,
+          costPrice: form.costPrice ? Number(form.costPrice) : null,
+          wholesalePrice: form.wholesalePrice ? Number(form.wholesalePrice) : null,
           categoryId: form.categoryId,
+          subcategory: form.subcategory || null,
           brand: form.brand || null,
+          department: form.department || null,
           images,
           isActive: form.isActive,
           isFeatured: form.isFeatured,
+          initialStock: form.initialStock ? Number(form.initialStock) : 0,
+          minStock: form.minStock ? Number(form.minStock) : 0,
         }),
       })
 
@@ -620,11 +646,20 @@ export default function AdminProductsPage() {
       setForm({
         name: "",
         slug: "",
+        sku: "",
         description: "",
+        longDescription: "",
         basePrice: "",
+        costPrice: "",
+        wholesalePrice: "",
         categoryId: "",
+        subcategory: "",
         brand: "",
+        department: "",
         imagesInput: "",
+        initialStock: "",
+        minStock: "",
+        stock: "",
         isActive: true,
         isFeatured: false,
       })
@@ -651,11 +686,20 @@ export default function AdminProductsPage() {
     setEditForm({
       name: product.name,
       slug: product.slug,
+      sku: product.sku ?? "",
       description: product.description ?? "",
+      longDescription: product.long_description ?? "",
       basePrice: String(product.base_price),
+      costPrice: product.cost_price !== null ? String(product.cost_price) : "",
+      wholesalePrice: product.wholesale_price !== null ? String(product.wholesale_price) : "",
       categoryId: product.category_id,
+      subcategory: product.subcategory ?? "",
       brand: product.brand ?? "",
+      department: product.department ?? "",
       imagesInput: (product.images ?? []).join(", "),
+      initialStock: "",
+      minStock: String(product.min_stock ?? 0),
+      stock: String(product.stock ?? 0),
       isActive: product.is_active,
       isFeatured: product.is_featured,
     })
@@ -719,13 +763,21 @@ export default function AdminProductsPage() {
         body: JSON.stringify({
           name: editForm.name,
           slug: editForm.slug,
+          sku: editForm.sku || null,
           description: editForm.description || null,
+          longDescription: editForm.longDescription || null,
           basePrice: basePriceNumber,
+          costPrice: editForm.costPrice ? Number(editForm.costPrice) : null,
+          wholesalePrice: editForm.wholesalePrice ? Number(editForm.wholesalePrice) : null,
           categoryId: editForm.categoryId,
+          subcategory: editForm.subcategory || null,
           brand: editForm.brand || null,
+          department: editForm.department || null,
           images: images.length > 0 ? images : undefined,
           isActive: editForm.isActive,
           isFeatured: editForm.isFeatured,
+          stock: editForm.stock !== "" ? Number(editForm.stock) : null,
+          minStock: editForm.minStock ? Number(editForm.minStock) : 0,
         }),
       })
 
@@ -974,37 +1026,95 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    CÓDIGO (SKU)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.sku}
+                    onChange={(event) => handleFormChange("sku", event.target.value)}
+                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-mono outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                    placeholder="Ej. NAI-001"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    DEPARTAMENTO
+                  </label>
+                  <input
+                    type="text"
+                    value={form.department}
+                    onChange={(event) => handleFormChange("department", event.target.value)}
+                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                    placeholder="Ej. Uñas"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium tracking-wide text-neutral-600">
-                  DESCRIPCIÓN
+                  DESCRIPCIÓN CORTA
                 </label>
                 <textarea
                   value={form.description}
                   onChange={(event) =>
                     handleFormChange("description", event.target.value)
                   }
-                  rows={3}
+                  rows={2}
                   className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                  style={
-                    {
-                      "--brand-gold": BRAND_GOLD,
-                    } as React.CSSProperties
-                  }
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   placeholder="Describe brevemente el producto…"
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  DESCRIPCIÓN LARGA
+                </label>
+                <textarea
+                  value={form.longDescription}
+                  onChange={(event) =>
+                    handleFormChange("longDescription", event.target.value)
+                  }
+                  rows={3}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  placeholder="Descripción completa del producto, características, modo de uso…"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
-                    PRECIO BASE MXN
+                    PRECIO COSTO MXN
                   </label>
-                  <div className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 focus-within:border-[color:var(--brand-gold)] focus-within:ring-1 focus-within:ring-[color:var(--brand-gold)]"
-                    style={
-                      {
-                        "--brand-gold": BRAND_GOLD,
-                      } as React.CSSProperties
-                    }
+                  <div
+                    className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 focus-within:border-[color:var(--brand-gold)] focus-within:ring-1 focus-within:ring-[color:var(--brand-gold)]"
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  >
+                    <span className="mr-2 text-xs text-neutral-500">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.costPrice}
+                      onChange={(event) => handleFormChange("costPrice", event.target.value)}
+                      className="w-full bg-transparent text-sm outline-none"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    PRECIO VENTA MXN
+                  </label>
+                  <div
+                    className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 focus-within:border-[color:var(--brand-gold)] focus-within:ring-1 focus-within:ring-[color:var(--brand-gold)]"
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   >
                     <span className="mr-2 text-xs text-neutral-500">$</span>
                     <input
@@ -1012,15 +1122,35 @@ export default function AdminProductsPage() {
                       min="0"
                       step="0.01"
                       value={form.basePrice}
-                      onChange={(event) =>
-                        handleFormChange("basePrice", event.target.value)
-                      }
+                      onChange={(event) => handleFormChange("basePrice", event.target.value)}
                       className="w-full bg-transparent text-sm outline-none"
                       placeholder="0.00"
                     />
                   </div>
                 </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    PRECIO MAYOREO MXN
+                  </label>
+                  <div
+                    className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 focus-within:border-[color:var(--brand-gold)] focus-within:ring-1 focus-within:ring-[color:var(--brand-gold)]"
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  >
+                    <span className="mr-2 text-xs text-neutral-500">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.wholesalePrice}
+                      onChange={(event) => handleFormChange("wholesalePrice", event.target.value)}
+                      className="w-full bg-transparent text-sm outline-none"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+              </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
                     CATEGORÍA
@@ -1031,11 +1161,7 @@ export default function AdminProductsPage() {
                       handleFormChange("categoryId", event.target.value)
                     }
                     className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                    style={
-                      {
-                        "--brand-gold": BRAND_GOLD,
-                      } as React.CSSProperties
-                    }
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   >
                     <option value="">Selecciona una categoría</option>
                     {categories.map((category) => (
@@ -1045,9 +1171,22 @@ export default function AdminProductsPage() {
                     ))}
                   </select>
                 </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    SUBCATEGORÍA
+                  </label>
+                  <input
+                    type="text"
+                    value={form.subcategory}
+                    onChange={(event) => handleFormChange("subcategory", event.target.value)}
+                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                    placeholder="Ej. Gel UV"
+                  />
+                </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
                     MARCA
@@ -1058,11 +1197,7 @@ export default function AdminProductsPage() {
                       handleFormChange("brand", event.target.value)
                     }
                     className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                    style={
-                      {
-                        "--brand-gold": BRAND_GOLD,
-                      } as React.CSSProperties
-                    }
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   >
                     <option value="">Selecciona una marca (opcional)</option>
                     {brandOptions.map((brandName) => (
@@ -1074,31 +1209,62 @@ export default function AdminProductsPage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
-                    IMÁGENES
+                    INVENTARIO INICIAL
                   </label>
-                  <ImageUploader
-                    onUpload={(url) => {
-                      const current = form.imagesInput.trim()
-                      handleFormChange(
-                        "imagesInput",
-                        current ? `${current}, ${url}` : url
-                      )
-                    }}
-                    onError={(msg) =>
-                      setToast({ id: Date.now(), type: "error", message: msg })
-                    }
-                  />
                   <input
-                    type="text"
-                    value={form.imagesInput}
-                    onChange={(event) =>
-                      handleFormChange("imagesInput", event.target.value)
-                    }
-                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.initialStock}
+                    onChange={(event) => handleFormChange("initialStock", event.target.value)}
+                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
                     style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
-                    placeholder="O pega URLs separadas por coma"
+                    placeholder="0"
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    INV. MÍNIMO
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.minStock}
+                    onChange={(event) => handleFormChange("minStock", event.target.value)}
+                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  IMÁGENES
+                </label>
+                <ImageUploader
+                  onUpload={(url) => {
+                    const current = form.imagesInput.trim()
+                    handleFormChange(
+                      "imagesInput",
+                      current ? `${current}, ${url}` : url
+                    )
+                  }}
+                  onError={(msg) =>
+                    setToast({ id: Date.now(), type: "error", message: msg })
+                  }
+                />
+                <input
+                  type="text"
+                  value={form.imagesInput}
+                  onChange={(event) =>
+                    handleFormChange("imagesInput", event.target.value)
+                  }
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  placeholder="O pega URLs separadas por coma"
+                />
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -1160,11 +1326,15 @@ export default function AdminProductsPage() {
                 <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
                     <th className="px-6 py-3 font-semibold">PRODUCTO</th>
+                    <th className="px-4 py-3 font-semibold">CÓDIGO</th>
                     <th className="px-4 py-3 font-semibold">MARCA</th>
                     <th className="px-4 py-3 font-semibold">CATEGORÍA</th>
-                    <th className="px-4 py-3 font-semibold">PRECIO</th>
+                    <th className="px-4 py-3 font-semibold text-right">P.COSTO</th>
+                    <th className="px-4 py-3 font-semibold text-right">P.VENTA</th>
+                    <th className="px-4 py-3 font-semibold text-right">P.MAYOREO</th>
+                    <th className="px-4 py-3 font-semibold text-center">STOCK</th>
                     <th className="px-4 py-3 font-semibold">ESTADO</th>
-                    <th className="px-4 py-3 font-semibold text-center">DESTACADO</th>
+                    <th className="px-4 py-3 font-semibold text-center">DEST.</th>
                     <th className="px-4 py-3 font-semibold text-right">
                       ACCIONES
                     </th>
@@ -1174,7 +1344,7 @@ export default function AdminProductsPage() {
                   {activeProducts.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={11}
                         className="px-6 py-8 text-center text-sm text-neutral-500"
                       >
                         Aún no hay productos creados.
@@ -1195,14 +1365,42 @@ export default function AdminProductsPage() {
                               </p>
                             </div>
                           </td>
+                          <td className="px-4 py-4 text-xs font-mono text-neutral-600">
+                            {product.sku ?? "—"}
+                          </td>
                           <td className="px-4 py-4 text-sm text-neutral-700">
                             {product.brand ?? "—"}
                           </td>
                           <td className="px-4 py-4 text-sm text-neutral-700">
-                            {product.category.name}
+                            <div>{product.category.name}</div>
+                            {product.subcategory && (
+                              <div className="text-[11px] text-neutral-400">{product.subcategory}</div>
+                            )}
                           </td>
-                          <td className="px-4 py-4 text-sm text-neutral-900">
+                          <td className="px-4 py-4 text-sm text-right text-neutral-600">
+                            {product.cost_price !== null ? `$${product.cost_price.toFixed(2)}` : "—"}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-right text-neutral-900 font-medium">
                             ${product.base_price.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-right text-neutral-600">
+                            {product.wholesale_price !== null ? `$${product.wholesale_price.toFixed(2)}` : "—"}
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <span
+                              className="inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                              style={{
+                                backgroundColor: product.stock <= product.min_stock
+                                  ? "rgba(239,68,68,0.1)"
+                                  : "rgba(201,168,76,0.1)",
+                                color: product.stock <= product.min_stock ? "rgb(185,28,28)" : "rgb(120,90,30)",
+                                border: product.stock <= product.min_stock
+                                  ? "1px solid rgba(239,68,68,0.4)"
+                                  : "1px solid rgba(201,168,76,0.4)",
+                              }}
+                            >
+                              {product.stock}
+                            </span>
                           </td>
                           <td className="px-4 py-4">
                             <span
@@ -1272,198 +1470,198 @@ export default function AdminProductsPage() {
 
                             {isEditing && editForm && (
                               <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 py-3 space-y-3">
-                                <div className="grid gap-3 sm:grid-cols-2">
+                                <div className="grid gap-3 sm:grid-cols-3">
                                   <div className="space-y-1">
-                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
-                                      NOMBRE
-                                    </label>
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">NOMBRE</label>
                                     <input
                                       type="text"
                                       value={editForm.name}
-                                      onChange={(event) =>
-                                        handleEditFormChange(
-                                          "name",
-                                          event.target.value
-                                        )
-                                      }
+                                      onChange={(e) => handleEditFormChange("name", e.target.value)}
                                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                                      style={
-                                        {
-                                          "--brand-gold": BRAND_GOLD,
-                                        } as React.CSSProperties
-                                      }
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                     />
                                   </div>
                                   <div className="space-y-1">
-                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
-                                      SLUG
-                                    </label>
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">SLUG</label>
                                     <input
                                       type="text"
                                       value={editForm.slug}
-                                      onChange={(event) =>
-                                        handleEditFormChange(
-                                          "slug",
-                                          event.target.value
-                                        )
-                                      }
+                                      onChange={(e) => handleEditFormChange("slug", e.target.value)}
                                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-mono outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                                      style={
-                                        {
-                                          "--brand-gold": BRAND_GOLD,
-                                        } as React.CSSProperties
-                                      }
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">CÓDIGO (SKU)</label>
+                                    <input
+                                      type="text"
+                                      value={editForm.sku}
+                                      onChange={(e) => handleEditFormChange("sku", e.target.value)}
+                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-mono outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      placeholder="Ej. NAI-001"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                  <div className="space-y-1">
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">DEPARTAMENTO</label>
+                                    <input
+                                      type="text"
+                                      value={editForm.department}
+                                      onChange={(e) => handleEditFormChange("department", e.target.value)}
+                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      placeholder="Ej. Uñas"
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">SUBCATEGORÍA</label>
+                                    <input
+                                      type="text"
+                                      value={editForm.subcategory}
+                                      onChange={(e) => handleEditFormChange("subcategory", e.target.value)}
+                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      placeholder="Ej. Gel UV"
                                     />
                                   </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                  <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
-                                    DESCRIPCIÓN
-                                  </label>
+                                  <label className="block text-[11px] font-medium tracking-wide text-neutral-600">DESCRIPCIÓN CORTA</label>
                                   <textarea
                                     value={editForm.description}
-                                    onChange={(event) =>
-                                      handleEditFormChange(
-                                        "description",
-                                        event.target.value
-                                      )
-                                    }
+                                    onChange={(e) => handleEditFormChange("description", e.target.value)}
                                     rows={2}
                                     className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                                    style={
-                                      {
-                                        "--brand-gold": BRAND_GOLD,
-                                      } as React.CSSProperties
-                                    }
+                                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                   />
                                 </div>
 
-                                <div className="grid gap-3 sm:grid-cols-2">
+                                <div className="space-y-1">
+                                  <label className="block text-[11px] font-medium tracking-wide text-neutral-600">DESCRIPCIÓN LARGA</label>
+                                  <textarea
+                                    value={editForm.longDescription}
+                                    onChange={(e) => handleEditFormChange("longDescription", e.target.value)}
+                                    rows={2}
+                                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                    placeholder="Descripción completa del producto…"
+                                  />
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-3">
                                   <div className="space-y-1">
-                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
-                                      PRECIO BASE MXN
-                                    </label>
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">PRECIO COSTO</label>
                                     <input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={editForm.basePrice}
-                                      onChange={(event) =>
-                                        handleEditFormChange(
-                                          "basePrice",
-                                          event.target.value
-                                        )
-                                      }
+                                      type="number" min="0" step="0.01"
+                                      value={editForm.costPrice}
+                                      onChange={(e) => handleEditFormChange("costPrice", e.target.value)}
                                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                                      style={
-                                        {
-                                          "--brand-gold": BRAND_GOLD,
-                                        } as React.CSSProperties
-                                      }
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      placeholder="0.00"
                                     />
                                   </div>
                                   <div className="space-y-1">
-                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
-                                      CATEGORÍA
-                                    </label>
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">PRECIO VENTA</label>
+                                    <input
+                                      type="number" min="0" step="0.01"
+                                      value={editForm.basePrice}
+                                      onChange={(e) => handleEditFormChange("basePrice", e.target.value)}
+                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">PRECIO MAYOREO</label>
+                                    <input
+                                      type="number" min="0" step="0.01"
+                                      value={editForm.wholesalePrice}
+                                      onChange={(e) => handleEditFormChange("wholesalePrice", e.target.value)}
+                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      placeholder="0.00"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                  <div className="space-y-1">
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">CATEGORÍA</label>
                                     <select
                                       value={editForm.categoryId}
-                                      onChange={(event) =>
-                                        handleEditFormChange(
-                                          "categoryId",
-                                          event.target.value
-                                        )
-                                      }
+                                      onChange={(e) => handleEditFormChange("categoryId", e.target.value)}
                                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                                      style={
-                                        {
-                                          "--brand-gold": BRAND_GOLD,
-                                        } as React.CSSProperties
-                                      }
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                     >
                                       <option value="">Selecciona</option>
                                       {categories.map((category) => (
-                                        <option
-                                          key={category.id}
-                                          value={category.id}
-                                        >
-                                          {category.name}
-                                        </option>
+                                        <option key={category.id} value={category.id}>{category.name}</option>
                                       ))}
+                                    </select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">MARCA</label>
+                                    <select
+                                      value={editForm.brand}
+                                      onChange={(e) => handleEditFormChange("brand", e.target.value)}
+                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                    >
+                                      <option value="">Selecciona (opcional)</option>
+                                      {brandOptions.map((bn) => (
+                                        <option key={bn} value={bn}>{bn}</option>
+                                      ))}
+                                      {editForm.brand && !brandOptions.includes(editForm.brand) && (
+                                        <option value={editForm.brand}>{editForm.brand} (no disponible)</option>
+                                      )}
                                     </select>
                                   </div>
                                 </div>
 
                                 <div className="grid gap-3 sm:grid-cols-2">
                                   <div className="space-y-1">
-                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
-                                      MARCA
-                                    </label>
-                                    <select
-                                      value={editForm.brand}
-                                      onChange={(event) =>
-                                        handleEditFormChange(
-                                          "brand",
-                                          event.target.value
-                                        )
-                                      }
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">INVENTARIO</label>
+                                    <input
+                                      type="number" min="0" step="1"
+                                      value={editForm.stock}
+                                      onChange={(e) => handleEditFormChange("stock", e.target.value)}
                                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
-                                      style={
-                                        {
-                                          "--brand-gold": BRAND_GOLD,
-                                        } as React.CSSProperties
-                                      }
-                                    >
-                                      <option value="">Selecciona (opcional)</option>
-                                      {brandOptions.map((brandName) => (
-                                        <option key={brandName} value={brandName}>
-                                          {brandName}
-                                        </option>
-                                      ))}
-                                      {editForm.brand &&
-                                        !brandOptions.includes(editForm.brand) && (
-                                          <option value={editForm.brand}>
-                                            {editForm.brand} (no disponible)
-                                          </option>
-                                        )}
-                                    </select>
+                                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                    />
                                   </div>
                                   <div className="space-y-1">
-                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
-                                      IMÁGENES
-                                    </label>
-                                    <ImageUploader
-                                      compact
-                                      onUpload={(url) => {
-                                        const current = editForm.imagesInput.trim()
-                                        handleEditFormChange(
-                                          "imagesInput",
-                                          current ? `${current}, ${url}` : url
-                                        )
-                                      }}
-                                      onError={(msg) =>
-                                        setToast({
-                                          id: Date.now(),
-                                          type: "error",
-                                          message: msg,
-                                        })
-                                      }
-                                    />
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">INV. MÍNIMO</label>
                                     <input
-                                      type="text"
-                                      value={editForm.imagesInput}
-                                      onChange={(event) =>
-                                        handleEditFormChange(
-                                          "imagesInput",
-                                          event.target.value
-                                        )
-                                      }
-                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[11px] outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      type="number" min="0" step="1"
+                                      value={editForm.minStock}
+                                      onChange={(e) => handleEditFormChange("minStock", e.target.value)}
+                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
                                       style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
-                                      placeholder="O pega URLs separadas por coma"
                                     />
                                   </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="block text-[11px] font-medium tracking-wide text-neutral-600">IMÁGENES</label>
+                                  <ImageUploader
+                                    compact
+                                    onUpload={(url) => {
+                                      const current = editForm.imagesInput.trim()
+                                      handleEditFormChange("imagesInput", current ? `${current}, ${url}` : url)
+                                    }}
+                                    onError={(msg) => setToast({ id: Date.now(), type: "error", message: msg })}
+                                  />
+                                  <input
+                                    type="text"
+                                    value={editForm.imagesInput}
+                                    onChange={(e) => handleEditFormChange("imagesInput", e.target.value)}
+                                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[11px] outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                    placeholder="O pega URLs separadas por coma"
+                                  />
                                 </div>
 
                                 <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -1472,39 +1670,23 @@ export default function AdminProductsPage() {
                                       <input
                                         type="checkbox"
                                         checked={editForm.isActive}
-                                        onChange={(event) =>
-                                          handleEditFormChange(
-                                            "isActive",
-                                            event.target.checked
-                                          )
-                                        }
+                                        onChange={(e) => handleEditFormChange("isActive", e.target.checked)}
                                         className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-[color:var(--brand-gold)]"
                                         style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                       />
-                                      <span className="text-[11px] font-medium text-neutral-700">
-                                        ACTIVO
-                                      </span>
+                                      <span className="text-[11px] font-medium text-neutral-700">ACTIVO</span>
                                     </label>
-
                                     <label className="inline-flex items-center gap-2">
                                       <input
                                         type="checkbox"
                                         checked={editForm.isFeatured}
-                                        onChange={(event) =>
-                                          handleEditFormChange(
-                                            "isFeatured",
-                                            event.target.checked
-                                          )
-                                        }
+                                        onChange={(e) => handleEditFormChange("isFeatured", e.target.checked)}
                                         className="h-4 w-4 rounded border-neutral-300 focus:ring-[color:var(--brand-gold)]"
                                         style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                       />
-                                      <span className="text-[11px] font-medium text-[#c9a84c]">
-                                        ★ DESTACADO
-                                      </span>
+                                      <span className="text-[11px] font-medium text-[#c9a84c]">★ DESTACADO</span>
                                     </label>
                                   </div>
-
                                   <div className="flex items-center gap-2">
                                     <button
                                       type="button"
