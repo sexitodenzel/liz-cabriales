@@ -1478,7 +1478,7 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto overflow-y-auto flex-1">
+            <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
               <table className="min-w-full text-left text-sm">
                 <thead className="sticky top-0 z-10 bg-neutral-50 text-xs uppercase tracking-[0.16em] text-neutral-500">
                   <tr>
