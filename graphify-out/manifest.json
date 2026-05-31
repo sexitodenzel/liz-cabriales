@@ -64,8 +64,8 @@
     "hash": "187ade6e26bd38bbde429c2bc030b959"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\page.tsx": {
-    "mtime": 1777159211.7265255,
-    "hash": "91499f89225895c2f2de1330289c0cd1"
+    "mtime": 1780190391.3109665,
+    "hash": "f6064dd721a53d2f4075035e95553e1f"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\components\\BlockSlotModal.tsx": {
     "mtime": 1777159211.7215357,
@@ -132,8 +132,8 @@
     "hash": "1738f8a5cd0d6b06f91fe754ff9c4603"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\products\\page.tsx": {
-    "mtime": 1780189282.882226,
-    "hash": "c4152838bdc4009da40fe9a24573e6ae"
+    "mtime": 1780191073.5977569,
+    "hash": "cc9b38032c5b6f5f106018295400da20"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\appointments\\route.ts": {
     "mtime": 1777159211.7403305,
@@ -332,8 +332,8 @@
     "hash": "9ea91130e6ee7da1650a1eda4063372e"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\citas\\page.tsx": {
-    "mtime": 1777159211.7699285,
-    "hash": "27be88801455ebb68eadf4c582b46859"
+    "mtime": 1780190396.2581167,
+    "hash": "4ef0e4fb033e5ae2eaa57ec33da1dde5"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\BrandDescription.tsx": {
     "mtime": 1779124399.0680015,
@@ -348,8 +348,8 @@
     "hash": "6f9ffc44c7b637459646817f9af771ef"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\NuevosLanzamientos.tsx": {
-    "mtime": 1778014124.608097,
-    "hash": "fbb4d60f5fb0f047e8b69c0be1ec2a18"
+    "mtime": 1780190385.5049374,
+    "hash": "35c51bb17d61e125b5f23ac2fd3ec115"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\NuevosLanzamientosCarousel.tsx": {
     "mtime": 1779124399.0608087,
@@ -440,8 +440,8 @@
     "hash": "df7497fac483a8b9e996ca5081e1c90d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\page.tsx": {
-    "mtime": 1780187208.9405415,
-    "hash": "189c47f7385804d127f65a0be2d0b4c1"
+    "mtime": 1780190378.9190328,
+    "hash": "449a1f6f077790e0d4efac7c2d6e6bee"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\AddToCartButton.tsx": {
     "mtime": 1778020133.2805567,
@@ -452,7 +452,7 @@
     "hash": "36fbaddfb468942404664bab9df396f1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductCard.tsx": {
-    "mtime": 1778020186.001854,
+    "mtime": 1780191238.504982,
     "hash": "f4815c5de3b4f46d1b0941b60d1fd06a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductGrid.tsx": {
@@ -468,8 +468,8 @@
     "hash": "78e679ba8fca9e2b8154f9ac6dabf1b9"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\[slug]\\page.tsx": {
-    "mtime": 1780183598.4349027,
-    "hash": "8c0efaf70dd1dbba0e866069b7a65c0e"
+    "mtime": 1780190408.5619276,
+    "hash": "7cc8f8c6032698344a6a15d809ca087c"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\components\\courses\\RegisterModal.tsx": {
     "mtime": 1779146422.9343648,
@@ -564,8 +564,8 @@
     "hash": "7127232a8bce366ce14b31c5e3bb138a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\admin.ts": {
-    "mtime": 1780164670.3591845,
-    "hash": "53e3aea71673c9fbd50da7904d4b8745"
+    "mtime": 1780191064.6178782,
+    "hash": "389ef1bf227d3821d62b95a67adf244c"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\adminOrders.ts": {
     "mtime": 1779145588.9211924,
@@ -582,6 +582,10 @@
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\appointments.ts": {
     "mtime": 1777159211.7944665,
     "hash": "5faf5254e234d1cf7b46de8f8a34729a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\cache.ts": {
+    "mtime": 1780191088.0910125,
+    "hash": "371d65fbc547d0f7cefa5e78523527d6"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\cart.ts": {
     "mtime": 1778020130.6128733,
@@ -604,8 +608,8 @@
     "hash": "873872795581d8f022ec39995c507300"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\products.ts": {
-    "mtime": 1780183364.3411295,
-    "hash": "ee28efe8da1bbeeaa84c9ae0c8bd3024"
+    "mtime": 1780191089.547504,
+    "hash": "5f35fd45f2975e4a440fc13ef5fd28ec"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\server.ts": {
     "mtime": 1775678576.0697374,

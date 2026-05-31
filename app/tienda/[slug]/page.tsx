@@ -2,7 +2,10 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { getProductBySlug, getRelatedProducts } from "@/lib/supabase/products"
+import {
+  getProductBySlugCached as getProductBySlug,
+  getRelatedProductsCached,
+} from "@/lib/supabase/cache"
 import AddToCartButton from "../components/AddToCartButton"
 import ProductCard from "../components/ProductCard"
 import ProductImageGallery from "../components/ProductImageGallery"
@@ -42,12 +45,12 @@ export default async function ProductPage({ params }: PageProps) {
   const images = product.images ?? []
   const image = images[0] ?? null
 
-  const { data: related } = await getRelatedProducts({
-    categoryId: product.category_id,
-    brand: product.brand,
-    excludeId: product.id,
-    limit: 4,
-  })
+  const { data: related } = await getRelatedProductsCached(
+    product.category_id,
+    product.brand,
+    product.id,
+    4
+  )
   const relatedProducts = related ?? []
 
   return (

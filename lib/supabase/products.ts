@@ -26,6 +26,8 @@ export type Product = {
   brand: string | null
   is_featured: boolean
   is_active: boolean
+  updated_at: string | null
+  created_at: string | null
 }
 
 export type ProductWithCategory = Product & {
@@ -78,6 +80,8 @@ type ProductRow = {
   brand: string | null
   is_featured: boolean
   is_active: boolean
+  updated_at?: string | null
+  created_at?: string | null
   categories?: Category | null
   product_variants?: ProductVariantRow[] | ProductVariantRow | null
 }
@@ -117,6 +121,8 @@ function mapProductWithCategoryRow(
     brand: productRow.brand ?? null,
     is_featured: Boolean(productRow.is_featured),
     is_active: Boolean(productRow.is_active),
+    updated_at: productRow.updated_at ?? null,
+    created_at: productRow.created_at ?? null,
     category: { id: cat.id, name: cat.name, slug: cat.slug },
     variants: variantRows.map(mapVariantRow),
   }
@@ -203,6 +209,8 @@ export async function getProducts(
       brand,
       is_featured,
       is_active,
+      updated_at,
+      created_at,
       deleted_at,
       categories (
         id,
@@ -273,6 +281,8 @@ export async function getProducts(
         brand: productRow.brand ?? null,
         is_featured: Boolean(productRow.is_featured),
         is_active: Boolean(productRow.is_active),
+        updated_at: productRow.updated_at ?? null,
+        created_at: productRow.created_at ?? null,
         category: { id: cat.id, name: cat.name, slug: cat.slug },
         variants: variantRows.map(mapVariantRow),
       }
@@ -287,7 +297,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, images, brand, is_featured, is_active")
+    .select("id, category_id, name, slug, description, base_price, images, brand, is_featured, is_active, updated_at, created_at")
     .eq("is_featured", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -313,6 +323,8 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
         brand: productRow.brand ?? null,
         is_featured: Boolean(productRow.is_featured),
         is_active: Boolean(productRow.is_active),
+        updated_at: productRow.updated_at ?? null,
+        created_at: productRow.created_at ?? null,
       }
     }),
     error: null,
@@ -338,6 +350,8 @@ export async function getProductBySlug(
       brand,
       is_featured,
       is_active,
+      updated_at,
+      created_at,
       deleted_at,
       categories (
         id,
@@ -396,6 +410,8 @@ export async function getProductBySlug(
     brand: productRow.brand ?? null,
     is_featured: Boolean(productRow.is_featured),
     is_active: Boolean(productRow.is_active),
+    updated_at: productRow.updated_at ?? null,
+    created_at: productRow.created_at ?? null,
     category: { id: cat.id, name: cat.name, slug: cat.slug },
     variants: variantRows.map(mapVariantRow),
   }
@@ -414,6 +430,8 @@ const RELATED_SELECT = `
   brand,
   is_featured,
   is_active,
+  updated_at,
+  created_at,
   deleted_at,
   categories (
     id,

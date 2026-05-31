@@ -49,6 +49,17 @@ type ManagedBrand = AdminBrand & {
 const BRAND_GOLD = "#C9A84C"
 const BRAND_BLACK = "#000000"
 
+function formatProductUpdatedAt(iso: string | null | undefined): string {
+  if (!iso) return "—"
+  return new Date(iso).toLocaleString("es-MX", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 type MultiSelectOption = { value: string; label: string }
 
 function MultiSelectDropdown({
@@ -1652,6 +1663,9 @@ export default function AdminProductsPage() {
                             {product.subcategory && (
                               <div className="text-[11px] text-neutral-400">{product.subcategory}</div>
                             )}
+                            <div className="mt-0.5 text-[10px] text-neutral-400">
+                              Act. {formatProductUpdatedAt(product.updated_at)}
+                            </div>
                           </td>
                           <td className="px-4 py-4 text-sm text-right text-neutral-600">
                             {product.cost_price !== null ? `$${product.cost_price.toFixed(2)}` : "—"}

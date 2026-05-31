@@ -54,6 +54,7 @@ export type AdminProduct = {
   is_featured: boolean
   is_active: boolean
   deleted_at: string | null
+  updated_at: string | null
 }
 
 export type AdminProductWithCategory = AdminProduct & {
@@ -753,6 +754,7 @@ export async function getAdminProducts(): Promise<
       min_stock,
       is_featured,
       is_active,
+      updated_at,
       deleted_at,
       categories (
         id,
@@ -796,6 +798,7 @@ export async function getAdminProducts(): Promise<
         min_stock: number | null
         is_featured: boolean
         is_active: boolean
+        updated_at: string | null
         deleted_at: string | null
         categories?: unknown
         product_variants?: Array<{ id: string; stock: number; is_active: boolean }> | null
@@ -824,6 +827,7 @@ export async function getAdminProducts(): Promise<
         variant_id: activeVariant?.id ?? null,
         is_featured: Boolean(current.is_featured),
         is_active: Boolean(current.is_active),
+        updated_at: current.updated_at ?? null,
         deleted_at: current.deleted_at,
         category: { id: cat.id, name: cat.name, slug: cat.slug },
       }
@@ -880,6 +884,7 @@ export async function createAdminProduct(
       min_stock,
       is_featured,
       is_active,
+      updated_at,
       deleted_at,
       categories (
         id,
@@ -952,6 +957,7 @@ export async function createAdminProduct(
     variant_id: null,
     is_featured: Boolean(product.is_featured),
     is_active: Boolean(product.is_active),
+    updated_at: (product.updated_at as string | null) ?? null,
     deleted_at: product.deleted_at as string | null,
     category: { id: cat.id, name: cat.name, slug: cat.slug },
   }
@@ -1022,6 +1028,7 @@ export async function updateAdminProduct(
       min_stock,
       is_featured,
       is_active,
+      updated_at,
       deleted_at,
       categories (
         id,
@@ -1081,6 +1088,7 @@ export async function updateAdminProduct(
     variant_id: updatedActiveVariant?.id ?? null,
     is_featured: Boolean(data.is_featured),
     is_active: Boolean(data.is_active),
+    updated_at: (data.updated_at as string | null) ?? null,
     deleted_at: data.deleted_at as string | null,
     category: { id: cat.id, name: cat.name, slug: cat.slug },
   }

@@ -1,12 +1,11 @@
 import type { Metadata } from "next"
 
 import {
-  getBrands,
-  getCategories,
-  getProducts,
-  type ProductWithCategory,
-  type Category,
-} from "@/lib/supabase/products"
+  getAllProductsCached as getProducts,
+  getBrandsCached as getBrands,
+  getCategoriesCached as getCategories,
+} from "@/lib/supabase/cache"
+import type { ProductWithCategory, Category } from "@/lib/supabase/products"
 
 import ProductGrid from "./components/ProductGrid"
 import Breadcrumb from "@/components/shared/Breadcrumb"

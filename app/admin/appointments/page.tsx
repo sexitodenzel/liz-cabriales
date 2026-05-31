@@ -2,9 +2,9 @@ import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
 import {
-  getProfessionals,
-  getServices,
-} from "@/lib/supabase/appointments"
+  getProfessionalsCached as getProfessionals,
+  getServicesCached as getServices,
+} from "@/lib/supabase/cache"
 
 import AdminAppointmentsClient from "./AdminAppointmentsClient"
 

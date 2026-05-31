@@ -1,8 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
 import type { ProductWithCategory } from "@/lib/supabase/products"
 import AddToCartButton from "./AddToCartButton"
+
 type Props = { product: ProductWithCategory }
 
 function formatPrice(value: number): string {
@@ -16,7 +18,7 @@ function formatPrice(value: number): string {
 
 export default function ProductCard({ product }: Props) {
   const brand = product.brand ?? "Sin marca"
-  const firstImage = product.images?.[0] ?? null
+  const images = product.images ?? []
   const initials = brand
     .split(" ")
     .filter(Boolean)
@@ -24,16 +26,30 @@ export default function ProductCard({ product }: Props) {
     .map((word) => word[0]?.toUpperCase())
     .join("")
 
+  const [imgIndex, setImgIndex] = useState(0)
+  const hasMultiple = images.length > 1
+  const currentImage = images[imgIndex] ?? null
+
+  function prev(e: React.MouseEvent) {
+    e.preventDefault()
+    setImgIndex((i) => (i - 1 + images.length) % images.length)
+  }
+
+  function next(e: React.MouseEvent) {
+    e.preventDefault()
+    setImgIndex((i) => (i + 1) % images.length)
+  }
+
   return (
     <article className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-lg">
       <Link href={`/tienda/${product.slug}`} className="block">
         <div className="relative bg-neutral-100">
-          {firstImage ? (
+          {currentImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={firstImage}
+              src={currentImage}
               alt={product.name}
-              className="h-64 w-full object-cover"
+              className="h-64 w-full object-cover transition-opacity duration-200"
             />
           ) : (
             <div className="flex h-64 w-full items-center justify-center bg-neutral-100 text-3xl font-semibold text-neutral-400">
@@ -44,6 +60,61 @@ export default function ProductCard({ product }: Props) {
           <div className="absolute left-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-medium uppercase tracking-wide text-[#C9A84C]">
             {brand}
           </div>
+
+          {hasMultiple && (
+            <>
+              <button
+                onClick={prev}
+                aria-label="Imagen anterior"
+                className="absolute left-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-black/75"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <button
+                onClick={next}
+                aria-label="Siguiente imagen"
+                className="absolute right-2 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-black/75"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                {images.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`block h-1.5 w-1.5 rounded-full transition-colors duration-200 ${
+                      i === imgIndex ? "bg-white" : "bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </Link>
 
@@ -73,7 +144,7 @@ export default function ProductCard({ product }: Props) {
             productSlug={product.slug}
             productName={product.name}
             brand={product.brand ?? null}
-            image={firstImage}
+            image={currentImage}
             basePrice={product.base_price}
             variants={product.variants ?? []}
             className="inline-flex w-full items-center justify-center rounded-full border border-[#c9a84c] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f] transition-colors duration-200 hover:bg-[#c9a84c] hover:text-white hover:border-[#c9a84c] disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 disabled:opacity-60"
@@ -83,4 +154,3 @@ export default function ProductCard({ product }: Props) {
     </article>
   )
 }
-

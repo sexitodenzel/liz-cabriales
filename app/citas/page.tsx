@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
+import { getUserActiveAppointment } from "@/lib/supabase/appointments"
 import {
-  getProfessionals,
-  getServices,
-  getUserActiveAppointment,
-} from "@/lib/supabase/appointments"
+  getProfessionalsCached as getProfessionals,
+  getServicesCached as getServices,
+} from "@/lib/supabase/cache"
 
 import CitasClient from "./CitasClient"
 
