@@ -19,7 +19,7 @@ export default function AdminReceptionistBar() {
 
   return (
     <header className="border-b border-[#ececec] bg-white px-6 py-3">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-4">
           <span className="text-xs font-semibold tracking-[0.2em]" style={{ color: GOLD }}>
             RECEPCIÓN

@@ -10,6 +10,7 @@ import type {
 } from "@/lib/supabase/appointments"
 import type { AppointmentStatus } from "@/types"
 
+import Breadcrumb from "@/components/shared/Breadcrumb"
 import NewAppointmentModal from "./components/NewAppointmentModal"
 import BlockSlotModal from "./components/BlockSlotModal"
 import RescheduleAppointmentModal from "./components/RescheduleAppointmentModal"
@@ -149,7 +150,15 @@ export default function AdminAppointmentsClient({
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-[1400px] px-6 py-10">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Mi Perfil", href: "/perfil" },
+            { label: "Panel de administrador", href: "/admin" },
+            { label: "Agenda" },
+          ]}
+        />
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">

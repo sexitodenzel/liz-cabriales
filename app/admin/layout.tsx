@@ -41,10 +41,8 @@ export default async function AdminLayout({
 
   return (
     <>
-      <header className="border-b border-[#ececec] bg-white px-6 py-3">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-          <AdminNav />
-        </div>
+      <header className="border-b border-[#ececec] bg-white px-6 py-4">
+        <AdminNav />
       </header>
       {children}
     </>

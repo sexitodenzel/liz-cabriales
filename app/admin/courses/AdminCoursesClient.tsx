@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
+import Breadcrumb from "@/components/shared/Breadcrumb"
 import type { CourseWithStats } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 
@@ -102,25 +103,38 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <header className="border-b border-[#ececec] px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link
-            href="/admin"
-            className="text-sm font-semibold text-[#c9a84c] hover:text-[#a8893a]"
-          >
-            ← Panel
-          </Link>
-          <h1 className="text-lg font-semibold">Gestión de cursos</h1>
+      <div className="mx-auto max-w-[1400px] px-6 py-10">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Mi Perfil", href: "/perfil" },
+            { label: "Panel de administrador", href: "/admin" },
+            { label: "Cursos" },
+          ]}
+        />
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
+              PANEL ADMINISTRADOR
+            </p>
+            <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">Cursos</h1>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/admin/courses/new"
+              className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#a8893a]"
+            >
+              + Nuevo curso
+            </Link>
+            <Link
+              href="/admin"
+              className="text-sm font-medium text-[#6b6b6b] transition-colors hover:text-[#1a1a1a]"
+            >
+              ← Volver al panel
+            </Link>
+          </div>
         </div>
-        <Link
-          href="/admin/courses/new"
-          className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors"
-        >
-          + Nuevo curso
-        </Link>
-      </header>
 
-      <main className="p-6">
         {error && (
           <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
             {error}
@@ -261,10 +275,10 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
                   )
                 })}
               </tbody>
-            </table>
-          </div>
-        )}
-      </main>
+              </table>
+            </div>
+          )}
+      </div>
     </div>
   )
 }

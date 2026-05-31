@@ -1,13 +1,21 @@
 "use client";
 
+import { useCart } from "./cart/CartContext";
+
 export default function WhatsAppButton() {
+  const { isCartOpen } = useCart();
+
   return (
     <a
       href="https://wa.me/528332183399"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contactar a Liz Cabriales por WhatsApp"
-      className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-transform duration-200 hover:scale-110 active:scale-95"
+      className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 ${
+        isCartOpen
+          ? "pointer-events-none translate-y-3 opacity-0"
+          : "translate-y-0 opacity-100"
+      }`}
       style={{ backgroundColor: "#25D366" }}
     >
       <svg

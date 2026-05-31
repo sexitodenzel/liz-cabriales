@@ -7,6 +7,7 @@ import type {
   AdminCategory,
   AdminProductWithCategory,
 } from "@/lib/supabase/admin"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 import { createClient } from "@/lib/supabase/client"
 import ImageUploader from "@/app/admin/components/ImageUploader"
 
@@ -1102,13 +1103,21 @@ export default function AdminProductsPage() {
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-[1400px] px-6 py-10">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Mi Perfil", href: "/perfil" },
+            { label: "Panel de administrador", href: "/admin" },
+            { label: "Productos" },
+          ]}
+        />
         <div className="mb-10">
           <p className="text-xs font-semibold tracking-[0.25em] text-center sm:text-left text-[#c9a84c]">
             PANEL ADMINISTRADOR
           </p>
           <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-[#1a1a1a]">
-            CATÁLOGO DE PRODUCTOS
+            Catálogo de productos
           </h1>
         </div>
 

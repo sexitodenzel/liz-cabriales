@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
+import Breadcrumb from "@/components/shared/Breadcrumb"
 import type { AdminOrderSummary } from "@/lib/supabase/adminOrders"
 import type { OrderStatus } from "@/types"
 
@@ -155,7 +156,15 @@ function AdminOrdersList() {
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-[1400px] px-6 py-10">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Mi Perfil", href: "/perfil" },
+            { label: "Panel de administrador", href: "/admin" },
+            { label: "Órdenes" },
+          ]}
+        />
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">

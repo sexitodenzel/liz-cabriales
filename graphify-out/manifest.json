@@ -48,20 +48,20 @@
     "hash": "892e4be5be90fd4fd0d90578fa9ed39f"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\AdminDashboardClient.tsx": {
-    "mtime": 1780182407.580709,
-    "hash": "908f3cf2edf561b2018d8f830094c9f6"
+    "mtime": 1780189792.1613002,
+    "hash": "ee49744e57a7f4146c6c3fb0d6833428"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\layout.tsx": {
-    "mtime": 1780182515.9499488,
-    "hash": "aeea48847beea662d9c58d33fab9d2d3"
+    "mtime": 1780189605.1556866,
+    "hash": "08d1fba48802ba7d9d548d1f66fa2fd8"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\page.tsx": {
     "mtime": 1775756381.9619222,
     "hash": "811da751265d01834b5fb2b5962397ba"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\AdminAppointmentsClient.tsx": {
-    "mtime": 1780182408.0946157,
-    "hash": "896608cb948eeb23dde735f8975e2e0d"
+    "mtime": 1780189067.162075,
+    "hash": "187ade6e26bd38bbde429c2bc030b959"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\page.tsx": {
     "mtime": 1777159211.7265255,
@@ -80,20 +80,20 @@
     "hash": "8234bc07fabc6f2f975db187f3a52754"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\components\\AdminNav.tsx": {
-    "mtime": 1780183197.5870855,
-    "hash": "9dfe1a536d2f1c4d4fdac574d403f399"
+    "mtime": 1780189583.043504,
+    "hash": "cea2e5186226783fc054aa10ced765b5"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\components\\AdminReceptionistBar.tsx": {
-    "mtime": 1780183198.747155,
-    "hash": "0b1bb785f00db63dea6edd8263ca78a5"
+    "mtime": 1780188993.5668201,
+    "hash": "84a9555eb64b83a13dce024f0c2cd63b"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\components\\ImageUploader.tsx": {
     "mtime": 1778020905.865256,
     "hash": "509afc959b57f877c5c90becb42795ee"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\AdminCoursesClient.tsx": {
-    "mtime": 1780182407.7065194,
-    "hash": "4c453626e13e43bb90530753f3acdec8"
+    "mtime": 1780189437.2247546,
+    "hash": "d5c8aa0b611db723814b45259165272d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\page.tsx": {
     "mtime": 1777159211.737335,
@@ -124,16 +124,16 @@
     "hash": "7932c9b92abd6c3ef0a87a4c5d0051f3"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\orders\\page.tsx": {
-    "mtime": 1780182409.10215,
-    "hash": "e17928a819b8aa4a8da9610f758fc1e6"
+    "mtime": 1780189070.9091203,
+    "hash": "e5f482af5bbed762acd71118eda222c6"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\orders\\[id]\\page.tsx": {
     "mtime": 1780182410.0378962,
     "hash": "1738f8a5cd0d6b06f91fe754ff9c4603"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\products\\page.tsx": {
-    "mtime": 1780182441.7651458,
-    "hash": "cc41369af11c30b1d1eab11800f8878a"
+    "mtime": 1780189282.882226,
+    "hash": "c4152838bdc4009da40fe9a24573e6ae"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\appointments\\route.ts": {
     "mtime": 1777159211.7403305,
@@ -364,8 +364,8 @@
     "hash": "723722fc97cabc81b84fac4fafa7403e"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\WhatsAppButton.tsx": {
-    "mtime": 1780187327.6384876,
-    "hash": "5437eedf1b4e1bdffa65a663c29e9cf3"
+    "mtime": 1780188697.8690617,
+    "hash": "24be4ae0a8566d3e1d8c48910060ab89"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\cart\\CartContext.tsx": {
     "mtime": 1775678576.0163755,
