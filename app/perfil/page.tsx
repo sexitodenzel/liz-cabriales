@@ -93,12 +93,12 @@ export default async function PerfilPage() {
   const registrations = regsRes.data ?? []
 
   return (
-    <main className="min-h-screen bg-[#f8f6f1] text-[#0a0a0a]">
+    <main className="min-h-screen bg-white text-[var(--foreground)]">
       <div className="mx-auto max-w-[900px] px-6 py-12">
         <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Mi Perfil" }]} />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#9b8b65]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--gold)]">
               Tu cuenta
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">
@@ -109,7 +109,7 @@ export default async function PerfilPage() {
             {isAdmin && (
               <Link
                 href="/admin"
-                className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#a8893a]"
+                className="shrink-0 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--gold)] hover:text-[var(--gold)]"
               >
                 Panel de administrador
               </Link>
@@ -118,7 +118,7 @@ export default async function PerfilPage() {
           </div>
         </div>
 
-        <section className="mt-10 rounded-[28px] border border-[#e8e1d3] bg-white p-6 shadow-sm sm:p-8">
+        <section className="mt-10 rounded-[28px] border border-[#ececec] bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-lg font-semibold text-neutral-900">
             Datos del usuario
           </h2>
@@ -138,12 +138,12 @@ export default async function PerfilPage() {
           </dl>
         </section>
 
-        <section className="mt-8 rounded-[28px] border border-[#e8e1d3] bg-white p-6 shadow-sm sm:p-8">
+        <section className="mt-8 rounded-[28px] border border-[#ececec] bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-lg font-semibold text-neutral-900">Mis pedidos</h2>
           {orders.length === 0 ? (
             <p className="mt-4 text-sm text-neutral-600">
               Aún no tienes pedidos. Explora la{" "}
-              <Link href="/tienda" className="font-medium text-[#9b7a1f] underline">
+              <Link href="/tienda" className="font-medium text-[var(--gold)] underline">
                 tienda
               </Link>
               .
@@ -174,7 +174,7 @@ export default async function PerfilPage() {
                     </span>
                     <Link
                       href={`/orden/${o.id}`}
-                      className="text-sm font-medium text-[#9b7a1f] underline-offset-2 hover:underline"
+                      className="text-sm font-medium text-[var(--gold)] underline-offset-2 hover:underline"
                     >
                       Ver orden
                     </Link>
@@ -185,19 +185,19 @@ export default async function PerfilPage() {
           )}
         </section>
 
-        <section className="mt-8 rounded-[28px] border border-[#e8e1d3] bg-white p-6 shadow-sm sm:p-8">
+        <section className="mt-8 rounded-[28px] border border-[#ececec] bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-lg font-semibold text-neutral-900">Mis citas</h2>
           <div className="mt-4">
             <PerfilCitasClient initialAppointments={appointments} />
           </div>
         </section>
 
-        <section className="mt-8 rounded-[28px] border border-[#e8e1d3] bg-white p-6 shadow-sm sm:p-8">
+        <section className="mt-8 rounded-[28px] border border-[#ececec] bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-lg font-semibold text-neutral-900">Mis cursos</h2>
           {registrations.length === 0 ? (
             <p className="mt-4 text-sm text-neutral-600">
               No tienes inscripciones. Consulta los{" "}
-              <Link href="/academia" className="font-medium text-[#9b7a1f] underline">
+              <Link href="/academia" className="font-medium text-[var(--gold)] underline">
                 cursos disponibles
               </Link>
               .

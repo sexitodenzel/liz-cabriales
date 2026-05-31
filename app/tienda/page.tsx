@@ -21,6 +21,14 @@ type SearchParams = {
   categoria?: string | string[]
   marca?: string | string[]
   search?: string | string[]
+  precio_min?: string | string[]
+  precio_max?: string | string[]
+}
+
+function parsePrice(value: string | undefined): number | null {
+  if (!value) return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
 }
 
 function firstString(
@@ -41,15 +49,15 @@ export default async function StorePage({
   const categorySlug = firstString(sp.categoria)
   const brandParam = firstString(sp.marca)
   const search = firstString(sp.search)
+  const priceMinParam = firstString(sp.precio_min)
+  const priceMaxParam = firstString(sp.precio_max)
 
+  // Cargamos el catálogo activo completo una sola vez; el filtrado y orden
+  // se resuelven en el cliente para una experiencia instantánea.
   const [categoriesResult, brandsResult, productsResult] = await Promise.all([
     getCategories(),
     getBrands(),
-    getProducts({
-      categorySlug,
-      brand: brandParam,
-      search,
-    }),
+    getProducts(),
   ])
 
   if (categoriesResult.error || productsResult.error) {
@@ -74,6 +82,8 @@ export default async function StorePage({
     categorySlug: categorySlug ?? null,
     brands: brandParam ? brandParam.split(",").filter(Boolean) : [],
     search: search ?? "",
+    priceMin: parsePrice(priceMinParam),
+    priceMax: parsePrice(priceMaxParam),
   }
 
   return (

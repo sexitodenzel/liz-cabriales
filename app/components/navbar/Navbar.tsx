@@ -112,7 +112,7 @@ return (
 
 <header className="w-full sticky top-0 z-50 bg-white px-6">
 
-<div className="max-w-[1400px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center py-4.5">  
+<div className="max-w-[1400px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center h-[var(--navbar-h)]">  
 
 
 {/* =========================================
@@ -203,16 +203,19 @@ return (
 
 {/* SEARCH ICON */}
 
-<div className="relative flex items-center">
-
-<Search
-className="w-5 h-5 cursor-pointer hover:text-[#C6A75E] transition-colors"
-onClick={() =>
-setActiveMenu(activeMenu === "search" ? null : "search")
-}
-/>
-
-</div>
+<button
+  type="button"
+  className="group inline-flex items-center text-[13px] tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+  onClick={() =>
+    setActiveMenu(activeMenu === "search" ? null : "search")
+  }
+  aria-label="Buscar"
+>
+  <Search className="w-5 h-5 shrink-0" />
+  <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-200 group-hover:grid-cols-[1fr] group-hover:ml-2">
+    <span className="overflow-hidden whitespace-nowrap">Buscar</span>
+  </span>
+</button>
 
 
 
@@ -220,37 +223,43 @@ setActiveMenu(activeMenu === "search" ? null : "search")
 
 <Link
   href={isLoggedIn ? "/perfil" : "/login"}
-  className="inline-flex items-center gap-2 text-[13px] tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+  className="group inline-flex items-center text-[13px] tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
   aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
 >
-  <User className="w-5 h-5" />
-  <span className="hidden md:inline">
-    {isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
+  <User className="w-5 h-5 shrink-0" />
+  <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-200 group-hover:grid-cols-[1fr] group-hover:ml-2">
+    <span className="overflow-hidden whitespace-nowrap">
+      {isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
+    </span>
   </span>
 </Link>
 {/* CART ICON */}
 
-<div
-className="relative cursor-pointer"
-onClick={() => {
-  if (isCartOpen) {
-    closeCart()
-  } else {
-    setActiveMenu(null)
-    openCart()
-  }
-}}
+<button
+  type="button"
+  className="group relative inline-flex items-center text-[13px] tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+  onClick={() => {
+    if (isCartOpen) {
+      closeCart()
+    } else {
+      setActiveMenu(null)
+      openCart()
+    }
+  }}
+  aria-label="Carrito"
 >
-
-<ShoppingBag className="w-5 h-5 hover:text-[#C6A75E] transition-colors" />
-
-{itemCount > 0 && (
-  <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
-    {itemCount}
+  <span className="relative shrink-0">
+    <ShoppingBag className="w-5 h-5" />
+    {itemCount > 0 && (
+      <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
+        {itemCount}
+      </span>
+    )}
   </span>
-)}
-
-</div>
+  <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-200 group-hover:grid-cols-[1fr] group-hover:ml-2">
+    <span className="overflow-hidden whitespace-nowrap">Carrito</span>
+  </span>
+</button>
 
 
 </div>
@@ -274,7 +283,7 @@ onClick={() => {
 */}
 
 <div
-className={`fixed inset-0 top-[60px] backdrop-blur-md bg-black/10 z-30 transition-opacity duration-300 ${
+className={`fixed inset-0 top-[var(--navbar-h)] backdrop-blur-md bg-black/10 z-30 transition-opacity duration-300 ${
 activeMenu || isCartOpen ? "opacity-100" : "opacity-0 pointer-events-none"
 }`}
 onMouseEnter={() => {

@@ -5,6 +5,7 @@
 import "./globals.css";
 import { CartProvider } from "./components/cart/CartContext";
 import Navbar from "./components/navbar/Navbar";
+import WhatsAppButton from "./components/WhatsAppButton";
 import { createClient } from "@/lib/supabase/server";
 
 /* =========================
@@ -73,6 +74,7 @@ export default async function RootLayout({
         <CartProvider>
           <Navbar isLoggedIn={Boolean(user)} />
           {children}
+          <WhatsAppButton />
         </CartProvider>
       </body>
     </html>

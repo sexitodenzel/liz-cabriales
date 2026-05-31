@@ -1,11 +1,11 @@
 import type { Metadata } from "next"
-import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { getProductBySlug, getRelatedProducts } from "@/lib/supabase/products"
 import AddToCartButton from "../components/AddToCartButton"
 import ProductCard from "../components/ProductCard"
+import ProductImageGallery from "../components/ProductImageGallery"
 import RecentlyViewed from "../components/RecentlyViewed"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
@@ -39,7 +39,8 @@ export default async function ProductPage({ params }: PageProps) {
 
   if (error || !product) notFound()
 
-  const image = product.images?.[0] ?? null
+  const images = product.images ?? []
+  const image = images[0] ?? null
 
   const { data: related } = await getRelatedProducts({
     categoryId: product.category_id,
@@ -61,20 +62,7 @@ export default async function ProductPage({ params }: PageProps) {
         />
 
         <section className="mt-6 grid gap-8 md:grid-cols-2">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-neutral-100">
-            {image ? (
-              <Image
-                src={image}
-                alt={product.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                priority
-              />
-            ) : (
-              <div className="absolute inset-0 bg-neutral-200" />
-            )}
-          </div>
+          <ProductImageGallery images={images} alt={product.name} />
 
           <div>
             {product.brand ? (

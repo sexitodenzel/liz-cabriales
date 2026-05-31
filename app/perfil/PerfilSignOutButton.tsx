@@ -26,7 +26,7 @@ export default function PerfilSignOutButton() {
       type="button"
       onClick={() => void handleSignOut()}
       disabled={busy}
-      className="shrink-0 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 shadow-sm transition-colors hover:bg-neutral-50 disabled:opacity-60"
+      className="shrink-0 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--gold)] hover:text-[var(--gold)] disabled:opacity-60"
     >
       {busy ? "Cerrando sesión…" : "Cerrar sesión"}
     </button>

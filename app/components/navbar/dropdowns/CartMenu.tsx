@@ -40,7 +40,7 @@ export default function CartMenu() {
 
   return (
     <div
-      className="fixed inset-y-0 right-0 z-50 flex h-screen w-[380px] flex-col border-l border-black/5 bg-white shadow-xl"
+      className="fixed right-0 top-[var(--navbar-h)] bottom-0 z-40 flex w-[380px] flex-col border-l border-black/5 bg-white shadow-xl"
     >
       {/* Header — FIJO */}
       <div className="flex flex-shrink-0 items-center justify-between border-b p-4">
