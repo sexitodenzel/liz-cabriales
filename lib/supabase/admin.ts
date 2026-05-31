@@ -443,6 +443,84 @@ export async function deleteAdminCategory(id: string): Promise<Result<null>> {
   return { data: null, error: null }
 }
 
+export async function updateAdminCategory(
+  id: string,
+  input: { name: string }
+): Promise<Result<AdminCategory>> {
+  const normalizedName = input.name.trim()
+  if (!normalizedName) {
+    return {
+      data: null,
+      error: { message: "El nombre es obligatorio", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  const { data: current, error: fetchError } = await supabaseAdmin
+    .from("categories")
+    .select("id, name, slug")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (fetchError) {
+    return { data: null, error: { message: fetchError.message, code: fetchError.code } }
+  }
+  if (!current) {
+    return { data: null, error: { message: "Categoría no encontrada", code: "NOT_FOUND" } }
+  }
+
+  const currentRow = current as { id: string; name: string; slug: string }
+  let newSlug = currentRow.slug
+
+  if (normalizedName.toLowerCase() !== currentRow.name.toLowerCase()) {
+    const baseSlug = slugifyCategory(normalizedName)
+    let candidate = baseSlug
+    let suffix = 2
+    while (true) {
+      const { data: existing, error: slugError } = await supabaseAdmin
+        .from("categories")
+        .select("id")
+        .eq("slug", candidate)
+        .neq("id", id)
+        .maybeSingle()
+      if (slugError) {
+        return { data: null, error: { message: slugError.message, code: slugError.code } }
+      }
+      if (!existing) {
+        newSlug = candidate
+        break
+      }
+      candidate = `${baseSlug}-${suffix}`
+      suffix++
+    }
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("categories")
+    .update({ name: normalizedName, slug: newSlug })
+    .eq("id", id)
+    .select("id, name, slug")
+    .single()
+
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo actualizar la categoría",
+        code: error?.code,
+      },
+    }
+  }
+
+  return {
+    data: {
+      id: data.id as string,
+      name: data.name as string,
+      slug: data.slug as string,
+    },
+    error: null,
+  }
+}
+
 export async function getAdminBrandsWithProductCount(): Promise<
   Result<AdminBrandWithProductCount[]>
 > {
@@ -728,6 +806,101 @@ export async function deleteAdminBrand(id: string): Promise<Result<null>> {
   }
 
   return { data: null, error: null }
+}
+
+export async function updateAdminBrand(
+  id: string,
+  input: { name: string; logoUrl?: string | null }
+): Promise<Result<AdminBrand>> {
+  const ensureResult = await ensureBrandsTable()
+  if (ensureResult.error) {
+    return { data: null, error: ensureResult.error }
+  }
+
+  const normalizedName = input.name.trim()
+  if (!normalizedName) {
+    return {
+      data: null,
+      error: { message: "El nombre es obligatorio", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  const { data: current, error: fetchError } = await supabaseAdmin
+    .from("brands")
+    .select("id, name, slug, logo_url, created_at")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (fetchError) {
+    return { data: null, error: { message: fetchError.message, code: fetchError.code } }
+  }
+  if (!current) {
+    return { data: null, error: { message: "Marca no encontrada", code: "NOT_FOUND" } }
+  }
+
+  const currentRow = current as {
+    id: string
+    name: string
+    slug: string
+    logo_url: string | null
+    created_at: string
+  }
+  let newSlug = currentRow.slug
+
+  if (normalizedName.toLowerCase() !== currentRow.name.toLowerCase()) {
+    const baseSlug = slugifyBrand(normalizedName)
+    let candidate = baseSlug
+    let suffix = 2
+    while (true) {
+      const { data: existing, error: slugError } = await supabaseAdmin
+        .from("brands")
+        .select("id")
+        .eq("slug", candidate)
+        .neq("id", id)
+        .maybeSingle()
+      if (slugError) {
+        return { data: null, error: { message: slugError.message, code: slugError.code } }
+      }
+      if (!existing) {
+        newSlug = candidate
+        break
+      }
+      candidate = `${baseSlug}-${suffix}`
+      suffix++
+    }
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("brands")
+    .update({
+      name: normalizedName,
+      slug: newSlug,
+      logo_url: input.logoUrl ?? null,
+    })
+    .eq("id", id)
+    .select("id, name, slug, logo_url, created_at")
+    .single()
+
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo actualizar la marca",
+        code: error?.code,
+      },
+    }
+  }
+
+  return {
+    data: {
+      id: data.id as string,
+      name: data.name as string,
+      slug: data.slug as string,
+      logo_url: (data.logo_url as string | null) ?? null,
+      created_at: data.created_at as string,
+    },
+    error: null,
+  }
 }
 
 export async function getAdminProducts(): Promise<

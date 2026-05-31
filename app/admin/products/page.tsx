@@ -176,6 +176,13 @@ export default function AdminProductsPage() {
   const [brandLogoUrl, setBrandLogoUrl] = useState("")
   const [brandSubmitting, setBrandSubmitting] = useState(false)
   const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null)
+  const [editingCategory, setEditingCategory] = useState<ManagedCategory | null>(null)
+  const [editCategoryName, setEditCategoryName] = useState("")
+  const [savingCategory, setSavingCategory] = useState(false)
+  const [editingBrand, setEditingBrand] = useState<ManagedBrand | null>(null)
+  const [editBrandName, setEditBrandName] = useState("")
+  const [editBrandLogoUrl, setEditBrandLogoUrl] = useState("")
+  const [savingBrand, setSavingBrand] = useState(false)
   const [form, setForm] = useState<CreateFormState>({
     name: "",
     slug: "",
@@ -496,6 +503,103 @@ export default function AdminProductsPage() {
       ...editForm,
       [field]: value,
     })
+  }
+
+  function handleStartEditCategory(category: ManagedCategory) {
+    setEditingCategory(category)
+    setEditCategoryName(category.name)
+  }
+
+  function handleCancelEditCategory() {
+    setEditingCategory(null)
+    setEditCategoryName("")
+  }
+
+  async function handleSaveCategory() {
+    if (!editingCategory) return
+    const name = editCategoryName.trim()
+    if (!name) {
+      setToast({ id: Date.now(), type: "error", message: "El nombre de la categoría es obligatorio." })
+      return
+    }
+
+    setSavingCategory(true)
+    try {
+      const res = await fetch(`/api/admin/products/categories/${editingCategory.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message: json?.error?.message ?? "No se pudo actualizar la categoría.",
+        })
+        return
+      }
+
+      setEditingCategory(null)
+      setEditCategoryName("")
+      await fetchCategories()
+      setToast({ id: Date.now(), type: "success", message: "Categoría actualizada correctamente." })
+    } catch {
+      setToast({ id: Date.now(), type: "error", message: "Error de red al actualizar la categoría." })
+    } finally {
+      setSavingCategory(false)
+    }
+  }
+
+  function handleStartEditBrand(brand: ManagedBrand) {
+    setEditingBrand(brand)
+    setEditBrandName(brand.name)
+    setEditBrandLogoUrl(brand.logo_url ?? "")
+  }
+
+  function handleCancelEditBrand() {
+    setEditingBrand(null)
+    setEditBrandName("")
+    setEditBrandLogoUrl("")
+  }
+
+  async function handleSaveBrand() {
+    if (!editingBrand) return
+    const name = editBrandName.trim()
+    if (!name) {
+      setToast({ id: Date.now(), type: "error", message: "El nombre de la marca es obligatorio." })
+      return
+    }
+
+    setSavingBrand(true)
+    try {
+      const res = await fetch(`/api/admin/products/brands/${editingBrand.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, logoUrl: editBrandLogoUrl.trim() || null }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message: json?.error?.message ?? "No se pudo actualizar la marca.",
+        })
+        return
+      }
+
+      setEditingBrand(null)
+      setEditBrandName("")
+      setEditBrandLogoUrl("")
+      await fetchBrands()
+      setToast({ id: Date.now(), type: "success", message: "Marca actualizada correctamente." })
+    } catch {
+      setToast({ id: Date.now(), type: "error", message: "Error de red al actualizar la marca." })
+    } finally {
+      setSavingBrand(false)
+    }
   }
 
   async function handleCreateCategory(event: React.FormEvent) {
@@ -2066,15 +2170,29 @@ export default function AdminProductsPage() {
             ? "grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch flex-1 overflow-auto"
             : "grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch"
           }>
-            <form onSubmit={handleCreateCategory} className="space-y-3">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault()
+                if (editingCategory) {
+                  void handleSaveCategory()
+                } else {
+                  void handleCreateCategory(event)
+                }
+              }}
+              className="space-y-3"
+            >
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium tracking-wide text-neutral-600">
-                  NUEVA CATEGORÍA
+                  {editingCategory ? "EDITAR CATEGORÍA" : "NUEVA CATEGORÍA"}
                 </label>
                 <input
                   type="text"
-                  value={categoryName}
-                  onChange={(event) => setCategoryName(event.target.value)}
+                  value={editingCategory ? editCategoryName : categoryName}
+                  onChange={(event) =>
+                    editingCategory
+                      ? setEditCategoryName(event.target.value)
+                      : setCategoryName(event.target.value)
+                  }
                   className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
                   style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   placeholder="Ej. Acrílico"
@@ -2083,13 +2201,26 @@ export default function AdminProductsPage() {
                   El slug se genera automáticamente a partir del nombre.
                 </p>
               </div>
-              <button
-                type="submit"
-                disabled={categorySubmitting}
-                className="inline-flex items-center justify-center rounded-full bg-[#c9a84c] px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-[#a8893a] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {categorySubmitting ? "CREANDO..." : "CREAR CATEGORÍA"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="submit"
+                  disabled={editingCategory ? savingCategory : categorySubmitting}
+                  className="inline-flex items-center justify-center rounded-full bg-[#c9a84c] px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-[#a8893a] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {editingCategory
+                    ? savingCategory ? "GUARDANDO..." : "GUARDAR CAMBIOS"
+                    : categorySubmitting ? "CREANDO..." : "CREAR CATEGORÍA"}
+                </button>
+                {editingCategory && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEditCategory}
+                    className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-neutral-600 uppercase transition-colors hover:bg-neutral-50"
+                  >
+                    CANCELAR
+                  </button>
+                )}
+              </div>
             </form>
 
             <div className={categoriesFullscreen
@@ -2115,9 +2246,13 @@ export default function AdminProductsPage() {
                   ) : (
                     managedCategories.map((category) => {
                       const isDeleting = deletingCategoryId === category.id
+                      const isEditing = editingCategory?.id === category.id
                       const canDelete = category.productCount === 0
                       return (
-                        <tr key={category.id}>
+                        <tr
+                          key={category.id}
+                          className={isEditing ? "bg-amber-50/60" : undefined}
+                        >
                           <td className="px-4 py-3 font-medium text-neutral-900">
                             {category.name}
                           </td>
@@ -2128,19 +2263,29 @@ export default function AdminProductsPage() {
                             {category.productCount}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteCategory(category)}
-                              disabled={!canDelete || isDeleting}
-                              className="text-xs font-semibold text-red-600 transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
-                              title={
-                                canDelete
-                                  ? "Eliminar categoría"
-                                  : "No se puede eliminar: tiene productos asociados"
-                              }
-                            >
-                              {isDeleting ? "ELIMINANDO..." : "ELIMINAR"}
-                            </button>
+                            <div className="flex items-center justify-end gap-3">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditCategory(category)}
+                                disabled={isDeleting}
+                                className="text-xs font-semibold text-[#c9a84c] transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                EDITAR
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCategory(category)}
+                                disabled={!canDelete || isDeleting}
+                                className="text-xs font-semibold text-red-600 transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                                title={
+                                  canDelete
+                                    ? "Eliminar categoría"
+                                    : "No se puede eliminar: tiene productos asociados"
+                                }
+                              >
+                                {isDeleting ? "ELIMINANDO..." : "ELIMINAR"}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )
@@ -2185,18 +2330,26 @@ export default function AdminProductsPage() {
             <form
               onSubmit={(event) => {
                 event.preventDefault()
-                void handleCreateBrand()
+                if (editingBrand) {
+                  void handleSaveBrand()
+                } else {
+                  void handleCreateBrand()
+                }
               }}
               className="space-y-3"
             >
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium tracking-wide text-neutral-600">
-                  NUEVA MARCA
+                  {editingBrand ? "EDITAR MARCA" : "NUEVA MARCA"}
                 </label>
                 <input
                   type="text"
-                  value={brandName}
-                  onChange={(event) => setBrandName(event.target.value)}
+                  value={editingBrand ? editBrandName : brandName}
+                  onChange={(event) =>
+                    editingBrand
+                      ? setEditBrandName(event.target.value)
+                      : setBrandName(event.target.value)
+                  }
                   className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
                   style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   placeholder="Ej. Exotic"
@@ -2212,28 +2365,47 @@ export default function AdminProductsPage() {
                 </label>
                 <ImageUploader
                   folder="brands"
-                  onUpload={(url) => setBrandLogoUrl(url)}
+                  onUpload={(url) =>
+                    editingBrand ? setEditBrandLogoUrl(url) : setBrandLogoUrl(url)
+                  }
                   onError={(msg) =>
                     setToast({ id: Date.now(), type: "error", message: msg })
                   }
                 />
                 <input
                   type="text"
-                  value={brandLogoUrl}
-                  onChange={(event) => setBrandLogoUrl(event.target.value)}
+                  value={editingBrand ? editBrandLogoUrl : brandLogoUrl}
+                  onChange={(event) =>
+                    editingBrand
+                      ? setEditBrandLogoUrl(event.target.value)
+                      : setBrandLogoUrl(event.target.value)
+                  }
                   className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
                   style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   placeholder="O pega URL del logo"
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={brandSubmitting}
-                className="inline-flex items-center justify-center rounded-full bg-[#c9a84c] px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-[#a8893a] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {brandSubmitting ? "CREANDO..." : "CREAR MARCA"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="submit"
+                  disabled={editingBrand ? savingBrand : brandSubmitting}
+                  className="inline-flex items-center justify-center rounded-full bg-[#c9a84c] px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-[#a8893a] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {editingBrand
+                    ? savingBrand ? "GUARDANDO..." : "GUARDAR CAMBIOS"
+                    : brandSubmitting ? "CREANDO..." : "CREAR MARCA"}
+                </button>
+                {editingBrand && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEditBrand}
+                    className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-neutral-600 uppercase transition-colors hover:bg-neutral-50"
+                  >
+                    CANCELAR
+                  </button>
+                )}
+              </div>
             </form>
 
             <div className={brandsFullscreen
@@ -2259,9 +2431,13 @@ export default function AdminProductsPage() {
                   ) : (
                     brands.map((brand) => {
                       const isDeleting = deletingBrandId === brand.id
+                      const isEditing = editingBrand?.id === brand.id
                       const canDelete = brand.productCount === 0
                       return (
-                        <tr key={brand.id}>
+                        <tr
+                          key={brand.id}
+                          className={isEditing ? "bg-amber-50/60" : undefined}
+                        >
                           <td className="px-4 py-3 font-medium text-neutral-900">
                             <div className="flex items-center gap-2">
                               {brand.logo_url ? (
@@ -2286,19 +2462,29 @@ export default function AdminProductsPage() {
                             {brand.productCount}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteBrand(brand)}
-                              disabled={!canDelete || isDeleting}
-                              className="text-xs font-semibold text-red-600 transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
-                              title={
-                                canDelete
-                                  ? "Eliminar marca"
-                                  : "No se puede eliminar: tiene productos asociados"
-                              }
-                            >
-                              {isDeleting ? "ELIMINANDO..." : "ELIMINAR"}
-                            </button>
+                            <div className="flex items-center justify-end gap-3">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditBrand(brand)}
+                                disabled={isDeleting}
+                                className="text-xs font-semibold text-[#c9a84c] transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                EDITAR
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteBrand(brand)}
+                                disabled={!canDelete || isDeleting}
+                                className="text-xs font-semibold text-red-600 transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                                title={
+                                  canDelete
+                                    ? "Eliminar marca"
+                                    : "No se puede eliminar: tiene productos asociados"
+                                }
+                              >
+                                {isDeleting ? "ELIMINANDO..." : "ELIMINAR"}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )

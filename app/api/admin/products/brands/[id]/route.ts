@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { deleteAdminBrand, requireAdmin } from "@/lib/supabase/admin"
+import { deleteAdminBrand, requireAdmin, updateAdminBrand } from "@/lib/supabase/admin"
 
 type RouteContext = {
   params: Promise<{
@@ -16,6 +16,39 @@ function mapResultStatus(code?: string): number {
   if (code === "BRAND_HAS_PRODUCTS") return 409
   if (code === "BRANDS_TABLE_MISSING") return 500
   return 400
+}
+
+export async function PATCH(request: Request, { params }: RouteContext) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    const authResult = await requireAdmin(user?.id)
+    if (authResult.error) {
+      return NextResponse.json(
+        { data: null, error: authResult.error },
+        { status: mapResultStatus(authResult.error.code) }
+      )
+    }
+
+    const body = (await request.json()) as { name?: string; logoUrl?: string | null }
+    const updateResult = await updateAdminBrand(id, {
+      name: body.name ?? "",
+      logoUrl: body.logoUrl,
+    })
+    return NextResponse.json(
+      { data: updateResult.data, error: updateResult.error },
+      { status: mapResultStatus(updateResult.error?.code) }
+    )
+  } catch {
+    return NextResponse.json(
+      { data: null, error: { message: "Error interno del servidor" } },
+      { status: 500 }
+    )
+  }
 }
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
