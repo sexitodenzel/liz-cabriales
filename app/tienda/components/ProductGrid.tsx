@@ -125,10 +125,13 @@ export default function ProductGrid({
     (filters.search.trim().length > 0 ? 1 : 0) +
     (filters.priceMin !== null || filters.priceMax !== null ? 1 : 0)
 
-  const brandsForSidebar = useMemo(
-    () => [...brands].sort((a, b) => a.localeCompare(b, "es")),
-    [brands]
-  )
+  const brandsForSidebar = useMemo(() => {
+    const fromProducts = Array.from(
+      new Set(products.map((p) => p.brand).filter((b): b is string => Boolean(b)))
+    )
+    const merged = Array.from(new Set([...fromProducts, ...brands]))
+    return merged.sort((a, b) => a.localeCompare(b, "es"))
+  }, [products, brands])
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {}

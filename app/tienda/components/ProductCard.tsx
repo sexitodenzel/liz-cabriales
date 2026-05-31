@@ -132,13 +132,7 @@ export default function ProductCard({ product }: Props) {
           {formatPrice(product.base_price)}
         </p>
 
-        <div className="mt-auto grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <Link
-            href={`/tienda/${product.slug}`}
-            className="inline-flex w-full items-center justify-center rounded-full bg-[#111] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition-colors duration-200 hover:bg-[#c9a84c]"
-          >
-            Ver producto
-          </Link>
+        <div className="mt-auto flex flex-col gap-2">
           <AddToCartButton
             productId={product.id}
             productSlug={product.slug}
@@ -147,8 +141,14 @@ export default function ProductCard({ product }: Props) {
             image={currentImage}
             basePrice={product.base_price}
             variants={product.variants ?? []}
-            className="inline-flex w-full items-center justify-center rounded-full border border-[#c9a84c] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f] transition-colors duration-200 hover:bg-[#c9a84c] hover:text-white hover:border-[#c9a84c] disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-200 hover:bg-[#b8952f] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:opacity-60"
           />
+          <Link
+            href={`/tienda/${product.slug}`}
+            className="inline-flex w-full items-center justify-center rounded-full border border-neutral-300 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-700 transition-colors duration-200 hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
+          >
+            Ver producto
+          </Link>
         </div>
       </div>
     </article>

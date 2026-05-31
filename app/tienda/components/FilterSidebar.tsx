@@ -89,52 +89,51 @@ export default function FilterSidebar({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
+      <div className="space-y-1.5">
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
           Categorías
         </p>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onCategoryChange(null)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-              selectedCategory === null
-                ? "border-[#C9A84C] bg-[#C9A84C] text-[#0a0a0a]"
-                : "border-neutral-200 bg-white text-neutral-700 hover:border-[#C9A84C]"
-            }`}
-          >
-            Todas
-          </button>
-          {categories.map((category) => {
-            const isActive = selectedCategory === category.slug
-            const count = categoryCounts[category.slug]
-            return (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() =>
-                  onCategoryChange(isActive ? null : category.slug)
-                }
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  isActive
-                    ? "border-[#C9A84C] bg-[#C9A84C] text-[#0a0a0a]"
-                    : "border-neutral-200 bg-white text-neutral-700 hover:border-[#C9A84C]"
-                }`}
-              >
-                {category.name}
-                {typeof count === "number" && (
-                  <span
-                    className={
-                      isActive ? "ml-1 text-[#0a0a0a]/60" : "ml-1 text-neutral-400"
-                    }
-                  >
-                    {count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+        <button
+          type="button"
+          onClick={() => onCategoryChange(null)}
+          className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
+            selectedCategory === null
+              ? "bg-[#C9A84C]/10 font-semibold text-[#a8862f]"
+              : "text-neutral-600 hover:bg-neutral-50 hover:text-[#0a0a0a]"
+          }`}
+        >
+          <span>Todas</span>
+          {selectedCategory === null && (
+            <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />
+          )}
+        </button>
+        {categories.map((category) => {
+          const isActive = selectedCategory === category.slug
+          const count = categoryCounts[category.slug]
+          return (
+            <button
+              key={category.id}
+              type="button"
+              onClick={() => onCategoryChange(isActive ? null : category.slug)}
+              className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                isActive
+                  ? "bg-[#C9A84C]/10 font-semibold text-[#a8862f]"
+                  : "text-neutral-600 hover:bg-neutral-50 hover:text-[#0a0a0a]"
+              }`}
+            >
+              <span>{category.name}</span>
+              {typeof count === "number" && (
+                <span
+                  className={`text-xs ${
+                    isActive ? "text-[#C9A84C]" : "text-neutral-400"
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       <div className="space-y-3">
