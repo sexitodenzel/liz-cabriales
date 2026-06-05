@@ -90,7 +90,7 @@ export default async function StorePage({
       <div className="mx-auto max-w-[1200px] px-6 py-12">
         <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]} />
         <header className="mb-10 space-y-3 border-b border-neutral-200 pb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#C6A75E]">
             TIENDA
           </p>
           <h1 className="text-2xl font-semibold text-[#0a0a0a] md:text-3xl">
