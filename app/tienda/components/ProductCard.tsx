@@ -30,6 +30,11 @@ export default function ProductCard({ product }: Props) {
   const hasMultiple = images.length > 1
   const currentImage = images[imgIndex] ?? null
 
+  const activeVariants = (product.variants ?? []).filter(
+    (variant) => variant.is_active
+  )
+  const hasMultipleVariants = activeVariants.length > 1
+
   function prev(e: React.MouseEvent) {
     e.preventDefault()
     setImgIndex((i) => (i - 1 + images.length) % images.length)
@@ -133,16 +138,25 @@ export default function ProductCard({ product }: Props) {
         </p>
 
         <div className="mt-auto flex flex-col gap-2">
-          <AddToCartButton
-            productId={product.id}
-            productSlug={product.slug}
-            productName={product.name}
-            brand={product.brand ?? null}
-            image={currentImage}
-            basePrice={product.base_price}
-            variants={product.variants ?? []}
-            className="inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-200 hover:bg-[#b8952f] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:opacity-60"
-          />
+          {hasMultipleVariants ? (
+            <Link
+              href={`/tienda/${product.slug}`}
+              className="inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-200 hover:bg-[#b8952f]"
+            >
+              Elegir presentación
+            </Link>
+          ) : (
+            <AddToCartButton
+              productId={product.id}
+              productSlug={product.slug}
+              productName={product.name}
+              brand={product.brand ?? null}
+              image={currentImage}
+              basePrice={product.base_price}
+              variants={product.variants ?? []}
+              className="inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-200 hover:bg-[#b8952f] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:opacity-60"
+            />
+          )}
           <Link
             href={`/tienda/${product.slug}`}
             className="inline-flex w-full items-center justify-center rounded-full border border-neutral-300 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-700 transition-colors duration-200 hover:border-[#0a0a0a] hover:text-[#0a0a0a]"

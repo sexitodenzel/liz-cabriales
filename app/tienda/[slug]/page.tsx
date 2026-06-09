@@ -32,10 +32,6 @@ export async function generateMetadata({
   }
 }
 
-function formatPrice(n: number) {
-  return "$" + n.toLocaleString("es-MX", { minimumFractionDigits: 0 })
-}
-
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params
   const { data: product, error } = await getProductBySlug(slug)
@@ -76,14 +72,7 @@ export default async function ProductPage({ params }: PageProps) {
 
             <h1 className="mt-2 text-3xl font-semibold">{product.name}</h1>
 
-            <p className="mt-4 text-2xl font-bold">
-              {formatPrice(product.base_price)}
-              <span className="ml-2 text-sm font-medium text-neutral-500">
-                MXN
-              </span>
-            </p>
-
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="mt-6">
               <AddToCartButton
                 productId={product.id}
                 productSlug={product.slug}
@@ -92,11 +81,12 @@ export default async function ProductPage({ params }: PageProps) {
                 image={image}
                 basePrice={product.base_price}
                 variants={product.variants}
+                enableSelector
                 className="inline-flex w-full items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
               />
               <Link
                 href="/carrito"
-                className="inline-flex w-full items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-800 transition-colors hover:border-[#C9A84C] hover:text-[#a8862f]"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-800 transition-colors hover:border-[#C9A84C] hover:text-[#a8862f]"
               >
                 Ir al carrito
               </Link>
@@ -111,29 +101,6 @@ export default async function ProductPage({ params }: PageProps) {
                 Este producto no tiene descripción disponible por ahora.
               </p>
             )}
-
-            {product.variants.length > 0 ? (
-              <div className="mt-8">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                  Variantes
-                </h2>
-                <ul className="mt-3 space-y-2 text-sm text-neutral-700">
-                  {product.variants
-                    .filter((variant) => variant.is_active)
-                    .map((variant) => (
-                      <li
-                        key={variant.id}
-                        className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2"
-                      >
-                        <span>{variant.variant_name}</span>
-                        <span className="font-medium">
-                          {formatPrice(variant.price)}
-                        </span>
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            ) : null}
           </div>
         </section>
 

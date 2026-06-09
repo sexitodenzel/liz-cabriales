@@ -61,6 +61,26 @@ export type AdminProductWithCategory = AdminProduct & {
   category: AdminCategory
 }
 
+export type AdminProductVariant = {
+  id: string
+  product_id: string
+  sku: string
+  variant_name: string
+  price: number
+  stock: number
+  is_active: boolean
+}
+
+export type CreateVariantInput = {
+  variantName: string
+  sku?: string | null
+  price: number
+  stock: number
+  isActive?: boolean
+}
+
+export type UpdateVariantInput = Partial<CreateVariantInput>
+
 export type CreateAdminProductInput = {
   name: string
   slug: string
@@ -80,6 +100,13 @@ export type CreateAdminProductInput = {
   initialStock?: number
   minStock?: number
   stock?: number | null
+  variants?: Array<{
+    variantName: string
+    sku?: string | null
+    price: number
+    stock: number
+    isActive?: boolean
+  }>
 }
 
 export type UpdateAdminProductInput = Partial<CreateAdminProductInput>
@@ -1089,24 +1116,50 @@ export async function createAdminProduct(
     }
   }
 
-  const { error: variantError } = await supabaseAdmin
-    .from("product_variants")
-    .insert({
-      product_id: product.id,
-      sku: input.sku?.toUpperCase() ?? input.slug.toUpperCase(),
-      variant_name: input.name,
-      price: input.basePrice,
-      stock: input.initialStock ?? 0,
-      is_active: true,
-    })
-
-  if (variantError) {
-    return {
-      data: null,
-      error: {
-        message: variantError.message,
-        code: variantError.code,
-      },
+  if (input.variants && input.variants.length > 0) {
+    const baseSku = (input.sku?.trim() || input.slug).toUpperCase()
+    for (let i = 0; i < input.variants.length; i++) {
+      const v = input.variants[i]
+      const providedSku = v.sku?.trim()
+      const sku =
+        providedSku && providedSku.length > 0
+          ? providedSku.toUpperCase()
+          : `${baseSku}-${i + 1}`
+      const { error: variantError } = await supabaseAdmin
+        .from("product_variants")
+        .insert({
+          product_id: product.id,
+          sku,
+          variant_name: v.variantName,
+          price: v.price,
+          stock: v.stock,
+          is_active: v.isActive ?? true,
+        })
+      if (variantError) {
+        await supabaseAdmin.from("product_variants").delete().eq("product_id", product.id)
+        await supabaseAdmin.from("products").delete().eq("id", product.id)
+        return {
+          data: null,
+          error: { message: variantError.message, code: variantError.code },
+        }
+      }
+    }
+  } else {
+    const { error: variantError } = await supabaseAdmin
+      .from("product_variants")
+      .insert({
+        product_id: product.id,
+        sku: input.sku?.toUpperCase() ?? input.slug.toUpperCase(),
+        variant_name: input.name,
+        price: input.basePrice,
+        stock: input.initialStock ?? 0,
+        is_active: true,
+      })
+    if (variantError) {
+      return {
+        data: null,
+        error: { message: variantError.message, code: variantError.code },
+      }
     }
   }
 
@@ -1283,6 +1336,136 @@ export async function softDeleteAdminProduct(id: string): Promise<Result<null>> 
         code: error.code,
       },
     }
+  }
+
+  return { data: null, error: null }
+}
+
+export async function getAdminProductVariants(
+  productId: string
+): Promise<Result<AdminProductVariant[]>> {
+  const { data, error } = await supabaseAdmin
+    .from("product_variants")
+    .select("id, product_id, sku, variant_name, price, stock, is_active")
+    .eq("product_id", productId)
+    .order("created_at", { ascending: true })
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return {
+    data: (data ?? []).map((row) => ({
+      id: row.id as string,
+      product_id: row.product_id as string,
+      sku: row.sku as string,
+      variant_name: row.variant_name as string,
+      price: Number(row.price),
+      stock: Number(row.stock),
+      is_active: Boolean(row.is_active),
+    })),
+    error: null,
+  }
+}
+
+export async function createAdminProductVariant(
+  productId: string,
+  input: CreateVariantInput
+): Promise<Result<AdminProductVariant>> {
+  const providedSku = input.sku?.trim()
+  const fallbackSku = `${productId.slice(0, 8)}-${Date.now().toString(36)}`.toUpperCase()
+  const sku =
+    providedSku && providedSku.length > 0 ? providedSku.toUpperCase() : fallbackSku
+
+  const { data, error } = await supabaseAdmin
+    .from("product_variants")
+    .insert({
+      product_id: productId,
+      sku,
+      variant_name: input.variantName,
+      price: input.price,
+      stock: input.stock,
+      is_active: input.isActive ?? true,
+    })
+    .select("id, product_id, sku, variant_name, price, stock, is_active")
+    .single()
+
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo crear la presentación",
+        code: error?.code,
+      },
+    }
+  }
+
+  return {
+    data: {
+      id: data.id as string,
+      product_id: data.product_id as string,
+      sku: data.sku as string,
+      variant_name: data.variant_name as string,
+      price: Number(data.price),
+      stock: Number(data.stock),
+      is_active: Boolean(data.is_active),
+    },
+    error: null,
+  }
+}
+
+export async function updateAdminProductVariant(
+  variantId: string,
+  input: UpdateVariantInput
+): Promise<Result<AdminProductVariant>> {
+  const payload: Record<string, unknown> = {}
+  if (input.variantName !== undefined) payload.variant_name = input.variantName
+  if (input.sku !== undefined) payload.sku = input.sku ? input.sku.toUpperCase() : null
+  if (input.price !== undefined) payload.price = input.price
+  if (input.stock !== undefined) payload.stock = input.stock
+  if (input.isActive !== undefined) payload.is_active = input.isActive
+
+  const { data, error } = await supabaseAdmin
+    .from("product_variants")
+    .update(payload)
+    .eq("id", variantId)
+    .select("id, product_id, sku, variant_name, price, stock, is_active")
+    .single()
+
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo actualizar la presentación",
+        code: error?.code,
+      },
+    }
+  }
+
+  return {
+    data: {
+      id: data.id as string,
+      product_id: data.product_id as string,
+      sku: data.sku as string,
+      variant_name: data.variant_name as string,
+      price: Number(data.price),
+      stock: Number(data.stock),
+      is_active: Boolean(data.is_active),
+    },
+    error: null,
+  }
+}
+
+export async function deleteAdminProductVariant(
+  variantId: string
+): Promise<Result<null>> {
+  const { error } = await supabaseAdmin
+    .from("product_variants")
+    .delete()
+    .eq("id", variantId)
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
   }
 
   return { data: null, error: null }

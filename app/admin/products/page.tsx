@@ -5,11 +5,21 @@ import { useRouter } from "next/navigation"
 import type {
   AdminBrand,
   AdminCategory,
+  AdminProductVariant,
   AdminProductWithCategory,
 } from "@/lib/supabase/admin"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import { createClient } from "@/lib/supabase/client"
 import ImageUploader from "@/app/admin/components/ImageUploader"
+import {
+  validateProductCritical,
+  collectSanityWarnings,
+  summarizeErrors,
+  variantNameKey,
+  variantPriceKey,
+  variantStockKey,
+  type FieldErrors,
+} from "@/lib/validations/productForm"
 
 type ToastState = {
   id: number
@@ -36,6 +46,16 @@ type CreateFormState = {
   stock: string
   isActive: boolean
   isFeatured: boolean
+}
+
+type VariantFormRow = {
+  id?: string
+  variantName: string
+  sku: string
+  price: string
+  stock: string
+  isActive: boolean
+  _toDelete?: boolean
 }
 
 type ManagedCategory = AdminCategory & {
@@ -160,6 +180,18 @@ function slugify(value: string): string {
     .replace(/[^a-z0-9-]/g, "")
 }
 
+const ERROR_BORDER =
+  "border-red-400 focus:border-red-400 focus:ring-red-300"
+const OK_BORDER =
+  "border-neutral-200 focus:border-[color:var(--brand-gold)] focus:ring-[color:var(--brand-gold)]"
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null
+  return (
+    <p className="mt-1 text-[11px] font-medium text-red-500">{message}</p>
+  )
+}
+
 export default function AdminProductsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -208,6 +240,18 @@ export default function AdminProductsPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<CreateFormState | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+  const [createVariants, setCreateVariants] = useState<VariantFormRow[]>([])
+  const [editVariants, setEditVariants] = useState<VariantFormRow[]>([])
+  const [loadingVariants, setLoadingVariants] = useState(false)
+
+  const [createErrors, setCreateErrors] = useState<FieldErrors>({})
+  const [editErrors, setEditErrors] = useState<FieldErrors>({})
+  const [confirmState, setConfirmState] = useState<{
+    title: string
+    warnings: string[]
+    onConfirm: () => void
+  } | null>(null)
 
   const [searchQuery, setSearchQuery] = useState("")
   const [filterCategories, setFilterCategories] = useState<string[]>([])
@@ -492,6 +536,12 @@ export default function AdminProductsPage() {
       ...prev,
       [field]: value,
     }))
+    setCreateErrors((prev) => {
+      if (!(field in prev)) return prev
+      const next = { ...prev }
+      delete next[field as string]
+      return next
+    })
   }
 
   const handleEditFormChange = (
@@ -502,6 +552,30 @@ export default function AdminProductsPage() {
     setEditForm({
       ...editForm,
       [field]: value,
+    })
+    setEditErrors((prev) => {
+      if (!(field in prev)) return prev
+      const next = { ...prev }
+      delete next[field as string]
+      return next
+    })
+  }
+
+  function clearCreateError(key: string) {
+    setCreateErrors((prev) => {
+      if (!(key in prev)) return prev
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+  }
+
+  function clearEditError(key: string) {
+    setEditErrors((prev) => {
+      if (!(key in prev)) return prev
+      const next = { ...prev }
+      delete next[key]
+      return next
     })
   }
 
@@ -815,41 +889,69 @@ export default function AdminProductsPage() {
     }
   }
 
-  async function handleCreateProduct(event: React.FormEvent) {
+  function handleCreateProduct(event: React.FormEvent) {
     event.preventDefault()
-    if (!form.categoryId) {
+
+    const errors = validateProductCritical(
+      {
+        name: form.name,
+        slug: form.slug,
+        categoryId: form.categoryId,
+        basePrice: form.basePrice,
+        costPrice: form.costPrice,
+        wholesalePrice: form.wholesalePrice,
+        initialStock: form.initialStock,
+      },
+      createVariants,
+      {
+        categoryValid: categories.some((c) => c.id === form.categoryId),
+        brandValid: form.brand
+          ? brands.some((b) => b.name === form.brand)
+          : true,
+      }
+    )
+
+    setCreateErrors(errors)
+
+    if (Object.keys(errors).length > 0) {
       setToast({
         id: Date.now(),
         type: "error",
-        message: "Selecciona una categoría.",
+        message: `Revisa los campos en rojo: ${summarizeErrors(errors).join(", ")}.`,
       })
       return
     }
-    if (!categories.some((category) => category.id === form.categoryId)) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "La categoría seleccionada ya no está disponible.",
+
+    const warnings = collectSanityWarnings(
+      {
+        name: form.name,
+        slug: form.slug,
+        categoryId: form.categoryId,
+        basePrice: form.basePrice,
+        costPrice: form.costPrice,
+        wholesalePrice: form.wholesalePrice,
+        initialStock: form.initialStock,
+      },
+      createVariants
+    )
+
+    if (warnings.length > 0) {
+      setConfirmState({
+        title: "Valores poco comunes detectados",
+        warnings,
+        onConfirm: () => {
+          setConfirmState(null)
+          void submitCreateProduct()
+        },
       })
       return
     }
-    if (form.brand && !brands.some((brand) => brand.name === form.brand)) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "La marca seleccionada ya no está disponible.",
-      })
-      return
-    }
+
+    void submitCreateProduct()
+  }
+
+  async function submitCreateProduct() {
     const basePriceNumber = Number(form.basePrice)
-    if (Number.isNaN(basePriceNumber)) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El precio base debe ser un número.",
-      })
-      return
-    }
 
     const images =
       form.imagesInput
@@ -882,6 +984,15 @@ export default function AdminProductsPage() {
           isFeatured: form.isFeatured,
           initialStock: form.initialStock ? Number(form.initialStock) : 0,
           minStock: form.minStock ? Number(form.minStock) : 0,
+          variants: createVariants.length > 0
+            ? createVariants.map((v) => ({
+                variantName: v.variantName,
+                sku: v.sku || null,
+                price: Number(v.price) || 0,
+                stock: Number(v.stock) || 0,
+                isActive: v.isActive,
+              }))
+            : undefined,
         }),
       })
 
@@ -920,6 +1031,8 @@ export default function AdminProductsPage() {
         isActive: true,
         isFeatured: false,
       })
+      setCreateVariants([])
+      setCreateErrors({})
       setSlugTouched(false)
 
       setToast({
@@ -938,7 +1051,7 @@ export default function AdminProductsPage() {
     }
   }
 
-  function startEditing(product: AdminProductWithCategory) {
+  async function startEditing(product: AdminProductWithCategory) {
     setEditingId(product.id)
     setEditForm({
       name: product.name,
@@ -960,49 +1073,105 @@ export default function AdminProductsPage() {
       isActive: product.is_active,
       isFeatured: product.is_featured,
     })
+    setLoadingVariants(true)
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/variants`)
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setEditVariants([])
+      } else {
+        setEditVariants(
+          (json.data ?? []).map((v: AdminProductVariant) => ({
+            id: v.id,
+            variantName: v.variant_name,
+            sku: v.sku,
+            price: String(v.price),
+            stock: String(v.stock),
+            isActive: v.is_active,
+          }))
+        )
+      }
+    } catch {
+      setEditVariants([])
+    } finally {
+      setLoadingVariants(false)
+    }
   }
 
   function cancelEditing() {
     setEditingId(null)
     setEditForm(null)
+    setEditVariants([])
+    setEditErrors({})
   }
 
-  async function saveEditing() {
+  function saveEditing() {
     if (!editingId || !editForm) return
-    if (!editForm.categoryId) {
+
+    const errors = validateProductCritical(
+      {
+        name: editForm.name,
+        slug: editForm.slug,
+        categoryId: editForm.categoryId,
+        basePrice: editForm.basePrice,
+        costPrice: editForm.costPrice,
+        wholesalePrice: editForm.wholesalePrice,
+        initialStock: editForm.initialStock,
+        stock: editForm.stock,
+      },
+      editVariants,
+      {
+        categoryValid: categories.some((c) => c.id === editForm.categoryId),
+        brandValid: editForm.brand
+          ? brands.some((b) => b.name === editForm.brand)
+          : true,
+      }
+    )
+
+    setEditErrors(errors)
+
+    if (Object.keys(errors).length > 0) {
       setToast({
         id: Date.now(),
         type: "error",
-        message: "Selecciona una categoría.",
-      })
-      return
-    }
-    if (!categories.some((category) => category.id === editForm.categoryId)) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "La categoría seleccionada ya no está disponible.",
-      })
-      return
-    }
-    if (editForm.brand && !brands.some((brand) => brand.name === editForm.brand)) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "La marca seleccionada ya no está disponible.",
+        message: `Revisa los campos en rojo: ${summarizeErrors(errors).join(", ")}.`,
       })
       return
     }
 
-    const basePriceNumber = Number(editForm.basePrice)
-    if (Number.isNaN(basePriceNumber)) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El precio base debe ser un número.",
+    const warnings = collectSanityWarnings(
+      {
+        name: editForm.name,
+        slug: editForm.slug,
+        categoryId: editForm.categoryId,
+        basePrice: editForm.basePrice,
+        costPrice: editForm.costPrice,
+        wholesalePrice: editForm.wholesalePrice,
+        initialStock: editForm.initialStock,
+        stock: editForm.stock,
+      },
+      editVariants
+    )
+
+    if (warnings.length > 0) {
+      setConfirmState({
+        title: "Valores poco comunes detectados",
+        warnings,
+        onConfirm: () => {
+          setConfirmState(null)
+          void submitEditing()
+        },
       })
       return
     }
+
+    void submitEditing()
+  }
+
+  async function submitEditing() {
+    if (!editingId || !editForm) return
+
+    const basePriceNumber = Number(editForm.basePrice)
 
     const images =
       editForm.imagesInput
@@ -1055,6 +1224,44 @@ export default function AdminProductsPage() {
         prev.map((p) => (p.id === editingId ? json.data : p))
       )
       await Promise.all([fetchCategories(), fetchBrands()])
+
+      const toDelete = editVariants.filter((v) => v._toDelete && v.id)
+      const toUpdate = editVariants.filter((v) => !v._toDelete && v.id)
+      const toCreate = editVariants.filter((v) => !v._toDelete && !v.id)
+      const variantOps: Promise<Response>[] = [
+        ...toDelete.map((v) =>
+          fetch(`/api/admin/products/${editingId}/variants/${v.id}`, { method: "DELETE" })
+        ),
+        ...toUpdate.map((v) =>
+          fetch(`/api/admin/products/${editingId}/variants/${v.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              variantName: v.variantName,
+              sku: v.sku || null,
+              price: Number(v.price) || 0,
+              stock: Number(v.stock) || 0,
+              isActive: v.isActive,
+            }),
+          })
+        ),
+        ...toCreate.map((v) =>
+          fetch(`/api/admin/products/${editingId}/variants`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              variantName: v.variantName,
+              sku: v.sku || null,
+              price: Number(v.price) || 0,
+              stock: Number(v.stock) || 0,
+              isActive: v.isActive,
+            }),
+          })
+        ),
+      ]
+      if (variantOps.length > 0) {
+        await Promise.all(variantOps)
+      }
 
       setToast({
         id: Date.now(),
@@ -1245,6 +1452,19 @@ export default function AdminProductsPage() {
             </header>
 
             <form onSubmit={handleCreateProduct} className="px-6 py-5 space-y-5">
+              {Object.keys(createErrors).length > 0 ? (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                  <p className="text-xs font-semibold text-red-600">
+                    Faltan o son inválidos estos campos:
+                  </p>
+                  <ul className="mt-1 list-disc pl-5 text-[11px] text-red-600">
+                    {summarizeErrors(createErrors).map((label) => (
+                      <li key={label}>{label}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
@@ -1256,7 +1476,7 @@ export default function AdminProductsPage() {
                     onChange={(event) =>
                       handleFormChange("name", event.target.value)
                     }
-                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    className={`w-full rounded-lg border bg-neutral-50 px-3 py-2 text-sm outline-none focus:ring-1 ${createErrors.name ? ERROR_BORDER : OK_BORDER}`}
                     style={
                       {
                         // CSS variable para reutilizar el dorado
@@ -1265,6 +1485,7 @@ export default function AdminProductsPage() {
                     }
                     placeholder="Nombre del producto"
                   />
+                  <FieldError message={createErrors.name} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
@@ -1277,7 +1498,7 @@ export default function AdminProductsPage() {
                       setSlugTouched(true)
                       handleFormChange("slug", event.target.value)
                     }}
-                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-mono text-[13px] outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    className={`w-full rounded-lg border bg-neutral-50 px-3 py-2 text-sm font-mono text-[13px] outline-none focus:ring-1 ${createErrors.slug ? ERROR_BORDER : OK_BORDER}`}
                     style={
                       {
                         "--brand-gold": BRAND_GOLD,
@@ -1285,9 +1506,13 @@ export default function AdminProductsPage() {
                     }
                     placeholder="slug-del-producto"
                   />
-                  <p className="text-[11px] text-neutral-500">
-                    Se genera automáticamente, pero puedes editarlo.
-                  </p>
+                  {createErrors.slug ? (
+                    <FieldError message={createErrors.slug} />
+                  ) : (
+                    <p className="text-[11px] text-neutral-500">
+                      Se genera automáticamente, pero puedes editarlo.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1378,7 +1603,7 @@ export default function AdminProductsPage() {
                     PRECIO VENTA MXN
                   </label>
                   <div
-                    className="flex items-center rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 focus-within:border-[color:var(--brand-gold)] focus-within:ring-1 focus-within:ring-[color:var(--brand-gold)]"
+                    className={`flex items-center rounded-lg border bg-neutral-50 px-3 py-2 ${createErrors.basePrice ? "border-red-400 focus-within:border-red-400 focus-within:ring-red-300" : "border-neutral-200 focus-within:border-[color:var(--brand-gold)] focus-within:ring-[color:var(--brand-gold)]"} focus-within:ring-1`}
                     style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   >
                     <span className="mr-2 text-xs text-neutral-500">$</span>
@@ -1392,6 +1617,7 @@ export default function AdminProductsPage() {
                       placeholder="0.00"
                     />
                   </div>
+                  <FieldError message={createErrors.basePrice} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
@@ -1425,7 +1651,7 @@ export default function AdminProductsPage() {
                     onChange={(event) =>
                       handleFormChange("categoryId", event.target.value)
                     }
-                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    className={`w-full rounded-lg border bg-neutral-50 px-3 py-2 text-sm outline-none focus:ring-1 ${createErrors.categoryId ? ERROR_BORDER : OK_BORDER}`}
                     style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   >
                     <option value="">Selecciona una categoría</option>
@@ -1435,6 +1661,7 @@ export default function AdminProductsPage() {
                       </option>
                     ))}
                   </select>
+                  <FieldError message={createErrors.categoryId} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
@@ -1502,6 +1729,134 @@ export default function AdminProductsPage() {
                     placeholder="0"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2 border-t border-neutral-100 pt-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    PRESENTACIONES
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCreateVariants((prev) => [
+                        ...prev,
+                        { variantName: "", sku: "", price: form.basePrice, stock: "0", isActive: true },
+                      ])
+                    }
+                    className="text-[11px] font-medium text-[#c9a84c] hover:underline"
+                  >
+                    + Agregar presentación
+                  </button>
+                </div>
+                {createVariants.length === 0 ? (
+                  <p className="text-[11px] text-neutral-400">
+                    Sin presentaciones — el producto usa el inventario inicial indicado arriba.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto rounded-lg border border-neutral-200">
+                    <table className="min-w-full text-xs">
+                      <thead className="bg-neutral-50 text-[11px] uppercase tracking-wide text-neutral-500">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-medium">Nombre</th>
+                          <th className="px-3 py-2 text-left font-medium">SKU</th>
+                          <th className="px-3 py-2 text-left font-medium">Precio</th>
+                          <th className="px-3 py-2 text-left font-medium">Stock</th>
+                          <th className="px-3 py-2 text-center font-medium">Activo</th>
+                          <th className="px-3 py-2" />
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100">
+                        {createVariants.map((v, idx) => (
+                          <tr key={idx}>
+                            <td className="px-3 py-2">
+                              <input
+                                type="text"
+                                value={v.variantName}
+                                onChange={(e) => {
+                                  clearCreateError(variantNameKey(idx))
+                                  setCreateVariants((prev) =>
+                                    prev.map((r, i) => i === idx ? { ...r, variantName: e.target.value } : r)
+                                  )
+                                }}
+                                className={`w-full min-w-[120px] rounded border bg-white px-2 py-1 text-xs outline-none ${createErrors[variantNameKey(idx)] ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-[#c9a84c]"}`}
+                                placeholder="Ej. 5 ml jar"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input
+                                type="text"
+                                value={v.sku}
+                                onChange={(e) =>
+                                  setCreateVariants((prev) =>
+                                    prev.map((r, i) => i === idx ? { ...r, sku: e.target.value } : r)
+                                  )
+                                }
+                                className="w-full min-w-[80px] rounded border border-neutral-200 bg-white px-2 py-1 text-xs font-mono outline-none focus:border-[#c9a84c]"
+                                placeholder="Opcional"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={v.price}
+                                onChange={(e) => {
+                                  clearCreateError(variantPriceKey(idx))
+                                  setCreateVariants((prev) =>
+                                    prev.map((r, i) => i === idx ? { ...r, price: e.target.value } : r)
+                                  )
+                                }}
+                                className={`w-full min-w-[80px] rounded border bg-white px-2 py-1 text-xs outline-none ${createErrors[variantPriceKey(idx)] ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-[#c9a84c]"}`}
+                                placeholder="0.00"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={v.stock}
+                                onChange={(e) => {
+                                  clearCreateError(variantStockKey(idx))
+                                  setCreateVariants((prev) =>
+                                    prev.map((r, i) => i === idx ? { ...r, stock: e.target.value } : r)
+                                  )
+                                }}
+                                className={`w-full min-w-[60px] rounded border bg-white px-2 py-1 text-xs outline-none ${createErrors[variantStockKey(idx)] ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-[#c9a84c]"}`}
+                                placeholder="0"
+                              />
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <input
+                                type="checkbox"
+                                checked={v.isActive}
+                                onChange={(e) =>
+                                  setCreateVariants((prev) =>
+                                    prev.map((r, i) => i === idx ? { ...r, isActive: e.target.checked } : r)
+                                  )
+                                }
+                                className="h-3.5 w-3.5 rounded border-neutral-300 accent-[#c9a84c]"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setCreateVariants((prev) => prev.filter((_, i) => i !== idx))
+                                }
+                                className="text-red-400 hover:text-red-600 leading-none font-bold"
+                              >
+                                ✕
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -1830,11 +2185,13 @@ export default function AdminProductsPage() {
                             <div className="flex items-center justify-end gap-3 text-xs font-semibold">
                               <button
                                 type="button"
-                                onClick={() =>
-                                  isEditing
-                                    ? cancelEditing()
-                                    : startEditing(product)
-                                }
+                                onClick={() => {
+                                  if (isEditing) {
+                                    cancelEditing()
+                                  } else {
+                                    void startEditing(product)
+                                  }
+                                }}
                                 className="text-neutral-900 hover:underline"
                               >
                                 {isEditing ? "CANCELAR" : "EDITAR"}
@@ -1864,6 +2221,18 @@ export default function AdminProductsPage() {
 
                             {isEditing && editForm && (
                               <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50/80 px-4 py-3 space-y-3">
+                                {Object.keys(editErrors).length > 0 ? (
+                                  <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+                                    <p className="text-[11px] font-semibold text-red-600">
+                                      Faltan o son inválidos estos campos:
+                                    </p>
+                                    <ul className="mt-1 list-disc pl-5 text-[11px] text-red-600">
+                                      {summarizeErrors(editErrors).map((label) => (
+                                        <li key={label}>{label}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ) : null}
                                 <div className="grid gap-3 sm:grid-cols-3">
                                   <div className="space-y-1">
                                     <label className="block text-[11px] font-medium tracking-wide text-neutral-600">NOMBRE</label>
@@ -1871,9 +2240,10 @@ export default function AdminProductsPage() {
                                       type="text"
                                       value={editForm.name}
                                       onChange={(e) => handleEditFormChange("name", e.target.value)}
-                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      className={`w-full rounded-lg border bg-white px-3 py-1.5 text-xs outline-none focus:ring-1 ${editErrors.name ? ERROR_BORDER : OK_BORDER}`}
                                       style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                     />
+                                    <FieldError message={editErrors.name} />
                                   </div>
                                   <div className="space-y-1">
                                     <label className="block text-[11px] font-medium tracking-wide text-neutral-600">SLUG</label>
@@ -1964,9 +2334,10 @@ export default function AdminProductsPage() {
                                       type="number" min="0" step="0.01"
                                       value={editForm.basePrice}
                                       onChange={(e) => handleEditFormChange("basePrice", e.target.value)}
-                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      className={`w-full rounded-lg border bg-white px-3 py-1.5 text-xs outline-none focus:ring-1 ${editErrors.basePrice ? ERROR_BORDER : OK_BORDER}`}
                                       style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                     />
+                                    <FieldError message={editErrors.basePrice} />
                                   </div>
                                   <div className="space-y-1">
                                     <label className="block text-[11px] font-medium tracking-wide text-neutral-600">PRECIO MAYOREO</label>
@@ -1987,7 +2358,7 @@ export default function AdminProductsPage() {
                                     <select
                                       value={editForm.categoryId}
                                       onChange={(e) => handleEditFormChange("categoryId", e.target.value)}
-                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      className={`w-full rounded-lg border bg-white px-3 py-1.5 text-xs outline-none focus:ring-1 ${editErrors.categoryId ? ERROR_BORDER : OK_BORDER}`}
                                       style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                     >
                                       <option value="">Selecciona</option>
@@ -1995,6 +2366,7 @@ export default function AdminProductsPage() {
                                         <option key={category.id} value={category.id}>{category.name}</option>
                                       ))}
                                     </select>
+                                    <FieldError message={editErrors.categoryId} />
                                   </div>
                                   <div className="space-y-1">
                                     <label className="block text-[11px] font-medium tracking-wide text-neutral-600">MARCA</label>
@@ -2036,6 +2408,141 @@ export default function AdminProductsPage() {
                                       style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                     />
                                   </div>
+                                </div>
+
+                                <div className="space-y-2 border-t border-neutral-100 pt-3">
+                                  <div className="flex items-center justify-between">
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">PRESENTACIONES</label>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setEditVariants((prev) => [
+                                          ...prev,
+                                          { variantName: "", sku: "", price: editForm.basePrice, stock: "0", isActive: true },
+                                        ])
+                                      }
+                                      className="text-[11px] font-medium text-[#c9a84c] hover:underline"
+                                    >
+                                      + Agregar
+                                    </button>
+                                  </div>
+                                  {loadingVariants ? (
+                                    <p className="text-[11px] text-neutral-400">Cargando presentaciones…</p>
+                                  ) : editVariants.filter((v) => !v._toDelete).length === 0 ? (
+                                    <p className="text-[11px] text-neutral-400">Sin presentaciones definidas.</p>
+                                  ) : (
+                                    <div className="overflow-x-auto rounded-lg border border-neutral-200">
+                                      <table className="min-w-full text-xs">
+                                        <thead className="bg-neutral-50 text-[11px] uppercase tracking-wide text-neutral-500">
+                                          <tr>
+                                            <th className="px-2 py-1.5 text-left font-medium">Nombre</th>
+                                            <th className="px-2 py-1.5 text-left font-medium">SKU</th>
+                                            <th className="px-2 py-1.5 text-left font-medium">Precio</th>
+                                            <th className="px-2 py-1.5 text-left font-medium">Stock</th>
+                                            <th className="px-2 py-1.5 text-center font-medium">Activo</th>
+                                            <th className="px-2 py-1.5" />
+                                          </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-neutral-100">
+                                          {editVariants.map((v, idx) => {
+                                            if (v._toDelete) return null
+                                            return (
+                                              <tr key={idx}>
+                                                <td className="px-2 py-1.5">
+                                                  <input
+                                                    type="text"
+                                                    value={v.variantName}
+                                                    onChange={(e) => {
+                                                      clearEditError(variantNameKey(idx))
+                                                      setEditVariants((prev) =>
+                                                        prev.map((r, i) => i === idx ? { ...r, variantName: e.target.value } : r)
+                                                      )
+                                                    }}
+                                                    className={`w-full min-w-[100px] rounded border bg-white px-2 py-1 text-xs outline-none ${editErrors[variantNameKey(idx)] ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-[#c9a84c]"}`}
+                                                    placeholder="Ej. 5 ml jar"
+                                                  />
+                                                </td>
+                                                <td className="px-2 py-1.5">
+                                                  <input
+                                                    type="text"
+                                                    value={v.sku}
+                                                    onChange={(e) =>
+                                                      setEditVariants((prev) =>
+                                                        prev.map((r, i) => i === idx ? { ...r, sku: e.target.value } : r)
+                                                      )
+                                                    }
+                                                    className="w-full min-w-[70px] rounded border border-neutral-200 bg-white px-2 py-1 text-xs font-mono outline-none focus:border-[#c9a84c]"
+                                                    placeholder="Opcional"
+                                                  />
+                                                </td>
+                                                <td className="px-2 py-1.5">
+                                                  <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    value={v.price}
+                                                    onChange={(e) => {
+                                                      clearEditError(variantPriceKey(idx))
+                                                      setEditVariants((prev) =>
+                                                        prev.map((r, i) => i === idx ? { ...r, price: e.target.value } : r)
+                                                      )
+                                                    }}
+                                                    className={`w-full min-w-[70px] rounded border bg-white px-2 py-1 text-xs outline-none ${editErrors[variantPriceKey(idx)] ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-[#c9a84c]"}`}
+                                                    placeholder="0.00"
+                                                  />
+                                                </td>
+                                                <td className="px-2 py-1.5">
+                                                  <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="1"
+                                                    value={v.stock}
+                                                    onChange={(e) => {
+                                                      clearEditError(variantStockKey(idx))
+                                                      setEditVariants((prev) =>
+                                                        prev.map((r, i) => i === idx ? { ...r, stock: e.target.value } : r)
+                                                      )
+                                                    }}
+                                                    className={`w-full min-w-[55px] rounded border bg-white px-2 py-1 text-xs outline-none ${editErrors[variantStockKey(idx)] ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-[#c9a84c]"}`}
+                                                    placeholder="0"
+                                                  />
+                                                </td>
+                                                <td className="px-2 py-1.5 text-center">
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={v.isActive}
+                                                    onChange={(e) =>
+                                                      setEditVariants((prev) =>
+                                                        prev.map((r, i) => i === idx ? { ...r, isActive: e.target.checked } : r)
+                                                      )
+                                                    }
+                                                    className="h-3.5 w-3.5 rounded border-neutral-300 accent-[#c9a84c]"
+                                                  />
+                                                </td>
+                                                <td className="px-2 py-1.5">
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      if (v.id) {
+                                                        setEditVariants((prev) =>
+                                                          prev.map((r, i) => i === idx ? { ...r, _toDelete: true } : r)
+                                                        )
+                                                      } else {
+                                                        setEditVariants((prev) => prev.filter((_, i) => i !== idx))
+                                                      }
+                                                    }}
+                                                    className="text-red-400 hover:text-red-600 leading-none font-bold"
+                                                  >
+                                                    ✕
+                                                  </button>
+                                                </td>
+                                              </tr>
+                                            )
+                                          })}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="space-y-1">
@@ -2507,6 +3014,40 @@ export default function AdminProductsPage() {
             }`}
           >
             {toast.message}
+          </div>
+        </div>
+      )}
+
+      {confirmState && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-base font-semibold text-neutral-900">
+              {confirmState.title}
+            </h3>
+            <p className="mt-2 text-sm text-neutral-600">
+              Detectamos valores poco comunes. Revísalos antes de continuar:
+            </p>
+            <ul className="mt-3 max-h-52 list-disc overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 px-5 py-3 text-[13px] text-amber-800">
+              {confirmState.warnings.map((warning, i) => (
+                <li key={i}>{warning}</li>
+              ))}
+            </ul>
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmState(null)}
+                className="rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+              >
+                Revisar de nuevo
+              </button>
+              <button
+                type="button"
+                onClick={confirmState.onConfirm}
+                className="rounded-full bg-[#0a0a0a] px-4 py-1.5 text-sm font-semibold text-white hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+              >
+                Sí, guardar de todas formas
+              </button>
+            </div>
           </div>
         </div>
       )}
