@@ -1,17 +1,12 @@
-import { Resend } from "resend"
-import { createClient } from "@supabase/supabase-js"
-
+import {
+  EMAIL_FROM,
+  getResend,
+  getSupabaseAdmin,
+} from "./templates/_shared"
 import {
   buildOrderConfirmationHtml,
   type OrderConfirmationData,
 } from "./templates/order-confirmation"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 // ─── Tipos para los datos crudos del join de Supabase ────────────────────────
 
@@ -56,6 +51,7 @@ function unwrap<T>(value: T | T[] | null | undefined): T | null {
 async function buildEmailPayload(
   orderId: string
 ): Promise<EmailPayload | null> {
+  const supabaseAdmin = getSupabaseAdmin()
   const { data, error } = await supabaseAdmin
     .from("orders")
     .select(
@@ -142,8 +138,9 @@ export async function sendOrderConfirmationEmail(
   const html = buildOrderConfirmationHtml(templateData)
   const subject = `Tu pedido #${templateData.orderShortId} fue confirmado — Liz Cabriales`
 
+  const resend = getResend()
   const { error } = await resend.emails.send({
-    from: "Liz Cabriales <onboarding@resend.dev>",
+    from: EMAIL_FROM,
     to: [`${recipientName} <${recipientEmail}>`],
     subject,
     html,

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AlertTriangle, CalendarDays, GraduationCap, PackageOpen } from "lucide-react"
+import { AlertTriangle, CalendarDays, GraduationCap, Image as ImageIcon, PackageOpen } from "lucide-react"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import { createClient } from "@/lib/supabase/client"
 
@@ -29,13 +29,13 @@ export default function AdminDashboardClient({
   const actionCards = [
     {
       href: "/admin/products",
-      title: "Gestionar Productos",
+      title: "📦 Gestionar Productos",
       description: "Crear, editar, activar o eliminar productos del catálogo.",
       icon: null,
     },
     {
       href: "/admin/orders",
-      title: "Ver órdenes",
+      title: "🧾 Ver órdenes",
       description: "Consultar pedidos, estados y detalle de cada orden.",
       icon: null,
     },
@@ -51,13 +51,13 @@ export default function AdminDashboardClient({
       description: "Administra cursos presenciales, cupos e inscripciones.",
       icon: GraduationCap,
     },
+    {
+      href: "/admin/media",
+      title: "Media",
+      description: "Sube y actualiza banners, fotos y GIFs de la landing page.",
+      icon: ImageIcon,
+    },
   ] as const
-
-  function cardGridClass(index: number) {
-    if (index < 3) return "lg:col-span-2"
-    if (index === 3) return "lg:col-span-2 lg:col-start-2"
-    return "lg:col-span-2"
-  }
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
@@ -93,7 +93,7 @@ export default function AdminDashboardClient({
                 <Link
                   key={card.href}
                   href={card.href}
-                  className={`group flex h-full min-h-[132px] flex-col overflow-hidden rounded-xl border border-[#ececec] bg-white px-5 py-4 transition hover:border-[#e8dcb0] hover:bg-[#fafafa] ${cardGridClass(index)}`}
+                  className={`group flex h-full min-h-[132px] flex-col overflow-hidden rounded-xl border border-[#ececec] bg-white px-5 py-4 transition hover:border-neutral-300 hover:bg-white lg:col-span-2`}
                 >
                   <div className={Icon ? "flex items-start gap-3" : "space-y-1"}>
                     {Icon ? (

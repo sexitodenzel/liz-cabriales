@@ -135,7 +135,7 @@ export default function InstagramFeed() {
 
   return (
     <section
-      className="bg-[var(--background)] px-6 pb-24 pt-12 md:px-12"
+      className="bg-white px-6 pb-24 pt-12 md:px-12"
       style={{ color: "#1a1a18" }}
     >
       {/* Eyebrow */}

@@ -37,6 +37,24 @@ En **Supabase → Authentication → URL Configuration**:
   - `https://[dominio-real]/auth/callback`
   - `http://localhost:3000/auth/callback`
 
+### 3. SMTP custom para emails de auth (dominio propio)
+
+Por defecto los emails de auth salen desde `noreply@mail.supabase.io`. Para que salgan desde el dominio de Liz con Resend:
+
+> **Requisito previo:** dominio verificado en Resend (`docs/delivery/pendientes/resend.md` §1).
+
+En **Supabase → Project Settings → Auth → SMTP Provider**, activar "Custom SMTP":
+```
+Host:        smtp.resend.com
+Port:        465
+Username:    resend
+Password:    [RESEND_API_KEY]
+From:        noreply@[dominio-real]
+Sender name: Academia Liz Cabriales
+```
+
+Ver instrucciones detalladas y prueba de aceptación en `docs/delivery/pendientes/resend.md` §2.
+
 ### 3. Storage — bucket `images`
 
 En **Supabase → Storage**:
@@ -52,6 +70,7 @@ En **Supabase → Storage**:
 - [ ] SQL ejecutado sin errores (confirmar en SQL Editor).
 - [ ] Upload de imagen de producto desde admin funciona.
 - [ ] Usuarios nuevos se crean correctamente en la tabla `users` (función `handle_new_user` activa).
+- [ ] Email de reset de contraseña llega desde dominio real (no `mail.supabase.io`) — requiere SMTP configurado.
 
 ---
 

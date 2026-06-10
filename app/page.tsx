@@ -4,22 +4,49 @@ import PillarStage from "./components/PillarStage"
 import ShopByNailPolishColors from "./components/ShopByNailPolishColors"
 import HeroSlider from "./components/hero/HeroSlider"
 import InstagramFeed from "./components/InstagramFeed"
-import Footer from "./components/Footer"
+import { getLandingSlots } from "@/lib/supabase/landing-slots"
 
-export default function Home() {
+export const revalidate = 60
+
+export default async function Home() {
+  const slots = await getLandingSlots()
+
+  const heroSlides: [string, string, string] = [
+    slots["hero_slide_1"] ?? "",
+    slots["hero_slide_2"] ?? "",
+    slots["hero_slide_3"] ?? "",
+  ]
+
+  const pillarImages = {
+    dist: [
+      slots["pillar_dist_1"] ?? "",
+      slots["pillar_dist_2"] ?? "",
+      slots["pillar_dist_3"] ?? "",
+    ] as [string, string, string],
+    acad: [
+      slots["pillar_acad_1"] ?? "",
+      slots["pillar_acad_2"] ?? "",
+      slots["pillar_acad_3"] ?? "",
+    ] as [string, string, string],
+    serv: [
+      slots["pillar_serv_1"] ?? "",
+      slots["pillar_serv_2"] ?? "",
+      slots["pillar_serv_3"] ?? "",
+    ] as [string, string, string],
+  }
+
   return (
-    <main className="min-h-screen bg-[var(--background)] text-black">
+    <main className="min-h-screen bg-white text-black">
       <div className="mx-auto w-full max-w-[1460px] px-6">
-        <HeroSlider />
+        <HeroSlider slides={heroSlides} />
         <div className="h-16 shrink-0" aria-hidden />
-        <BrandDescription />
+        <BrandDescription photoUrl={slots["brand_photo"]} />
         <div className="h-16 shrink-0" aria-hidden />
-        <PillarStage />
+        <PillarStage pillarImages={pillarImages} />
         <ShopByNailPolishColors />
       </div>
       <NuevosLanzamientos />
       <InstagramFeed />
-      <Footer />
     </main>
   )
 }

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/admin"
 import { shippingQuoteSchema } from "@/lib/validations/shippingQuote"
 import { sendShippingPaymentRequest } from "@/lib/notifications/order-notifications"
+import { sendShippingPaymentRequestEmail } from "@/lib/email/templates/shipping-payment-request"
 
 type ApiError = { message: string; code?: string }
 type ApiResponse<T> = { data: T; error: null } | { data: null; error: ApiError }
@@ -196,9 +197,12 @@ export async function POST(
       )
     }
 
-    // Notificar al cliente por WhatsApp (sin await — no bloquea la respuesta)
+    // Notificar al cliente por WhatsApp y email (sin await — no bloquea la respuesta)
     sendShippingPaymentRequest(orderId).catch((err) =>
       console.error("[shipping-quote] Error enviando WhatsApp:", err)
+    )
+    sendShippingPaymentRequestEmail(orderId).catch((err) =>
+      console.error("[shipping-quote] Error enviando email:", err)
     )
 
     return NextResponse.json({ data: { payment_url: paymentUrl }, error: null })

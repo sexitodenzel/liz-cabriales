@@ -5,7 +5,7 @@
    ========================================= */
 
 import Link from "next/link"
-import { Search, User, ShoppingBag, ChevronDown } from "lucide-react"
+import { Search, User, ShoppingBag, ChevronDown, X } from "lucide-react"
 import { useState, useEffect, useRef, useCallback, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { menuData } from "./menuData"
@@ -98,6 +98,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     setSearchQuery("")
     closeSearchPanels()
   }, [closeSearchPanels])
+
+  const clearSearchQuery = useCallback(() => {
+    setSearchQuery("")
+    setSuggestionsOpen(false)
+    setMobileSuggestionsOpen(false)
+  }, [])
 
   const scheduleCloseCategories = useCallback(() => {
     clearCategoriesLeaveTimer()
@@ -279,7 +285,7 @@ return (
    HEADER
    ========================================= */}
 
-<header className="relative z-50 w-full sticky top-0 overflow-visible border-b border-black/5 bg-white px-4 md:px-6">
+<header className="relative z-50 w-full sticky top-0 overflow-visible border-b border-white/10 bg-[#0a0a0a] px-4 text-neutral-300 md:px-6">
 
 <div className="mx-auto flex h-[var(--navbar-h)] max-w-[1400px] items-center gap-3 md:gap-6">
 
@@ -293,7 +299,7 @@ return (
   className="flex shrink-0 flex-col font-serif leading-tight text-inherit no-underline transition-opacity hover:opacity-90"
   aria-label="Ir al inicio"
 >
-  <div className="self-start text-[19px] md:text-[30px] tracking-[0.10em] md:tracking-[0.12em]">
+  <div className="self-start text-[19px] text-white md:text-[30px] tracking-[0.10em] md:tracking-[0.12em]">
     Liz Cabriales
   </div>
 
@@ -321,7 +327,7 @@ return (
       setAllCategoriesOpen(false)
       closeCart()
     }}
-    className="inline-flex items-center gap-1 text-[13px] font-semibold tracking-[0.05em] text-[var(--foreground)]"
+    className="inline-flex items-center gap-1 text-[13px] font-semibold tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
     aria-expanded={mobileNavOpen}
     aria-haspopup="true"
     aria-label="Menú de módulos"
@@ -342,12 +348,12 @@ return (
     }`}
     aria-hidden={!mobileNavOpen}
   >
-    <div className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-lg">
+    <div className="overflow-hidden rounded-xl border border-white/10 bg-[#141414] shadow-lg shadow-black/40">
       <div className="px-4 pt-2 pb-4">
         <button
           type="button"
           onClick={() => setMobileCategoriesOpen((open) => !open)}
-          className="flex w-full items-center justify-between py-2.5 text-left text-[13px] font-semibold tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+          className="flex w-full items-center justify-between py-2.5 text-left text-[13px] font-semibold tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
         >
           <span>Todos</span>
           <ChevronDown
@@ -368,7 +374,7 @@ return (
               setMobileCategoriesOpen(false)
             }}
             tabIndex={mobileNavOpen ? 0 : -1}
-            className="block py-2 pl-3 text-[12px] font-medium tracking-[0.04em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+            className="block py-2 pl-3 text-[12px] font-medium tracking-[0.04em] text-neutral-400 transition-colors hover:text-[#C6A75E]"
           >
             Ver todo
           </Link>
@@ -381,7 +387,7 @@ return (
                 setMobileCategoriesOpen(false)
               }}
               tabIndex={mobileNavOpen ? 0 : -1}
-              className="block py-2 pl-3 text-[12px] font-medium tracking-[0.04em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+              className="block py-2 pl-3 text-[12px] font-medium tracking-[0.04em] text-neutral-400 transition-colors hover:text-[#C6A75E]"
             >
               {category.name}
             </Link>
@@ -395,14 +401,14 @@ return (
         {[
           { label: "Tienda", href: "/tienda" },
           { label: "Cursos", href: "/academia" },
-          { label: "Citas", href: "/citas" },
+          { label: "Servicios", href: "/citas" },
         ].map((item) => (
           <div key={item.href}>
             <Link
               href={item.href}
               onClick={() => setMobileNavOpen(false)}
               tabIndex={mobileNavOpen ? 0 : -1}
-              className="block py-2.5 text-[13px] font-semibold tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+              className="block py-2.5 text-[13px] font-semibold tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
             >
               {item.label}
             </Link>
@@ -429,7 +435,7 @@ return (
       href={href}
       onMouseEnter={() => openNavMenu(item)}
       onFocus={() => openNavMenu(item)}
-      className="relative group text-[16px] tracking-[0.05em] text-[var(--foreground)] cursor-pointer bg-transparent border-none"
+      className="relative group cursor-pointer border-none bg-transparent text-[16px] tracking-[0.05em] text-neutral-300"
     >
       <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
         {item}
@@ -449,10 +455,10 @@ return (
     closeSearchPanels()
     setActiveMenu(null)
   }}
-  className="relative group text-[16px] tracking-[0.05em] text-[var(--foreground)]"
+  className="relative group text-[16px] tracking-[0.05em] text-neutral-300"
 >
   <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
-    Citas
+    Servicios
   </span>
   <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full"></span>
 </Link>
@@ -468,7 +474,7 @@ return (
 >
   <form
     onSubmit={handleSearchSubmit}
-    className="relative flex w-full items-center rounded-full border border-black/10 bg-white px-1.5 py-1"
+    className="relative flex w-full items-center rounded-full border border-white/10 bg-[#141414] px-1.5 py-1"
   >
     <div
       className="relative shrink-0"
@@ -478,14 +484,13 @@ return (
     >
       <button
         type="button"
-        className="inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-1 text-[11px] font-semibold tracking-[0.04em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+        className="inline-flex shrink-0 items-center justify-center rounded-full p-1.5 text-neutral-400 transition-colors hover:text-[#C6A75E]"
         aria-label="Abrir categorías"
         aria-expanded={allCategoriesOpen}
         aria-haspopup="menu"
       >
-        Todos
         <ChevronDown
-          className={`h-3 w-3 transition-transform duration-200 ${
+          className={`h-3.5 w-3.5 transition-transform duration-200 ${
             allCategoriesOpen ? "rotate-180" : ""
           }`}
         />
@@ -500,9 +505,12 @@ return (
         onMouseLeave={scheduleCloseCategories}
       />
     </div>
-    <div className="mx-1.5 h-5 w-px shrink-0 bg-black/10" aria-hidden="true" />
+    <div className="mx-1 h-5 w-px shrink-0 bg-white/15" aria-hidden="true" />
     <input
-      type="search"
+      type="text"
+      inputMode="search"
+      enterKeyHint="search"
+      autoComplete="off"
       value={searchQuery}
       onChange={(e) => {
         const value = e.target.value
@@ -526,12 +534,22 @@ return (
         }
       }}
       placeholder="¿Qué estás buscando?"
-      className="min-w-0 flex-1 bg-transparent px-2 text-sm text-[var(--foreground)] placeholder:text-neutral-400 outline-none"
+      className="navbar-search-input min-w-0 flex-1 bg-transparent px-2 text-sm text-neutral-200 placeholder:text-neutral-500 outline-none"
       aria-label="Buscar productos"
     />
+    {searchQuery.length > 0 && (
+      <button
+        type="button"
+        onClick={clearSearchQuery}
+        className="gold-clear-btn inline-flex shrink-0 items-center justify-center rounded-full p-1.5"
+        aria-label="Limpiar búsqueda"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    )}
     <button
       type="submit"
-      className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+      className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-neutral-400 transition-colors hover:text-[#C6A75E]"
       aria-label="Buscar"
     >
       <Search className="h-4 w-4" />
@@ -575,7 +593,7 @@ return (
     setAllCategoriesOpen(false)
     setActiveMenu(null)
   }}
-  className="inline-flex md:hidden items-center text-[var(--foreground)]"
+  className="inline-flex md:hidden items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
   aria-label="Abrir búsqueda"
 >
   <Search className="w-5 h-5 shrink-0" />
@@ -587,7 +605,7 @@ return (
 
 <Link
   href={isLoggedIn ? "/perfil" : "/login"}
-  className="group inline-flex items-center text-[16px] tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+  className="group inline-flex items-center text-[16px] tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
   aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
 >
   <User className="w-5 h-5 md:w-7 md:h-7 shrink-0" />
@@ -601,7 +619,7 @@ return (
 
 <button
   type="button"
-  className="group relative inline-flex items-center text-[16px] tracking-[0.05em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+  className="group relative inline-flex items-center text-[16px] tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
   onClick={() => {
     setMobileNavOpen(false)
     if (isCartOpen) {
@@ -638,12 +656,12 @@ return (
 >
   <form
     onSubmit={handleSearchSubmit}
-    className="relative z-[71] flex items-center rounded-full border border-black/10 bg-white px-2 py-1"
+    className="relative z-[71] flex items-center rounded-full border border-white/10 bg-[#141414] px-2 py-1"
   >
     <div className="relative shrink-0" data-all-categories>
       <button
         type="button"
-        className="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-semibold tracking-[0.04em] text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+        className="inline-flex shrink-0 items-center justify-center rounded-full p-1.5 text-neutral-400 transition-colors hover:text-[#C6A75E]"
         onClick={(e) => {
           e.stopPropagation()
           setMobileSearchCategoriesOpen((open) => !open)
@@ -653,9 +671,8 @@ return (
         aria-expanded={mobileSearchCategoriesOpen}
         aria-haspopup="menu"
       >
-        Todos
         <ChevronDown
-          className={`h-3.5 w-3.5 transition-transform duration-200 ${
+          className={`h-4 w-4 transition-transform duration-200 ${
             mobileSearchCategoriesOpen ? "rotate-180" : ""
           }`}
         />
@@ -668,9 +685,12 @@ return (
         onClose={finishSearchNavigation}
       />
     </div>
-    <div className="mx-2 h-5 w-px bg-black/10" />
+    <div className="mx-1.5 h-5 w-px shrink-0 bg-white/15" aria-hidden="true" />
     <input
-      type="search"
+      type="text"
+      inputMode="search"
+      enterKeyHint="search"
+      autoComplete="off"
       value={searchQuery}
       onChange={(e) => {
         const value = e.target.value
@@ -687,12 +707,22 @@ return (
         }
       }}
       placeholder="¿Qué estás buscando?"
-      className="min-w-0 flex-1 bg-transparent px-2 text-sm text-[var(--foreground)] placeholder:text-neutral-400 outline-none"
+      className="navbar-search-input min-w-0 flex-1 bg-transparent px-2 text-base text-neutral-200 placeholder:text-neutral-500 outline-none md:text-sm"
       aria-label="Buscar productos"
     />
+    {searchQuery.length > 0 && (
+      <button
+        type="button"
+        onClick={clearSearchQuery}
+        className="gold-clear-btn inline-flex shrink-0 items-center justify-center rounded-full p-1.5"
+        aria-label="Limpiar búsqueda"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    )}
     <button
       type="submit"
-      className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+      className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-neutral-400 transition-colors hover:text-[#C6A75E]"
       aria-label="Buscar"
     >
       <Search className="h-4 w-4" />

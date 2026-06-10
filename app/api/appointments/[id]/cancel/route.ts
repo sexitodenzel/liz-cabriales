@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { createClient } from "@/lib/supabase/server"
 import { cancelAppointment } from "@/lib/supabase/appointments"
+import { sendAppointmentCancelledByClientEmail } from "@/lib/email/templates/appointment-cancelled"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -43,6 +44,13 @@ export async function PATCH(_request: Request, context: RouteContext) {
               : 500
       return errorResponse(result.error.message, status, result.error.code)
     }
+
+    sendAppointmentCancelledByClientEmail(id).catch((err) =>
+      console.error(
+        `[api/appointments/cancel] Error enviando email de cancelación para cita ${id}:`,
+        err
+      )
+    )
 
     return NextResponse.json({ data: { ok: true }, error: null })
   } catch (err) {

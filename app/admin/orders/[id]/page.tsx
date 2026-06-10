@@ -446,15 +446,19 @@ export default function AdminOrderDetailPage() {
               {showShippingQuoteForm && (
                 <>
                   <p className="mt-3 text-sm text-neutral-600">
-                    Ingresa el costo real del envío. Se creará una preferencia de MercadoPago
-                    y se notificará al cliente por WhatsApp.
+                    Ingresa el costo del envío. Se generará un link de pago de MercadoPago
+                    y se le avisará al cliente por <strong>WhatsApp y correo</strong> para que
+                    lo cubra.
                   </p>
                   {quoteSuccess ? (
                     <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm">
                       <p className="font-semibold text-emerald-800">
-                        Cobro de envío enviado correctamente.
+                        ¡Listo! Le avisamos al cliente por WhatsApp y correo.
                       </p>
-                      <p className="mt-1 text-emerald-700 break-all">
+                      <p className="mt-1 text-emerald-600">
+                        En cuanto pague el envío te notificamos y puedes preparar el paquete.
+                      </p>
+                      <p className="mt-2 text-emerald-700 break-all text-xs">
                         Link de pago:{" "}
                         <a
                           href={quoteSuccess}

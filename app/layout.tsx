@@ -4,7 +4,8 @@
 
 import "./globals.css";
 import { CartProvider } from "./components/cart/CartContext";
-import Navbar from "./components/navbar/Navbar";
+import SiteNavbar from "./components/SiteNavbar";
+import SiteFooter from "./components/SiteFooter";
 import WhatsAppButton from "./components/WhatsAppButton";
 import { createClient } from "@/lib/supabase/server";
 
@@ -69,11 +70,12 @@ export default async function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${inter.className} ${cormorantGaramond.variable} ${playfairDisplay.variable}`}
+        className={`${inter.className} ${cormorantGaramond.variable} ${playfairDisplay.variable} flex min-h-screen flex-col`}
       >
         <CartProvider>
-          <Navbar isLoggedIn={Boolean(user)} />
-          {children}
+          <SiteNavbar isLoggedIn={Boolean(user)} />
+          <div className="flex-1">{children}</div>
+          <SiteFooter />
           <WhatsAppButton />
         </CartProvider>
       </body>

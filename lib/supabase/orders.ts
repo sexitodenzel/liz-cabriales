@@ -419,6 +419,11 @@ export type OrderForDisplay = {
   shipping_state: string | null
   shipping_city: string | null
   shipping_cost: number
+  shipping_amount_final: number | null
+  shipping_payment_url: string | null
+  shipping_payment_status: string | null
+  carrier: string | null
+  tracking_number: string | null
   created_at: string
   items: OrderItemForDisplay[]
 }
@@ -474,7 +479,7 @@ export async function getOrderWithItemsForUser(
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select(
-      "id, status, total, delivery_type, shipping_address, shipping_state, shipping_city, shipping_cost, created_at"
+      "id, status, total, delivery_type, shipping_address, shipping_state, shipping_city, shipping_cost, shipping_amount_final, shipping_payment_url, shipping_payment_status, carrier, tracking_number, created_at"
     )
     .eq("id", orderId)
     .eq("user_id", userId)
@@ -524,6 +529,16 @@ export async function getOrderWithItemsForUser(
       shipping_state: (order.shipping_state as string | null) ?? null,
       shipping_city: (order.shipping_city as string | null) ?? null,
       shipping_cost: Number(order.shipping_cost),
+      shipping_amount_final:
+        order.shipping_amount_final != null
+          ? Number(order.shipping_amount_final)
+          : null,
+      shipping_payment_url:
+        (order.shipping_payment_url as string | null) ?? null,
+      shipping_payment_status:
+        (order.shipping_payment_status as string | null) ?? null,
+      carrier: (order.carrier as string | null) ?? null,
+      tracking_number: (order.tracking_number as string | null) ?? null,
       created_at: order.created_at as string,
       items,
     },

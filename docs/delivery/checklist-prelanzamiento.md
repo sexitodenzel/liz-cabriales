@@ -15,8 +15,12 @@ Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **
 - [ ] `NEXT_PUBLIC_APP_URL` = dominio real + redeploy
 - [ ] `MERCADOPAGO_ACCESS_TOKEN` y `MERCADOPAGO_WEBHOOK_SECRET` (PROD)
 - [ ] Webhook MP: `https://[dominio]/api/webhooks/mercadopago`
-- [ ] Resend: dominio verificado + remitente actualizado (no `onboarding@resend.dev`)
+- [x] Resend: dominio `lizcabriales.com` verificado (Vercel auto-configure, Jun 09 2026)
+- [x] `EMAIL_FROM` actualizado a `notificaciones@lizcabriales.com` en `lib/email/templates/_shared.ts`
 - [ ] `RESEND_API_KEY` en Vercel
+- [ ] `ADMIN_EMAIL` en Vercel (dirección que recibe alertas de admin)
+- [ ] Supabase Auth → SMTP custom configurado con Resend (ver `docs/delivery/pendientes/resend.md` §SMTP)
+- [ ] Email templates de Supabase Auth revisados (no los genéricos del placeholder)
 - [ ] SQL ejecutado: `docs/delivery/sql-sprint5-supabase.sql` (recepcionista, CFDI, `handle_new_user`)
 - [x] SQL ejecutado: `docs/delivery/sql-course-display-settings.sql` (toggles públicos de cursos)
 - [ ] SQL ejecutado: `docs/delivery/sql-sprint-whatsapp.sql` (teléfono en users, campos TUA en orders, notification_log)
@@ -71,11 +75,14 @@ Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **
 - [ ] Dominio real + SSL
 - [ ] Login Google con cuenta externa
 - [ ] Pago MP → webhook → estado pagado
-- [ ] Email transaccional recibido
+- [ ] Email transaccional al cliente recibido (desde dominio real, no `resend.dev`)
+- [ ] Email de alerta al admin recibido tras pago aprobado
+- [ ] Reset de contraseña → email llega desde dominio real (Supabase SMTP via Resend)
 - [ ] Feed Instagram visible
 - [ ] WhatsApp OTP recibido al registrarse con teléfono
 - [ ] Pago de productos → WhatsApp a Liz + al cliente
 - [ ] Admin registra guía → cliente recibe cobro de envío por WhatsApp + link MP
 - [ ] Segundo pago MP → estado `shipping_paid` + WhatsApp a Liz
-- [ ] Admin marca enviado → WhatsApp al cliente con tracking
+- [ ] Admin marca enviado → WhatsApp + email al cliente con tracking
+- [ ] Cliente cancela cita → email de confirmación al cliente + alerta al admin
 - [ ] Firmas DEV + LIZ en plan maestro

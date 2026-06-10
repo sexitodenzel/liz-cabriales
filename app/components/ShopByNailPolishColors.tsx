@@ -199,7 +199,7 @@ export default function ShopByNailPolishColors() {
   }, [addItem, closeModal, isLoggedIn, openCart, selected])
 
   return (
-    <section ref={sectionRef} className="bg-[var(--background)] pt-14 text-black">
+    <section ref={sectionRef} className="bg-white pt-14 text-black">
       <style>{`
         @keyframes paletteIn {
           from { opacity: 0; transform: translateY(4px); }

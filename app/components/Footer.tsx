@@ -1,24 +1,27 @@
 import Link from "next/link"
 import { Instagram, MessageCircle } from "lucide-react"
 
+const linkClass =
+  "text-neutral-300 transition-colors hover:text-[#C6A75E]"
+
 export default function Footer() {
   return (
-    <footer className="mt-16 bg-brand-black text-[var(--foreground)]">
+    <footer className="mt-16 bg-[#0a0a0a] text-neutral-300">
       <div className="mx-auto max-w-[1200px] px-6 py-12">
         <div className="grid gap-10 md:grid-cols-3">
           <div className="text-center md:text-left">
             <div className="mx-auto flex w-fit flex-col font-serif leading-none md:mx-0">
-              <div className="self-start text-[24px] tracking-[0.12em] text-[var(--foreground)]">
+              <div className="self-start text-[24px] tracking-[0.12em] text-white">
                 Liz Cabriales
               </div>
               <div className="self-end text-[11px] tracking-[0.30em] uppercase text-[#C6A75E]">
                 STUDIO
               </div>
             </div>
-            <p className="mt-5 text-sm">
+            <p className="mt-5 text-sm text-neutral-400">
               Academia y distribuidora profesional de productos para uñas.
             </p>
-            <p className="mt-2 text-sm">
+            <p className="mt-2 text-sm text-neutral-400">
               Tampico, Tamaulipas, México.
             </p>
           </div>
@@ -26,22 +29,16 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-[#C6A75E]">Explorar</h3>
             <nav className="mt-4 flex flex-col gap-2 text-sm">
-              <Link
-                href="/tienda"
-                className="transition-colors hover:text-brand-gold"
-              >
+              <Link href="/tienda" className={linkClass}>
                 Tienda
               </Link>
-              <Link
-                href="/academia"
-                className="transition-colors hover:text-brand-gold"
-              >
+              <Link href="/academia" className={linkClass}>
                 Academia
               </Link>
-              <Link
-                href="/inspiracion"
-                className="transition-colors hover:text-brand-gold"
-              >
+              <Link href="/citas" className={linkClass}>
+                Servicios
+              </Link>
+              <Link href="/inspiracion" className={linkClass}>
                 Inspiración
               </Link>
             </nav>
@@ -55,7 +52,7 @@ export default function Footer() {
                 <Link
                   href="https://wa.me/528332183399"
                   target="_blank"
-                  className="transition-colors hover:text-brand-gold"
+                  className={linkClass}
                 >
                   833 218 3399
                 </Link>
@@ -65,7 +62,7 @@ export default function Footer() {
                 <Link
                   href="https://instagram.com/liz_cabriales"
                   target="_blank"
-                  className="transition-colors hover:text-brand-gold"
+                  className={linkClass}
                 >
                   @liz_cabriales
                 </Link>
@@ -75,18 +72,20 @@ export default function Footer() {
                 <Link
                   href="https://www.facebook.com/profile.php?id=100008326095757"
                   target="_blank"
-                  className="transition-colors hover:text-brand-gold"
+                  className={linkClass}
                 >
                   Liz Cabriales
                 </Link>
               </p>
-              <p className="pt-2">Lunes a Sábado · Tampico, Tamaulipas</p>
+              <p className="pt-2 text-neutral-400">
+                Lunes a Sábado · Tampico, Tamaulipas
+              </p>
             </div>
           </div>
         </div>
 
         <div className="mt-10 border-t border-white/10 pt-6">
-          <div className="flex flex-col items-center justify-between gap-4 text-xs md:flex-row">
+          <div className="flex flex-col items-center justify-between gap-4 text-xs text-neutral-500 md:flex-row">
             <p>
               © 2025 Academia Liz Cabriales. Todos los derechos reservados.
             </p>
@@ -94,7 +93,7 @@ export default function Footer() {
               <Link
                 href="https://instagram.com/liz_cabriales"
                 target="_blank"
-                className="transition-colors hover:text-brand-gold"
+                className="text-neutral-400 transition-colors hover:text-[#C6A75E]"
                 aria-label="Instagram de Liz Cabriales"
               >
                 <Instagram className="h-5 w-5" />
@@ -102,7 +101,7 @@ export default function Footer() {
               <Link
                 href="https://wa.me/528332183399"
                 target="_blank"
-                className="transition-colors hover:text-brand-gold"
+                className="text-neutral-400 transition-colors hover:text-[#C6A75E]"
                 aria-label="WhatsApp de Liz Cabriales"
               >
                 <MessageCircle className="h-5 w-5" />
@@ -114,4 +113,3 @@ export default function Footer() {
     </footer>
   )
 }
-

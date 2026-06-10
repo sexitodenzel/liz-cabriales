@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdminOrReceptionist } from "@/lib/supabase/admin"
 import { adminCancelAppointment } from "@/lib/supabase/appointments"
+import { sendAppointmentCancelledByAdminEmail } from "@/lib/email/templates/appointment-cancelled"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -36,6 +37,13 @@ export async function PATCH(_request: Request, context: RouteContext) {
         { status: 500 }
       )
     }
+
+    sendAppointmentCancelledByAdminEmail(id).catch((err) =>
+      console.error(
+        `[api/admin/appointments/cancel] Error enviando email al cliente por cita ${id}:`,
+        err
+      )
+    )
 
     return NextResponse.json({ data: { ok: true }, error: null })
   } catch (err) {

@@ -24,11 +24,22 @@ import {
 import { sendOrderConfirmationEmail } from "@/lib/email/resend"
 import { sendAppointmentConfirmationEmail } from "@/lib/email/templates/appointment-confirmation"
 import { sendCourseRegistrationEmail } from "@/lib/email/templates/course-registration"
+import {
+  sendAppointmentPaymentFailedEmail,
+  sendCoursePaymentFailedEmail,
+} from "@/lib/email/templates/payment-failed"
+import {
+  sendAdminNewAppointmentEmail,
+  sendAdminNewCourseRegistrationEmail,
+  sendAdminNewOrderEmail,
+} from "@/lib/email/admin"
 import { claimShippingPayment } from "@/lib/supabase/adminOrders"
 import {
   sendNewOrderAlerts,
   sendShippingPaidAlert,
 } from "@/lib/notifications/order-notifications"
+import { sendShippingPaidAdminEmail } from "@/lib/email/templates/shipping-paid-admin"
+import { sendShippingPaidClientEmail } from "@/lib/email/templates/shipping-paid-client"
 
 /**
  * ─── SQL ejecutado manualmente en Supabase SQL Editor (sin migraciones formales) ───
@@ -218,8 +229,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             `[webhook] Error enviando email de confirmación para cita ${appointmentId}:`,
             emailError
           )
-          // El fallo del email no interrumpe ni revierte el flujo del webhook
         }
+
+        sendAdminNewAppointmentEmail(appointmentId).catch((err) =>
+          console.error(
+            `[webhook] Error enviando alerta admin para cita ${appointmentId}:`,
+            err
+          )
+        )
       } else if (mpStatus === "rejected" || mpStatus === "cancelled") {
         const rejResult = await markAppointmentPaymentRejected(appointmentId)
         if (rejResult.error) {
@@ -237,6 +254,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             cancelResult.error
           )
         }
+
+        sendAppointmentPaymentFailedEmail(appointmentId).catch((err) =>
+          console.error(
+            `[webhook] Error enviando email pago fallido para cita ${appointmentId}:`,
+            err
+          )
+        )
       }
 
       return NextResponse.json({ received: true }, { status: 200 })
@@ -277,6 +301,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             emailError
           )
         }
+
+        sendAdminNewCourseRegistrationEmail(registrationId).catch((err) =>
+          console.error(
+            `[webhook] Error enviando alerta admin para inscripción ${registrationId}:`,
+            err
+          )
+        )
       } else if (mpStatus === "rejected" || mpStatus === "cancelled") {
         const rejResult = await markRegistrationPaymentRejected(registrationId)
         if (rejResult.error) {
@@ -293,6 +324,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             cancelResult.error
           )
         }
+
+        sendCoursePaymentFailedEmail(registrationId).catch((err) =>
+          console.error(
+            `[webhook] Error enviando email pago fallido para inscripción ${registrationId}:`,
+            err
+          )
+        )
       }
 
       return NextResponse.json({ received: true }, { status: 200 })
@@ -324,6 +362,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             err
           )
         }
+
+        sendShippingPaidAdminEmail(orderId).catch((err) =>
+          console.error(
+            `[webhook] Error enviando email de envío pagado (admin) para orden ${orderId}:`,
+            err
+          )
+        )
+        sendShippingPaidClientEmail(orderId).catch((err) =>
+          console.error(
+            `[webhook] Error enviando email de envío pagado (cliente) para orden ${orderId}:`,
+            err
+          )
+        )
       }
 
       return NextResponse.json({ received: true }, { status: 200 })
@@ -374,8 +425,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           `[webhook] Error enviando email de confirmación para orden ${orderId}:`,
           emailError
         )
-        // El fallo del email no interrumpe ni revierte el flujo del webhook
       }
+
+      sendAdminNewOrderEmail(orderId).catch((err) =>
+        console.error(
+          `[webhook] Error enviando alerta admin para orden ${orderId}:`,
+          err
+        )
+      )
 
       try {
         await sendNewOrderAlerts(orderId)

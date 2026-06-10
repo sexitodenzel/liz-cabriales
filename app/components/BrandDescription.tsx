@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 
-const IMAGE_SRC = "https://picsum.photos/seed/liz/500/600"
+const FALLBACK_IMAGE = "https://picsum.photos/seed/liz/500/600"
 
 const SOCIAL = {
   facebook: "https://www.facebook.com/profile.php?id=100008326095757",
@@ -68,11 +68,16 @@ const socialLinkClass =
 const fadeUp = (inView: boolean, delay: number) =>
   `transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`
 
-export default function BrandDescription() {
+type Props = {
+  photoUrl?: string
+}
+
+export default function BrandDescription({ photoUrl }: Props) {
+  const IMAGE_SRC = photoUrl || FALLBACK_IMAGE
   const { ref, inView } = useInView()
 
   return (
-    <section ref={ref} className="bg-[var(--background)] text-black">
+    <section ref={ref} className="bg-white text-black">
       <div className="mx-auto max-w-[1400px] px-6 py-24">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
 

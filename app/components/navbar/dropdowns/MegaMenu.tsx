@@ -53,7 +53,7 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
     <div
       className={`
       absolute left-0 top-full w-full z-40
-      bg-white
+      bg-[#0a0a0a] border-t border-white/10
       transition-all duration-500 ease-[cubic-bezier(.16,1,.3,1)]
       ${
         isOpen
@@ -74,7 +74,7 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
             style={{ transitionDelay: `${delayMs}ms` }}
           >
             <p
-              className={`text-gray-400 text-sm mb-6 transition-all duration-500 ease-out ${
+              className={`mb-6 text-sm text-neutral-500 transition-all duration-500 ease-out ${
                 contentOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
               }`}
               style={{ transitionDelay: `${delayMs}ms` }}
@@ -82,7 +82,7 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
               {col?.title}
             </p>
 
-            <ul className="space-y-3 text-[18px]">
+            <ul className="space-y-3 text-[18px] text-neutral-300">
               {col?.items?.map((item, idx) => (
                 <li
                   key={`${col?.title ?? delayMs}-${item.label}`}

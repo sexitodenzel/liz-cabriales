@@ -6,10 +6,14 @@ import {
   getProductBySlugCached as getProductBySlug,
   getRelatedProductsCached,
 } from "@/lib/supabase/cache"
+import { getServicesCached } from "@/lib/supabase/cache"
+import { getPublishedCourses } from "@/lib/supabase/courses"
 import AddToCartButton from "../components/AddToCartButton"
-import ProductCard from "../components/ProductCard"
+import CoursesCarousel from "../components/CoursesCarousel"
 import ProductImageGallery from "../components/ProductImageGallery"
+import RelatedProductsCarousel from "../components/RelatedProductsCarousel"
 import RecentlyViewed from "../components/RecentlyViewed"
+import ServicesSection from "../components/ServicesSection"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type PageProps = {
@@ -41,13 +45,19 @@ export default async function ProductPage({ params }: PageProps) {
   const images = product.images ?? []
   const image = images[0] ?? null
 
-  const { data: related } = await getRelatedProductsCached(
-    product.category_id,
-    product.brand,
-    product.id,
-    4
-  )
-  const relatedProducts = related ?? []
+  const today = new Date().toISOString().split("T")[0] ?? ""
+
+  const [relatedRes, coursesRes, servicesRes] = await Promise.all([
+    getRelatedProductsCached(product.category_id, product.brand, product.id, 8),
+    getPublishedCourses(),
+    getServicesCached(),
+  ])
+
+  const relatedProducts = relatedRes.data ?? []
+  const upcomingCourses = (coursesRes.data ?? [])
+    .filter((c) => c.start_date >= today)
+    .slice(0, 8)
+  const activeServices = servicesRes.data ?? []
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
@@ -101,19 +111,41 @@ export default async function ProductPage({ params }: PageProps) {
                 Este producto no tiene descripción disponible por ahora.
               </p>
             )}
+
+            {/* Shipping info */}
+            <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="text-sm font-semibold text-[#0a0a0a]">
+                Envío y recolección
+              </p>
+              <ul className="mt-3 space-y-2.5 text-[13px] text-neutral-600">
+                <li className="flex gap-2">
+                  <span className="mt-px shrink-0 text-[#a8862f]">•</span>
+                  <span>
+                    <span className="font-medium text-[#0a0a0a]">Recoger en tienda</span>{" "}
+                    — Lu–Vi 10:00–18:30 · Sá 11:00–15:30{" "}
+                    <span className="text-neutral-400">(Nayarit #204-B, Cd. Madero, Tam.)</span>
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-px shrink-0 text-[#a8862f]">•</span>
+                  <span>
+                    <span className="font-medium text-[#0a0a0a]">Envío con Estafeta o DHL</span>{" "}
+                    — Calculamos el costo según tu destino y te mandamos el link de pago por correo y WhatsApp
+                  </span>
+                </li>
+              </ul>
+              <p className="mt-3 text-[11px] text-neutral-400">
+                Una vez que cubras el envío, ¡salimos a dártelo!
+              </p>
+            </div>
           </div>
         </section>
 
-        {relatedProducts.length > 0 ? (
-          <section className="mt-16">
-            <h2 className="text-xl font-semibold">Tambien te puede gustar</h2>
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {relatedProducts.map((item) => (
-                <ProductCard key={item.id} product={item} />
-              ))}
-            </div>
-          </section>
-        ) : null}
+        <RelatedProductsCarousel products={relatedProducts} />
+
+        <CoursesCarousel courses={upcomingCourses} />
+
+        <ServicesSection services={activeServices} />
 
         <RecentlyViewed
           current={{

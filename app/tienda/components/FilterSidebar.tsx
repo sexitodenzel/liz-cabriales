@@ -79,7 +79,7 @@ export default function FilterSidebar({
               type="button"
               onClick={() => onSearchChange("")}
               aria-label="Limpiar búsqueda"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-700"
+              className="gold-clear-btn absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center justify-center rounded-full p-0.5"
             >
               <X className="h-4 w-4" />
             </button>

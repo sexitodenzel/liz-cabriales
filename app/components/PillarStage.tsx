@@ -14,47 +14,74 @@ type Pillar = {
   images: [string, string, string]
 }
 
-const PILLARS: Pillar[] = [
-  {
-    number: "01",
-    eyebrow: "Distribuidora",
-    headingBefore: "Los mejores productos,",
-    headingEm: "en un solo lugar.",
-    body: "Distribuidora oficial de Exotic, Lovely, Manicure Pro, Golden Nails, Miss Nails, Cezanne, Lia, Mia Secret y más. Envíos a todo México con stock real y garantía de autenticidad.",
-    cta: { label: "Ver tienda", href: "/tienda" },
-    images: [
-      "https://picsum.photos/seed/nails1/400/600",
-      "https://picsum.photos/seed/nails4/400/600",
-      "https://picsum.photos/seed/nails7/400/600",
-    ],
-  },
-  {
-    number: "02",
-    eyebrow: "Academia",
-    headingBefore: "Formación de alto nivel,",
-    headingEm: "donde tú estés.",
-    body: "Cursos presenciales impartidos por maestras nacionales e internacionales. Desde nivel principiante hasta avanzado. Todo incluido: certificado, coffee break, comida y material de marca.",
-    cta: { label: "Ver academia", href: "/academia" },
-    images: [
-      "https://picsum.photos/seed/academia1/400/600",
-      "https://picsum.photos/seed/academia4/400/600",
-      "https://picsum.photos/seed/academia7/400/600",
-    ],
-  },
-  {
-    number: "03",
-    eyebrow: "Servicios",
-    headingBefore: "Quiropodia y uñas profesionales,",
-    headingEm: "con quien más sabe.",
-    body: "Atención especializada en quiropodia, reconstrucción ungueal, pedicure spa y tratamientos. Muy pronto podrás conocer todo el catálogo y agendar desde el sitio.",
-    cta: { label: "Próximamente", href: "/proximamente" },
-    images: [
-      "https://picsum.photos/seed/services1/400/600",
-      "https://picsum.photos/seed/services4/400/600",
-      "https://picsum.photos/seed/services7/400/600",
-    ],
-  },
-]
+type PillarImages = {
+  dist: [string, string, string]
+  acad: [string, string, string]
+  serv: [string, string, string]
+}
+
+const FALLBACK_IMAGES: PillarImages = {
+  dist: [
+    "https://picsum.photos/seed/nails1/400/600",
+    "https://picsum.photos/seed/nails4/400/600",
+    "https://picsum.photos/seed/nails7/400/600",
+  ],
+  acad: [
+    "https://picsum.photos/seed/academia1/400/600",
+    "https://picsum.photos/seed/academia4/400/600",
+    "https://picsum.photos/seed/academia7/400/600",
+  ],
+  serv: [
+    "https://picsum.photos/seed/services1/400/600",
+    "https://picsum.photos/seed/services4/400/600",
+    "https://picsum.photos/seed/services7/400/600",
+  ],
+}
+
+function mergePillarImages(
+  provided: PillarImages | undefined,
+  fallback: PillarImages,
+  key: keyof PillarImages
+): [string, string, string] {
+  const p = provided?.[key]
+  return [
+    p?.[0] || fallback[key][0],
+    p?.[1] || fallback[key][1],
+    p?.[2] || fallback[key][2],
+  ]
+}
+
+function buildPillars(pillarImages?: PillarImages): Pillar[] {
+  return [
+    {
+      number: "01",
+      eyebrow: "Distribuidora",
+      headingBefore: "Los mejores productos,",
+      headingEm: "en un solo lugar.",
+      body: "Distribuidora oficial de Exotic, Lovely, Manicure Pro, Golden Nails, Miss Nails, Cezanne, Lia, Mia Secret y más. Envíos a todo México con stock real y garantía de autenticidad.",
+      cta: { label: "Ver tienda", href: "/tienda" },
+      images: mergePillarImages(pillarImages, FALLBACK_IMAGES, "dist"),
+    },
+    {
+      number: "02",
+      eyebrow: "Academia",
+      headingBefore: "Formación de alto nivel,",
+      headingEm: "donde tú estés.",
+      body: "Cursos presenciales impartidos por maestras nacionales e internacionales. Desde nivel principiante hasta avanzado. Todo incluido: certificado, coffee break, comida y material de marca.",
+      cta: { label: "Ver academia", href: "/academia" },
+      images: mergePillarImages(pillarImages, FALLBACK_IMAGES, "acad"),
+    },
+    {
+      number: "03",
+      eyebrow: "Servicios",
+      headingBefore: "Quiropodia y uñas profesionales,",
+      headingEm: "con quien más sabe.",
+      body: "Atención especializada en quiropodia, reconstrucción ungueal, pedicure spa y tratamientos. Muy pronto podrás conocer todo el catálogo y agendar desde el sitio.",
+      cta: { label: "Próximamente", href: "/proximamente" },
+      images: mergePillarImages(pillarImages, FALLBACK_IMAGES, "serv"),
+    },
+  ]
+}
 
 const SLOT_OFFSETS = [0, 28, 56] as const
 const SLOT_HEIGHT = 560
@@ -96,7 +123,12 @@ function ArrowCta() {
   )
 }
 
-export default function PillarStage() {
+type Props = {
+  pillarImages?: PillarImages
+}
+
+export default function PillarStage({ pillarImages }: Props) {
+  const PILLARS = buildPillars(pillarImages)
   const [active, setActive] = useState(0)
   const { ref, inView } = useInView()
 
@@ -104,7 +136,7 @@ export default function PillarStage() {
     `transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`
 
   return (
-    <section ref={ref} className="bg-[var(--background)] py-20 text-black">
+    <section ref={ref} className="bg-white py-20 text-black">
       <style>{`
         @keyframes pillarBodyIn {
           from { opacity: 0; transform: translateY(6px); }

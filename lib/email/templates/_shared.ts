@@ -23,10 +23,12 @@ export function getSupabaseAdmin() {
   return _supabaseAdmin
 }
 
-export const EMAIL_FROM = "Academia Liz Cabriales <onboarding@resend.dev>"
+export const EMAIL_FROM = "Academia Liz Cabriales <notificaciones@lizcabriales.com>"
 export const BRAND_GOLD = "#C9A84C"
 export const BRAND_BLACK = "#0a0a0a"
 export const BRAND_ORANGE = "#d97706"
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? ""
+
 export const SALON_ADDRESS = "Nayarit #204-B, C. Durango Esquina, Unidad Nacional, Cd. Madero, Tamaulipas"
 export const SALON_WHATSAPP = "833 218 3399"
 

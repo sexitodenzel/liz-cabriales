@@ -8,6 +8,8 @@ import {
   sendOrderShippedAlert,
   sendOrderDeliveredAlert,
 } from "@/lib/notifications/order-notifications"
+import { sendOrderShippedEmail } from "@/lib/email/templates/order-shipped"
+import { sendOrderDeliveredEmail } from "@/lib/email/templates/order-delivered"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -82,9 +84,15 @@ export async function PATCH(request: Request, context: RouteContext) {
       sendOrderShippedAlert(id).catch((err) =>
         console.error(`[status] Error enviando WhatsApp shipped para orden ${id}:`, err)
       )
+      sendOrderShippedEmail(id).catch((err) =>
+        console.error(`[status] Error enviando email shipped para orden ${id}:`, err)
+      )
     } else if (newStatus === "delivered") {
       sendOrderDeliveredAlert(id).catch((err) =>
         console.error(`[status] Error enviando WhatsApp delivered para orden ${id}:`, err)
+      )
+      sendOrderDeliveredEmail(id).catch((err) =>
+        console.error(`[status] Error enviando email delivered para orden ${id}:`, err)
       )
     }
 

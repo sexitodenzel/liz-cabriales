@@ -11,6 +11,8 @@ type Props = {
 export default function ProductImageGallery({ images, alt }: Props) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 })
 
   const activeImage = images[activeIndex] ?? null
   const hasMultiple = images.length > 1
@@ -24,6 +26,17 @@ export default function ProductImageGallery({ images, alt }: Props) {
   const goToNext = useCallback(() => {
     setActiveIndex((i) => (i >= images.length - 1 ? 0 : i + 1))
   }, [images.length])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+    setZoomOrigin({ x, y })
+  }, [])
+
+  useEffect(() => {
+    setIsHovering(false)
+  }, [activeIndex])
 
   useEffect(() => {
     if (!lightboxOpen) return
@@ -51,40 +64,113 @@ export default function ProductImageGallery({ images, alt }: Props) {
   return (
     <>
       <div className="space-y-3">
-        <button
-          type="button"
-          onClick={() => setLightboxOpen(true)}
-          className="group relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+        {/* Main image container */}
+        <div
+          className="group relative aspect-[4/5] w-full cursor-zoom-in select-none overflow-hidden rounded-lg bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+          role="button"
+          tabIndex={0}
           aria-label="Ver imagen completa"
+          onClick={() => setLightboxOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") setLightboxOpen(true)
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
         >
           <Image
             key={activeImage}
             src={activeImage}
             alt={alt}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className="object-cover transition-transform duration-200 ease-out"
+            style={{
+              transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
+              transform: isHovering ? "scale(2.2)" : "scale(1)",
+            }}
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
           />
-          <span className="pointer-events-none absolute inset-0 flex items-end justify-end p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-                aria-hidden
-              >
-                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-              </svg>
-            </span>
-          </span>
-        </button>
 
+          {/* Magnifier icon */}
+          <span className="pointer-events-none absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+              aria-hidden
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+              <path d="M11 8v6M8 11h6" />
+            </svg>
+          </span>
+
+          {/* Navigation arrows */}
+          {hasMultiple ? (
+            <>
+              <button
+                type="button"
+                aria-label="Imagen anterior"
+                className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-black/75"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  goToPrev()
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                aria-label="Imagen siguiente"
+                className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-black/75"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  goToNext()
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Dot indicators */}
+              <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+                {images.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`block h-1.5 w-1.5 rounded-full transition-colors duration-200 ${
+                      i === activeIndex ? "bg-white" : "bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
+
+        {/* Thumbnails */}
         {hasMultiple ? (
           <div className="flex gap-2 overflow-x-auto pb-1">
             {images.map((src, index) => (
@@ -113,6 +199,7 @@ export default function ProductImageGallery({ images, alt }: Props) {
         ) : null}
       </div>
 
+      {/* Lightbox */}
       {lightboxOpen ? (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
