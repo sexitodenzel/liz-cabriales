@@ -329,7 +329,8 @@ export default function CourseForm({
               </h2>
               <p className="mt-1 text-xs leading-relaxed text-[#6b6b6b]">
                 Controla si el curso se compra en línea o se atiende por
-                WhatsApp, y qué información de disponibilidad se muestra.
+                WhatsApp, si se muestra el precio y si se muestran inscritos
+                y cupo en la página pública.
               </p>
             </div>
 
@@ -383,51 +384,66 @@ export default function CourseForm({
                 />
                 <span>
                   <span className="block font-medium text-[#1a1a1a]">
-                    Mostrar disponibilidad pública
+                    Mostrar inscritos y cupo al público
                   </span>
                   <span className="block text-xs leading-relaxed text-[#6b6b6b]">
-                    Controla el texto de lugares y la barra de disponibilidad.
+                    Si está activo, en el sitio se ve cuántos lugares hay,
+                    cuántos quedan y la barra de progreso. Si lo apagas, esa
+                    información no aparece.
                   </span>
                 </span>
               </label>
             </div>
 
-            <div className="mt-4 grid gap-4 border-t border-[#ececec] pt-4 sm:grid-cols-2">
-              <div>
-                <label className={labelCls}>
-                  Inscritos públicos (opcional)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={values.public_registered_count}
-                  onChange={(e) =>
-                    update("public_registered_count", e.target.value)
-                  }
-                  placeholder="Usar inscritos reales"
-                  className={inputCls}
-                />
-                <p className="mt-1 text-xs text-[#6b6b6b]">
-                  Si lo dejas vacío, se usa el conteo real de pagos confirmados.
+            {values.show_capacity_public && (
+              <div className="mt-4 space-y-3 border-t border-[#ececec] pt-4">
+                <p className="text-xs leading-relaxed text-[#6b6b6b]">
+                  Por defecto se usan los números reales del curso. Solo llena
+                  los campos de abajo si quieres mostrar otros números (por
+                  ejemplo, para dar sensación de urgencia o redondear el cupo).
                 </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className={labelCls}>
+                      Inscritos a mostrar (opcional)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={values.public_registered_count}
+                      onChange={(e) =>
+                        update("public_registered_count", e.target.value)
+                      }
+                      placeholder="Usar inscritos reales"
+                      className={inputCls}
+                    />
+                    <p className="mt-1 text-xs text-[#6b6b6b]">
+                      Vacío = conteo real de pagos confirmados.
+                    </p>
+                  </div>
+                  <div>
+                    <label className={labelCls}>
+                      Cupo a mostrar (opcional)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={values.public_capacity}
+                      onChange={(e) =>
+                        update("public_capacity", e.target.value)
+                      }
+                      placeholder="Usar cupo del curso"
+                      className={inputCls}
+                    />
+                    <p className="mt-1 text-xs text-[#6b6b6b]">
+                      Vacío = cupo operativo del curso.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className={labelCls}>Cupo público (opcional)</label>
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={values.public_capacity}
-                  onChange={(e) => update("public_capacity", e.target.value)}
-                  placeholder="Usar cupo real"
-                  className={inputCls}
-                />
-                <p className="mt-1 text-xs text-[#6b6b6b]">
-                  Si lo dejas vacío, se muestra el cupo operativo del curso.
-                </p>
-              </div>
-            </div>
+            )}
           </section>
 
           {error && (

@@ -4,6 +4,8 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { loginCredentialsSchema, registerAccountSchema } from "@/lib/validations/auth"
+import { normalizePhoneInput } from "@/lib/validations/phone"
 
 type Tab = "login" | "register"
 type RegisterStep = "form" | "otp"
@@ -35,7 +37,6 @@ export default function LoginPage() {
   // OTP step
   const [registerStep, setRegisterStep] = useState<RegisterStep>("form")
   const [otpCode, setOtpCode] = useState("")
-  const [registeredUserId, setRegisteredUserId] = useState<string | null>(null)
   const [otpLoading, setOtpLoading] = useState(false)
 
   const redirectParam = searchParams.get("redirect") ?? searchParams.get("next")
@@ -59,13 +60,21 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("[handleLogin] Ejecutando…")
     setError(null)
+
+    const credentialsResult = loginCredentialsSchema.safeParse({ email, password })
+    if (!credentialsResult.success) {
+      setError(credentialsResult.error.issues[0]?.message ?? "Datos de acceso inválidos.")
+      return
+    }
+
+    const credentials = credentialsResult.data
+
     setLoading(true)
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: credentials.email,
+        password: credentials.password,
       })
       if (signInError) {
         setError(signInError.message)
@@ -86,7 +95,6 @@ export default function LoginPage() {
         console.log("[handleLogin] Error al obtener perfil:", profileError)
       }
       const role = profile?.role ?? "client"
-      console.log("[handleLogin] Rol obtenido:", role, "profile:", profile)
       if (safeInternalRedirect) {
         router.push(safeInternalRedirect)
         return
@@ -108,18 +116,36 @@ export default function LoginPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    const registerResult = registerAccountSchema.safeParse({
+      firstName: regFirstName,
+      lastName: regLastName,
+      address: regAddress,
+      state: regState,
+      city: regCity,
+      email: regEmail,
+      password: regPassword,
+      phone: regPhone,
+    })
+    if (!registerResult.success) {
+      setError(registerResult.error.issues[0]?.message ?? "Datos de registro inválidos.")
+      return
+    }
+
+    const registerInput = registerResult.data
+
     setLoading(true)
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email: regEmail,
-        password: regPassword,
+        email: registerInput.email,
+        password: registerInput.password,
         options: {
           data: {
-            first_name: regFirstName,
-            last_name: regLastName,
-            address: regAddress || undefined,
-            state: regState || undefined,
-            city: regCity || undefined,
+            first_name: registerInput.firstName,
+            last_name: registerInput.lastName,
+            address: registerInput.address,
+            state: registerInput.state,
+            city: registerInput.city,
           },
         },
       })
@@ -132,7 +158,7 @@ export default function LoginPage() {
       const hasSession = Boolean(data.session)
 
       // Si el usuario ingresó teléfono y aceptó WhatsApp, guardar y enviar OTP
-      if (userId && regPhone && regWhatsappOptIn) {
+      if (userId && registerInput.phone && regWhatsappOptIn) {
         // Actualizar whatsapp_opt_in en el perfil
         await supabase
           .from("users")
@@ -143,11 +169,10 @@ export default function LoginPage() {
         const otpRes = await fetch("/api/phone/send-code", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone: regPhone }),
+          body: JSON.stringify({ phone: registerInput.phone }),
         })
 
         if (otpRes.ok) {
-          setRegisteredUserId(userId)
           setRegisterStep("otp")
           setLoading(false)
           return
@@ -170,6 +195,12 @@ export default function LoginPage() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (!/^\d{6}$/.test(otpCode)) {
+      setError("Ingresa el código de 6 dígitos.")
+      return
+    }
+
     setOtpLoading(true)
     try {
       const res = await fetch("/api/phone/verify-code", {
@@ -219,6 +250,10 @@ export default function LoginPage() {
       setOauthLoading(false)
     }
   }
+
+  const forgotPasswordHref = email
+    ? `/forgot-password?email=${encodeURIComponent(email)}`
+    : "/forgot-password"
 
   return (
     <div className="w-full max-w-md px-6">
@@ -297,6 +332,11 @@ export default function LoginPage() {
               required
               className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
+          </div>
+          <div className="flex justify-end">
+            <Link href={forgotPasswordHref} className="text-sm text-gray-500 hover:text-gray-700 underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
           </div>
           {error && (
             <p className="text-sm text-red-600" role="alert">
@@ -475,7 +515,7 @@ export default function LoginPage() {
               id="regPhone"
               type="tel"
               value={regPhone}
-              onChange={(e) => setRegPhone(e.target.value.replace(/\s/g, ""))}
+              onChange={(e) => setRegPhone(normalizePhoneInput(e.target.value))}
               placeholder="5218331234567"
               className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />

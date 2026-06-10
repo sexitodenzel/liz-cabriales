@@ -8,6 +8,7 @@ import type {
   Category,
   ProductWithCategory,
 } from "@/lib/supabase/products"
+import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
 import FilterSidebar from "./FilterSidebar"
 import ProductCard from "./ProductCard"
 
@@ -133,15 +134,6 @@ export default function ProductGrid({
     return merged.sort((a, b) => a.localeCompare(b, "es"))
   }, [products, brands])
 
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-    for (const product of products) {
-      const slug = product.category?.slug
-      if (slug) counts[slug] = (counts[slug] ?? 0) + 1
-    }
-    return counts
-  }, [products])
-
   const brandCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     for (const product of products) {
@@ -162,7 +154,7 @@ export default function ProductGrid({
   }, [products])
 
   const filteredProducts = useMemo(() => {
-    const query = filters.search.trim().toLowerCase()
+    const searchTokens = tokenizeSearchQuery(filters.search.trim())
     let result = products.filter((product) => {
       if (
         filters.categorySlug &&
@@ -182,11 +174,15 @@ export default function ProductGrid({
       if (filters.priceMax !== null && product.base_price > filters.priceMax) {
         return false
       }
-      if (query) {
-        const haystack = `${product.name} ${product.brand ?? ""} ${
-          product.category?.name ?? ""
-        }`.toLowerCase()
-        if (!haystack.includes(query)) return false
+      if (searchTokens.length > 0) {
+        const haystack = normalizeSearchText(
+          `${product.name} ${product.brand ?? ""} ${product.category?.name ?? ""} ${
+            product.category?.slug ?? ""
+          } ${product.slug ?? ""}`
+        )
+        if (!searchTokens.every((token) => haystack.includes(token))) {
+          return false
+        }
       }
       return true
     })
@@ -245,7 +241,6 @@ export default function ProductGrid({
     <FilterSidebar
       categories={categories}
       brands={brandsForSidebar}
-      categoryCounts={categoryCounts}
       brandCounts={brandCounts}
       selectedCategory={filters.categorySlug}
       selectedBrands={filters.brands}

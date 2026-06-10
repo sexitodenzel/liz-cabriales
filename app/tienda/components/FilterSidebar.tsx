@@ -5,7 +5,6 @@ import { X, Search } from "lucide-react"
 type FilterSidebarProps = {
   categories: { id: string; name: string; slug: string }[]
   brands: string[]
-  categoryCounts?: Record<string, number>
   brandCounts?: Record<string, number>
   selectedCategory: string | null
   selectedBrands: string[]
@@ -23,7 +22,6 @@ type FilterSidebarProps = {
 export default function FilterSidebar({
   categories,
   brands,
-  categoryCounts = {},
   brandCounts = {},
   selectedCategory,
   selectedBrands,
@@ -109,7 +107,6 @@ export default function FilterSidebar({
         </button>
         {categories.map((category) => {
           const isActive = selectedCategory === category.slug
-          const count = categoryCounts[category.slug]
           return (
             <button
               key={category.id}
@@ -122,14 +119,8 @@ export default function FilterSidebar({
               }`}
             >
               <span>{category.name}</span>
-              {typeof count === "number" && (
-                <span
-                  className={`text-xs ${
-                    isActive ? "text-[#C9A84C]" : "text-neutral-400"
-                  }`}
-                >
-                  {count}
-                </span>
+              {isActive && (
+                <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />
               )}
             </button>
           )

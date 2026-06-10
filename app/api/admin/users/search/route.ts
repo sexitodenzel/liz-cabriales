@@ -4,6 +4,24 @@ import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdminOrReceptionist } from "@/lib/supabase/admin"
 
+const SEARCH_LIMIT = 10
+const MAX_QUERY_LENGTH = 80
+
+type UserSearchRow = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+}
+
+function normalizeSearchQuery(value: string) {
+  return value.trim().slice(0, MAX_QUERY_LENGTH)
+}
+
+function escapeIlikePattern(value: string) {
+  return value.replace(/[\\%_]/g, "\\$&")
+}
+
 /**
  * Búsqueda de usuarios para el admin (autocompletar al crear cita manual).
  * GET /api/admin/users/search?q=...
@@ -29,7 +47,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const q = (request.nextUrl.searchParams.get("q") ?? "").trim()
+    const q = normalizeSearchQuery(request.nextUrl.searchParams.get("q") ?? "")
     if (q.length < 2) {
       return NextResponse.json({ data: { users: [] }, error: null })
     }
@@ -39,14 +57,26 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const likeExpr = `%${q}%`
-    const { data, error } = await supabaseAdmin
-      .from("users")
-      .select("id, first_name, last_name, email")
-      .or(
-        `email.ilike.${likeExpr},first_name.ilike.${likeExpr},last_name.ilike.${likeExpr}`
-      )
-      .limit(10)
+    const likeExpr = `%${escapeIlikePattern(q)}%`
+    const [emailResult, firstNameResult, lastNameResult] = await Promise.all([
+      supabaseAdmin
+        .from("users")
+        .select("id, first_name, last_name, email")
+        .ilike("email", likeExpr)
+        .limit(SEARCH_LIMIT),
+      supabaseAdmin
+        .from("users")
+        .select("id, first_name, last_name, email")
+        .ilike("first_name", likeExpr)
+        .limit(SEARCH_LIMIT),
+      supabaseAdmin
+        .from("users")
+        .select("id, first_name, last_name, email")
+        .ilike("last_name", likeExpr)
+        .limit(SEARCH_LIMIT),
+    ])
+
+    const error = emailResult.error ?? firstNameResult.error ?? lastNameResult.error
 
     if (error) {
       return NextResponse.json(
@@ -55,8 +85,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const usersById = new Map<string, UserSearchRow>()
+    for (const row of [
+      ...(emailResult.data ?? []),
+      ...(firstNameResult.data ?? []),
+      ...(lastNameResult.data ?? []),
+    ] as UserSearchRow[]) {
+      usersById.set(row.id, row)
+      if (usersById.size >= SEARCH_LIMIT) break
+    }
+
     return NextResponse.json({
-      data: { users: data ?? [] },
+      data: { users: Array.from(usersById.values()) },
       error: null,
     })
   } catch (err) {

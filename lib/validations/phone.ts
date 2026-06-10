@@ -1,9 +1,18 @@
 import { z } from "zod"
 
+export function normalizePhoneInput(value: string) {
+  return value.trim().replace(/[\s()-]/g, "")
+}
+
 // E.164: + seguido de 7-15 dígitos. Ej: 5218331234567
 export const phoneE164Schema = z
   .string()
-  .regex(/^\+?[1-9]\d{6,14}$/, "Teléfono inválido. Usa formato internacional (ej. 5218331234567)")
+  .transform(normalizePhoneInput)
+  .pipe(
+    z
+      .string()
+      .regex(/^\+?[1-9]\d{6,14}$/, "Teléfono inválido. Usa formato internacional (ej. 5218331234567)")
+  )
 
 export const sendPhoneCodeSchema = z.object({
   phone: phoneE164Schema,

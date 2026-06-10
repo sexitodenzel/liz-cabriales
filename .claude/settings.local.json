@@ -20,7 +20,8 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\migue\\\\Desktop\\\\liz-cabriales\" -Recurse -Directory | Where-Object { $_.Name -match '\\(admin|product\\)' } | Select-Object -ExpandProperty FullName | Sort-Object)",
       "Skill(update-config)",
       "PowerShell($msg = \"feat: productos relacionados y recently viewed en pagina de producto`n`n- Agrega seccion con hasta 4 productos de la misma categoria/marca`n- Nuevo componente RecentlyViewed que persiste en localStorage`n- Nueva funcion getRelatedProducts con prioridad: categoria > marca > destacados`n- Fix: setLoading\\(false\\) no se ejecutaba en todos los caminos de error del login\"; git commit -m $msg)",
-      "PowerShell(git push *)"
+      "PowerShell(git push *)",
+      "PowerShell(git add *)"
     ]
   }
 }

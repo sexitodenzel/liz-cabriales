@@ -193,13 +193,14 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
                           )}
                           {!c.show_capacity_public && (
                             <span className="rounded-full border border-[#ececec] bg-[#fafafa] px-2 py-0.5 text-[11px] font-semibold text-[#6b6b6b]">
-                              Cupo oculto
+                              Inscritos/cupo ocultos
                             </span>
                           )}
-                          {(c.public_registered_count != null ||
-                            c.public_capacity != null) && (
+                          {c.show_capacity_public &&
+                            (c.public_registered_count != null ||
+                              c.public_capacity != null) && (
                             <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-2 py-0.5 text-[11px] font-semibold text-[#a8893a]">
-                              Disponibilidad manual
+                              Números personalizados
                             </span>
                           )}
                         </div>
@@ -220,11 +221,13 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
                       </td>
                       <td className="px-4 py-3 text-[#3a3a3a]">
                         {c.confirmed_count}/{c.capacity}
-                        {(c.public_registered_count != null ||
-                          c.public_capacity != null) && (
+                        {c.show_capacity_public && (
                           <div className="text-xs text-[#6b6b6b]">
                             Público: {c.public_confirmed_count}/
                             {c.public_display_capacity}
+                            {(c.public_registered_count != null ||
+                              c.public_capacity != null) &&
+                              " · personalizado"}
                           </div>
                         )}
                       </td>

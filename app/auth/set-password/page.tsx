@@ -14,6 +14,8 @@ export default function SetPasswordPage() {
   const [confirm, setConfirm] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const type = searchParams.get("type")
+  const isRecoveryFlow = type === "recovery"
 
   useEffect(() => {
     const tokenHash = searchParams.get("token_hash")
@@ -60,6 +62,12 @@ export default function SetPasswordPage() {
         return
       }
 
+      if (isRecoveryFlow) {
+        await fetch("/api/auth/password-reset-success", {
+          method: "POST",
+        })
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       const { data: profile } = await supabase
         .from("users")
@@ -70,8 +78,6 @@ export default function SetPasswordPage() {
       const role = profile?.role ?? "client"
       if (role === "admin") {
         router.push("/admin")
-      } else if (role === "receptionist") {
-        router.push("/admin/appointments")
       } else {
         router.push("/")
       }
@@ -84,9 +90,13 @@ export default function SetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-6">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-[#1a1a1a] mb-2">Crear contraseña</h1>
+        <h1 className="text-2xl font-bold text-[#1a1a1a] mb-2">
+          {isRecoveryFlow ? "Restablecer contraseña" : "Crear contraseña"}
+        </h1>
         <p className="text-sm text-neutral-500 mb-8">
-          Elige una contraseña para acceder a tu cuenta.
+          {isRecoveryFlow
+            ? "Elige una nueva contraseña para volver a entrar a tu cuenta."
+            : "Elige una contraseña para acceder a tu cuenta."}
         </p>
 
         {error ? (
