@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AlertTriangle, CalendarDays, GraduationCap, Image as ImageIcon, PackageOpen } from "lucide-react"
+import { AlertTriangle, CalendarDays, ClipboardList, GraduationCap, Image as ImageIcon, Package, PackageOpen } from "lucide-react"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import { createClient } from "@/lib/supabase/client"
 
@@ -29,15 +29,15 @@ export default function AdminDashboardClient({
   const actionCards = [
     {
       href: "/admin/products",
-      title: "📦 Gestionar Productos",
+      title: "Gestionar Productos",
       description: "Crear, editar, activar o eliminar productos del catálogo.",
-      icon: null,
+      icon: Package,
     },
     {
       href: "/admin/orders",
-      title: "🧾 Ver órdenes",
+      title: "Ver órdenes",
       description: "Consultar pedidos, estados y detalle de cada orden.",
-      icon: null,
+      icon: ClipboardList,
     },
     {
       href: "/admin/appointments",
