@@ -1,5 +1,7 @@
 "use client"
 
+import type { LucideProps } from "lucide-react"
+import type { FC } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { AlertTriangle, CalendarDays, ClipboardList, GraduationCap, Image as ImageIcon, Package, PackageOpen } from "lucide-react"
@@ -26,7 +28,7 @@ export default function AdminDashboardClient({
 
   const hasLowStock = lowStockCount > 0
 
-  const actionCards = [
+  const actionCards: { href: string; title: string; description: string; icon?: FC<LucideProps> }[] = [
     {
       href: "/admin/products",
       title: "Gestionar Productos",
@@ -57,7 +59,7 @@ export default function AdminDashboardClient({
       description: "Sube y actualiza banners, fotos y GIFs de la landing page.",
       icon: ImageIcon,
     },
-  ] as const
+  ]
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
