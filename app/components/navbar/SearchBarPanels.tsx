@@ -65,7 +65,7 @@ export function DesktopCategoriesDropdown({
       onMouseLeave={onMouseLeave}
       role="menu"
     >
-      <div className="max-h-[320px] overflow-y-auto rounded-xl border border-black/10 bg-white p-1 shadow-lg">
+      <div className="max-h-[320px] overflow-y-auto rounded-xl border border-white/10 bg-[#141414] p-1 shadow-lg shadow-black/40">
         <CategoriesDropdownContent
           categories={categories}
           loading={loading}
@@ -92,7 +92,7 @@ export function CategoriesDropdownContent({
       <Link
         href="/tienda"
         onClick={onClose}
-        className="block rounded-lg px-3 py-2 text-sm text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+        className="block rounded-lg px-3 py-2 text-sm text-neutral-300 transition-colors hover:bg-white/5 hover:text-[#C6A75E]"
       >
         Ver todo
       </Link>
@@ -106,7 +106,7 @@ export function CategoriesDropdownContent({
             key={category.id}
             href={`/tienda?categoria=${category.slug}`}
             onClick={onClose}
-            className="block rounded-lg px-3 py-2 text-sm text-[var(--foreground)] transition-colors hover:text-[#C6A75E]"
+            className="block rounded-lg px-3 py-2 text-sm text-neutral-300 transition-colors hover:bg-white/5 hover:text-[#C6A75E]"
           >
             {category.name}
           </Link>
@@ -150,14 +150,14 @@ export function SearchSuggestionsContent({
 
   return (
     <div className="py-2">
-      <div className="flex border-b border-black/10">
+      <div className="flex border-b border-white/10">
         <button
           type="button"
           onClick={() => onTabChange("productos")}
           className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
             effectiveTab === "productos"
-              ? "border-b-2 border-[#C6A75E] text-[var(--foreground)]"
-              : "text-neutral-500 hover:text-[var(--foreground)]"
+              ? "border-b-2 border-[#C6A75E] text-neutral-100"
+              : "text-neutral-500 hover:text-neutral-300"
           }`}
         >
           Productos
@@ -167,8 +167,8 @@ export function SearchSuggestionsContent({
           onClick={() => onTabChange("colecciones")}
           className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
             effectiveTab === "colecciones"
-              ? "border-b-2 border-[#C6A75E] text-[var(--foreground)]"
-              : "text-neutral-500 hover:text-[var(--foreground)]"
+              ? "border-b-2 border-[#C6A75E] text-neutral-100"
+              : "text-neutral-500 hover:text-neutral-300"
           }`}
         >
           Colecciones
@@ -185,9 +185,9 @@ export function SearchSuggestionsContent({
                 key={product.id}
                 href={searchHref}
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-black/5"
+                className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-white/5"
               >
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-neutral-100">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-neutral-800">
                   {product.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -196,16 +196,16 @@ export function SearchSuggestionsContent({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-400">
+                    <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-500">
                       LC
                     </div>
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-[var(--foreground)]">
+                  <p className="truncate text-sm font-medium text-neutral-200">
                     {product.name}
                   </p>
-                  <p className="text-sm text-neutral-600">
+                  <p className="text-sm text-neutral-400">
                     {formatPrice(product.price)}
                   </p>
                 </div>
@@ -222,7 +222,7 @@ export function SearchSuggestionsContent({
               key={category.id}
               href={searchHref}
               onClick={onClose}
-              className="block rounded-lg px-3 py-2.5 text-sm text-[var(--foreground)] transition-colors hover:bg-black/5 hover:text-[#C6A75E]"
+              className="block rounded-lg px-3 py-2.5 text-sm text-neutral-300 transition-colors hover:bg-white/5 hover:text-[#C6A75E]"
             >
               {category.name}
             </Link>
@@ -263,7 +263,7 @@ export function DesktopSearchSuggestions({
   return (
     <div
       className={`
-        absolute left-0 top-full z-50 w-full pt-1
+        absolute left-0 top-full z-50 w-full
         transition-all duration-500 ease-[cubic-bezier(.16,1,.3,1)]
         ${
           open
@@ -272,7 +272,7 @@ export function DesktopSearchSuggestions({
         }
       `}
     >
-      <div className="overflow-hidden rounded-xl border border-black/10 bg-white shadow-lg">
+      <div className="overflow-hidden rounded-b-xl border border-t-0 border-white/10 bg-[#141414] shadow-lg shadow-black/40">
         <SearchSuggestionsContent
           query={query}
           products={products}
@@ -304,14 +304,36 @@ export function MobileCategoriesDropdown({
 
   return (
     <div
-      className="absolute left-0 top-full z-[70] max-h-[300px] w-full overflow-y-auto rounded-b-xl border border-t-0 border-black/10 bg-white p-2 shadow-lg"
+      className="absolute left-0 top-full -mt-2 z-[73] w-full overflow-hidden rounded-b-xl border border-t-0 border-white/10 bg-[#141414] shadow-lg shadow-black/40"
       role="menu"
     >
-      <CategoriesDropdownContent
-        categories={categories}
-        loading={loading}
-        onClose={onClose}
-      />
+      <div className="max-h-[300px] overflow-y-auto p-2">
+        {loading ? (
+          <p className="px-3 py-3 text-sm text-neutral-500">Cargando...</p>
+        ) : categories.length === 0 ? (
+          <p className="px-3 py-3 text-sm text-neutral-500">Sin categorías</p>
+        ) : (
+          <>
+            <Link
+              href="/tienda"
+              onClick={onClose}
+              className="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-300 transition-colors hover:bg-white/5 hover:text-[#C6A75E]"
+            >
+              Ver todo
+            </Link>
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/tienda?categoria=${category.slug}`}
+                onClick={onClose}
+                className="flex items-center rounded-lg px-3 py-2.5 text-sm text-neutral-400 transition-colors hover:bg-white/5 hover:text-[#C6A75E]"
+              >
+                {category.name}
+              </Link>
+            ))}
+          </>
+        )}
+      </div>
     </div>
   )
 }
@@ -340,7 +362,7 @@ export function MobileSearchSuggestions({
   if (!open || query.trim().length < 2) return null
 
   return (
-    <div className="absolute left-0 top-full z-[70] w-full overflow-hidden rounded-b-xl border border-t-0 border-black/10 bg-white shadow-lg">
+    <div className="absolute left-0 top-full -mt-2 z-[70] w-full overflow-hidden rounded-b-xl border border-t-0 border-white/10 bg-[#141414] shadow-lg shadow-black/40">
       <SearchSuggestionsContent
         query={query}
         products={products}

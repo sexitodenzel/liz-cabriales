@@ -6,6 +6,7 @@
 
 import { useMemo } from "react"
 import Link from "next/link"
+import { X, ShoppingBag } from "lucide-react"
 
 import { useCart } from "@/app/components/cart/CartContext"
 
@@ -34,26 +35,28 @@ export default function CartMenu() {
     [items],
   )
 
-  if (!isCartOpen) {
-    return null
-  }
+  const isEmpty = resolvedItems.length === 0
 
   return (
     <div
-      className="fixed right-0 top-[var(--navbar-h)] bottom-0 z-40 flex w-[380px] flex-col border-l border-black/5 bg-white shadow-xl"
+      style={{ top: "calc(var(--navbar-actual-h) - 1px)" }}
+      className={`fixed right-0 bottom-0 z-[73] flex w-2/3 flex-col border-l border-white/10 bg-[#0a0a0a] shadow-xl transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] md:w-[380px] ${
+        isCartOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
+      }`}
     >
       {/* Header — FIJO */}
-      <div className="flex flex-shrink-0 items-center justify-between border-b p-4">
-        <h3 className="text-[16px] tracking-[0.02em] text-[var(--foreground)]">
-          Carrito
-        </h3>
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 p-4">
         <button
           type="button"
           onClick={closeCart}
-          className="text-[12px] tracking-[0.08em] uppercase text-gray-500 transition-colors hover:text-[#C6A75E]"
+          aria-label="Cerrar carrito"
+          className="flex items-center justify-center rounded-full p-1 text-neutral-500 transition-colors hover:text-[#C6A75E]"
         >
-          Cerrar
+          <X className="h-5 w-5" />
         </button>
+        <h3 className="text-[16px] tracking-[0.02em] text-neutral-100">
+          Carrito
+        </h3>
       </div>
 
       {/* Items — SCROLLEABLE */}
@@ -66,9 +69,9 @@ export default function CartMenu() {
                   item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"
                 }
                 onClick={closeCart}
-                className="flex min-w-0 flex-1 gap-3 rounded-xl transition-colors hover:bg-neutral-50"
+                className="flex min-w-0 flex-1 gap-3 rounded-xl transition-colors hover:bg-white/5"
               >
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-black/5 bg-gradient-to-br from-gray-100 to-gray-200">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-neutral-800">
                   {item.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -77,33 +80,33 @@ export default function CartMenu() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-gray-400">
+                    <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-500">
                       {item.brand ?? "LC"}
                     </div>
                   )}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] text-gray-800">
+                  <p className="truncate text-[14px] text-neutral-200">
                     {item.name}
                   </p>
-                  <p className="mt-1 text-[11px] font-medium text-[#a8862f]">
+                  <p className="mt-1 text-[11px] font-medium text-[#C6A75E]">
                     Ver producto
                   </p>
                 </div>
               </Link>
 
               <div className="flex shrink-0 flex-col items-end gap-2">
-                <p className="text-[13px] tabular-nums text-gray-700">
+                <p className="text-[13px] tabular-nums text-neutral-200">
                   {formatMXN(item.price * item.qty)}
                 </p>
-                <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                <div className="flex items-center gap-2 text-[11px] text-neutral-400">
                   <button
                     type="button"
                     onClick={() =>
                       updateQuantity(item.id, Math.max(1, item.qty - 1))
                     }
-                    className="h-5 w-5 rounded-full border border-gray-300 text-center leading-5"
+                    className="h-5 w-5 rounded-full border border-white/20 text-center leading-5 transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
                   >
                     -
                   </button>
@@ -111,14 +114,14 @@ export default function CartMenu() {
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.id, item.qty + 1)}
-                    className="h-5 w-5 rounded-full border border-gray-300 text-center leading-5"
+                    className="h-5 w-5 rounded-full border border-white/20 text-center leading-5 transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
                   >
                     +
                   </button>
                   <button
                     type="button"
                     onClick={() => removeItem(item.id)}
-                    className="text-[11px] uppercase tracking-[0.12em] text-gray-400 hover:text-red-500"
+                    className="text-[11px] uppercase tracking-[0.12em] text-neutral-500 transition-colors hover:text-red-400"
                   >
                     Quitar
                   </button>
@@ -126,38 +129,58 @@ export default function CartMenu() {
               </div>
             </li>
           ))}
-          {resolvedItems.length === 0 && (
-            <li className="py-6 text-center text-[13px] text-gray-500">
-              Tu carrito está vacío.
+          {isEmpty && (
+            <li className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
+                <ShoppingBag className="h-7 w-7 text-neutral-600" />
+              </div>
+              <div>
+                <p className="text-[14px] font-medium text-neutral-400">Tu carrito está vacío</p>
+                <p className="mt-1 text-[12px] text-neutral-600">Agrega productos para comenzar</p>
+              </div>
             </li>
           )}
         </ul>
       </div>
 
       {/* Footer — FIJO */}
-      <div className="flex-shrink-0 border-t p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-[13px] text-gray-500">Subtotal</p>
-          <p className="text-[14px] text-gray-800 tabular-nums">
-            {formatMXN(subtotal)}
-          </p>
-        </div>
+      <div className="flex-shrink-0 border-t border-white/10 p-4">
+        {!isEmpty && (
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] text-neutral-400">Subtotal</p>
+            <p className="text-[14px] text-neutral-100 tabular-nums">
+              {formatMXN(subtotal)}
+            </p>
+          </div>
+        )}
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <Link
-            href="/carrito"
-            onClick={closeCart}
-            className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 text-[13px] tracking-[0.04em] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
-          >
-            Ver carrito
-          </Link>
-          <Link
-            href="/checkout"
-            onClick={closeCart}
-            className="inline-flex h-11 items-center justify-center rounded-full bg-[var(--foreground)] text-[13px] tracking-[0.04em] text-white transition-colors hover:bg-[#C6A75E]"
-          >
-            Checkout
-          </Link>
+        <div className={`${isEmpty ? "mt-0" : "mt-6"} grid gap-3 ${isEmpty ? "grid-cols-1" : "grid-cols-2"}`}>
+          {isEmpty ? (
+            <Link
+              href="/tienda"
+              onClick={closeCart}
+              className="inline-flex h-11 items-center justify-center rounded-full bg-[#C6A75E] text-[13px] tracking-[0.04em] text-white transition-colors hover:bg-[#b8963f]"
+            >
+              Seguir comprando
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/carrito"
+                onClick={closeCart}
+                className="inline-flex h-11 items-center justify-center rounded-full border border-white/20 text-[13px] tracking-[0.04em] text-neutral-300 transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
+              >
+                Ver carrito
+              </Link>
+              <Link
+                href="/checkout"
+                onClick={closeCart}
+                className="inline-flex h-11 items-center justify-center rounded-full bg-[#C6A75E] text-[13px] tracking-[0.04em] text-white transition-colors hover:bg-[#b8963f]"
+              >
+                Checkout
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

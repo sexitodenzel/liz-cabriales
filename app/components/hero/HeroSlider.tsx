@@ -1,11 +1,12 @@
 "use client"
 
 import { Swiper, SwiperSlide } from "swiper/react"
-import { Autoplay, Pagination, Navigation } from "swiper/modules"
+import { Autoplay, Pagination, Navigation, EffectFade } from "swiper/modules"
 
 import "swiper/css"
 import "swiper/css/pagination"
 import "swiper/css/navigation"
+import "swiper/css/effect-fade"
 
 const FALLBACK_SLIDES = [
   "https://images.unsplash.com/photo-1604654894610-df63bc536371",
@@ -21,10 +22,12 @@ export default function HeroSlider({ slides }: Props) {
   const urls = (slides ?? []).map((s, i) => (s || FALLBACK_SLIDES[i] || FALLBACK_SLIDES[0]))
 
   return (
-    <section className="h-[80vh] px-6 pt-6 md:pt-8">
+    <section className="h-[88vh] px-2 pt-4 md:h-[80vh] md:px-6 md:pt-8">
       <div className="mx-auto h-full max-w-[1400px] overflow-hidden rounded-md">
         <Swiper
-          modules={[Autoplay, Pagination, Navigation]}
+          modules={[Autoplay, Pagination, Navigation, EffectFade]}
+          effect="fade"
+          fadeEffect={{ crossFade: true }}
           autoplay={{ delay: 4000 }}
           loop
           pagination={{ clickable: true }}

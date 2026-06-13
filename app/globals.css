@@ -13,6 +13,10 @@
   --surface: #ffffff;
   /* Altura fija del navbar: la usan el carrito y el overlay para alinearse */
   --navbar-h: 84px;
+  /* Mobile: icono-row (84px) + nav-row (~37px) + search-bar row (~48px) */
+  --navbar-mobile-h: 172px;
+  /* Valor dinámico actualizado por ResizeObserver en Navbar.tsx; fallback al mobile */
+  --navbar-actual-h: var(--navbar-mobile-h);
 }
 
 /* =====================================

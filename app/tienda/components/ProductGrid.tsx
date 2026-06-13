@@ -11,6 +11,7 @@ import type {
 import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
 import FilterSidebar from "./FilterSidebar"
 import ProductCard from "./ProductCard"
+import { useCart } from "@/app/components/cart/CartContext"
 
 type FiltersState = {
   categorySlug: string | null
@@ -53,6 +54,11 @@ export default function ProductGrid({
   const [filters, setFilters] = useState<FiltersState>(initialFilters)
   const [sort, setSort] = useState<SortOption>("destacados")
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const { isCartOpen } = useCart()
+
+  useEffect(() => {
+    if (isCartOpen) setMobileFiltersOpen(false)
+  }, [isCartOpen])
 
   useEffect(() => {
     setFilters(initialFilters)
@@ -258,7 +264,11 @@ export default function ProductGrid({
 
   return (
     <div className="grid gap-8 md:grid-cols-[280px_minmax(0,1fr)]">
-      <div className="hidden md:block">{sidebar}</div>
+      <div className="hidden md:block">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+          {sidebar}
+        </div>
+      </div>
 
       <section className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-4">
@@ -370,7 +380,7 @@ export default function ProductGrid({
             )}
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -378,37 +388,42 @@ export default function ProductGrid({
         )}
       </section>
 
-      {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 top-[var(--navbar-mobile-h)] z-[40] backdrop-blur-md bg-black/10 transition-opacity duration-300 md:hidden ${
+          mobileFiltersOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMobileFiltersOpen(false)}
+      />
+
+      {/* Panel de filtros móvil */}
+      <div
+        className={`fixed left-0 top-[var(--navbar-mobile-h)] bottom-0 z-[73] flex w-2/3 flex-col border-r border-white/10 bg-[#0a0a0a] shadow-xl transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] md:hidden ${
+          mobileFiltersOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
+        }`}
+      >
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 p-4">
+          <h3 className="text-[16px] tracking-[0.02em] text-neutral-100">Filtros</h3>
+          <button
+            type="button"
             onClick={() => setMobileFiltersOpen(false)}
-          />
-          <div className="absolute inset-y-0 left-0 flex w-[85%] max-w-sm flex-col bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-              <p className="text-sm font-semibold text-[#0a0a0a]">Filtros</p>
-              <button
-                type="button"
-                onClick={() => setMobileFiltersOpen(false)}
-                className="text-neutral-500 hover:text-neutral-800"
-                aria-label="Cerrar filtros"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-5">{sidebar}</div>
-            <div className="border-t border-neutral-200 p-4">
-              <button
-                type="button"
-                onClick={() => setMobileFiltersOpen(false)}
-                className="w-full rounded-full bg-[#111] px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#C9A84C]"
-              >
-                Ver {filteredProducts.length} productos
-              </button>
-            </div>
-          </div>
+            aria-label="Cerrar filtros"
+            className="flex items-center justify-center rounded-full p-1 text-neutral-500 transition-colors hover:text-[#C6A75E]"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
-      )}
+        <div className="flex-1 overflow-y-auto p-4">{sidebar}</div>
+        <div className="flex-shrink-0 border-t border-white/10 p-4">
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen(false)}
+            className="w-full rounded-full bg-[#111] px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#C9A84C]"
+          >
+            Ver {filteredProducts.length} productos
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

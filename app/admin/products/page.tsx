@@ -1389,11 +1389,7 @@ export default function AdminProductsPage() {
         return
       }
 
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === confirmDeleteId ? { ...p, deleted_at: new Date().toISOString() } : p
-        )
-      )
+      setProducts((prev) => prev.filter((p) => p.id !== confirmDeleteId))
       await Promise.all([fetchCategories(), fetchBrands()])
 
       setToast({

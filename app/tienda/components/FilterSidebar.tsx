@@ -1,6 +1,7 @@
 "use client"
 
-import { X, Search } from "lucide-react"
+import { useState } from "react"
+import { X, Search, ChevronDown } from "lucide-react"
 
 type FilterSidebarProps = {
   categories: { id: string; name: string; slug: string }[]
@@ -47,6 +48,8 @@ export default function FilterSidebar({
     priceMin !== null ||
     priceMax !== null
 
+  const [categoriesOpen, setCategoriesOpen] = useState(Boolean(selectedCategory))
+
   const toggleBrand = (brand: string) => {
     if (selectedBrands.includes(brand)) {
       onBrandsChange(selectedBrands.filter((b) => b !== brand))
@@ -56,11 +59,11 @@ export default function FilterSidebar({
   }
 
   return (
-    <aside className="space-y-8 rounded-2xl border border-neutral-200 bg-white p-5 text-sm text-[#0a0a0a]">
+    <aside className="space-y-8 text-sm text-neutral-200">
       <div className="space-y-3">
         <label
           htmlFor="store-search"
-          className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-neutral-500"
+          className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-neutral-400"
         >
           <Search className="h-4 w-4" />
           Buscar
@@ -72,7 +75,7 @@ export default function FilterSidebar({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Buscar producto..."
-            className="w-full rounded-full border border-neutral-200 px-4 py-2 pr-9 text-sm outline-none transition-colors focus:border-[#C9A84C]"
+            className="w-full rounded-full border border-white/10 bg-white/5 px-4 py-2 pr-9 text-sm text-neutral-100 placeholder:text-neutral-500 outline-none transition-colors focus:border-[#C9A84C]"
           />
           {search.length > 0 && (
             <button
@@ -87,74 +90,91 @@ export default function FilterSidebar({
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
-          Categorías
-        </p>
+      <div>
         <button
           type="button"
-          onClick={() => onCategoryChange(null)}
-          className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
-            selectedCategory === null
-              ? "bg-[#C9A84C]/10 font-semibold text-[#a8862f]"
-              : "text-neutral-600 hover:bg-neutral-50 hover:text-[#0a0a0a]"
-          }`}
+          onClick={() => setCategoriesOpen((o) => !o)}
+          className="flex w-full items-center justify-between py-1 text-xs font-medium uppercase tracking-[0.2em] text-neutral-400 hover:text-neutral-200 transition-colors"
         >
-          <span>Todas</span>
-          {selectedCategory === null && (
-            <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />
-          )}
+          <span>
+            Categorías
+            {selectedCategory && (
+              <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-[#C9A84C] align-middle" />
+            )}
+          </span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ${categoriesOpen ? "rotate-180" : ""}`}
+          />
         </button>
-        {categories.map((category) => {
-          const isActive = selectedCategory === category.slug
-          return (
-            <button
-              key={category.id}
-              type="button"
-              onClick={() => onCategoryChange(isActive ? null : category.slug)}
-              className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                isActive
-                  ? "bg-[#C9A84C]/10 font-semibold text-[#a8862f]"
-                  : "text-neutral-600 hover:bg-neutral-50 hover:text-[#0a0a0a]"
-              }`}
-            >
-              <span>{category.name}</span>
-              {isActive && (
-                <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />
-              )}
-            </button>
-          )
-        })}
+
+        <div
+          className={`grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(.16,1,.3,1)] ${categoriesOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+        >
+          <div className="overflow-hidden min-h-0">
+            <div className="space-y-1 pt-3">
+              <button
+                type="button"
+                onClick={() => onCategoryChange(null)}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                  selectedCategory === null
+                    ? "bg-[#C9A84C]/10 font-semibold text-[#a8862f]"
+                    : "text-neutral-400 hover:bg-white/5 hover:text-neutral-100"
+                }`}
+              >
+                <span>Todas</span>
+                {selectedCategory === null && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />
+                )}
+              </button>
+              {categories.map((category) => {
+                const isActive = selectedCategory === category.slug
+                return (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => onCategoryChange(isActive ? null : category.slug)}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                      isActive
+                        ? "bg-[#C9A84C]/10 font-semibold text-[#a8862f]"
+                        : "text-neutral-400 hover:bg-white/5 hover:text-neutral-100"
+                    }`}
+                  >
+                    <span>{category.name}</span>
+                    {isActive && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#C9A84C]" />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-400">
           Marcas
         </p>
         <div className="space-y-2">
           {brands.map((brand) => {
             const checked = selectedBrands.includes(brand)
-            const count = brandCounts[brand]
             return (
               <button
                 key={brand}
                 type="button"
                 onClick={() => toggleBrand(brand)}
                 className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:border-[#C9A84C] ${
-                  checked ? "border-[#C9A84C] bg-[#C9A84C]/5" : "border-neutral-200"
+                  checked ? "border-[#C9A84C] bg-[#C9A84C]/5" : "border-white/10"
                 }`}
               >
-                <span className="flex items-center gap-1.5 text-neutral-800">
+                <span className="text-neutral-200">
                   {brand}
-                  {typeof count === "number" && (
-                    <span className="text-neutral-400">({count})</span>
-                  )}
                 </span>
                 <span
                   className={`flex h-4 w-4 items-center justify-center rounded-[4px] border text-[10px] ${
                     checked
                       ? "border-[#C9A84C] bg-[#C9A84C] text-[#0a0a0a]"
-                      : "border-neutral-300 bg-white text-transparent"
+                      : "border-white/20 bg-white/5 text-transparent"
                   }`}
                 >
                   ✓
@@ -163,7 +183,7 @@ export default function FilterSidebar({
             )
           })}
           {brands.length === 0 && (
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-neutral-500">
               Aún no hay marcas configuradas.
             </p>
           )}
@@ -172,7 +192,7 @@ export default function FilterSidebar({
 
       {priceBounds.max > priceBounds.min && (
         <div className="space-y-4">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-neutral-400">
             Precio
           </p>
 
@@ -198,10 +218,10 @@ export default function FilterSidebar({
                   onPriceChange(parseInput(event.target.value), priceMax)
                 }
                 placeholder={String(priceBounds.min)}
-                className="w-full rounded-full border border-neutral-200 py-2 pl-6 pr-3 text-sm outline-none transition-colors focus:border-[#C9A84C]"
+                className="w-full rounded-full border border-white/10 bg-white/5 py-2 pl-6 pr-3 text-sm text-neutral-100 outline-none transition-colors focus:border-[#C9A84C]"
               />
             </div>
-            <span className="text-neutral-300">–</span>
+            <span className="text-neutral-600">–</span>
             <div className="relative flex-1">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">
                 $
@@ -216,7 +236,7 @@ export default function FilterSidebar({
                   onPriceChange(priceMin, parseInput(event.target.value))
                 }
                 placeholder={String(priceBounds.max)}
-                className="w-full rounded-full border border-neutral-200 py-2 pl-6 pr-3 text-sm outline-none transition-colors focus:border-[#C9A84C]"
+                className="w-full rounded-full border border-white/10 bg-white/5 py-2 pl-6 pr-3 text-sm text-neutral-100 outline-none transition-colors focus:border-[#C9A84C]"
               />
             </div>
           </div>
@@ -227,7 +247,7 @@ export default function FilterSidebar({
         <button
           type="button"
           onClick={onClearAll}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-xs font-medium text-neutral-700 transition-colors hover:border-[#C9A84C]"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 px-4 py-2 text-xs font-medium text-neutral-400 transition-colors hover:border-[#C9A84C] hover:text-neutral-200"
         >
           <X className="h-3 w-3" />
           Limpiar filtros
@@ -275,7 +295,7 @@ function PriceRangeSlider({
   return (
     <div className="px-1">
       <div className="price-range">
-        <div className="absolute top-1/2 left-0 h-1 w-full -translate-y-1/2 rounded-full bg-neutral-200" />
+        <div className="absolute top-1/2 left-0 h-1 w-full -translate-y-1/2 rounded-full bg-white/15" />
         <div
           className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#C9A84C]"
           style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}

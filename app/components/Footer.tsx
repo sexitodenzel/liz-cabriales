@@ -1,13 +1,13 @@
 import Link from "next/link"
-import { Instagram, MessageCircle } from "lucide-react"
+import { Instagram, MessageCircle, Facebook } from "lucide-react"
 
 const linkClass =
   "text-neutral-300 transition-colors hover:text-[#C6A75E]"
 
 export default function Footer() {
   return (
-    <footer className="mt-16 bg-[#0a0a0a] text-neutral-300">
-      <div className="mx-auto max-w-[1200px] px-6 py-12">
+    <footer className="bg-[#0a0a0a] text-neutral-300">
+      <div className="mx-auto max-w-[1200px] px-6 pt-16 pb-12">
         <div className="grid gap-10 md:grid-cols-3">
           <div className="text-center md:text-left">
             <div className="mx-auto flex w-fit flex-col font-serif leading-none md:mx-0">
@@ -37,9 +37,6 @@ export default function Footer() {
               </Link>
               <Link href="/citas" className={linkClass}>
                 Servicios
-              </Link>
-              <Link href="/inspiracion" className={linkClass}>
-                Inspiración
               </Link>
             </nav>
           </div>
@@ -105,6 +102,14 @@ export default function Footer() {
                 aria-label="WhatsApp de Liz Cabriales"
               >
                 <MessageCircle className="h-5 w-5" />
+              </Link>
+              <Link
+                href="https://www.facebook.com/profile.php?id=100008326095757"
+                target="_blank"
+                className="text-neutral-400 transition-colors hover:text-[#C6A75E]"
+                aria-label="Facebook de Liz Cabriales"
+              >
+                <Facebook className="h-5 w-5" />
               </Link>
             </div>
           </div>

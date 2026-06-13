@@ -46,7 +46,7 @@ export default function ProductCard({ product }: Props) {
   }
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+    <article className="group flex flex-col overflow-hidden rounded-lg sm:rounded-xl border border-neutral-200 bg-white shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-lg">
       <Link href={`/tienda/${product.slug}`} className="block">
         <div className="relative bg-neutral-100">
           {currentImage ? (
@@ -54,15 +54,15 @@ export default function ProductCard({ product }: Props) {
             <img
               src={currentImage}
               alt={product.name}
-              className="h-64 w-full object-cover transition-opacity duration-200"
+              className="h-36 w-full object-cover transition-opacity duration-200 sm:h-64"
             />
           ) : (
-            <div className="flex h-64 w-full items-center justify-center bg-neutral-100 text-3xl font-semibold text-neutral-400">
+            <div className="flex h-36 w-full items-center justify-center bg-neutral-100 text-3xl font-semibold text-neutral-400 sm:h-64">
               {initials || "LC"}
             </div>
           )}
 
-          <div className="absolute left-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-medium uppercase tracking-wide text-[#C9A84C]">
+          <div className="absolute left-2 top-2 rounded-full bg-black/80 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-[#C9A84C] sm:left-3 sm:top-3 sm:px-3 sm:py-1 sm:text-xs">
             {brand}
           </div>
 
@@ -123,25 +123,25 @@ export default function ProductCard({ product }: Props) {
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
+      <div className="flex flex-1 flex-col gap-2 p-2.5 sm:gap-3 sm:p-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+          <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-400 sm:text-xs sm:tracking-[0.18em]">
             {product.category.name}
           </p>
-          <h3 className="mt-1 text-sm font-medium text-[#0a0a0a]">
+          <h3 className="mt-0.5 text-xs font-medium leading-snug text-[#0a0a0a] sm:mt-1 sm:text-sm">
             {product.name}
           </h3>
         </div>
 
-        <p className="text-lg font-semibold text-[#C9A84C]">
+        <p className="text-sm font-semibold text-[#C9A84C] sm:text-lg">
           {formatPrice(product.base_price)}
         </p>
 
-        <div className="mt-auto flex flex-col gap-2">
+        <div className="mt-auto flex flex-col gap-1.5 sm:gap-2">
           {hasMultipleVariants ? (
             <Link
               href={`/tienda/${product.slug}`}
-              className="inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-200 hover:bg-[#b8952f]"
+              className="inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-2 py-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-[#0a0a0a] transition-colors duration-200 hover:bg-[#b8952f] sm:px-4 sm:py-2.5 sm:text-[11px] sm:tracking-[0.2em]"
             >
               Elegir presentación
             </Link>
@@ -154,15 +154,9 @@ export default function ProductCard({ product }: Props) {
               image={currentImage}
               basePrice={product.base_price}
               variants={product.variants ?? []}
-              className="inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#0a0a0a] transition-colors duration-200 hover:bg-[#b8952f] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center rounded-full bg-[#C9A84C] px-2 py-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-[#0a0a0a] transition-colors duration-200 hover:bg-[#b8952f] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:opacity-60 sm:px-4 sm:py-2.5 sm:text-[11px] sm:tracking-[0.2em]"
             />
           )}
-          <Link
-            href={`/tienda/${product.slug}`}
-            className="inline-flex w-full items-center justify-center rounded-full border border-neutral-300 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-700 transition-colors duration-200 hover:border-[#0a0a0a] hover:text-[#0a0a0a]"
-          >
-            Ver producto
-          </Link>
         </div>
       </div>
     </article>
