@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import ImageUploader from "@/app/admin/components/ImageUploader"
-import type { InstructorRow } from "@/lib/supabase/courses"
+import CourseGalleryEditor, {
+  type LocalGalleryItem,
+  toLocalGalleryItems,
+} from "./CourseGalleryEditor"
+import type { InstructorRow, CourseImage, CourseGalleryItem } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 
 export type CourseFormInitialValues = {
@@ -28,11 +32,19 @@ export type CourseFormInitialValues = {
   public_capacity: string
 }
 
+type LocalImage = {
+  tempId: string
+  url: string
+  isCover: boolean
+}
+
 type Props = {
   mode: "create" | "edit"
   courseId?: string
   instructors: InstructorRow[]
   initialValues: CourseFormInitialValues
+  initialImages?: CourseImage[]
+  initialGallery?: CourseGalleryItem[]
 }
 
 const LEVEL_OPTIONS: { value: CourseLevel; label: string }[] = [
@@ -42,16 +54,43 @@ const LEVEL_OPTIONS: { value: CourseLevel; label: string }[] = [
   { value: "open", label: "Abierto" },
 ]
 
+let _uid = 0
+function uid() {
+  return `img-${++_uid}-${Math.random().toString(36).slice(2)}`
+}
+
 export default function CourseForm({
   mode,
   courseId,
   instructors,
   initialValues,
+  initialImages,
+  initialGallery,
 }: Props) {
   const router = useRouter()
   const [values, setValues] = useState<CourseFormInitialValues>(initialValues)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [localGallery, setLocalGallery] = useState<LocalGalleryItem[]>(() =>
+    initialGallery && initialGallery.length > 0
+      ? toLocalGalleryItems(initialGallery)
+      : []
+  )
+
+  const [localImages, setLocalImages] = useState<LocalImage[]>(() => {
+    if (initialImages && initialImages.length > 0) {
+      return initialImages.map((img) => ({
+        tempId: img.id,
+        url: img.image_url,
+        isCover: img.is_cover,
+      }))
+    }
+    if (initialValues.cover_image) {
+      return [{ tempId: "initial-cover", url: initialValues.cover_image, isCover: true }]
+    }
+    return []
+  })
 
   const update = <K extends keyof CourseFormInitialValues>(
     key: K,
@@ -60,10 +99,39 @@ export default function CourseForm({
     setValues((prev) => ({ ...prev, [key]: value }))
   }
 
+  function addImage(url: string) {
+    setLocalImages((prev) => {
+      const isFirst = prev.length === 0
+      return [...prev, { tempId: uid(), url, isCover: isFirst }]
+    })
+  }
+
+  function removeImage(tempId: string) {
+    setLocalImages((prev) => {
+      const remaining = prev.filter((img) => img.tempId !== tempId)
+      const hasCover = remaining.some((img) => img.isCover)
+      if (!hasCover && remaining.length > 0) {
+        return remaining.map((img, i) => ({ ...img, isCover: i === 0 }))
+      }
+      return remaining
+    })
+  }
+
+  function setCover(tempId: string) {
+    setLocalImages((prev) =>
+      prev.map((img) => ({ ...img, isCover: img.tempId === tempId }))
+    )
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
+
+    const coverUrl =
+      localImages.find((img) => img.isCover)?.url ??
+      localImages[0]?.url ??
+      null
 
     const payload: Record<string, unknown> = {
       title: values.title.trim(),
@@ -76,9 +144,7 @@ export default function CourseForm({
       end_date: values.end_date ? values.end_date : null,
       start_time: values.start_time,
       location: values.location.trim(),
-      cover_image: values.cover_image.trim()
-        ? values.cover_image.trim()
-        : null,
+      cover_image: coverUrl,
       is_published: values.is_published,
       allow_online_registration: values.allow_online_registration,
       show_price_public: values.show_price_public,
@@ -109,6 +175,38 @@ export default function CourseForm({
         return
       }
 
+      const savedId =
+        mode === "create" ? json?.data?.course?.id : courseId
+
+      if (savedId) {
+        await Promise.all([
+          fetch(`/api/admin/courses/${savedId}/images`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              images: localImages.map((img, i) => ({
+                image_url: img.url,
+                is_cover: img.isCover,
+                position: i,
+              })),
+            }),
+          }),
+          fetch(`/api/admin/courses/${savedId}/gallery`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              items: localGallery.map((item, i) => ({
+                type: item.type,
+                url: item.url,
+                thumbnail_url: item.thumbnail_url,
+                caption: item.caption || null,
+                position: i,
+              })),
+            }),
+          }),
+        ])
+      }
+
       router.push("/admin/courses")
       router.refresh()
     } catch {
@@ -118,8 +216,10 @@ export default function CourseForm({
     }
   }
 
-  const inputCls = "mt-1 w-full rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm text-[#1a1a1a] outline-none focus:border-[#c9a84c] transition-colors"
-  const labelCls = "block text-xs font-medium uppercase tracking-wider text-[#6b6b6b]"
+  const inputCls =
+    "mt-1 w-full rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm text-[#1a1a1a] outline-none focus:border-[#c9a84c] transition-colors"
+  const labelCls =
+    "block text-xs font-medium uppercase tracking-wider text-[#6b6b6b]"
   const checkboxCls = "h-4 w-4 rounded border-[#d8d8d8]"
 
   return (
@@ -272,44 +372,96 @@ export default function CourseForm({
             />
           </div>
 
+          {/* ── Galería de imágenes ──────────────────────────────────── */}
           <div>
-            <label className={labelCls}>Imagen de portada</label>
-            <div className="mt-2 flex flex-col gap-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <ImageUploader
-                  folder="courses"
-                  buttonLabel={
-                    values.cover_image ? "Reemplazar imagen" : "Subir imagen"
-                  }
-                  onUpload={(url) => update("cover_image", url)}
-                  onError={(msg) => setError(msg)}
-                />
-                {values.cover_image && (
-                  <div className="flex items-center gap-2">
+            <div className="mb-2 flex items-center justify-between">
+              <label className={labelCls}>Galería de imágenes</label>
+              <span className="text-[11px] text-[#9a9a9a]">
+                {localImages.length} {localImages.length === 1 ? "imagen" : "imágenes"}
+              </span>
+            </div>
+
+            {localImages.length > 0 && (
+              <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {localImages.map((img) => (
+                  <div
+                    key={img.tempId}
+                    className={`group relative overflow-hidden rounded-lg border-2 transition-colors ${
+                      img.isCover
+                        ? "border-[#c9a84c]"
+                        : "border-[#ececec] hover:border-[#c9a84c]/40"
+                    }`}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={values.cover_image}
-                      alt="Vista previa de portada"
-                      className="h-16 w-24 rounded-lg border border-[#ececec] object-cover"
+                      src={img.url}
+                      alt=""
+                      className="aspect-[4/3] w-full object-cover"
                     />
-                    <button
-                      type="button"
-                      onClick={() => update("cover_image", "")}
-                      className="text-xs font-semibold text-red-600 hover:underline"
-                    >
-                      Quitar
-                    </button>
+
+                    {img.isCover && (
+                      <span className="absolute left-1.5 top-1.5 rounded bg-[#c9a84c] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white shadow">
+                        Portada
+                      </span>
+                    )}
+
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/0 transition-colors group-hover:bg-black/40">
+                      {!img.isCover && (
+                        <button
+                          type="button"
+                          onClick={() => setCover(img.tempId)}
+                          className="hidden rounded-md bg-white/90 px-2 py-1 text-[10px] font-semibold text-[#1a1a1a] transition-all hover:bg-[#c9a84c] hover:text-white group-hover:block"
+                        >
+                          Portada
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeImage(img.tempId)}
+                        className="hidden rounded-md bg-white/90 px-2 py-1 text-[10px] font-semibold text-red-600 transition-all hover:bg-red-600 hover:text-white group-hover:block"
+                      >
+                        Quitar
+                      </button>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
-              <input
-                type="url"
-                value={values.cover_image}
-                onChange={(e) => update("cover_image", e.target.value)}
-                placeholder="O pega una URL: https://..."
-                className={inputCls}
+            )}
+
+            <div className="flex items-center gap-3">
+              <ImageUploader
+                folder="courses"
+                buttonLabel="Agregar imagen"
+                onUpload={addImage}
+                onError={(msg) => setError(msg)}
               />
+              {localImages.length === 0 && (
+                <span className="text-xs text-[#9a9a9a]">
+                  Sube varias imágenes del curso. La primera será la portada.
+                </span>
+              )}
             </div>
+          </div>
+
+          {/* ── Galería del curso ──────────────────────────────────── */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <div>
+                <label className={labelCls}>Galería del curso</label>
+                <p className="mt-0.5 text-[11px] text-[#9a9a9a]">
+                  Imágenes y videos de lo aprendido. Se muestra en cursos pasados.
+                </p>
+              </div>
+              <span className="text-[11px] text-[#9a9a9a]">
+                {localGallery.length}{" "}
+                {localGallery.length === 1 ? "elemento" : "elementos"}
+              </span>
+            </div>
+            <CourseGalleryEditor
+              items={localGallery}
+              onChange={setLocalGallery}
+              onError={(msg) => setError(msg)}
+            />
           </div>
 
           <label className="flex items-center gap-3 text-sm text-[#3a3a3a]">

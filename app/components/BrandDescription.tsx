@@ -12,7 +12,7 @@ const SOCIAL = {
 } as const
 
 const STATS = [
-  { value: "6+", label: "años de experiencia" },
+  { value: "7+", label: "años de experiencia" },
   { value: "15+", label: "marcas profesionales" },
   { value: "20+", label: "masters nacionales" },
 ]
@@ -101,17 +101,44 @@ export default function BrandDescription({ photoUrl }: Props) {
               className={fadeUp(inView, 150)}
               style={{ transitionDelay: "150ms" }}
             >
+              <p className="mb-4 max-w-[520px] text-[15px] font-semibold leading-[1.55] text-black">
+                ¡Te damos la bienvenida a Liz Cabriales!
+              </p>
               <p className="mb-4 max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">
-                Somos expertas en uñas y quiropodia. Con más de 6 años formando
-                profesionales en Tampico y llevando las mejores marcas a todo México.
+                Academia y Distribuidora Profesional de Uñas y Servicio Podal.
               </p>
-              <p className="mb-6 max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">
-                Distribuidoras oficiales de Exotic, Lovely, Manikure Pro, Golden
-                Nails, Miss Nails y más de 15 marcas profesionales.
+              <p className="mb-4 max-w-[520px] font-[family-name:var(--font-playfair),serif] text-[16px] italic leading-[1.55] text-[#a8862f]">
+                &ldquo;Piensa, cree, sueña y atrévete.&rdquo;
               </p>
-              <div className="mb-2 flex flex-col gap-1 text-[15px] font-bold leading-relaxed">
-                <span className="text-black">Posibilidades infinitas.</span>
-                <span className="text-[#a8862f]">Respaldadas por experiencia.</span>
+              <p className="mb-4 max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">
+                Con más de 7 años de trayectoria formando profesionales de éxito en
+                Tampico y llevando el respaldo de las mejores marcas a todo México,
+                en Liz Cabriales somos expertas en el cuidado, salud y arte de las
+                manos y los pies.
+              </p>
+              <p className="mb-4 max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">
+                Nuestra misión es elevar el estándar de la industria. Por ello, nos
+                encargamos de formar onicotécnicas, pedicuristas y quiropodistas
+                profesionales, brindándoles una educación continua, vanguardista e
+                innovadora. Preparamos a cada uno de nuestros alumnos para dominar las
+                técnicas más exigentes y ofrecer un servicio estético y clínico de la
+                más alta calidad.
+              </p>
+              <p className="mb-4 max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">
+                Como distribuidora oficial, respaldamos tu trabajo clínico y creativo
+                con el catálogo de las marcas líderes del mercado.
+              </p>
+              <p className="mb-4 max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">
+                Si estás lista para transformar tu pasión en una carrera profesional o
+                abastecer tu negocio con lo mejor del sector, estás en el lugar
+                correcto. Explora nuestros cursos, descubre nuestra tienda en línea y
+                da el siguiente paso.
+              </p>
+              <div className="mb-2 max-w-[520px] text-[15px] font-bold leading-relaxed">
+                <span className="text-black">
+                  Piensa en grande, cree en tu talento, sueña con el éxito y{" "}
+                </span>
+                <span className="text-[#a8862f]">¡atrévete a lograrlo con nosotros!</span>
               </div>
             </div>
 

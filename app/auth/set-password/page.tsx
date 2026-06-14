@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import Image from "next/image"
+import Link from "next/link"
 
 export default function SetPasswordPage() {
   const router = useRouter()
@@ -88,7 +90,17 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 py-10">
+      <Link href="/" className="mb-6 transition-opacity hover:opacity-80" aria-label="Ir al inicio">
+        <Image
+          src="/images/logo.png"
+          alt="Liz Cabriales"
+          width={140}
+          height={140}
+          className="object-contain"
+          priority
+        />
+      </Link>
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-bold text-[#1a1a1a] mb-2">
           {isRecoveryFlow ? "Restablecer contraseña" : "Crear contraseña"}
@@ -151,3 +163,4 @@ export default function SetPasswordPage() {
     </div>
   )
 }
+

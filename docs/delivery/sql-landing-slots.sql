@@ -42,3 +42,13 @@ INSERT INTO landing_slots (key, label, section) VALUES
   ('pillar_serv_2', 'Imagen 2',     'pillar_serv'),
   ('pillar_serv_3', 'Imagen 3',     'pillar_serv')
 ON CONFLICT (key) DO NOTHING;
+
+-- Migración: agregar campos de vinculación para slides del hero
+ALTER TABLE landing_slots
+  ADD COLUMN IF NOT EXISTS link_type  text NOT NULL DEFAULT 'none',
+  ADD COLUMN IF NOT EXISTS link_value text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS cta_label  text NOT NULL DEFAULT '';
+
+-- Migración: texto auxiliar junto al botón CTA del hero
+ALTER TABLE landing_slots
+  ADD COLUMN IF NOT EXISTS cta_subtext text NOT NULL DEFAULT '';

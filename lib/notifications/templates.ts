@@ -8,6 +8,7 @@ export const TEMPLATE_NAMES = {
   SHIPPING_PAID_ADMIN: "shipping_paid_admin",
   ORDER_SHIPPED: "order_shipped",
   ORDER_DELIVERED: "order_delivered",
+  PRODUCT_BACK_IN_STOCK: "product_back_in_stock",
 } as const
 
 export type TemplateName = (typeof TEMPLATE_NAMES)[keyof typeof TEMPLATE_NAMES]
@@ -76,4 +77,12 @@ export function buildOrderDeliveredComponents(
   orderShortId: string
 ): TemplateComponent[] {
   return [body(firstName, orderShortId)]
+}
+
+export function buildProductBackInStockComponents(
+  firstName: string,
+  productName: string,
+  productUrl: string
+): TemplateComponent[] {
+  return [body(firstName, productName, productUrl)]
 }

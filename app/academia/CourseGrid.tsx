@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import type { CourseWithStats } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
@@ -76,6 +77,221 @@ function ChevDown() {
     </svg>
   )
 }
+
+function ChevSmLeft() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  )
+}
+
+function ChevSmRight() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  )
+}
+
+// ── Card with its own slide state ─────────────────────────────────────────
+
+function CourseCard({ course }: { course: CourseWithStats }) {
+  const [slideIdx, setSlideIdx] = useState(0)
+
+  const { day, month } = parseDateBadge(course.start_date)
+  const past = isCoursePast(course.start_date)
+  const isFull = course.show_capacity_public
+    ? course.public_spots_remaining <= 0
+    : course.spots_remaining <= 0
+
+  const slideImages =
+    course.images.length > 0
+      ? course.images.map((img) => img.image_url)
+      : course.cover_image
+        ? [course.cover_image]
+        : []
+
+  const n = slideImages.length
+
+  function prev(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setSlideIdx((i) => (i - 1 + n) % n)
+  }
+  function next(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setSlideIdx((i) => (i + 1) % n)
+  }
+  function dot(e: React.MouseEvent, i: number) {
+    e.preventDefault()
+    e.stopPropagation()
+    setSlideIdx(i)
+  }
+
+  return (
+    <Link
+      href={`/academia/${course.id}`}
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-[#f0f0f0] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition-all duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
+    >
+      {/* Image / Slider */}
+      <div className="relative aspect-[4/2.6] overflow-hidden bg-[#eee]">
+        {slideImages.length > 0 ? (
+          <>
+            {slideImages.map((url, i) => (
+              <Image
+                key={i}
+                src={url}
+                alt={i === 0 ? course.title : `${course.title} foto ${i + 1}`}
+                fill
+                className={`object-cover transition-opacity duration-400 ${
+                  i === slideIdx
+                    ? "opacity-100"
+                    : "opacity-0"
+                } ${n === 1 ? "transition-transform group-hover:scale-[1.04]" : ""}`}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              />
+            ))}
+
+            {n > 1 && (
+              <>
+                <button
+                  onClick={prev}
+                  aria-label="Foto anterior"
+                  className="absolute left-2 top-1/2 z-20 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-full bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  <ChevSmLeft />
+                </button>
+                <button
+                  onClick={next}
+                  aria-label="Siguiente foto"
+                  className="absolute right-2 top-1/2 z-20 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-full bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  <ChevSmRight />
+                </button>
+
+                <div className="absolute bottom-[52px] left-0 right-0 z-20 flex justify-center gap-1">
+                  {slideImages.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => dot(e, i)}
+                      aria-label={`Foto ${i + 1}`}
+                      className={`rounded-full transition-all duration-200 ${
+                        i === slideIdx
+                          ? "h-1.5 w-4 bg-white"
+                          : "h-1.5 w-1.5 bg-white/55"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs uppercase tracking-wider text-[#9a9a9a]">
+            Sin imagen
+          </div>
+        )}
+
+        {/* Bottom gradient */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55" />
+
+        {/* Level tag */}
+        <span className="absolute left-4 top-4 z-10 rounded-[4px] bg-white/90 px-2.5 py-[5px] text-[10px] font-semibold uppercase tracking-[0.18em] text-[#3a3a3a] backdrop-blur-sm">
+          {LEVEL_LABEL[course.level]}
+        </span>
+
+        {/* Past badge */}
+        {past && (
+          <span className="absolute left-4 top-[42px] z-10 rounded-full bg-[#1a1a1a]/85 px-2.5 py-[5px] text-[10px] font-semibold uppercase tracking-wide text-[#c9a84c]">
+            Realizado
+          </span>
+        )}
+
+        {/* Date badge */}
+        <div className="absolute right-3.5 top-3.5 z-10 flex h-[62px] w-[62px] flex-col items-center justify-center rounded-full border-[1.5px] border-[#c9a84c] bg-white text-center shadow-[0_4px_12px_rgba(0,0,0,0.10)]">
+          <span
+            className="text-[22px] font-semibold leading-none text-[#1a1a1a]"
+            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+          >
+            {day}
+          </span>
+          <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#a8893a]">
+            {month}
+          </span>
+        </div>
+
+        {/* Instructor strip */}
+        {course.instructor && (
+          <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2.5 text-white">
+            {course.instructor.photo_url ? (
+              <div className="relative h-[34px] w-[34px] flex-shrink-0 overflow-hidden rounded-full border-[1.5px] border-white">
+                <Image
+                  src={course.instructor.photo_url}
+                  alt={course.instructor.name}
+                  fill
+                  className="object-cover"
+                  sizes="34px"
+                />
+              </div>
+            ) : (
+              <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-white bg-[#c9a84c]/80 text-xs font-semibold">
+                {initials(course.instructor.name)}
+              </div>
+            )}
+            <div>
+              <div className="text-[11px] font-medium uppercase tracking-[0.06em] drop-shadow-sm">
+                {course.instructor.name}
+              </div>
+              <div className="text-[9px] uppercase tracking-[0.12em] opacity-85">
+                Instructora
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Card body */}
+      <div className="flex flex-1 flex-col gap-2.5 px-5 py-[18px]">
+        <h3
+          className="text-[19px] font-medium leading-snug text-[#1a1a1a]"
+          style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+        >
+          {course.title}
+        </h3>
+        <p className="line-clamp-3 flex-1 text-[13px] leading-relaxed text-[#6b6b6b]">
+          {course.description}
+        </p>
+        <div className="mt-1 flex items-center gap-1.5 border-t border-[#ececec] pt-3 text-[12.5px] text-[#3a3a3a]">
+          <PinIcon />
+          <span className="truncate">{course.location}</span>
+          {past ? (
+            <span className="ml-auto text-[12.5px] text-[#6b6b6b]">
+              Ver detalle →
+            </span>
+          ) : isFull && course.allow_online_registration ? (
+            <span className="ml-auto text-[12px] font-semibold text-red-600">
+              Lleno
+            </span>
+          ) : course.show_price_public ? (
+            <span className="ml-auto font-semibold text-[#a8893a]">
+              {formatPrice(course.price)}
+            </span>
+          ) : (
+            <span className="ml-auto text-[12.5px] text-[#6b6b6b]">
+              Ver detalle →
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+// ── Main grid ──────────────────────────────────────────────────────────────
 
 export default function CourseGrid({ courses }: Props) {
   const [query, setQuery] = useState("")
@@ -226,125 +442,9 @@ export default function CourseGrid({ courses }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {pageList.map((course) => {
-            const { day, month } = parseDateBadge(course.start_date)
-            const past = isCoursePast(course.start_date)
-            const isFull = course.show_capacity_public
-              ? course.public_spots_remaining <= 0
-              : course.spots_remaining <= 0
-
-            return (
-              <Link
-                key={course.id}
-                href={`/academia/${course.id}`}
-                className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-[#f0f0f0] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition-all duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]"
-              >
-                {/* Image */}
-                <div className="relative aspect-[4/2.6] overflow-hidden bg-[#eee]">
-                  {course.cover_image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={course.cover_image}
-                      alt={course.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs uppercase tracking-wider text-[#9a9a9a]">
-                      Sin imagen
-                    </div>
-                  )}
-
-                  {/* Bottom gradient */}
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55" />
-
-                  {/* Level tag */}
-                  <span className="absolute left-4 top-4 rounded-[4px] bg-white/90 px-2.5 py-[5px] text-[10px] font-semibold uppercase tracking-[0.18em] text-[#3a3a3a] backdrop-blur-sm">
-                    {LEVEL_LABEL[course.level]}
-                  </span>
-
-                  {/* Past badge */}
-                  {past && (
-                    <span className="absolute left-4 top-[42px] rounded-full bg-[#1a1a1a]/85 px-2.5 py-[5px] text-[10px] font-semibold uppercase tracking-wide text-[#c9a84c]">
-                      Realizado
-                    </span>
-                  )}
-
-                  {/* Date badge */}
-                  <div className="absolute right-3.5 top-3.5 flex h-[62px] w-[62px] flex-col items-center justify-center rounded-full border-[1.5px] border-[#c9a84c] bg-white text-center shadow-[0_4px_12px_rgba(0,0,0,0.10)]">
-                    <span
-                      className="text-[22px] font-semibold leading-none text-[#1a1a1a]"
-                      style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                    >
-                      {day}
-                    </span>
-                    <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#a8893a]">
-                      {month}
-                    </span>
-                  </div>
-
-                  {/* Instructor strip */}
-                  {course.instructor && (
-                    <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2.5 text-white">
-                      {course.instructor.photo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={course.instructor.photo_url}
-                          alt={course.instructor.name}
-                          className="h-[34px] w-[34px] rounded-full border-[1.5px] border-white object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-white bg-[#c9a84c]/80 text-xs font-semibold">
-                          {initials(course.instructor.name)}
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-[11px] font-medium uppercase tracking-[0.06em] drop-shadow-sm">
-                          {course.instructor.name}
-                        </div>
-                        <div className="text-[9px] uppercase tracking-[0.12em] opacity-85">
-                          Instructora
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card body */}
-                <div className="flex flex-1 flex-col gap-2.5 px-5 py-[18px]">
-                  <h3
-                    className="text-[19px] font-medium leading-snug text-[#1a1a1a]"
-                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                  >
-                    {course.title}
-                  </h3>
-                  <p className="line-clamp-3 flex-1 text-[13px] leading-relaxed text-[#6b6b6b]">
-                    {course.description}
-                  </p>
-                  <div className="mt-1 flex items-center gap-1.5 border-t border-[#ececec] pt-3 text-[12.5px] text-[#3a3a3a]">
-                    <PinIcon />
-                    <span className="truncate">{course.location}</span>
-                    {past ? (
-                      <span className="ml-auto text-[12.5px] text-[#6b6b6b]">
-                        Ver detalle →
-                      </span>
-                    ) : isFull && course.allow_online_registration ? (
-                      <span className="ml-auto text-[12px] font-semibold text-red-600">
-                        Lleno
-                      </span>
-                    ) : course.show_price_public ? (
-                      <span className="ml-auto font-semibold text-[#a8893a]">
-                        {formatPrice(course.price)}
-                      </span>
-                    ) : (
-                      <span className="ml-auto text-[12.5px] text-[#6b6b6b]">
-                        Ver detalle →
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
+          {pageList.map((course) => (
+            <CourseCard key={course.id} course={course} />
+          ))}
         </div>
       )}
 

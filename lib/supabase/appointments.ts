@@ -1286,6 +1286,87 @@ export async function getBlockedSlotsForDate(
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
+ * Días de curso (afectan horario de recogida en tienda)
+ * ────────────────────────────────────────────────────────────────────── */
+
+export async function getUpcomingCourseDays(): Promise<Result<BlockedSlotRow[]>> {
+  const today = new Date().toISOString().split("T")[0]
+  const { data, error } = await supabaseAdmin
+    .from("blocked_slots")
+    .select("id, professional_id, date, start_time, end_time, reason, created_at")
+    .like("reason", "[curso]%")
+    .gte("date", today)
+    .order("date", { ascending: true })
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return { data: (data ?? []) as BlockedSlotRow[], error: null }
+}
+
+export async function createCourseDay(
+  date: string,
+  pickupStart = "10:00",
+  pickupEnd = "14:00",
+  courseName?: string,
+): Promise<Result<BlockedSlotRow>> {
+  const reason = courseName ? `[curso] · ${courseName}` : "[curso]"
+
+  const { data, error } = await supabaseAdmin
+    .from("blocked_slots")
+    .insert({
+      professional_id: null,
+      date,
+      start_time: normalizeTime(pickupStart),
+      end_time: normalizeTime(pickupEnd),
+      reason,
+    })
+    .select()
+    .single()
+
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo marcar el día de curso",
+        code: error?.code,
+      },
+    }
+  }
+
+  return { data: data as BlockedSlotRow, error: null }
+}
+
+export async function updateCourseDay(
+  id: string,
+  pickupStart: string,
+  pickupEnd: string,
+): Promise<Result<BlockedSlotRow>> {
+  const { data, error } = await supabaseAdmin
+    .from("blocked_slots")
+    .update({
+      start_time: normalizeTime(pickupStart),
+      end_time: normalizeTime(pickupEnd),
+    })
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo actualizar el horario",
+        code: error?.code,
+      },
+    }
+  }
+
+  return { data: data as BlockedSlotRow, error: null }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
  * Pagos / webhook helpers
  * ────────────────────────────────────────────────────────────────────── */
 

@@ -4,6 +4,13 @@ import { useRef, useState } from "react"
 
 import { createClient } from "@/lib/supabase/client"
 
+const SIZE_HINTS: Record<string, string> = {
+  products: "1:1 · mín. 800×800 px",
+  courses: "16:9 · mín. 1280×720 px",
+  instructors: "1:1 · mín. 400×400 px",
+  hero: "16:9 · mín. 1920×1080 px",
+}
+
 type Props = {
   onUpload: (url: string) => void
   onError: (msg: string) => void
@@ -71,8 +78,10 @@ export default function ImageUploader({
     ? "inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-neutral-700 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
     : "inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
 
+  const hint = SIZE_HINTS[folder ?? ""]
+
   return (
-    <div className={compact ? "flex items-center gap-2" : "flex items-center gap-3"}>
+    <div className={compact ? "flex items-center gap-2" : "flex flex-col gap-2"}>
       <input
         ref={inputRef}
         type="file"
@@ -122,6 +131,7 @@ export default function ImageUploader({
         </div>
       )}
 
+      <div className={compact ? "flex items-center gap-2" : "flex items-center gap-3"}>
       <button
         type="button"
         disabled={uploading}
@@ -139,6 +149,10 @@ export default function ImageUploader({
         </svg>
         {uploading ? "Subiendo…" : buttonLabel}
       </button>
+      </div>
+      {!compact && hint && (
+        <p className="text-[11px] text-neutral-400">{hint}</p>
+      )}
     </div>
   )
 }

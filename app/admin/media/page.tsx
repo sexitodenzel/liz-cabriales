@@ -4,14 +4,22 @@ import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import type { LinkType } from "@/lib/supabase/landing-slots"
 
 type LandingSlot = {
   key: string
   url: string
   label: string
   section: string
+  link_type: LinkType
+  link_value: string
+  cta_label: string
+  cta_subtext: string
   updated_at: string
 }
+
+type ProductOption = { name: string; slug: string }
+type CourseOption = { id: string; title: string }
 
 const SECTION_META: Record<string, { title: string; description: string }> = {
   hero: {
@@ -57,7 +65,7 @@ function CheckIcon() {
 
 type SlotCardProps = {
   slot: LandingSlot
-  onUpdate: (key: string, url: string) => void
+  onUpdate: (key: string, patch: Partial<LandingSlot>) => void
 }
 
 function SlotCard({ slot, onUpdate }: SlotCardProps) {
@@ -66,6 +74,65 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
   const [error, setError] = useState<string | null>(null)
   const [currentUrl, setCurrentUrl] = useState(slot.url)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const [linkType, setLinkType] = useState<LinkType>(slot.link_type ?? "none")
+  const [linkValue, setLinkValue] = useState(slot.link_value ?? "")
+  const [ctaLabel, setCtaLabel] = useState(slot.cta_label ?? "")
+  const [ctaSubtext, setCtaSubtext] = useState(slot.cta_subtext ?? "")
+  const [savingLink, setSavingLink] = useState(false)
+  const [linkSaved, setLinkSaved] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
+  const [linkPanelOpen, setLinkPanelOpen] = useState(false)
+
+  const [products, setProducts] = useState<ProductOption[]>([])
+  const [courses, setCourses] = useState<CourseOption[]>([])
+  const [loadingOptions, setLoadingOptions] = useState(false)
+
+  const isHero = slot.section === "hero"
+
+  useEffect(() => {
+    if (!isHero) return
+    if (linkType === "product") loadProducts()
+    if (linkType === "course") loadCourses()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function loadProducts() {
+    if (products.length > 0) return
+    setLoadingOptions(true)
+    try {
+      const res = await fetch("/api/admin/products")
+      const body = await res.json()
+      const list: ProductOption[] = (body?.data?.products ?? [])
+        .filter((p: { is_active: boolean }) => p.is_active)
+        .map((p: { name: string; slug: string }) => ({ name: p.name, slug: p.slug }))
+      setProducts(list)
+    } finally {
+      setLoadingOptions(false)
+    }
+  }
+
+  async function loadCourses() {
+    if (courses.length > 0) return
+    setLoadingOptions(true)
+    try {
+      const res = await fetch("/api/admin/courses")
+      const body = await res.json()
+      const list: CourseOption[] = (body?.data?.courses ?? [])
+        .filter((c: { is_published: boolean }) => c.is_published)
+        .map((c: { id: string; title: string }) => ({ id: c.id, title: c.title }))
+      setCourses(list)
+    } finally {
+      setLoadingOptions(false)
+    }
+  }
+
+  function handleLinkTypeChange(val: LinkType) {
+    setLinkType(val)
+    setLinkValue("")
+    if (val === "product") loadProducts()
+    if (val === "course") loadCourses()
+  }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -105,13 +172,49 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
       }
 
       setCurrentUrl(data.publicUrl)
-      onUpdate(slot.key, data.publicUrl)
+      onUpdate(slot.key, { url: data.publicUrl })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al subir la imagen.")
     } finally {
       setUploading(false)
+    }
+  }
+
+  async function saveLinkConfig() {
+    setLinkError(null)
+    setSavingLink(true)
+    setLinkSaved(false)
+
+    try {
+      const res = await fetch("/api/admin/landing-slots", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: slot.key,
+          link_type: linkType,
+          link_value: linkValue,
+          cta_label: ctaLabel,
+          cta_subtext: ctaSubtext,
+        }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error?.message ?? "Error al guardar.")
+      }
+
+      onUpdate(slot.key, { link_type: linkType, link_value: linkValue, cta_label: ctaLabel, cta_subtext: ctaSubtext })
+      setLinkSaved(true)
+      setTimeout(() => {
+        setLinkSaved(false)
+        setLinkPanelOpen(false)
+      }, 1200)
+    } catch (err: unknown) {
+      setLinkError(err instanceof Error ? err.message : "Error al guardar el enlace.")
+    } finally {
+      setSavingLink(false)
     }
   }
 
@@ -151,10 +254,9 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
         )}
       </div>
 
-      {/* Label + action */}
+      {/* Label + saved indicator */}
       <div className="flex items-center justify-between gap-2">
         <span className="text-[13px] font-semibold text-neutral-700">{slot.label}</span>
-
         {saved && (
           <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">
             <CheckIcon />
@@ -163,9 +265,7 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
         )}
       </div>
 
-      {error && (
-        <p className="text-[11px] text-red-500">{error}</p>
-      )}
+      {error && <p className="text-[11px] text-red-500">{error}</p>}
 
       <button
         type="button"
@@ -188,6 +288,176 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
           </>
         )}
       </button>
+
+      {/* Link config — solo visible en slides del hero */}
+      {isHero && (
+        <div className="mt-1 rounded-lg border border-neutral-100 bg-neutral-50">
+          {/* Header con resumen + toggle */}
+          <button
+            type="button"
+            onClick={() => setLinkPanelOpen((v) => !v)}
+            className="flex w-full items-center justify-between px-3 py-2.5 text-left"
+          >
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                Enlace del slide
+              </span>
+              <span className="text-[11px] text-neutral-400">
+                {linkType === "none" && "Sin enlace"}
+                {linkType === "product" && (linkValue ? `Producto: ${linkValue}` : "Producto (sin elegir)")}
+                {linkType === "course" && (linkValue ? "Curso seleccionado" : "Curso (sin elegir)")}
+                {linkType === "services" && "→ /servicios"}
+                {linkType === "custom" && (linkValue || "URL personalizada (vacía)")}
+              </span>
+            </div>
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`h-4 w-4 shrink-0 text-neutral-400 transition-transform ${linkPanelOpen ? "rotate-180" : ""}`}
+              aria-hidden
+            >
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+
+          {linkPanelOpen && (
+          <div className="flex flex-col gap-3 border-t border-neutral-100 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+            Configurar enlace
+          </p>
+
+          {/* Tipo de destino */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] font-medium text-neutral-600">Destino del slide</label>
+            <select
+              value={linkType}
+              onChange={(e) => handleLinkTypeChange(e.target.value as LinkType)}
+              className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
+            >
+              <option value="none">Sin enlace</option>
+              <option value="product">Producto</option>
+              <option value="course">Curso</option>
+              <option value="services">Página de servicios</option>
+              <option value="custom">URL personalizada</option>
+            </select>
+          </div>
+
+          {/* Selector condicional */}
+          {linkType === "product" && (
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-medium text-neutral-600">Producto</label>
+              {loadingOptions ? (
+                <p className="text-[11px] text-neutral-400">Cargando productos…</p>
+              ) : (
+                <select
+                  value={linkValue}
+                  onChange={(e) => setLinkValue(e.target.value)}
+                  className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
+                >
+                  <option value="">— Elige un producto —</option>
+                  {products.map((p) => (
+                    <option key={p.slug} value={p.slug}>{p.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
+          {linkType === "course" && (
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-medium text-neutral-600">Curso</label>
+              {loadingOptions ? (
+                <p className="text-[11px] text-neutral-400">Cargando cursos…</p>
+              ) : (
+                <select
+                  value={linkValue}
+                  onChange={(e) => setLinkValue(e.target.value)}
+                  className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
+                >
+                  <option value="">— Elige un curso —</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.title}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
+          {linkType === "services" && (
+            <p className="text-[11px] text-neutral-500">
+              Redirige a <span className="font-mono font-medium">/servicios</span>
+            </p>
+          )}
+
+          {linkType === "custom" && (
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-medium text-neutral-600">URL</label>
+              <input
+                type="text"
+                value={linkValue}
+                onChange={(e) => setLinkValue(e.target.value)}
+                placeholder="/tienda?promo=verano"
+                className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
+              />
+            </div>
+          )}
+
+          {/* CTA label */}
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] font-medium text-neutral-600">
+              Texto del botón <span className="font-normal text-neutral-400">(opcional)</span>
+            </label>
+            <input
+              type="text"
+              value={ctaLabel}
+              onChange={(e) => setCtaLabel(e.target.value)}
+              placeholder="Ver colección"
+              className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] font-medium text-neutral-600">
+              Texto junto al botón <span className="font-normal text-neutral-400">(opcional)</span>
+            </label>
+            <input
+              type="text"
+              value={ctaSubtext}
+              onChange={(e) => setCtaSubtext(e.target.value)}
+              placeholder="Promoción válida hasta fin de mes"
+              className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
+            />
+          </div>
+
+          {linkError && <p className="text-[11px] text-red-500">{linkError}</p>}
+
+          <button
+            type="button"
+            disabled={savingLink}
+            onClick={saveLinkConfig}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#1a1a1a] px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {savingLink ? (
+              <>
+                <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                  <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75" />
+                </svg>
+                Guardando…
+              </>
+            ) : linkSaved ? (
+              <>
+                <CheckIcon />
+                Enlace guardado
+              </>
+            ) : (
+              "Guardar enlace"
+            )}
+          </button>
+          </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -211,9 +481,9 @@ export default function AdminMediaPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  function handleUpdate(key: string, url: string) {
+  function handleUpdate(key: string, patch: Partial<LandingSlot>) {
     setSlots((prev) =>
-      prev.map((s) => (s.key === key ? { ...s, url } : s))
+      prev.map((s) => (s.key === key ? { ...s, ...patch } : s))
     )
   }
 
@@ -285,6 +555,11 @@ export default function AdminMediaPage() {
                   <div className="mb-5">
                     <h2 className="text-base font-semibold text-[#1a1a1a]">{meta.title}</h2>
                     <p className="mt-0.5 text-xs text-[#6b6b6b]">{meta.description}</p>
+                    {sec === "hero" && (
+                      <p className="mt-1 text-xs text-[#c9a84c]">
+                        Cada slide puede tener un enlace, un botón CTA y un texto auxiliar opcional.
+                      </p>
+                    )}
                     <div className="mt-3 h-px bg-[#ececec]" aria-hidden />
                   </div>
 

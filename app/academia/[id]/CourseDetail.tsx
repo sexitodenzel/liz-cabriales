@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import type { CourseWithStats } from "@/lib/supabase/courses"
+import Image from "next/image"
+import type { CourseWithStats, CourseGalleryItem } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 import { buildWhatsAppHref } from "@/lib/constants/contact"
 import RegisterModal from "@/components/courses/RegisterModal"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import CourseGallery from "./CourseGallery"
 
 type Props = {
   course: CourseWithStats
@@ -14,6 +16,7 @@ type Props = {
   alreadyRegistered: boolean
   pendingRegistrationId: string | null
   minDeposit: number
+  gallery: CourseGalleryItem[]
 }
 
 const LEVEL_LABEL: Record<CourseLevel, string> = {
@@ -108,6 +111,17 @@ function ShareIcon({ title }: { title: string }) {
   )
 }
 
+function ChevronIcon({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      {dir === "left"
+        ? <path d="m15 18-6-6 6-6" />
+        : <path d="m9 18 6-6-6-6" />}
+    </svg>
+  )
+}
+
 export default function CourseDetail({
   course,
   isPast,
@@ -115,8 +129,17 @@ export default function CourseDetail({
   alreadyRegistered,
   pendingRegistrationId,
   minDeposit,
+  gallery,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
+  const [activeIdx, setActiveIdx] = useState(0)
+
+  const allImages =
+    course.images.length > 0
+      ? course.images.map((img) => img.image_url)
+      : course.cover_image
+        ? [course.cover_image]
+        : []
 
   const { day, monthFull, year, dayName } = parseDateFull(course.start_date)
   const isFull = course.show_capacity_public
@@ -136,7 +159,7 @@ export default function CourseDetail({
 
   return (
     <>
-      <div className="mx-auto max-w-[1280px] px-8 py-10 pb-20">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-8 py-10 pb-20">
         <Breadcrumb
           items={[
             {
@@ -147,48 +170,120 @@ export default function CourseDetail({
           ]}
         />
 
-        {/* Hero */}
-        <div className="relative mb-10 aspect-[16/5.6] w-full overflow-hidden rounded-[14px] bg-[#111]">
-          {course.cover_image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={course.cover_image}
-              alt={course.title}
-              className="h-full w-full object-cover opacity-[0.78]"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-[#9a9a9a]">
-              Sin imagen
-            </div>
-          )}
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.25)_50%,rgba(0,0,0,0.55)_100%)]" />
-          <div className="absolute inset-0 z-10 flex flex-col justify-end px-14 py-12 text-white">
-            <div className="mb-3.5 flex items-center gap-2.5 text-[11px] uppercase tracking-[0.28em] text-[#c9a84c]">
-              <span className="h-px w-7 bg-[#c9a84c]" />
-              {isPast ? "Edición realizada · " : ""}
-              {LEVEL_LABEL[course.level]} · {dayName} {day} {monthFull} {year}
-            </div>
-            <h1
-              className="mb-3.5 max-w-[720px] text-[clamp(32px,4vw,56px)] font-medium leading-none tracking-tight"
-              style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-            >
-              {course.title}
-            </h1>
-            <p className="max-w-[580px] text-[16px] leading-relaxed text-white/85">
-              {course.description.slice(0, 160)}
-              {course.description.length > 160 ? "…" : ""}
-            </p>
-            {isPast && course.show_capacity_public && (
-              <div className="mt-4 flex items-center gap-2 text-[13px] text-white/90">
-                <span className="inline-block h-2 w-2 rounded-full bg-[#c9a84c]" />
-                Este evento ya se realizó · {course.public_confirmed_count} asistentes
+        {/* Hero / Slider */}
+        <div className="mb-4 w-full">
+          <div className="relative overflow-hidden rounded-[14px] bg-[#111] aspect-[4/3] sm:aspect-[16/5.6]">
+            {allImages.length > 0 ? (
+              <>
+                {allImages.map((url, i) => (
+                  <Image
+                    key={i}
+                    src={url}
+                    alt={i === 0 ? course.title : `${course.title} - imagen ${i + 1}`}
+                    fill
+                    priority={i === 0}
+                    sizes="100vw"
+                    className={`object-cover transition-opacity duration-500 ${
+                      i === activeIdx ? "opacity-[0.78]" : "opacity-0"
+                    }`}
+                  />
+                ))}
+
+                {allImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setActiveIdx((idx) => (idx - 1 + allImages.length) % allImages.length)}
+                      aria-label="Imagen anterior"
+                      className="absolute left-3 top-1/2 z-20 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/60 sm:left-5 sm:h-10 sm:w-10"
+                    >
+                      <ChevronIcon dir="left" />
+                    </button>
+                    <button
+                      onClick={() => setActiveIdx((idx) => (idx + 1) % allImages.length)}
+                      aria-label="Siguiente imagen"
+                      className="absolute right-3 top-1/2 z-20 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/60 sm:right-5 sm:h-10 sm:w-10"
+                    >
+                      <ChevronIcon dir="right" />
+                    </button>
+
+                    <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-1.5">
+                      {allImages.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setActiveIdx(i)}
+                          aria-label={`Ir a imagen ${i + 1}`}
+                          className={`rounded-full transition-all duration-300 ${
+                            i === activeIdx
+                              ? "h-2 w-6 bg-white"
+                              : "h-2 w-2 bg-white/55 hover:bg-white/80"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-sm text-[#9a9a9a]">
+                Sin imagen
               </div>
             )}
+
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.25)_50%,rgba(0,0,0,0.55)_100%)]" />
+            <div className="absolute inset-0 z-10 flex flex-col justify-end px-5 py-5 sm:px-14 sm:py-12 text-white">
+              <div className="mb-2 sm:mb-3.5 flex items-center gap-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.22em] sm:tracking-[0.28em] text-[#c9a84c]">
+                <span className="h-px w-5 sm:w-7 bg-[#c9a84c]" />
+                {isPast ? "Edición realizada · " : ""}
+                {LEVEL_LABEL[course.level]} · {dayName} {day} {monthFull} {year}
+              </div>
+              <h1
+                className="mb-2 sm:mb-3.5 max-w-[720px] text-[clamp(20px,5vw,56px)] font-medium leading-tight sm:leading-none tracking-tight"
+                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+              >
+                {course.title}
+              </h1>
+              <p className="hidden sm:block max-w-[580px] text-[16px] leading-relaxed text-white/85">
+                {course.description.slice(0, 160)}
+                {course.description.length > 160 ? "…" : ""}
+              </p>
+              {isPast && course.show_capacity_public && (
+                <div className="mt-4 flex items-center gap-2 text-[13px] text-white/90">
+                  <span className="inline-block h-2 w-2 rounded-full bg-[#c9a84c]" />
+                  Este evento ya se realizó · {course.public_confirmed_count} asistentes
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Thumbnails */}
+          {allImages.length > 1 && (
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              {allImages.map((url, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveIdx(i)}
+                  aria-label={`Ver imagen ${i + 1}`}
+                  className={`relative flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                    i === activeIdx
+                      ? "border-[#c9a84c] opacity-100"
+                      : "border-transparent opacity-60 hover:opacity-90"
+                  }`}
+                >
+                  <Image
+                    src={url}
+                    alt={`Imagen ${i + 1}`}
+                    width={108}
+                    height={72}
+                    className="h-16 w-24 object-cover sm:h-[72px] sm:w-[108px]"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Two-column layout */}
-        <div className="grid grid-cols-1 items-start gap-14 lg:grid-cols-[1fr_380px]">
+        <div className={`grid grid-cols-1 items-start gap-14 lg:grid-cols-[1fr_380px] ${allImages.length > 1 ? "mt-6" : "mt-10"}`}>
           {/* ── Left column ──────────────────────────────────────────── */}
           <div>
             {/* About the workshop */}
@@ -228,12 +323,15 @@ export default function CourseDetail({
               {course.instructor ? (
                 <div className="flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5">
                   {course.instructor.photo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={course.instructor.photo_url}
-                      alt={course.instructor.name}
-                      className="h-14 w-14 flex-shrink-0 rounded-full border-[1.5px] border-[#c9a84c] object-cover"
-                    />
+                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border-[1.5px] border-[#c9a84c]">
+                      <Image
+                        src={course.instructor.photo_url}
+                        alt={course.instructor.name}
+                        fill
+                        className="object-cover"
+                        sizes="56px"
+                      />
+                    </div>
                   ) : (
                     <div
                       className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#c9a84c] bg-[#f5efdc] text-xl font-semibold italic text-[#a8893a]"
@@ -437,6 +535,13 @@ export default function CourseDetail({
           </aside>
         </div>
       </div>
+
+      {/* Galería retrospectiva */}
+      {isPast && gallery.length > 0 && (
+        <div className="mx-auto max-w-[1280px] px-4 sm:px-8">
+          <CourseGallery items={gallery} />
+        </div>
+      )}
 
       {/* Modal */}
       {modalOpen && (

@@ -5,6 +5,7 @@ import { useId, useMemo, useState } from "react"
 import { useCart } from "@/app/components/cart/CartContext"
 import type { CartItem } from "@/lib/cart"
 import type { ProductVariant } from "@/lib/supabase/products"
+import NotifyWhenAvailable from "./NotifyWhenAvailable"
 
 type Props = {
   productId: string
@@ -119,7 +120,22 @@ export default function AddToCartButton({
   )
 
   if (!enableSelector) {
-    return button
+    return (
+      <div className="space-y-3">
+        {outOfStock && selectedVariant ? (
+          <NotifyWhenAvailable
+            productId={productId}
+            productSlug={productSlug ?? null}
+            productName={productName}
+            variantId={selectedVariant.id}
+            outOfStock={outOfStock}
+            className={className}
+          />
+        ) : (
+          button
+        )}
+      </div>
+    )
   }
 
   return (
@@ -155,21 +171,32 @@ export default function AddToCartButton({
         <span className="text-sm font-medium text-neutral-500">MXN</span>
       </div>
 
-      <p className="text-xs font-medium">
-        {!selectedVariant ? (
-          <span className="text-red-500">Sin presentaciones disponibles</span>
-        ) : outOfStock ? (
-          <span className="text-red-500">Agotado</span>
-        ) : selectedVariant.stock <= 5 ? (
-          <span className="text-amber-600">
-            Últimas {selectedVariant.stock} piezas
-          </span>
-        ) : (
-          <span className="text-emerald-600">Disponible</span>
-        )}
-      </p>
+      {!selectedVariant || !outOfStock ? (
+        <p className="text-xs font-medium">
+          {!selectedVariant ? (
+            <span className="text-red-500">Sin presentaciones disponibles</span>
+          ) : selectedVariant.stock <= 5 ? (
+            <span className="text-amber-600">
+              Últimas {selectedVariant.stock} piezas
+            </span>
+          ) : (
+            <span className="text-emerald-600">Disponible</span>
+          )}
+        </p>
+      ) : null}
 
-      {button}
+      {outOfStock && selectedVariant ? (
+        <NotifyWhenAvailable
+          productId={productId}
+          productSlug={productSlug ?? null}
+          productName={productName}
+          variantId={selectedVariant.id}
+          outOfStock={outOfStock}
+          className={className}
+        />
+      ) : (
+        button
+      )}
     </div>
   )
 }

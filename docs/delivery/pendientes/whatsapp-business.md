@@ -34,6 +34,7 @@ El sistema usa WhatsApp Business API para:
    | `shipping_paid_admin` | Notificación a Liz: envío pagado |
    | `order_shipped` | Cliente: pedido enviado (con tracking) |
    | `order_delivered` | Cliente: pedido entregado |
+   | `product_back_in_stock` | Cliente: producto agotado vuelve a tener inventario |
 
    > Las plantillas deben estar **aprobadas** por Meta antes del lanzamiento.
 

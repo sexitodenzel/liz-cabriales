@@ -13,8 +13,8 @@
   --surface: #ffffff;
   /* Altura fija del navbar: la usan el carrito y el overlay para alinearse */
   --navbar-h: 84px;
-  /* Mobile: icono-row (84px) + nav-row (~37px) + search-bar row (~48px) */
-  --navbar-mobile-h: 172px;
+  /* Mobile: logo+search+icons row (84px) + nav-row (~36px) */
+  --navbar-mobile-h: 120px;
   /* Valor dinámico actualizado por ResizeObserver en Navbar.tsx; fallback al mobile */
   --navbar-actual-h: var(--navbar-mobile-h);
 }
@@ -33,29 +33,39 @@ body {
    SWIPER CUSTOM
 ===================================== */
 
-.swiper-button-next,
-.swiper-button-prev {
-  color: white !important;
+.swiper-pagination-bullet {
+  width: 12px !important;
+  height: 12px !important;
+  background: white !important;
+  opacity: 0.5;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.swiper-button-next:hover,
-.swiper-button-prev:hover {
-  color: var(--gold) !important;
-}
-
-.swiper-pagination-bullet {
-  background: white !important;
-  opacity: 0.5;
-}
-
 .swiper-pagination-bullet-active {
+  width: 14px !important;
+  height: 14px !important;
   background: var(--gold) !important;
   opacity: 1;
 }
-.swiper-button-next::after,
-.swiper-button-prev::after {
-  font-size: 20px !important;
+
+/* =====================================
+   HERO SLIDER — CTA BUTTON
+===================================== */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* =====================================

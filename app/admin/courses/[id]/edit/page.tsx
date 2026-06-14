@@ -2,7 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
-import { getCourseById, getInstructors } from "@/lib/supabase/courses"
+import { getCourseById, getInstructors, getCourseGallery } from "@/lib/supabase/courses"
 
 import CourseForm, {
   type CourseFormInitialValues,
@@ -31,9 +31,10 @@ export default async function EditCoursePage({ params }: Props) {
 
   if (profile?.role !== "admin") redirect("/login")
 
-  const [courseRes, instructorsRes] = await Promise.all([
+  const [courseRes, instructorsRes, galleryRes] = await Promise.all([
     getCourseById(id),
     getInstructors(),
+    getCourseGallery(id),
   ])
 
   if (!courseRes.data) {
@@ -78,6 +79,8 @@ export default async function EditCoursePage({ params }: Props) {
       courseId={c.id}
       instructors={instructorsRes.data ?? []}
       initialValues={initialValues}
+      initialImages={c.images}
+      initialGallery={galleryRes.data ?? []}
     />
   )
 }

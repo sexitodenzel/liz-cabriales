@@ -39,7 +39,7 @@ export default function CartMenu() {
 
   return (
     <div
-      style={{ top: "calc(var(--navbar-actual-h) - 1px)" }}
+      style={{ top: "var(--navbar-actual-h)" }}
       className={`fixed right-0 bottom-0 z-[73] flex w-2/3 flex-col border-l border-white/10 bg-[#0a0a0a] shadow-xl transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] md:w-[380px] ${
         isCartOpen ? "translate-x-0" : "translate-x-full pointer-events-none"
       }`}

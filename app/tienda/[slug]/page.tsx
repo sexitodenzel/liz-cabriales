@@ -8,6 +8,7 @@ import {
 } from "@/lib/supabase/cache"
 import { getServicesCached } from "@/lib/supabase/cache"
 import { getPublishedCourses } from "@/lib/supabase/courses"
+import { getBlockedSlotsForDate } from "@/lib/supabase/appointments"
 import AddToCartButton from "../components/AddToCartButton"
 import CoursesCarousel from "../components/CoursesCarousel"
 import ProductImageGallery from "../components/ProductImageGallery"
@@ -47,10 +48,11 @@ export default async function ProductPage({ params }: PageProps) {
 
   const today = new Date().toISOString().split("T")[0] ?? ""
 
-  const [relatedRes, coursesRes, servicesRes] = await Promise.all([
+  const [relatedRes, coursesRes, servicesRes, blockedRes] = await Promise.all([
     getRelatedProductsCached(product.category_id, product.brand, product.id, 8),
     getPublishedCourses(),
     getServicesCached(),
+    getBlockedSlotsForDate(today),
   ])
 
   const relatedProducts = relatedRes.data ?? []
@@ -58,6 +60,10 @@ export default async function ProductPage({ params }: PageProps) {
     .filter((c) => c.start_date >= today)
     .slice(0, 8)
   const activeServices = servicesRes.data ?? []
+  const courseSlot = (blockedRes.data ?? []).find(
+    (slot) => slot.reason?.startsWith("[curso]")
+  )
+  const hasCourseToday = courseSlot != null
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
@@ -122,7 +128,9 @@ export default async function ProductPage({ params }: PageProps) {
                   <span className="mt-px shrink-0 text-[#a8862f]">•</span>
                   <span>
                     <span className="font-medium text-[#0a0a0a]">Recoger en tienda</span>{" "}
-                    — Lu–Vi 10:00–18:30 · Sá 11:00–15:30{" "}
+                    {hasCourseToday && courseSlot
+                      ? `— Solo ${courseSlot.start_time.slice(0, 5)}–${courseSlot.end_time.slice(0, 5)} (día de curso)`
+                      : "— Lu–Vi 10:00–18:30 · Sá 11:00–15:30"}{" "}
                     <span className="text-neutral-400">(Nayarit #204-B, Cd. Madero, Tam.)</span>
                   </span>
                 </li>

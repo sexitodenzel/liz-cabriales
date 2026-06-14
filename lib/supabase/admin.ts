@@ -1,4 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
+
+import { notifyStockAlertsForVariant } from "@/lib/notifications/stock-alert-notifications"
+
 import { getUserRole } from "./users"
 import type { UserRole } from "@/types"
 
@@ -1224,11 +1227,28 @@ export async function updateAdminProduct(
   updatePayload.updated_at = new Date().toISOString()
 
   if (input.stock !== undefined && input.stock !== null) {
-    await supabaseAdmin
+    const newStock = Number(input.stock)
+    const { data: activeVariants } = await supabaseAdmin
       .from("product_variants")
-      .update({ stock: input.stock })
+      .select("id, stock")
       .eq("product_id", id)
       .eq("is_active", true)
+
+    await supabaseAdmin
+      .from("product_variants")
+      .update({ stock: newStock })
+      .eq("product_id", id)
+      .eq("is_active", true)
+
+    for (const variant of activeVariants ?? []) {
+      void notifyStockAlertsForVariant(
+        variant.id as string,
+        Number(variant.stock),
+        newStock
+      ).catch((err) =>
+        console.error("[admin] Error enviando alertas de stock:", err)
+      )
+    }
   }
 
   const { data, error } = await supabaseAdmin
@@ -1400,6 +1420,13 @@ export async function createAdminProductVariant(
     }
   }
 
+  const createdStock = Number(data.stock)
+  if (createdStock > 0) {
+    void notifyStockAlertsForVariant(data.id as string, 0, createdStock).catch(
+      (err) => console.error("[admin] Error enviando alertas de stock:", err)
+    )
+  }
+
   return {
     data: {
       id: data.id as string,
@@ -1407,7 +1434,7 @@ export async function createAdminProductVariant(
       sku: data.sku as string,
       variant_name: data.variant_name as string,
       price: Number(data.price),
-      stock: Number(data.stock),
+      stock: createdStock,
       is_active: Boolean(data.is_active),
     },
     error: null,
@@ -1418,6 +1445,16 @@ export async function updateAdminProductVariant(
   variantId: string,
   input: UpdateVariantInput
 ): Promise<Result<AdminProductVariant>> {
+  let previousStock: number | null = null
+  if (input.stock !== undefined) {
+    const { data: before } = await supabaseAdmin
+      .from("product_variants")
+      .select("stock")
+      .eq("id", variantId)
+      .maybeSingle()
+    previousStock = before ? Number(before.stock) : 0
+  }
+
   const payload: Record<string, unknown> = {}
   if (input.variantName !== undefined) payload.variant_name = input.variantName
   if (input.sku !== undefined) payload.sku = input.sku ? input.sku.toUpperCase() : null
@@ -1442,6 +1479,13 @@ export async function updateAdminProductVariant(
     }
   }
 
+  const updatedStock = Number(data.stock)
+  if (previousStock !== null) {
+    void notifyStockAlertsForVariant(variantId, previousStock, updatedStock).catch(
+      (err) => console.error("[admin] Error enviando alertas de stock:", err)
+    )
+  }
+
   return {
     data: {
       id: data.id as string,
@@ -1449,7 +1493,7 @@ export async function updateAdminProductVariant(
       sku: data.sku as string,
       variant_name: data.variant_name as string,
       price: Number(data.price),
-      stock: Number(data.stock),
+      stock: updatedStock,
       is_active: Boolean(data.is_active),
     },
     error: null,

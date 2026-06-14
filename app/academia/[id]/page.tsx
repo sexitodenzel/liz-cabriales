@@ -1,7 +1,11 @@
 import Link from "next/link"
 
 import { createClient } from "@/lib/supabase/server"
-import { getCourseById, getUserRegistrations } from "@/lib/supabase/courses"
+import {
+  getCourseById,
+  getUserRegistrations,
+  getCourseGallery,
+} from "@/lib/supabase/courses"
 import { getMinDeposit } from "@/lib/utils"
 
 import CourseDetail from "./CourseDetail"
@@ -21,7 +25,10 @@ function isCoursePast(dateStr: string): boolean {
 
 export default async function AcademiaDetallePage({ params }: Props) {
   const { id } = await params
-  const result = await getCourseById(id)
+  const [result, galleryRes] = await Promise.all([
+    getCourseById(id),
+    getCourseGallery(id),
+  ])
 
   if (!result.data || !result.data.is_published) {
     return (
@@ -80,6 +87,7 @@ export default async function AcademiaDetallePage({ params }: Props) {
         alreadyRegistered={alreadyRegistered}
         pendingRegistrationId={pendingRegistrationId}
         minDeposit={minDeposit}
+        gallery={galleryRes.data ?? []}
       />
     </main>
   )

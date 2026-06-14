@@ -14,6 +14,7 @@ import Breadcrumb from "@/components/shared/Breadcrumb"
 import NewAppointmentModal from "./components/NewAppointmentModal"
 import BlockSlotModal from "./components/BlockSlotModal"
 import RescheduleAppointmentModal from "./components/RescheduleAppointmentModal"
+import CourseDaysPanel from "./components/CourseDaysPanel"
 
 const BRAND_GOLD = "#C9A84C"
 
@@ -354,6 +355,8 @@ export default function AdminAppointmentsClient({
             </table>
           </div>
         </div>
+
+        <CourseDaysPanel />
       </div>
 
       {showNewModal && (

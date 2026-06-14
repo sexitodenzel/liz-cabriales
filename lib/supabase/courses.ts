@@ -54,8 +54,29 @@ export type CourseRow = {
   updated_at: string
 }
 
+export type CourseImage = {
+  id: string
+  course_id: string
+  image_url: string
+  is_cover: boolean
+  position: number
+  created_at: string
+}
+
+export type CourseGalleryItem = {
+  id: string
+  course_id: string
+  type: "image" | "video"
+  url: string
+  thumbnail_url: string | null
+  caption: string | null
+  position: number
+  created_at: string
+}
+
 export type CourseWithInstructor = CourseRow & {
   instructor: InstructorRow | null
+  images: CourseImage[]
 }
 
 export type CourseWithStats = CourseWithInstructor & {
@@ -107,6 +128,14 @@ type RawInstructor = {
   created_at: string
 }
 
+type RawCourseImage = {
+  id: string
+  image_url: string
+  is_cover: boolean
+  position: number
+  created_at: string
+}
+
 type RawCourseRow = {
   id: string
   instructor_id: string
@@ -129,10 +158,23 @@ type RawCourseRow = {
   created_at: string
   updated_at: string
   instructors?: RawInstructor | RawInstructor[] | null
+  course_images?: RawCourseImage[] | null
 }
 
 function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
   const ins = unwrap(row.instructors)
+  const rawImages = Array.isArray(row.course_images) ? row.course_images : []
+  const images: CourseImage[] = rawImages
+    .slice()
+    .sort((a, b) => a.position - b.position)
+    .map((img) => ({
+      id: img.id,
+      course_id: row.id,
+      image_url: img.image_url,
+      is_cover: Boolean(img.is_cover),
+      position: img.position,
+      created_at: img.created_at,
+    }))
   return {
     id: row.id,
     instructor_id: row.instructor_id,
@@ -167,6 +209,7 @@ function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
           created_at: ins.created_at,
         }
       : null,
+    images,
   }
 }
 
@@ -214,8 +257,29 @@ const COURSE_COLUMNS = `
   allow_online_registration, show_price_public, show_capacity_public,
   public_registered_count, public_capacity,
   created_at, updated_at,
-  instructors ( id, name, bio, photo_url, created_at )
+  instructors ( id, name, bio, photo_url, created_at ),
+  course_images ( id, image_url, is_cover, position, created_at )
 `
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * Galería retrospectiva
+ * ────────────────────────────────────────────────────────────────────── */
+
+export async function getCourseGallery(
+  courseId: string
+): Promise<Result<CourseGalleryItem[]>> {
+  const { data, error } = await supabaseAdmin
+    .from("course_gallery")
+    .select("id, course_id, type, url, thumbnail_url, caption, position, created_at")
+    .eq("course_id", courseId)
+    .order("position", { ascending: true })
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return { data: (data ?? []) as CourseGalleryItem[], error: null }
+}
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Lecturas públicas

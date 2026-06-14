@@ -1,11 +1,12 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Search, User, ShoppingBag, ChevronDown, X } from "lucide-react"
 import { useState, useEffect, useRef, useCallback, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
-import { menuData } from "./menuData"
-import MegaMenu from "./dropdowns/MegaMenu"
+import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
+import TiendaMegaMenu from "./dropdowns/TiendaMegaMenu"
 import CartMenu from "./dropdowns/CartMenu"
 import {
   DesktopCategoriesDropdown,
@@ -22,9 +23,86 @@ import { getSearchDestination } from "@/lib/search-navigation"
 export type MenuType =
   | "Tienda"
   | "Academia"
+  | "Servicios"
   | "cart"
   | "user"
   | null
+
+function TiendaMobileAccordion({
+  openCategory,
+  setOpenCategory,
+  onClose,
+  categories,
+  sectionHref,
+  sectionLabel,
+}: {
+  openCategory: string | null
+  setOpenCategory: (slug: string | null) => void
+  onClose: () => void
+  categories: typeof tiendaCategories
+  sectionHref: string
+  sectionLabel: string
+}) {
+  return (
+    <div>
+      <Link
+        href={sectionHref}
+        onClick={onClose}
+        className="block pb-3 text-[12px] font-semibold tracking-[0.05em] text-[#C6A75E]"
+      >
+        Ver {sectionLabel} →
+      </Link>
+      {categories.map((cat) => {
+        const isCatOpen = openCategory === cat.slug
+        return (
+          <div key={cat.slug} className="border-b border-white/5 last:border-0">
+            <button
+              type="button"
+              onClick={() => setOpenCategory(isCatOpen ? null : cat.slug)}
+              className={`flex w-full items-center justify-between py-2.5 text-[14px] transition-colors ${
+                isCatOpen ? "text-[#C6A75E]" : "text-neutral-300"
+              }`}
+            >
+              <span>{cat.label}</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
+                  isCatOpen ? "rotate-180 text-[#C6A75E]" : "text-neutral-500"
+                }`}
+              />
+            </button>
+            <div
+              className={`grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(.16,1,.3,1)] ${
+                isCatOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+              }`}
+            >
+              <div className="overflow-hidden min-h-0">
+                <div className="pb-2 pl-3">
+                  <Link
+                    href={cat.href}
+                    onClick={onClose}
+                    className="block py-1.5 text-[12px] font-medium text-[#C6A75E]/70 hover:text-[#C6A75E] transition-colors"
+                  >
+                    Ver todo en {cat.label}
+                  </Link>
+                  {cat.subcategories.map((sub) => (
+                    <Link
+                      key={sub.label}
+                      href={sub.href}
+                      onClick={onClose}
+                      className="block py-1.5 text-[13px] text-neutral-400 transition-colors hover:text-[#C6A75E]"
+                    >
+                      {sub.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 type NavbarProps = {
   isLoggedIn?: boolean
@@ -47,8 +125,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [suggestionTab, setSuggestionTab] = useState<"productos" | "colecciones">("productos")
   const [mobileSuggestionTab, setMobileSuggestionTab] = useState<"productos" | "colecciones">("productos")
   const [mobileNavOpen, setMobileNavOpen] = useState<"Tienda" | "Cursos" | "Servicios" | null>(null)
+  const [openMobileCategory, setOpenMobileCategory] = useState<string | null>(null)
   const lastScrollY = useRef(0)
   const headerRef = useRef<HTMLElement>(null)
+  const overlayGuardRef = useRef(false)
   const {
     itemCount,
     isCartOpen,
@@ -107,11 +187,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     },
     [closeSearchPanels]
   )
-
-  const currentMenu =
-    activeMenu && activeMenu in menuData
-      ? menuData[activeMenu as keyof typeof menuData]
-      : null
 
   useEffect(() => {
     function handleMouseLeavePage(e: MouseEvent) {
@@ -174,6 +249,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     if (isCartOpen) setMobileNavOpen(null)
   }, [isCartOpen])
 
+
   useEffect(() => {
     let isMounted = true
     async function loadCategories() {
@@ -235,182 +311,39 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
   return (
     <>
-      <header ref={headerRef} className="relative z-50 w-full sticky top-0 overflow-visible border-b border-white/10 bg-[#0a0a0a] px-4 text-neutral-300 md:px-6">
+      <header ref={headerRef} className={`relative z-50 w-full sticky top-0 overflow-visible border-b ${isCartOpen ? "border-transparent" : "border-white/10"} bg-[#0a0a0a] px-4 text-neutral-300 md:px-6`}>
 
-        {/* ===== MOBILE: Fila 1 – Logo centrado | User + Cart ===== */}
-        <div className="md:hidden grid grid-cols-[1fr_auto_1fr] items-center h-[var(--navbar-h)]">
+        {/* Video de fondo */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover opacity-20 pointer-events-none select-none"
+          style={{ zIndex: 0 }}
+        >
+          <source src="/videos/navbar-bg.mp4" type="video/mp4" />
+        </video>
 
-          <div />
+        {/* ===== MOBILE: Fila 1 – Logo izquierda | Search | User + Cart ===== */}
+        <div className="relative z-10 md:hidden flex items-center gap-2 h-[var(--navbar-h)]" data-mobile-search>
 
           <Link
             href="/"
-            className="flex flex-col items-center font-serif leading-tight text-inherit no-underline transition-opacity hover:opacity-90"
+            className="shrink-0 no-underline transition-opacity hover:opacity-90"
             aria-label="Ir al inicio"
           >
-            <div className="text-[19px] text-white tracking-[0.10em]">Liz Cabriales</div>
-            <div className="text-[8px] tracking-[0.30em] uppercase text-[#C6A75E]">STUDIO</div>
+            <Image
+              src="/images/logo.png"
+              alt="Liz Cabriales"
+              width={72}
+              height={72}
+              className="mix-blend-screen object-contain"
+              priority
+            />
           </Link>
 
-          <div className="flex items-center gap-3 justify-end">
-            <Link
-              href={isLoggedIn ? "/perfil" : "/login"}
-              className="inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
-              aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
-            >
-              <User className="w-5 h-5 shrink-0" />
-            </Link>
-            <button
-              type="button"
-              className="relative inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
-              onClick={() => {
-                if (isCartOpen) {
-                  closeCart()
-                } else {
-                  closeSearchPanels()
-                  setActiveMenu(null)
-                  openCart()
-                }
-              }}
-              aria-label="Carrito"
-            >
-              <span className="relative shrink-0">
-                <ShoppingBag className="w-5 h-5" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
-                    {itemCount}
-                  </span>
-                )}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* ===== MOBILE: Fila 2 – Nav con dropdowns ===== */}
-        <div className="md:hidden" data-mobile-nav>
-              {/* Botones de navegación */}
-              <div className="flex">
-                {(["Tienda", "Cursos", "Servicios"] as const).map((key) => {
-                  const href = key === "Tienda" ? "/tienda" : key === "Cursos" ? "/academia" : "/citas"
-                  const isOpen = mobileNavOpen === key
-                  return (
-                    <div key={key} className="flex flex-1 items-center">
-                      <Link
-                        href={href}
-                        onClick={() => setMobileNavOpen(null)}
-                        className={`flex-1 text-center py-2 text-[13px] font-semibold tracking-[0.05em] transition-colors ${
-                          isOpen ? "text-[#C6A75E]" : "text-neutral-400 hover:text-[#C6A75E]"
-                        }`}
-                      >
-                        {key}
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          closeSearchPanels()
-                          setMobileNavOpen(isOpen ? null : key)
-                        }}
-                        className={`px-2 py-2 transition-colors ${
-                          isOpen ? "text-[#C6A75E]" : "text-neutral-500 hover:text-[#C6A75E]"
-                        }`}
-                        aria-label={`Abrir submenú ${key}`}
-                      >
-                        <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Dropdown anidado — se lleva consigo al colapsar por scroll */}
-              <div className={`grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(.16,1,.3,1)] ${mobileNavOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-                <div className="overflow-hidden min-h-0">
-                  <div className="border-t border-white/5 bg-[#0a0a0a] px-5 py-4">
-                    {mobileNavOpen === "Tienda" && (
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div>
-                          <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Categorías</p>
-                          {[
-                            { label: "Kits", href: "/tienda?categoria=kits" },
-                            { label: "Acrílicos", href: "/tienda?categoria=acrilicos" },
-                            { label: "Gel UV", href: "/tienda?categoria=gel-uv" },
-                            { label: "Ver todo", href: "/tienda" },
-                          ].map((l) => (
-                            <Link key={l.href} href={l.href} onClick={() => setMobileNavOpen(null)}
-                              className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                              {l.label}
-                            </Link>
-                          ))}
-                        </div>
-                        <div>
-                          <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Explorar</p>
-                          {[
-                            { label: "Nuevos productos", href: "/tienda" },
-                            { label: "Más vendidos", href: "/tienda" },
-                            { label: "Ofertas", href: "/tienda" },
-                          ].map((l) => (
-                            <Link key={l.label} href={l.href} onClick={() => setMobileNavOpen(null)}
-                              className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                              {l.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {mobileNavOpen === "Cursos" && (
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        <div>
-                          <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Cursos</p>
-                          {[
-                            { label: "Todos los cursos", href: "/academia" },
-                            { label: "Curso básico", href: "/academia" },
-                            { label: "Masterclass", href: "/academia" },
-                          ].map((l) => (
-                            <Link key={l.label} href={l.href} onClick={() => setMobileNavOpen(null)}
-                              className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                              {l.label}
-                            </Link>
-                          ))}
-                        </div>
-                        <div>
-                          <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Academia</p>
-                          {[
-                            { label: "Próximos eventos", href: "/academia" },
-                            { label: "Cómo inscribirme", href: "/academia#como-inscribirme" },
-                          ].map((l) => (
-                            <Link key={l.label} href={l.href} onClick={() => setMobileNavOpen(null)}
-                              className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                              {l.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {mobileNavOpen === "Servicios" && (
-                      <div className="grid grid-cols-2 gap-x-4">
-                        <div>
-                          <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Servicios</p>
-                          {[
-                            { label: "Agendar cita", href: "/citas" },
-                            { label: "Ver disponibilidad", href: "/citas" },
-                          ].map((l) => (
-                            <Link key={l.label} href={l.href} onClick={() => setMobileNavOpen(null)}
-                              className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                              {l.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-        </div>
-
-        {/* ===== MOBILE: Barra de búsqueda permanente ===== */}
-        <div className="md:hidden relative" data-mobile-search>
-          <div className="pt-1 pb-2">
+          <div className="relative flex-1 min-w-0">
             <form
               onSubmit={handleSearchSubmit}
               className={`relative z-[71] flex items-center border border-white/10 bg-[#141414] px-2 py-1 transition-[border-radius,border-bottom-color] duration-200 ${
@@ -432,11 +365,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   aria-expanded={mobileSearchCategoriesOpen}
                   aria-haspopup="menu"
                 >
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      mobileSearchCategoriesOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileSearchCategoriesOpen ? "rotate-180" : ""}`} />
                 </button>
               </div>
               <div className="mx-1.5 h-5 w-px shrink-0 bg-white/15" aria-hidden="true" />
@@ -478,66 +407,152 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                 <Search className="h-4 w-4" />
               </button>
             </form>
+            <MobileCategoriesDropdown
+              open={mobileSearchCategoriesOpen}
+              categories={categories}
+              loading={categoriesLoading}
+              onClose={finishSearchNavigation}
+            />
+            <MobileSearchSuggestions
+              open={mobileSuggestionsOpen && !mobileSearchCategoriesOpen}
+              query={searchQuery}
+              products={suggestionProducts}
+              categories={suggestionCategories}
+              loading={suggestionsLoading}
+              activeTab={mobileSuggestionTab}
+              onTabChange={setMobileSuggestionTab}
+              onClose={finishSearchNavigation}
+            />
           </div>
-          <MobileCategoriesDropdown
-            open={mobileSearchCategoriesOpen}
-            categories={categories}
-            loading={categoriesLoading}
-            onClose={finishSearchNavigation}
-          />
-          <MobileSearchSuggestions
-            open={mobileSuggestionsOpen && !mobileSearchCategoriesOpen}
-            query={searchQuery}
-            products={suggestionProducts}
-            categories={suggestionCategories}
-            loading={suggestionsLoading}
-            activeTab={mobileSuggestionTab}
-            onTabChange={setMobileSuggestionTab}
-            onClose={finishSearchNavigation}
-          />
+
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              href={isLoggedIn ? "/perfil" : "/login"}
+              className="inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
+              aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
+            >
+              <User className="w-5 h-5 shrink-0" />
+            </Link>
+            <button
+              type="button"
+              className="relative inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
+              onClick={() => {
+                if (isCartOpen) {
+                  closeCart()
+                } else {
+                  closeSearchPanels()
+                  setActiveMenu(null)
+                  openCart()
+                }
+              }}
+              aria-label="Carrito"
+            >
+              <span className="relative shrink-0">
+                <ShoppingBag className="w-5 h-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
+                    {itemCount}
+                  </span>
+                )}
+              </span>
+            </button>
+          </div>
         </div>
 
-        {/* ===== DESKTOP: Fila única ===== */}
-        <div className="hidden md:flex mx-auto h-[var(--navbar-h)] max-w-[1400px] items-center gap-6">
+        {/* ===== MOBILE: Fila 2 – Nav con dropdowns ===== */}
+        <div className="relative z-10 md:hidden" data-mobile-nav>
+              {/* Botones de navegación */}
+              <div className="flex">
+                {(["Tienda", "Cursos", "Servicios"] as const).map((key) => {
+                  const href = key === "Tienda" ? "/tienda" : key === "Cursos" ? "/academia" : "/citas"
+                  const isOpen = mobileNavOpen === key
+                  return (
+                    <div key={key} className="flex flex-1 items-center">
+                      <Link
+                        href={href}
+                        onClick={() => setMobileNavOpen(null)}
+                        className={`flex-1 text-center py-2 text-[13px] font-semibold tracking-[0.05em] transition-colors ${
+                          isOpen ? "text-[#C6A75E]" : "text-neutral-400 hover:text-[#C6A75E]"
+                        }`}
+                      >
+                        {key}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          closeSearchPanels()
+                          if (mobileNavOpen !== key) setOpenMobileCategory(null)
+                          if (!isOpen) {
+                            overlayGuardRef.current = true
+                            requestAnimationFrame(() => { overlayGuardRef.current = false })
+                          }
+                          setMobileNavOpen(isOpen ? null : key)
+                        }}
+                        className={`px-2 py-2 transition-colors ${
+                          isOpen ? "text-[#C6A75E]" : "text-neutral-500 hover:text-[#C6A75E]"
+                        }`}
+                        aria-label={`Abrir submenú ${key}`}
+                      >
+                        <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+
+
+        </div>
+
+        {/* ===== DESKTOP: Fila principal ===== */}
+        <div className="relative z-10 hidden md:flex mx-auto h-[var(--navbar-h)] max-w-[1400px] items-center gap-6">
 
           <Link
             href="/"
-            className="flex shrink-0 flex-col font-serif leading-tight text-inherit no-underline transition-opacity hover:opacity-90"
+            className="shrink-0 no-underline transition-opacity hover:opacity-90"
             aria-label="Ir al inicio"
           >
-            <div className="self-start text-[30px] text-white tracking-[0.12em]">
-              Liz Cabriales
-            </div>
-            <div className="self-end text-[12px] tracking-[0.30em] uppercase text-[#C6A75E]">
-              STUDIO
-            </div>
+            <Image
+              src="/images/logo.png"
+              alt="Liz Cabriales"
+              width={110}
+              height={110}
+              className="mix-blend-screen object-contain"
+              priority
+            />
           </Link>
 
           <div className="flex min-w-0 flex-1 items-center gap-4 overflow-visible">
 
             <nav className="hidden lg:flex gap-7 text-[15px] tracking-[0.04em] capitalize font-medium">
-              {(Object.keys(menuData) as (keyof typeof menuData)[]).map((item) => {
-                const href = item === "Tienda" ? "/tienda" : "/academia"
-                return (
-                  <Link
-                    key={item}
-                    href={href}
-                    onMouseEnter={() => openNavMenu(item)}
-                    onFocus={() => openNavMenu(item)}
-                    className="relative group cursor-pointer border-none bg-transparent text-[16px] tracking-[0.05em] text-neutral-300"
-                  >
-                    <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
-                      {item}
-                    </span>
-                    <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
-                  </Link>
-                )
-              })}
+              <Link
+                href="/tienda"
+                onMouseEnter={() => openNavMenu("Tienda")}
+                onFocus={() => openNavMenu("Tienda")}
+                className="relative group cursor-pointer border-none bg-transparent text-[16px] tracking-[0.05em] text-neutral-300"
+              >
+                <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
+                  Tienda
+                </span>
+                <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
+              </Link>
+
+              <Link
+                href="/academia"
+                onMouseEnter={() => openNavMenu("Academia")}
+                onFocus={() => openNavMenu("Academia")}
+                className="relative group cursor-pointer border-none bg-transparent text-[16px] tracking-[0.05em] text-neutral-300"
+              >
+                <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
+                  Academia
+                </span>
+                <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
+              </Link>
 
               <Link
                 href="/servicios"
-                onMouseEnter={() => { closeSearchPanels(); setActiveMenu(null) }}
-                onFocus={() => { closeSearchPanels(); setActiveMenu(null) }}
+                onMouseEnter={() => openNavMenu("Servicios")}
+                onFocus={() => openNavMenu("Servicios")}
                 className="relative group text-[16px] tracking-[0.05em] text-neutral-300"
               >
                 <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
@@ -546,7 +561,24 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                 <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
               </Link>
 
-              <MegaMenu activeMenu={activeMenu} currentMenu={currentMenu} />
+              <TiendaMegaMenu
+                isOpen={activeMenu === "Tienda"}
+                onClose={() => setActiveMenu(null)}
+                categories={tiendaCategories}
+                sectionHref="/tienda"
+              />
+              <TiendaMegaMenu
+                isOpen={activeMenu === "Academia"}
+                onClose={() => setActiveMenu(null)}
+                categories={cursosCategories}
+                sectionHref="/academia"
+              />
+              <TiendaMegaMenu
+                isOpen={activeMenu === "Servicios"}
+                onClose={() => setActiveMenu(null)}
+                categories={serviciosCategories}
+                sectionHref="/servicios"
+              />
             </nav>
 
             <div className="relative min-w-0 flex-1" data-search-autocomplete>
@@ -700,86 +732,46 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         }`}
       >
         {mobileNavOpen === "Tienda" && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 px-5 py-4">
-            <div>
-              <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Categorías</p>
-              {[
-                { label: "Kits", href: "/tienda?categoria=kits" },
-                { label: "Acrílicos", href: "/tienda?categoria=acrilicos" },
-                { label: "Gel UV", href: "/tienda?categoria=gel-uv" },
-                { label: "Ver todo", href: "/tienda" },
-              ].map((l) => (
-                <Link key={l.href} href={l.href} onClick={() => setMobileNavOpen(null)}
-                  className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-            <div>
-              <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Explorar</p>
-              {[
-                { label: "Nuevos productos", href: "/tienda" },
-                { label: "Más vendidos", href: "/tienda" },
-                { label: "Ofertas", href: "/tienda" },
-              ].map((l) => (
-                <Link key={l.label} href={l.href} onClick={() => setMobileNavOpen(null)}
-                  className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                  {l.label}
-                </Link>
-              ))}
-            </div>
+          <div className="px-5 py-4">
+            <TiendaMobileAccordion
+              openCategory={openMobileCategory}
+              setOpenCategory={setOpenMobileCategory}
+              onClose={() => setMobileNavOpen(null)}
+              categories={tiendaCategories}
+              sectionHref="/tienda"
+              sectionLabel="toda la tienda"
+            />
           </div>
         )}
         {mobileNavOpen === "Cursos" && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1 px-5 py-4">
-            <div>
-              <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Cursos</p>
-              {[
-                { label: "Todos los cursos", href: "/academia" },
-                { label: "Curso básico", href: "/academia" },
-                { label: "Masterclass", href: "/academia" },
-              ].map((l) => (
-                <Link key={l.label} href={l.href} onClick={() => setMobileNavOpen(null)}
-                  className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-            <div>
-              <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Academia</p>
-              {[
-                { label: "Próximos eventos", href: "/academia" },
-                { label: "Cómo inscribirme", href: "/academia#como-inscribirme" },
-              ].map((l) => (
-                <Link key={l.label} href={l.href} onClick={() => setMobileNavOpen(null)}
-                  className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                  {l.label}
-                </Link>
-              ))}
-            </div>
+          <div className="px-5 py-4">
+            <TiendaMobileAccordion
+              openCategory={openMobileCategory}
+              setOpenCategory={setOpenMobileCategory}
+              onClose={() => setMobileNavOpen(null)}
+              categories={cursosCategories}
+              sectionHref="/academia"
+              sectionLabel="cursos"
+            />
           </div>
         )}
         {mobileNavOpen === "Servicios" && (
           <div className="px-5 py-4">
-            <p className="mb-2 text-[10px] uppercase tracking-[0.12em] text-neutral-600">Servicios</p>
-            <div className="grid grid-cols-2 gap-x-4">
-              {[
-                { label: "Agendar cita", href: "/servicios" },
-                { label: "Ver disponibilidad", href: "/servicios" },
-              ].map((l) => (
-                <Link key={l.label} href={l.href} onClick={() => setMobileNavOpen(null)}
-                  className="block py-1.5 text-[14px] text-neutral-300 transition-colors hover:text-[#C6A75E]">
-                  {l.label}
-                </Link>
-              ))}
-            </div>
+            <TiendaMobileAccordion
+              openCategory={openMobileCategory}
+              setOpenCategory={setOpenMobileCategory}
+              onClose={() => setMobileNavOpen(null)}
+              categories={serviciosCategories}
+              sectionHref="/servicios"
+              sectionLabel="servicios"
+            />
           </div>
         )}
       </div>
 
       {/* ===== Overlay de blur global ===== */}
       <div
-        className={`fixed inset-0 top-[var(--navbar-h)] backdrop-blur-md bg-black/10 z-30 transition-opacity duration-300 ${
+        className={`fixed inset-0 top-[var(--navbar-actual-h)] backdrop-blur-md bg-black/10 z-30 transition-opacity duration-300 ${
           activeMenu || isCartOpen || allCategoriesOpen || suggestionsOpen || mobileSearchCategoriesOpen || mobileSuggestionsOpen || mobileNavOpen !== null
             ? "opacity-100"
             : "opacity-0 pointer-events-none"
@@ -796,6 +788,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         }}
         onClick={() => {
           if (isProgrammatic()) { clearProgrammatic(); return }
+          if (overlayGuardRef.current) return
           closeCart()
           setAllCategoriesOpen(false)
           setSuggestionsOpen(false)

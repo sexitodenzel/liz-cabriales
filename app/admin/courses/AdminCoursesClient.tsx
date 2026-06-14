@@ -168,9 +168,12 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
                       className="border-b border-[#ececec] last:border-b-0 hover:bg-[#fafafa]"
                     >
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-[#1a1a1a]">
+                        <Link
+                          href={`/academia/${c.id}`}
+                          className="font-semibold text-[#1a1a1a] transition-colors hover:text-[#a8893a]"
+                        >
                           {c.title}
-                        </div>
+                        </Link>
                         <div className="text-xs text-[#6b6b6b]">
                           {c.instructor?.name ?? "Sin instructor"}
                         </div>

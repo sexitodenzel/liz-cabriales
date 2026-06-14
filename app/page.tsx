@@ -4,18 +4,12 @@ import PillarStage from "./components/PillarStage"
 import ShopByNailPolishColors from "./components/ShopByNailPolishColors"
 import HeroSlider from "./components/hero/HeroSlider"
 import InstagramFeed from "./components/InstagramFeed"
-import { getLandingSlots } from "@/lib/supabase/landing-slots"
+import { getLandingSlots, getHeroSlides } from "@/lib/supabase/landing-slots"
 
 export const revalidate = 60
 
 export default async function Home() {
-  const slots = await getLandingSlots()
-
-  const heroSlides: [string, string, string] = [
-    slots["hero_slide_1"] ?? "",
-    slots["hero_slide_2"] ?? "",
-    slots["hero_slide_3"] ?? "",
-  ]
+  const [slots, heroSlides] = await Promise.all([getLandingSlots(), getHeroSlides()])
 
   const pillarImages = {
     dist: [
@@ -39,6 +33,7 @@ export default async function Home() {
     <main className="min-h-screen bg-white text-black">
       <div className="mx-auto w-full max-w-[1460px] px-6">
         <HeroSlider slides={heroSlides} />
+
         <div className="h-16 shrink-0" aria-hidden />
         <BrandDescription photoUrl={slots["brand_photo"]} />
         <div className="h-16 shrink-0" aria-hidden />

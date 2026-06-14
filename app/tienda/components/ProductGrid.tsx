@@ -14,7 +14,7 @@ import ProductCard from "./ProductCard"
 import { useCart } from "@/app/components/cart/CartContext"
 
 type FiltersState = {
-  categorySlug: string | null
+  categorySlugs: string[]
   brands: string[]
   search: string
   priceMin: number | null
@@ -63,7 +63,7 @@ export default function ProductGrid({
   useEffect(() => {
     setFilters(initialFilters)
   }, [
-    initialFilters.categorySlug,
+    initialFilters.categorySlugs,
     initialFilters.brands,
     initialFilters.search,
     initialFilters.priceMin,
@@ -75,7 +75,7 @@ export default function ProductGrid({
   useEffect(() => {
     if (typeof window === "undefined") return
     const params = new URLSearchParams()
-    if (filters.categorySlug) params.set("categoria", filters.categorySlug)
+    if (filters.categorySlugs.length > 0) params.set("categoria", filters.categorySlugs.join(","))
     if (filters.brands.length > 0) params.set("marca", filters.brands.join(","))
     if (filters.search.trim().length > 0)
       params.set("search", filters.search.trim())
@@ -90,8 +90,8 @@ export default function ProductGrid({
     }
   }, [filters, pathname])
 
-  const handleCategoryChange = (slug: string | null) => {
-    setFilters((prev) => ({ ...prev, categorySlug: slug }))
+  const handleCategoriesChange = (slugs: string[]) => {
+    setFilters((prev) => ({ ...prev, categorySlugs: slugs }))
   }
 
   const handleBrandsChange = (brandsList: string[]) => {
@@ -111,7 +111,7 @@ export default function ProductGrid({
 
   const handleClearAll = () => {
     setFilters({
-      categorySlug: null,
+      categorySlugs: [],
       brands: [],
       search: "",
       priceMin: null,
@@ -120,14 +120,14 @@ export default function ProductGrid({
   }
 
   const hasActiveFilters =
-    Boolean(filters.categorySlug) ||
+    filters.categorySlugs.length > 0 ||
     filters.brands.length > 0 ||
     filters.search.trim().length > 0 ||
     filters.priceMin !== null ||
     filters.priceMax !== null
 
   const activeFilterCount =
-    (filters.categorySlug ? 1 : 0) +
+    filters.categorySlugs.length +
     filters.brands.length +
     (filters.search.trim().length > 0 ? 1 : 0) +
     (filters.priceMin !== null || filters.priceMax !== null ? 1 : 0)
@@ -163,8 +163,8 @@ export default function ProductGrid({
     const searchTokens = tokenizeSearchQuery(filters.search.trim())
     let result = products.filter((product) => {
       if (
-        filters.categorySlug &&
-        product.category?.slug !== filters.categorySlug
+        filters.categorySlugs.length > 0 &&
+        !(product.category?.slug && filters.categorySlugs.includes(product.category.slug))
       ) {
         return false
       }
@@ -215,10 +215,9 @@ export default function ProductGrid({
 
   const isEmpty = filteredProducts.length === 0
 
-  const categoryName = filters.categorySlug
-    ? (categories.find((category) => category.slug === filters.categorySlug)
-        ?.name ?? null)
-    : null
+  const selectedCategoryNames = filters.categorySlugs
+    .map((slug) => categories.find((c) => c.slug === slug)?.name)
+    .filter((n): n is string => Boolean(n))
 
   const formatPriceShort = (value: number) =>
     new Intl.NumberFormat("es-MX", {
@@ -243,30 +242,31 @@ export default function ProductGrid({
     return null
   })()
 
-  const sidebar = (
-    <FilterSidebar
-      categories={categories}
-      brands={brandsForSidebar}
-      brandCounts={brandCounts}
-      selectedCategory={filters.categorySlug}
-      selectedBrands={filters.brands}
-      search={filters.search}
-      priceMin={filters.priceMin}
-      priceMax={filters.priceMax}
-      priceBounds={priceBounds}
-      onCategoryChange={handleCategoryChange}
-      onBrandsChange={handleBrandsChange}
-      onSearchChange={handleSearchChange}
-      onPriceChange={handlePriceChange}
-      onClearAll={handleClearAll}
-    />
-  )
+  const sharedSidebarProps = {
+    categories,
+    brands: brandsForSidebar,
+    brandCounts,
+    selectedCategories: filters.categorySlugs,
+    selectedBrands: filters.brands,
+    search: filters.search,
+    priceMin: filters.priceMin,
+    priceMax: filters.priceMax,
+    priceBounds,
+    onCategoriesChange: handleCategoriesChange,
+    onBrandsChange: handleBrandsChange,
+    onSearchChange: handleSearchChange,
+    onPriceChange: handlePriceChange,
+    onClearAll: handleClearAll,
+  }
+
+  const sidebarDesktop = <FilterSidebar {...sharedSidebarProps} defaultExpanded theme="light" />
+  const sidebar = <FilterSidebar {...sharedSidebarProps} />
 
   return (
     <div className="grid gap-8 md:grid-cols-[280px_minmax(0,1fr)]">
       <div className="hidden md:block">
         <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-          {sidebar}
+          {sidebarDesktop}
         </div>
       </div>
 
@@ -329,12 +329,17 @@ export default function ProductGrid({
                 onRemove={() => handleSearchChange("")}
               />
             )}
-            {categoryName && (
+            {selectedCategoryNames.map((name, i) => (
               <FilterChip
-                label={categoryName}
-                onRemove={() => handleCategoryChange(null)}
+                key={filters.categorySlugs[i]}
+                label={name}
+                onRemove={() =>
+                  handleCategoriesChange(
+                    filters.categorySlugs.filter((s) => s !== filters.categorySlugs[i])
+                  )
+                }
               />
-            )}
+            ))}
             {filters.brands.map((brand) => (
               <FilterChip
                 key={brand}

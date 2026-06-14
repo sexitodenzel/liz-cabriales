@@ -13,7 +13,7 @@ function formatPrice(value: number): string {
   }).format(value)
 }
 
-const FREE_SHIPPING_THRESHOLD = 999
+const FREE_SHIPPING_THRESHOLD = 2000
 const SHIPPING_COST = 150
 
 export default function CartPage() {

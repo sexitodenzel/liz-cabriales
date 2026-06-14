@@ -45,7 +45,7 @@ export default async function StorePage({
   searchParams: Promise<SearchParams>
 }) {
   const sp = await searchParams
-  const categorySlug = firstString(sp.categoria)
+  const categoryParam = firstString(sp.categoria)
   const brandParam = firstString(sp.marca)
   const search = firstString(sp.search)
   const priceMinParam = firstString(sp.precio_min)
@@ -78,7 +78,7 @@ export default async function StorePage({
   const products = productsResult.data as ProductWithCategory[]
 
   const initialFilters = {
-    categorySlug: categorySlug ?? null,
+    categorySlugs: categoryParam ? categoryParam.split(",").filter(Boolean) : [],
     brands: brandParam ? brandParam.split(",").filter(Boolean) : [],
     search: search ?? "",
     priceMin: parsePrice(priceMinParam),
