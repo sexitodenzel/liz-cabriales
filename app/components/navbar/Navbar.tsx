@@ -2,12 +2,14 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Search, User, ShoppingBag, ChevronDown, X } from "lucide-react"
+import { Search, User, ShoppingBag, ChevronDown, X, Menu } from "lucide-react"
 import { useState, useEffect, useRef, useCallback, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
 import TiendaMegaMenu from "./dropdowns/TiendaMegaMenu"
 import CartMenu from "./dropdowns/CartMenu"
+import TiendaMobileAccordion from "./TiendaMobileAccordion"
+import MobileDrawer from "./MobileDrawer"
 import {
   DesktopCategoriesDropdown,
   DesktopSearchSuggestions,
@@ -28,81 +30,6 @@ export type MenuType =
   | "user"
   | null
 
-function TiendaMobileAccordion({
-  openCategory,
-  setOpenCategory,
-  onClose,
-  categories,
-  sectionHref,
-  sectionLabel,
-}: {
-  openCategory: string | null
-  setOpenCategory: (slug: string | null) => void
-  onClose: () => void
-  categories: typeof tiendaCategories
-  sectionHref: string
-  sectionLabel: string
-}) {
-  return (
-    <div>
-      <Link
-        href={sectionHref}
-        onClick={onClose}
-        className="block pb-3 text-[12px] font-semibold tracking-[0.05em] text-[#C6A75E]"
-      >
-        Ver {sectionLabel} →
-      </Link>
-      {categories.map((cat) => {
-        const isCatOpen = openCategory === cat.slug
-        return (
-          <div key={cat.slug} className="border-b border-white/5 last:border-0">
-            <button
-              type="button"
-              onClick={() => setOpenCategory(isCatOpen ? null : cat.slug)}
-              className={`flex w-full items-center justify-between py-2.5 text-[14px] transition-colors ${
-                isCatOpen ? "text-[#C6A75E]" : "text-neutral-300"
-              }`}
-            >
-              <span>{cat.label}</span>
-              <ChevronDown
-                className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
-                  isCatOpen ? "rotate-180 text-[#C6A75E]" : "text-neutral-500"
-                }`}
-              />
-            </button>
-            <div
-              className={`grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(.16,1,.3,1)] ${
-                isCatOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-              }`}
-            >
-              <div className="overflow-hidden min-h-0">
-                <div className="pb-2 pl-3">
-                  <Link
-                    href={cat.href}
-                    onClick={onClose}
-                    className="block py-1.5 text-[12px] font-medium text-[#C6A75E]/70 hover:text-[#C6A75E] transition-colors"
-                  >
-                    Ver todo en {cat.label}
-                  </Link>
-                  {cat.subcategories.map((sub) => (
-                    <Link
-                      key={sub.label}
-                      href={sub.href}
-                      onClick={onClose}
-                      className="block py-1.5 text-[13px] text-neutral-400 transition-colors hover:text-[#C6A75E]"
-                    >
-                      {sub.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
 
 type NavbarProps = {
   isLoggedIn?: boolean
@@ -124,8 +51,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [suggestionTab, setSuggestionTab] = useState<"productos" | "colecciones">("productos")
   const [mobileSuggestionTab, setMobileSuggestionTab] = useState<"productos" | "colecciones">("productos")
-  const [mobileNavOpen, setMobileNavOpen] = useState<"Tienda" | "Cursos" | "Servicios" | null>(null)
-  const [openMobileCategory, setOpenMobileCategory] = useState<string | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const lastScrollY = useRef(0)
   const headerRef = useRef<HTMLElement>(null)
   const overlayGuardRef = useRef(false)
@@ -208,7 +134,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     function handleScroll() {
       const currentY = window.scrollY
       if (currentY > lastScrollY.current) {
-        setMobileNavOpen(null)
+        setDrawerOpen(false)
         setMobileSuggestionsOpen(false)
         setMobileSearchCategoriesOpen(false)
       }
@@ -237,16 +163,13 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         setMobileSearchCategoriesOpen(false)
         setMobileSuggestionsOpen(false)
       }
-      if (!target.closest("[data-mobile-nav]")) {
-        setMobileNavOpen(null)
-      }
     }
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
 
   useEffect(() => {
-    if (isCartOpen) setMobileNavOpen(null)
+    if (isCartOpen) setDrawerOpen(false)
   }, [isCartOpen])
 
 
@@ -325,8 +248,26 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           <source src="/videos/navbar-bg.mp4" type="video/mp4" />
         </video>
 
-        {/* ===== MOBILE: Fila 1 – Logo izquierda | Search | User + Cart ===== */}
+        {/* ===== MOBILE: Fila 1 – Hamburger | Logo | Search | User + Cart ===== */}
         <div className="relative z-10 md:hidden flex items-center gap-2 h-[var(--navbar-h)]" data-mobile-search>
+
+          <button
+            type="button"
+            onClick={() => { closeCart(); setDrawerOpen((o) => !o) }}
+            className="relative shrink-0 inline-flex h-8 w-8 items-center justify-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
+            aria-label={drawerOpen ? "Cerrar menú" : "Abrir menú"}
+          >
+            <Menu
+              className={`absolute h-5 w-5 transition-all duration-200 ${
+                drawerOpen ? "opacity-0 rotate-90 scale-75" : "opacity-100 rotate-0 scale-100"
+              }`}
+            />
+            <X
+              className={`absolute h-5 w-5 transition-all duration-200 ${
+                drawerOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-75"
+              }`}
+            />
+          </button>
 
           <Link
             href="/"
@@ -426,13 +367,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <Link
-              href={isLoggedIn ? "/perfil" : "/login"}
-              className="inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
-              aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
-            >
-              <User className="w-5 h-5 shrink-0" />
-            </Link>
             <button
               type="button"
               className="relative inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
@@ -448,7 +382,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               aria-label="Carrito"
             >
               <span className="relative shrink-0">
-                <ShoppingBag className="w-5 h-5" />
+                <ShoppingBag className={`w-5 h-5 transition-colors ${itemCount > 0 ? "text-[#C6A75E]" : ""}`} />
                 {itemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
                     {itemCount}
@@ -459,50 +393,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           </div>
         </div>
 
-        {/* ===== MOBILE: Fila 2 – Nav con dropdowns ===== */}
-        <div className="relative z-10 md:hidden" data-mobile-nav>
-              {/* Botones de navegación */}
-              <div className="flex">
-                {(["Tienda", "Cursos", "Servicios"] as const).map((key) => {
-                  const href = key === "Tienda" ? "/tienda" : key === "Cursos" ? "/academia" : "/citas"
-                  const isOpen = mobileNavOpen === key
-                  return (
-                    <div key={key} className="flex flex-1 items-center">
-                      <Link
-                        href={href}
-                        onClick={() => setMobileNavOpen(null)}
-                        className={`flex-1 text-center py-2 text-[13px] font-semibold tracking-[0.05em] transition-colors ${
-                          isOpen ? "text-[#C6A75E]" : "text-neutral-400 hover:text-[#C6A75E]"
-                        }`}
-                      >
-                        {key}
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          closeSearchPanels()
-                          if (mobileNavOpen !== key) setOpenMobileCategory(null)
-                          if (!isOpen) {
-                            overlayGuardRef.current = true
-                            requestAnimationFrame(() => { overlayGuardRef.current = false })
-                          }
-                          setMobileNavOpen(isOpen ? null : key)
-                        }}
-                        className={`px-2 py-2 transition-colors ${
-                          isOpen ? "text-[#C6A75E]" : "text-neutral-500 hover:text-[#C6A75E]"
-                        }`}
-                        aria-label={`Abrir submenú ${key}`}
-                      >
-                        <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-
-
-        </div>
 
         {/* ===== DESKTOP: Fila principal ===== */}
         <div className="relative z-10 hidden md:flex mx-auto h-[var(--navbar-h)] max-w-[1400px] items-center gap-6">
@@ -707,7 +597,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               aria-label="Carrito"
             >
               <span className="relative shrink-0">
-                <ShoppingBag className="w-7 h-7" />
+                <ShoppingBag className={`w-7 h-7 transition-colors ${itemCount > 0 ? "text-[#C6A75E]" : ""}`} />
                 {itemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
                     {itemCount}
@@ -724,55 +614,16 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         <CartMenu />
       </header>
 
-      {/* ===== MOBILE: Panel dropdown nav (fixed, bajo el navbar completo) ===== */}
-      <div
-        data-mobile-nav
-        className={`fixed left-0 top-[var(--navbar-mobile-h)] w-full border-b border-white/10 bg-[#0a0a0a] z-40 md:hidden transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)] ${
-          mobileNavOpen ? "pointer-events-auto translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
-        }`}
-      >
-        {mobileNavOpen === "Tienda" && (
-          <div className="px-5 py-4">
-            <TiendaMobileAccordion
-              openCategory={openMobileCategory}
-              setOpenCategory={setOpenMobileCategory}
-              onClose={() => setMobileNavOpen(null)}
-              categories={tiendaCategories}
-              sectionHref="/tienda"
-              sectionLabel="toda la tienda"
-            />
-          </div>
-        )}
-        {mobileNavOpen === "Cursos" && (
-          <div className="px-5 py-4">
-            <TiendaMobileAccordion
-              openCategory={openMobileCategory}
-              setOpenCategory={setOpenMobileCategory}
-              onClose={() => setMobileNavOpen(null)}
-              categories={cursosCategories}
-              sectionHref="/academia"
-              sectionLabel="cursos"
-            />
-          </div>
-        )}
-        {mobileNavOpen === "Servicios" && (
-          <div className="px-5 py-4">
-            <TiendaMobileAccordion
-              openCategory={openMobileCategory}
-              setOpenCategory={setOpenMobileCategory}
-              onClose={() => setMobileNavOpen(null)}
-              categories={serviciosCategories}
-              sectionHref="/servicios"
-              sectionLabel="servicios"
-            />
-          </div>
-        )}
-      </div>
+      <MobileDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        isLoggedIn={isLoggedIn}
+      />
 
       {/* ===== Overlay de blur global ===== */}
       <div
         className={`fixed inset-0 top-[var(--navbar-actual-h)] backdrop-blur-md bg-black/10 z-30 transition-opacity duration-300 ${
-          activeMenu || isCartOpen || allCategoriesOpen || suggestionsOpen || mobileSearchCategoriesOpen || mobileSuggestionsOpen || mobileNavOpen !== null
+          activeMenu || isCartOpen || allCategoriesOpen || suggestionsOpen || mobileSearchCategoriesOpen || mobileSuggestionsOpen
             ? "opacity-100"
             : "opacity-0 pointer-events-none"
         }`}
@@ -784,7 +635,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           setMobileSearchCategoriesOpen(false)
           setMobileSuggestionsOpen(false)
           setActiveMenu(null)
-          setMobileNavOpen(null)
+          setDrawerOpen(false)
         }}
         onClick={() => {
           if (isProgrammatic()) { clearProgrammatic(); return }
@@ -795,7 +646,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           setMobileSearchCategoriesOpen(false)
           setMobileSuggestionsOpen(false)
           setActiveMenu(null)
-          setMobileNavOpen(null)
+          setDrawerOpen(false)
         }}
       />
     </>

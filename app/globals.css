@@ -33,20 +33,58 @@ body {
    SWIPER CUSTOM
 ===================================== */
 
+/* Dots dentro del slider (no usados actualmente en desktop/mobile) */
 .swiper-pagination-bullet {
-  width: 12px !important;
-  height: 12px !important;
-  background: white !important;
-  opacity: 0.5;
+  width: 10px !important;
+  height: 10px !important;
+  background: #ccc !important;
+  opacity: 1 !important;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .swiper-pagination-bullet-active {
-  width: 14px !important;
-  height: 14px !important;
-  background: var(--gold) !important;
-  opacity: 1;
+  width: 10px !important;
+  height: 10px !important;
+  background: #1a1a1a !important;
+  opacity: 1 !important;
+}
+
+/* Dots desktop — fuera del slider, sobre fondo blanco */
+.hero-desktop-dots .swiper-pagination-bullet {
+  width: 10px !important;
+  height: 10px !important;
+  background: #ccc !important;
+  opacity: 1 !important;
+  border-radius: 50% !important;
+  transition: all 0.3s ease !important;
+}
+
+.hero-desktop-dots .swiper-pagination-bullet-active {
+  background: #1a1a1a !important;
+}
+
+@media (max-width: 767px) {
+  .swiper-horizontal > .swiper-pagination-bullets,
+  .swiper-pagination-bullets.swiper-pagination-horizontal {
+    text-align: left;
+    padding-left: 20px;
+  }
+  .swiper-pagination-bullet {
+    width: 8px !important;
+    height: 8px !important;
+    background: #ccc !important;
+    opacity: 1 !important;
+    border-radius: 4px !important;
+    transition: all 0.35s ease !important;
+  }
+  .swiper-pagination-bullet-active {
+    width: 24px !important;
+    height: 8px !important;
+    background: #1a1a1a !important;
+    border-radius: 4px !important;
+    opacity: 1 !important;
+  }
 }
 
 /* =====================================
@@ -224,4 +262,27 @@ body {
 .navbar-search-input::-ms-clear,
 .navbar-search-input::-ms-reveal {
   display: none;
+}
+
+/* =====================================
+   CART SUGGESTIONS — scroll horizontal discreto
+===================================== */
+
+.cart-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.cart-scroll::-webkit-scrollbar-track {
+  background: #ebebeb;
+  border-radius: 9999px;
+}
+
+.cart-scroll::-webkit-scrollbar-thumb {
+  background: #c2c2c2;
+  border-radius: 9999px;
+}
+
+.cart-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #c2c2c2 #ebebeb;
 }
