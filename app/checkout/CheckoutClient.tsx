@@ -880,13 +880,13 @@ export default function CheckoutClient({ initialCart }: Props) {
   // MercadoPago opens in a new tab (window.open in callPaymentEndpoint), so
   // this page never gets navigated away from. No bfcache mitigation needed.
 
-  // Auto-fill address data when user reaches shipping step (only once)
+  // Auto-fill address data on mount (only once)
   useEffect(() => {
-    if (step !== "shipping" || hasAutoFilledRef.current) return
+    if (hasAutoFilledRef.current) return
     hasAutoFilledRef.current = true
     handleAutoFill()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step])
+  }, [])
 
   // Fetch sugerencias al montar
   useEffect(() => {
@@ -1127,10 +1127,48 @@ export default function CheckoutClient({ initialCart }: Props) {
     setPaymentError(null)
   }
 
+  const shippingProps = {
+    initialCart,
+    requiresInvoice,
+    invoiceSurcharge,
+    orderTotal,
+    onBack: () => setStep("review"),
+    deliveryType, setDeliveryType,
+    nombreCompleto, setNombreCompleto,
+    calleNumero, setCalleNumero,
+    colonia, setColonia,
+    cp, setCp,
+    municipio, setMunicipio,
+    ciudad, setCiudad,
+    estado, setEstado,
+    telefono, setTelefono,
+    entreCalles, setEntreCalles,
+    referencia, setReferencia,
+    setRequiresInvoice,
+    rfc, setRfc,
+    razonSocial, setRazonSocial,
+    invoiceEmail, setInvoiceEmail,
+    constanciaFile, setConstanciaFile,
+    profileHasPhone,
+    cpLookupState,
+    clearFieldError,
+    isSubmitting, submitLabel,
+    fieldErrors,
+    errorMessage, errorCode,
+    createdOrder,
+    paymentError, isRetryingPayment,
+    autoFilled,
+    paymentUrl,
+    onSubmit: handleSubmit,
+    onRetryPayment: handleRetryPayment,
+    onCancelPendingOrder: handleCancelPendingOrder,
+    errorRef,
+  } as const
+
   return (
     <main className="min-h-screen bg-neutral-50 text-[#1a1a1a]">
-      <div className="mx-auto max-w-[1080px] px-4 pt-6 sm:px-6">
-        {/* Indicador de paso */}
+      {/* ─── Móvil: indicador 2 pasos ─── */}
+      <div className="mx-auto max-w-[1080px] px-4 pt-6 sm:px-6 lg:hidden">
         <div className="mb-4 flex items-center gap-2">
           <button
             type="button"
@@ -1150,7 +1188,21 @@ export default function CheckoutClient({ initialCart }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1080px] px-4 pb-12 sm:px-6">
+      {/* ─── Desktop: breadcrumb 4 pasos ─── */}
+      <div className="mx-auto hidden max-w-[1200px] px-6 pt-6 lg:block">
+        <nav className="mb-4 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em]">
+          <span className="font-semibold text-[#1a1a1a]">Orden</span>
+          <span className="text-neutral-300">›</span>
+          <span className="text-neutral-400">Dirección</span>
+          <span className="text-neutral-300">›</span>
+          <span className="text-neutral-400">Información de facturación</span>
+          <span className="text-neutral-300">›</span>
+          <span className="text-neutral-400">Pago</span>
+        </nav>
+      </div>
+
+      {/* ─── Móvil: flujo por pasos ─── */}
+      <div className="mx-auto max-w-[1080px] px-4 pb-12 sm:px-6 lg:hidden">
         {step === "review" ? (
           <ReviewStep
             initialCart={initialCart}
@@ -1161,44 +1213,20 @@ export default function CheckoutClient({ initialCart }: Props) {
             onOpenCart={openCart}
           />
         ) : (
-          <ShippingStep
-            initialCart={initialCart}
-            requiresInvoice={requiresInvoice}
-            invoiceSurcharge={invoiceSurcharge}
-            orderTotal={orderTotal}
-            onBack={() => setStep("review")}
-            deliveryType={deliveryType} setDeliveryType={setDeliveryType}
-            nombreCompleto={nombreCompleto} setNombreCompleto={setNombreCompleto}
-            calleNumero={calleNumero} setCalleNumero={setCalleNumero}
-            colonia={colonia} setColonia={setColonia}
-            cp={cp} setCp={setCp}
-            municipio={municipio} setMunicipio={setMunicipio}
-            ciudad={ciudad} setCiudad={setCiudad}
-            estado={estado} setEstado={setEstado}
-            telefono={telefono} setTelefono={setTelefono}
-            entreCalles={entreCalles} setEntreCalles={setEntreCalles}
-            referencia={referencia} setReferencia={setReferencia}
-            setRequiresInvoice={setRequiresInvoice}
-            rfc={rfc} setRfc={setRfc}
-            razonSocial={razonSocial} setRazonSocial={setRazonSocial}
-            invoiceEmail={invoiceEmail} setInvoiceEmail={setInvoiceEmail}
-            constanciaFile={constanciaFile} setConstanciaFile={setConstanciaFile}
-            profileHasPhone={profileHasPhone}
-            cpLookupState={cpLookupState}
-            clearFieldError={clearFieldError}
-            isSubmitting={isSubmitting} submitLabel={submitLabel}
-            fieldErrors={fieldErrors}
-            errorMessage={errorMessage} errorCode={errorCode}
-            createdOrder={createdOrder}
-            paymentError={paymentError} isRetryingPayment={isRetryingPayment}
-            autoFilled={autoFilled}
-            paymentUrl={paymentUrl}
-            onSubmit={handleSubmit}
-            onRetryPayment={handleRetryPayment}
-            onCancelPendingOrder={handleCancelPendingOrder}
-            errorRef={errorRef}
-          />
+          <ShippingStep mode="mobile" {...shippingProps} />
         )}
+      </div>
+
+      {/* ─── Desktop: vista unificada ─── */}
+      <div className="mx-auto hidden max-w-[1200px] px-6 pb-12 lg:block">
+        <ShippingStep
+          mode="desktop"
+          suggestions={suggestions}
+          addedIds={addedIds}
+          onAddSuggestion={handleAddSuggestion}
+          onOpenCart={openCart}
+          {...shippingProps}
+        />
       </div>
     </main>
   )
