@@ -6,6 +6,7 @@ const supabaseAdmin = createClient(
 )
 
 export type LinkType = 'none' | 'product' | 'course' | 'services' | 'custom'
+export type TextPosition = 'left' | 'center' | 'right'
 
 export type LandingSlot = {
   key: string
@@ -16,6 +17,10 @@ export type LandingSlot = {
   link_value: string
   cta_label: string
   cta_subtext: string
+  subtitle: string
+  text_position: TextPosition
+  show_title: boolean
+  show_subtitle: boolean
   updated_at: string
 }
 
@@ -26,6 +31,10 @@ export type HeroSlide = {
   link_value: string
   cta_label: string
   cta_subtext: string
+  subtitle: string
+  text_position: TextPosition
+  show_title: boolean
+  show_subtitle: boolean
 }
 
 /** Devuelve un mapa key→url para uso en Server Components (landing page). */
@@ -47,7 +56,7 @@ export async function getHeroSlides(): Promise<HeroSlide[]> {
   try {
     const { data, error } = await supabaseAdmin
       .from("landing_slots")
-      .select("key, url, link_type, link_value, cta_label, cta_subtext")
+      .select("key, url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle")
       .eq("section", "hero")
       .order("key")
 
@@ -62,7 +71,7 @@ export async function getHeroSlides(): Promise<HeroSlide[]> {
 export async function getAllLandingSlots(): Promise<LandingSlot[]> {
   const { data, error } = await supabaseAdmin
     .from("landing_slots")
-    .select("key, url, label, section, link_type, link_value, cta_label, cta_subtext, updated_at")
+    .select("key, url, label, section, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle, updated_at")
     .order("section")
     .order("key")
 
@@ -70,9 +79,46 @@ export async function getAllLandingSlots(): Promise<LandingSlot[]> {
   return (data ?? []) as LandingSlot[]
 }
 
+export async function createHeroSlide(): Promise<{ data: LandingSlot | null; error: string | null }> {
+  const { data: existing } = await supabaseAdmin
+    .from("landing_slots")
+    .select("key")
+    .eq("section", "hero")
+    .order("key")
+
+  const nums = (existing ?? [])
+    .map((r) => parseInt((r.key as string).replace("hero_", ""), 10))
+    .filter((n) => !isNaN(n))
+  const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
+  const key = `hero_${next}`
+
+  const { data, error } = await supabaseAdmin
+    .from("landing_slots")
+    .insert({
+      key,
+      section: "hero",
+      label: `Hero ${next}`,
+      url: "",
+      link_type: "none",
+      link_value: "",
+      cta_label: "",
+      cta_subtext: "",
+      subtitle: "",
+      text_position: "right",
+      show_title: true,
+      show_subtitle: true,
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+
+  if (error) return { data: null, error: error.message }
+  return { data: data as LandingSlot, error: null }
+}
+
 export async function updateLandingSlot(
   key: string,
-  fields: { url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string }
+  fields: { url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string; subtitle?: string; text_position?: string; show_title?: boolean; show_subtitle?: boolean }
 ): Promise<{ error: string | null }> {
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
   if (fields.url !== undefined) update.url = fields.url
@@ -80,6 +126,10 @@ export async function updateLandingSlot(
   if (fields.link_value !== undefined) update.link_value = fields.link_value
   if (fields.cta_label !== undefined) update.cta_label = fields.cta_label
   if (fields.cta_subtext !== undefined) update.cta_subtext = fields.cta_subtext
+  if (fields.subtitle !== undefined) update.subtitle = fields.subtitle
+  if (fields.text_position !== undefined) update.text_position = fields.text_position
+  if (fields.show_title !== undefined) update.show_title = fields.show_title
+  if (fields.show_subtitle !== undefined) update.show_subtitle = fields.show_subtitle
 
   const { error } = await supabaseAdmin
     .from("landing_slots")

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/admin"
-import { getAllLandingSlots, updateLandingSlot } from "@/lib/supabase/landing-slots"
+import { getAllLandingSlots, updateLandingSlot, createHeroSlide } from "@/lib/supabase/landing-slots"
 
 const VALID_LINK_TYPES = ["none", "product", "course", "services", "custom"] as const
 
@@ -52,13 +52,10 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const { key, url, link_type, link_value, cta_label, cta_subtext } = json as {
-      key?: unknown
-      url?: unknown
-      link_type?: unknown
-      link_value?: unknown
-      cta_label?: unknown
-      cta_subtext?: unknown
+    const { key, url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle } = json as {
+      key?: unknown; url?: unknown; link_type?: unknown; link_value?: unknown
+      cta_label?: unknown; cta_subtext?: unknown; subtitle?: unknown
+      text_position?: unknown; show_title?: unknown; show_subtitle?: unknown
     }
 
     if (typeof key !== "string" || !key) {
@@ -68,7 +65,7 @@ export async function PATCH(request: Request) {
       )
     }
 
-    if (url === undefined && link_type === undefined && link_value === undefined && cta_label === undefined && cta_subtext === undefined) {
+    if ([url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle].every(v => v === undefined)) {
       return NextResponse.json(
         { data: null, error: { message: "Se requiere al menos un campo para actualizar", code: "VALIDATION_ERROR" } },
         { status: 400 }
@@ -89,12 +86,16 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const fields: { url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string } = {}
+    const fields: { url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string; subtitle?: string; text_position?: string; show_title?: boolean; show_subtitle?: boolean } = {}
     if (typeof url === "string") fields.url = url
     if (typeof link_type === "string") fields.link_type = link_type
     if (typeof link_value === "string") fields.link_value = link_value
     if (typeof cta_label === "string") fields.cta_label = cta_label
     if (typeof cta_subtext === "string") fields.cta_subtext = cta_subtext
+    if (typeof subtitle === "string") fields.subtitle = subtitle
+    if (typeof text_position === "string") fields.text_position = text_position
+    if (typeof show_title === "boolean") fields.show_title = show_title
+    if (typeof show_subtitle === "boolean") fields.show_subtitle = show_subtitle
 
     const result = await updateLandingSlot(key, fields)
     if (result.error) {
@@ -105,6 +106,31 @@ export async function PATCH(request: Request) {
     }
 
     return NextResponse.json({ data: { ok: true }, error: null })
+  } catch {
+    return NextResponse.json(
+      { data: null, error: { message: "Error interno del servidor" } },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const authResult = await requireAdmin(user?.id)
+    if (authResult.error) {
+      const status = authResult.error.code === "UNAUTHENTICATED" ? 401 : 403
+      return NextResponse.json({ data: null, error: authResult.error }, { status })
+    }
+
+    const result = await createHeroSlide()
+    if (result.error) {
+      return NextResponse.json({ data: null, error: { message: result.error } }, { status: 500 })
+    }
+
+    return NextResponse.json({ data: result.data, error: null })
   } catch {
     return NextResponse.json(
       { data: null, error: { message: "Error interno del servidor" } },

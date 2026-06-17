@@ -143,6 +143,10 @@ export default function PillarStage({ pillarImages }: Props) {
           to   { opacity: 1; transform: translateY(0); }
         }
         .pillar-body-enter { animation: pillarBodyIn 400ms ease-out both; }
+        @keyframes pillarImgIn {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
 
       <div className="mx-auto max-w-[1400px] px-6">
@@ -242,6 +246,30 @@ export default function PillarStage({ pillarImages }: Props) {
                           <ArrowCta />
                         </span>
                       </Link>
+
+                      {/* Triptych móvil — solo visible bajo lg; sin display inline para no anular lg:hidden */}
+                      <div className="mt-6 grid grid-cols-3 gap-[10px] lg:hidden">
+                        {SLOT_OFFSETS.map((offset, slot) => (
+                          <div
+                            key={slot}
+                            className="relative overflow-hidden rounded-xl"
+                            style={{
+                              height: "200px",
+                              transform: `translateY(${offset * 0.5}px)`,
+                              animation: `pillarImgIn 500ms ease-out both`,
+                              animationDelay: `${slot * 80}ms`,
+                            }}
+                          >
+                            <Image
+                              src={pillar.images[slot]}
+                              alt={`${pillar.eyebrow} — imagen ${slot + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="33vw"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

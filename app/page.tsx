@@ -1,5 +1,6 @@
 import BrandDescription from "./components/BrandDescription"
 import NuevosLanzamientos from "./components/NuevosLanzamientos"
+import NailArtSection from "./components/NailArtSection"
 import PillarStage from "./components/PillarStage"
 import ShopByNailPolishColors from "./components/ShopByNailPolishColors"
 import HeroSlider from "./components/hero/HeroSlider"
@@ -38,6 +39,7 @@ export default async function Home() {
         <BrandDescription photoUrl={slots["brand_photo"]} />
         <div className="h-16 shrink-0" aria-hidden />
         <PillarStage pillarImages={pillarImages} />
+        <NailArtSection />
         <ShopByNailPolishColors />
       </div>
       <NuevosLanzamientos />

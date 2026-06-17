@@ -206,6 +206,9 @@ export default function AdminOrderDetailPage() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [quoteSuccess, setQuoteSuccess] = useState<string | null>(null)
+  const [issuingInvoice, setIssuingInvoice] = useState(false)
+  const [invoiceIssued, setInvoiceIssued] = useState(false)
+  const [invoiceError, setInvoiceError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -261,6 +264,26 @@ export default function AdminOrderDetailPage() {
       cancelled = true
     }
   }, [id, router])
+
+  async function handleIssueInvoice() {
+    if (!id || !order) return
+    setIssuingInvoice(true)
+    setInvoiceError(null)
+    try {
+      const res = await fetch(`/api/admin/orders/${id}/invoice-issue`, { method: "POST" })
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setInvoiceError(json?.error?.message ?? "No se pudo emitir la factura.")
+        return
+      }
+      setInvoiceIssued(true)
+      setOrder((prev) => prev ? { ...prev, invoice_status: "issued", invoice_issued_at: new Date().toISOString() } : prev)
+    } catch {
+      setInvoiceError("Error de red al emitir la factura.")
+    } finally {
+      setIssuingInvoice(false)
+    }
+  }
 
   async function saveStatus() {
     if (!id || !order) return
@@ -484,6 +507,109 @@ export default function AdminOrderDetailPage() {
                     />
                   )}
                 </>
+              )}
+            </section>
+          )}
+
+          {/* ── Sección facturación ── */}
+          {order.requires_invoice && (
+            <section className="rounded-2xl border border-[#ececec] bg-white p-6">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
+                Facturación CFDI
+              </h2>
+
+              <div className="mt-3 space-y-2 text-sm">
+                <p>
+                  <span className="text-[#6b6b6b]">RFC: </span>
+                  <span className="font-mono font-medium">{order.rfc ?? "—"}</span>
+                </p>
+                <p>
+                  <span className="text-[#6b6b6b]">Razón social: </span>
+                  <span className="font-medium">{order.razon_social ?? "—"}</span>
+                </p>
+                <p>
+                  <span className="text-[#6b6b6b]">Correo factura: </span>
+                  <span className="font-medium">{order.invoice_email ?? order.client_email ?? "—"}</span>
+                </p>
+                <p>
+                  <span className="text-[#6b6b6b]">Estado factura: </span>
+                  <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                    order.invoice_status === "issued"
+                      ? "border-emerald-200 bg-emerald-100 text-emerald-800"
+                      : "border-orange-200 bg-orange-100 text-orange-800"
+                  }`}>
+                    {order.invoice_status === "issued" ? "Emitida" : "Pendiente"}
+                  </span>
+                </p>
+                {order.invoice_issued_at && (
+                  <p>
+                    <span className="text-[#6b6b6b]">Emitida el: </span>
+                    <span className="font-medium">
+                      {new Date(order.invoice_issued_at).toLocaleString("es-MX", {
+                        day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+                      })}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              {/* Documentos */}
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:gap-3">
+                {order.constancia_signed_url ? (
+                  <a
+                    href={order.constancia_signed_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#ececec] bg-[#fafafa] px-4 py-2 text-xs font-medium text-[#1a1a1a] hover:bg-neutral-100 transition-colors"
+                  >
+                    📄 Ver constancia fiscal
+                  </a>
+                ) : (
+                  <span className="inline-flex items-center rounded-lg border border-[#ececec] bg-[#fafafa] px-4 py-2 text-xs text-[#9b9b9b]">
+                    ⏳ Constancia fiscal no subida
+                  </span>
+                )}
+
+                {order.ticket_signed_url ? (
+                  <a
+                    href={order.ticket_signed_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#ececec] bg-[#fafafa] px-4 py-2 text-xs font-medium text-[#1a1a1a] hover:bg-neutral-100 transition-colors"
+                  >
+                    🧾 Ver ticket de pago
+                  </a>
+                ) : (
+                  <span className="inline-flex items-center rounded-lg border border-[#ececec] bg-[#fafafa] px-4 py-2 text-xs text-[#9b9b9b]">
+                    ⏳ Ticket de pago no subido
+                  </span>
+                )}
+              </div>
+
+              {/* Botón emitir */}
+              {order.invoice_status !== "issued" && !invoiceIssued && (
+                <div className="mt-5">
+                  <p className="mb-2 text-xs text-[#6b6b6b]">
+                    Al emitir la factura, el cliente recibirá un correo de confirmación.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleIssueInvoice}
+                    disabled={issuingInvoice}
+                    className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
+                  >
+                    {issuingInvoice ? "Procesando…" : "Marcar factura como emitida"}
+                  </button>
+                  {invoiceError && (
+                    <p className="mt-2 text-sm text-red-700">{invoiceError}</p>
+                  )}
+                </div>
+              )}
+
+              {(order.invoice_status === "issued" || invoiceIssued) && (
+                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                  Factura marcada como emitida. Se notificó al cliente por correo.
+                </div>
               )}
             </section>
           )}

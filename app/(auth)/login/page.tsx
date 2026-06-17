@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [regFieldErrors, setRegFieldErrors] = useState<Record<string, string>>({})
 
   // Login form
   const [email, setEmail] = useState("")
@@ -113,9 +114,16 @@ export default function LoginPage() {
     }
   }
 
+  function clearRegError(field: string) {
+    if (regFieldErrors[field]) {
+      setRegFieldErrors((prev) => { const n = { ...prev }; delete n[field]; return n })
+    }
+  }
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setRegFieldErrors({})
 
     const registerResult = registerAccountSchema.safeParse({
       firstName: regFirstName,
@@ -128,7 +136,12 @@ export default function LoginPage() {
       phone: regPhone,
     })
     if (!registerResult.success) {
-      setError(registerResult.error.issues[0]?.message ?? "Datos de registro inválidos.")
+      const errs: Record<string, string> = {}
+      for (const issue of registerResult.error.issues) {
+        const path = String(issue.path[0] ?? "")
+        if (path && !errs[path]) errs[path] = issue.message
+      }
+      setRegFieldErrors(errs)
       return
     }
 
@@ -277,6 +290,7 @@ export default function LoginPage() {
           onClick={() => {
             setActiveTab("register")
             setError(null)
+            setRegFieldErrors({})
           }}
           className={`flex-1 py-3 text-sm font-medium transition-colors ${
             activeTab === "register"
@@ -407,121 +421,76 @@ export default function LoginPage() {
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Nombre
-              </label>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
               <input
-                id="firstName"
-                type="text"
-                value={regFirstName}
-                onChange={(e) => setRegFirstName(e.target.value)}
-                required
-                className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                id="firstName" type="text" value={regFirstName}
+                onChange={(e) => { setRegFirstName(e.target.value); clearRegError("firstName") }}
+                className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.firstName ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               />
+              {regFieldErrors.firstName && <p className="mt-1 text-xs text-red-600">{regFieldErrors.firstName}</p>}
             </div>
             <div>
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Apellido
-              </label>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
               <input
-                id="lastName"
-                type="text"
-                value={regLastName}
-                onChange={(e) => setRegLastName(e.target.value)}
-                required
-                className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                id="lastName" type="text" value={regLastName}
+                onChange={(e) => { setRegLastName(e.target.value); clearRegError("lastName") }}
+                className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.lastName ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               />
+              {regFieldErrors.lastName && <p className="mt-1 text-xs text-red-600">{regFieldErrors.lastName}</p>}
             </div>
           </div>
           <div>
-            <label
-              htmlFor="regEmail"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Correo electrónico
-            </label>
+            <label htmlFor="regEmail" className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
             <input
-              id="regEmail"
-              type="email"
-              value={regEmail}
-              onChange={(e) => setRegEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              id="regEmail" type="email" value={regEmail}
+              onChange={(e) => { setRegEmail(e.target.value); clearRegError("email") }}
+              className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.email ? "border-red-300 bg-red-50" : "border-gray-300"}`}
             />
+            {regFieldErrors.email && <p className="mt-1 text-xs text-red-600">{regFieldErrors.email}</p>}
           </div>
           <div>
-            <label
-              htmlFor="address"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Dirección
-            </label>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
             <input
-              id="address"
-              type="text"
-              value={regAddress}
-              onChange={(e) => setRegAddress(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              id="address" type="text" value={regAddress}
+              onChange={(e) => { setRegAddress(e.target.value); clearRegError("address") }}
+              className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.address ? "border-red-300 bg-red-50" : "border-gray-300"}`}
             />
+            {regFieldErrors.address && <p className="mt-1 text-xs text-red-600">{regFieldErrors.address}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label
-                htmlFor="state"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Estado
-              </label>
+              <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
               <input
-                id="state"
-                type="text"
-                value={regState}
-                onChange={(e) => setRegState(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                id="state" type="text" value={regState}
+                onChange={(e) => { setRegState(e.target.value); clearRegError("state") }}
+                className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.state ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               />
+              {regFieldErrors.state && <p className="mt-1 text-xs text-red-600">{regFieldErrors.state}</p>}
             </div>
             <div>
-              <label
-                htmlFor="city"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Ciudad
-              </label>
+              <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
               <input
-                id="city"
-                type="text"
-                value={regCity}
-                onChange={(e) => setRegCity(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                id="city" type="text" value={regCity}
+                onChange={(e) => { setRegCity(e.target.value); clearRegError("city") }}
+                className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.city ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               />
+              {regFieldErrors.city && <p className="mt-1 text-xs text-red-600">{regFieldErrors.city}</p>}
             </div>
           </div>
 
           {/* ── Teléfono + opt-in WhatsApp ── */}
           <div>
-            <label
-              htmlFor="regPhone"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Teléfono (WhatsApp)
-            </label>
+            <label htmlFor="regPhone" className="block text-sm font-medium text-gray-700 mb-1">Teléfono (WhatsApp)</label>
             <input
-              id="regPhone"
-              type="tel"
-              value={regPhone}
-              onChange={(e) => setRegPhone(normalizePhoneInput(e.target.value))}
+              id="regPhone" type="tel" value={regPhone}
+              onChange={(e) => { setRegPhone(normalizePhoneInput(e.target.value)); clearRegError("phone") }}
               placeholder="5218331234567"
-              className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.phone ? "border-red-300 bg-red-50" : "border-gray-300"}`}
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Formato sin espacios ni guiones: código de país + número (ej. 5218331234567)
-            </p>
+            {regFieldErrors.phone
+              ? <p className="mt-1 text-xs text-red-600">{regFieldErrors.phone}</p>
+              : <p className="mt-1 text-xs text-gray-500">Formato sin espacios ni guiones: código de país + número (ej. 5218331234567)</p>
+            }
           </div>
 
           {regPhone && (
@@ -539,21 +508,14 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label
-              htmlFor="regPassword"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Contraseña
-            </label>
+            <label htmlFor="regPassword" className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
             <input
-              id="regPassword"
-              type="password"
-              value={regPassword}
-              onChange={(e) => setRegPassword(e.target.value)}
-              required
+              id="regPassword" type="password" value={regPassword}
+              onChange={(e) => { setRegPassword(e.target.value); clearRegError("password") }}
               minLength={6}
-              className="w-full border border-gray-300 rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.password ? "border-red-300 bg-red-50" : "border-gray-300"}`}
             />
+            {regFieldErrors.password && <p className="mt-1 text-xs text-red-600">{regFieldErrors.password}</p>}
           </div>
           {error && (
             <p className="text-sm text-red-600" role="alert">

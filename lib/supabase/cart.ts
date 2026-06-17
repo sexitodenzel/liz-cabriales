@@ -58,6 +58,7 @@ export type CartSnapshot = {
   cart_id: string
   items: CartItemRow[]
   total: number
+  removed_count: number
 }
 
 const SEVEN_DAYS_SECONDS = 7 * 24 * 60 * 60
@@ -91,15 +92,44 @@ function toCartItemRow(row: CartItemJoinRow): CartItemRow {
   }
 }
 
-function toCartSnapshot(cartId: string, items: CartItemRow[]): CartSnapshot {
+function toCartSnapshot(cartId: string, items: CartItemRow[], removedCount = 0): CartSnapshot {
   return {
     cart_id: cartId,
     items,
-    total: items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0
-    ),
+    total: items.reduce((sum, item) => sum + item.quantity * item.price, 0),
+    removed_count: removedCount,
   }
+}
+
+type DeadCheckRow = {
+  id: string
+  products: { is_active: boolean; deleted_at: string | null } | { is_active: boolean; deleted_at: string | null }[] | null
+  product_variants: { is_active: boolean } | { is_active: boolean }[] | null
+}
+
+async function purgeDeadCartItems(cartId: string): Promise<number> {
+  const supabase = await createServerClient()
+
+  const { data, error } = await supabase
+    .from("cart_items")
+    .select("id, products ( is_active, deleted_at ), product_variants ( is_active )")
+    .eq("cart_id", cartId)
+
+  if (error || !data) return 0
+
+  const deadIds: string[] = []
+  for (const row of data as unknown as DeadCheckRow[]) {
+    const product = unwrapJoin(row.products)
+    const variant = unwrapJoin(row.product_variants)
+    if (!product || !product.is_active || product.deleted_at !== null || !variant || !variant.is_active) {
+      deadIds.push(row.id)
+    }
+  }
+
+  if (deadIds.length === 0) return 0
+
+  const { error: deleteError } = await supabase.from("cart_items").delete().in("id", deadIds)
+  return deleteError ? 0 : deadIds.length
 }
 
 async function getExistingCartItems(
@@ -284,13 +314,15 @@ export async function getActiveCartSnapshot(
     return { data: null, error: cartResult.error }
   }
 
+  const removedCount = await purgeDeadCartItems(cartResult.data.id)
+
   const itemsResult = await getCartItems(cartResult.data.id)
   if (!itemsResult.data) {
     return { data: null, error: itemsResult.error }
   }
 
   return {
-    data: toCartSnapshot(cartResult.data.id, itemsResult.data),
+    data: toCartSnapshot(cartResult.data.id, itemsResult.data, removedCount),
     error: null,
   }
 }

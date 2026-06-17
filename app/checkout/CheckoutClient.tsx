@@ -246,6 +246,11 @@ function ReviewStep({
 // ─── Pantalla 2: Datos de envío ───────────────────────────────────────────────
 
 type ShippingProps = {
+  mode?: "mobile" | "desktop"
+  suggestions?: Suggestion[]
+  addedIds?: Set<string>
+  onAddSuggestion?: (s: Suggestion) => void
+  onOpenCart?: () => void
   initialCart: CartSnapshot
   requiresInvoice: boolean
   invoiceSurcharge: number
@@ -307,17 +312,30 @@ function ShippingStep(p: ShippingProps) {
   }
 
   const totalItems = p.initialCart.items.reduce((s, i) => s + i.quantity, 0)
+  const isDesktop = p.mode === "desktop"
 
   return (
-    <div className="mx-auto grid max-w-[1080px] gap-4 lg:grid-cols-[1fr_360px] lg:items-start lg:gap-6">
+    <div className="mx-auto grid max-w-[1080px] gap-4 lg:max-w-none lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6">
 
       {/* ── Resumen compacto — arriba en móvil, derecha en desktop ── */}
-      <aside className="order-first overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm lg:order-2 lg:sticky lg:top-24">
-        <div className="border-b border-neutral-100 px-4 py-3.5">
-          <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">Tu pedido</p>
-          <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
-            {totalItems} {totalItems === 1 ? "artículo" : "artículos"}
-          </p>
+      <aside className="order-first space-y-4 lg:order-2 lg:sticky lg:top-24">
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3.5">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">Tu pedido</p>
+            <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
+              {totalItems} {totalItems === 1 ? "artículo" : "artículos"}
+            </p>
+          </div>
+          {isDesktop && p.onOpenCart && (
+            <button
+              type="button"
+              onClick={p.onOpenCart}
+              className="text-[11px] uppercase tracking-[0.1em] text-neutral-500 underline underline-offset-2 transition-colors hover:text-[#1a1a1a]"
+            >
+              Editar bolsa
+            </button>
+          )}
         </div>
         <ul>
           {[...p.initialCart.items].reverse().map((item) => (
@@ -369,24 +387,94 @@ function ShippingStep(p: ShippingProps) {
             </p>
           )}
         </div>
+        </div>
+
+        {/* Sugerencias — solo desktop */}
+        {isDesktop && p.suggestions && p.suggestions.length > 0 && p.onAddSuggestion && (
+          <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#1a1a1a]">
+              También te puede gustar
+            </p>
+            <div className="cart-scroll flex gap-3 overflow-x-auto pb-2">
+              {p.suggestions.map((s) => {
+                const firstVariant = s.product_variants?.find((v) => v.is_active && v.stock > 0)
+                const price = firstVariant?.price ?? s.base_price
+                const category =
+                  s.categories && typeof s.categories === "object" && "name" in s.categories
+                    ? (s.categories as { name: string }).name
+                    : null
+                const added = p.addedIds?.has(s.id) ?? false
+                const onAdd = p.onAddSuggestion!
+
+                return (
+                  <div key={s.id} className="flex w-36 shrink-0 flex-col">
+                    <Link href={`/tienda/${s.slug}`}>
+                      <div className="h-28 w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50">
+                        {s.images?.[0] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={s.images[0]}
+                            alt={s.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
+                            {s.brand ?? "LC"}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                    <div className="mt-2 flex flex-1 flex-col">
+                      {category && (
+                        <p className="text-[9px] uppercase tracking-[0.12em] text-neutral-500">
+                          {category}
+                        </p>
+                      )}
+                      <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-medium leading-snug text-[#1a1a1a]">
+                        {s.name}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-[11px] font-semibold text-[#C6A75E]">
+                      {formatMXN(price)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => onAdd(s)}
+                      disabled={!firstVariant || added}
+                      className="mt-2 w-full rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:bg-[#C6A75E] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {added ? "Agregado" : "Agregar"}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* ── Formulario ── */}
       <section className="order-last overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm lg:order-1">
 
-        {/* Cabecera con botón regresar */}
+        {/* Cabecera con botón regresar (solo móvil) */}
         <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3.5">
-          <button
-            type="button"
-            onClick={p.onBack}
-            className="flex items-center justify-center rounded-full p-1 text-neutral-400 transition-colors hover:text-[#1a1a1a]"
-            aria-label="Regresar"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+          {!isDesktop && (
+            <button
+              type="button"
+              onClick={p.onBack}
+              className="flex items-center justify-center rounded-full p-1 text-neutral-400 transition-colors hover:text-[#1a1a1a]"
+              aria-label="Regresar"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          )}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">Paso 2 de 2</p>
-            <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">Datos de envío y pago</p>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">
+              {isDesktop ? "Completa tus datos" : "Paso 2 de 2"}
+            </p>
+            <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
+              {isDesktop ? "Dirección y facturación" : "Datos de envío y pago"}
+            </p>
           </div>
         </div>
 
@@ -685,13 +773,15 @@ function ShippingStep(p: ShippingProps) {
               >
                 {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
               </button>
-              <button
-                type="button"
-                onClick={p.onBack}
-                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
-              >
-                Regresar
-              </button>
+              {!isDesktop && (
+                <button
+                  type="button"
+                  onClick={p.onBack}
+                  className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
+                >
+                  Regresar
+                </button>
+              )}
             </div>
           </form>
         )}

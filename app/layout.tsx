@@ -4,6 +4,7 @@
 
 import "./globals.css";
 import { CartProvider } from "./components/cart/CartContext";
+import { WishlistProvider } from "./components/wishlist/WishlistContext";
 import SiteNavbar from "./components/SiteNavbar";
 import SiteFooter from "./components/SiteFooter";
 import WhatsAppButton from "./components/WhatsAppButton";
@@ -73,10 +74,12 @@ export default async function RootLayout({
         className={`${inter.className} ${cormorantGaramond.variable} ${playfairDisplay.variable} flex min-h-screen flex-col`}
       >
         <CartProvider>
-          <SiteNavbar isLoggedIn={Boolean(user)} />
-          <div className="flex-1">{children}</div>
-          <SiteFooter />
-          <WhatsAppButton />
+          <WishlistProvider>
+            <SiteNavbar isLoggedIn={Boolean(user)} />
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
+            <WhatsAppButton />
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>

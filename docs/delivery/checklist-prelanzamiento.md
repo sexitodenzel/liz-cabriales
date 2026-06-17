@@ -22,6 +22,8 @@ Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **
 - [ ] Supabase Auth → SMTP custom configurado con Resend (ver `docs/delivery/pendientes/resend.md` §SMTP)
 - [ ] Email templates de Supabase Auth revisados (no los genéricos del placeholder)
 - [ ] SQL ejecutado: `docs/delivery/sql-sprint5-supabase.sql` (recepcionista, CFDI, `handle_new_user`)
+- [ ] SQL ejecutado: `docs/delivery/sql-invoice-fields.sql` (columnas facturación CFDI en `orders`)
+- [ ] Bucket `invoice-docs` creado en Supabase Storage (privado, límite 10 MB)
 - [x] SQL ejecutado: `docs/delivery/sql-course-display-settings.sql` (toggles públicos de cursos)
 - [ ] SQL ejecutado: `docs/delivery/sql-sprint-whatsapp.sql` (teléfono en users, campos TUA en orders, notification_log)
 - [ ] Google OAuth: provider en Supabase + app publicada en Google Cloud (no testing)
@@ -85,4 +87,10 @@ Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **
 - [ ] Segundo pago MP → estado `shipping_paid` + WhatsApp a Liz
 - [ ] Admin marca enviado → WhatsApp + email al cliente con tracking
 - [ ] Cliente cancela cita → email de confirmación al cliente + alerta al admin
+- [ ] **Facturación CFDI — comprador:** checkout con "Requiero factura" → campos RFC + razón social + correo visibles, total muestra el % adicional de CFDI
+- [ ] **Facturación CFDI — comprador:** subir constancia fiscal en checkout → correo de alerta llega a Liz
+- [ ] **Facturación CFDI — comprador:** subir ticket de pago desde `/orden/[id]` (orden ya pagada) → UI muestra "Ticket recibido"
+- [ ] **Facturación CFDI — admin:** `/admin/orders/[id]` muestra sección "Facturación CFDI" con RFC, razón social, correo y estado "Pendiente"
+- [ ] **Facturación CFDI — admin:** botones "Ver constancia fiscal" y "Ver ticket de pago" abren los documentos
+- [ ] **Facturación CFDI — admin:** "Marcar factura como emitida" → estado cambia a "Emitida" + email de aviso llega al correo de factura de la clienta
 - [ ] Firmas DEV + LIZ en plan maestro

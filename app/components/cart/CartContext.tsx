@@ -27,20 +27,24 @@ type CartContextValue = {
   itemCount: number
   subtotal: number
   isCartOpen: boolean
+  removedCount: number
   addItem: (item: CartItem) => Promise<void>
   removeItem: (variantId: string) => Promise<void>
   updateQuantity: (variantId: string, quantity: number) => Promise<void>
+  adjustItem: (variantId: string, delta: number, min?: number) => void
   clearCart: () => Promise<void>
   openCart: () => void
   closeCart: () => void
   isProgrammatic: () => boolean
   clearProgrammatic: () => void
+  dismissRemovedNotification: () => void
 }
 
 type CartApiData = {
   cart_id: string
   items: CartItem[]
   total: number
+  removed_count?: number
 }
 
 type CartApiResponse =
@@ -73,10 +77,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
   const [isCartOpen, setIsCartOpen] = useState(false)
+  const [removedCount, setRemovedCount] = useState(0)
   const programmaticRef = useRef(false)
+  const itemsRef = useRef<CartItem[]>([])
+  const debounceApiRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+
+  const applySnapshot = useCallback((snapshot: CartApiData) => {
+    setItems(snapshot.items)
+    if (snapshot.removed_count && snapshot.removed_count > 0) {
+      setRemovedCount((prev) => prev + snapshot.removed_count!)
+    }
+  }, [])
 
   const itemCount = useMemo(() => computeItemCount(items), [items])
   const subtotal = useMemo(() => computeSubtotal(items), [items])
+
+  useEffect(() => { itemsRef.current = items }, [items])
 
   useEffect(() => {
     const supabase = createClient()
@@ -99,7 +115,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
         if (!isMounted) return
 
-        setItems(snapshot.items)
+        applySnapshot(snapshot)
 
         if (guest.items.length > 0) {
           clearGuestCart()
@@ -177,13 +193,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             action: "add",
             item,
           })
-          setItems(snapshot.items)
+          applySnapshot(snapshot)
         } catch {
           // se reintentara en la siguiente mutacion
         }
       }
     },
-    [persistGuest, userId]
+    [applySnapshot, persistGuest, userId]
   )
 
   const removeItem = useCallback(
@@ -197,13 +213,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (userId) {
         try {
           const snapshot = await requestCartSnapshot("DELETE", { variantId })
-          setItems(snapshot.items)
+          applySnapshot(snapshot)
         } catch {
           // ignore
         }
       }
     },
-    [persistGuest, userId]
+    [applySnapshot, persistGuest, userId]
   )
 
   const updateQuantity = useCallback(
@@ -227,13 +243,50 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             variantId,
             quantity,
           })
-          setItems(snapshot.items)
+          applySnapshot(snapshot)
         } catch {
           // ignore
         }
       }
     },
-    [persistGuest, removeItem, userId]
+    [applySnapshot, persistGuest, removeItem, userId]
+  )
+
+  const adjustItem = useCallback(
+    (variantId: string, delta: number, min = 1) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.variantId !== variantId
+            ? item
+            : { ...item, quantity: Math.max(min, item.quantity + delta) }
+        )
+      )
+
+      persistGuest(
+        itemsRef.current.map((item) =>
+          item.variantId !== variantId
+            ? item
+            : { ...item, quantity: Math.max(min, item.quantity + delta) }
+        )
+      )
+
+      if (!userId) return
+
+      const existing = debounceApiRef.current.get(variantId)
+      if (existing !== undefined) clearTimeout(existing)
+
+      const timer = setTimeout(() => {
+        debounceApiRef.current.delete(variantId)
+        const current = itemsRef.current.find((i) => i.variantId === variantId)
+        if (!current) return
+        requestCartSnapshot("PATCH", { variantId, quantity: current.quantity })
+          .then(applySnapshot)
+          .catch(() => {})
+      }, 400)
+
+      debounceApiRef.current.set(variantId, timer)
+    },
+    [applySnapshot, persistGuest, userId]
   )
 
   const clearCart = useCallback(async () => {
@@ -245,12 +298,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const snapshot = await requestCartSnapshot("DELETE", {
           clearAll: true,
         })
-        setItems(snapshot.items)
+        applySnapshot(snapshot)
       } catch {
         // ignore
       }
     }
-  }, [userId])
+  }, [applySnapshot, userId])
+
+  const dismissRemovedNotification = useCallback(() => {
+    setRemovedCount(0)
+  }, [])
 
   const openCart = useCallback(() => {
     programmaticRef.current = true
@@ -273,14 +330,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     itemCount,
     subtotal,
     isCartOpen,
+    removedCount,
     addItem,
     removeItem,
     updateQuantity,
+    adjustItem,
     clearCart,
     openCart,
     closeCart,
     isProgrammatic,
     clearProgrammatic,
+    dismissRemovedNotification,
   }
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

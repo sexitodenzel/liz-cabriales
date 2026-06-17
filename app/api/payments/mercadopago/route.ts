@@ -132,7 +132,7 @@ export async function POST(
           payer,
           back_urls: {
             success: `${appUrl}/orden/${order.id}?status=success`,
-            failure: `${appUrl}/orden/${order.id}/error?status=failure`,
+            failure: `${appUrl}/orden/${order.id}?status=failure`,
             pending: `${appUrl}/orden/${order.id}?status=pending`,
           },
           notification_url: `${appUrl}/api/webhooks/mercadopago`,

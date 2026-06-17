@@ -11,6 +11,7 @@ import { X, ShoppingBag } from "lucide-react"
 import { useCart } from "@/app/components/cart/CartContext"
 import { createClient } from "@/lib/supabase/client"
 import { CartItem } from "@/lib/cart"
+import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
 
 function formatMXN(value: number) {
   return new Intl.NumberFormat("es-MX", {
@@ -80,12 +81,13 @@ export default function CartMenu() {
       )
       .is("deleted_at", null)
       .eq("is_active", true)
-      .limit(20)
+      .limit(40)
       .then(({ data }) => {
         if (!data) return
         const filtered = (data as unknown as Suggestion[])
           .filter(
             (p) =>
+              Boolean(p.images?.[0]) &&
               !cartSlugs.includes(p.slug) &&
               p.product_variants?.some((v) => v.is_active && v.stock > 0),
           )
@@ -335,6 +337,7 @@ export default function CartMenu() {
 
       {/* Footer — FIJO */}
       <div className="flex-shrink-0 bg-[#fafafa] p-4">
+        {!isEmpty && <FreeShippingBar amount={subtotal} />}
         <div className="flex items-center justify-between">
           <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal:</p>
           <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">
@@ -352,7 +355,7 @@ export default function CartMenu() {
               onClick={closeCart}
               className="inline-flex h-9 w-full items-center justify-center rounded-full bg-[#c2c2c2] text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:bg-neutral-400"
             >
-              Seguir comprando
+              Seguir explorando
             </Link>
           ) : (
             <Link

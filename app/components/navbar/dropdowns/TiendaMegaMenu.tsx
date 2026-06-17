@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ChevronRight } from "lucide-react"
 import type { TiendaCategory } from "../menuData"
 
 type TiendaMegaMenuProps = {
@@ -38,9 +37,10 @@ export default function TiendaMegaMenu({ isOpen, onClose, categories, sectionHre
 
   return (
     <div
+      style={{ top: "var(--navbar-actual-h)" }}
       className={`
-        absolute left-0 top-full w-full z-40
-        bg-[#0a0a0a] border-t border-white/10
+        fixed left-0 right-0 z-40
+        bg-white border-t border-neutral-200
         transition-all duration-500 ease-[cubic-bezier(.16,1,.3,1)]
         ${isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none"}
       `}
@@ -50,20 +50,17 @@ export default function TiendaMegaMenu({ isOpen, onClose, categories, sectionHre
         {/* Panel izquierdo: lista de categorías */}
         <div
           className={`
-            w-56 shrink-0 border-r border-white/10 pr-6
+            w-56 shrink-0 border-r border-neutral-200 pr-6
             transition-all duration-500 ease-out
             ${contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
           `}
         >
-          <div className="mb-4 flex items-baseline justify-between">
-            <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-500">
-              Categorías
-            </p>
+          <div className="mb-4">
             <Link
               href={sectionHref}
-              className="text-[11px] text-[#C6A75E]/60 hover:text-[#C6A75E] transition-colors"
+              className="text-[11px] uppercase tracking-[0.15em] text-neutral-500 hover:text-[#C6A75E] transition-colors"
             >
-              Ver todo →
+              Categorías
             </Link>
           </div>
           <ul className="space-y-0.5">
@@ -74,24 +71,15 @@ export default function TiendaMegaMenu({ isOpen, onClose, categories, sectionHre
                   onMouseEnter={() => setHoveredIndex(idx)}
                   onFocus={() => setHoveredIndex(idx)}
                   className={`
-                    group flex items-center justify-between rounded-md px-3 py-2
+                    block rounded-md px-3 py-2
                     text-[14px] transition-all duration-150
                     ${hoveredIndex === idx
-                      ? "bg-white/5 text-[#C6A75E]"
-                      : "text-neutral-300 hover:text-[#C6A75E]"
+                      ? "bg-neutral-100 text-[#C6A75E]"
+                      : "text-[#1a1a1a] hover:text-[#C6A75E]"
                     }
                   `}
                 >
-                  <span>{cat.label}</span>
-                  <ChevronRight
-                    className={`
-                      h-3 w-3 shrink-0 transition-all duration-200
-                      ${hoveredIndex === idx
-                        ? "opacity-100 translate-x-0 text-[#C6A75E]"
-                        : "opacity-0 -translate-x-1"
-                      }
-                    `}
-                  />
+                  {cat.label}
                 </Link>
               </li>
             ))}
@@ -111,15 +99,12 @@ export default function TiendaMegaMenu({ isOpen, onClose, categories, sectionHre
                 }
               `}
             >
-              <div className="flex items-baseline gap-3 mb-5">
-                <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-500">
-                  {cat.label}
-                </p>
+              <div className="mb-5">
                 <Link
                   href={cat.href}
-                  className="text-[11px] text-[#C6A75E]/70 hover:text-[#C6A75E] transition-colors"
+                  className="text-[11px] uppercase tracking-[0.15em] text-neutral-500 hover:text-[#C6A75E] transition-colors"
                 >
-                  Ver todo →
+                  {cat.label}
                 </Link>
               </div>
               <ul className="grid grid-cols-2 gap-x-10 gap-y-0.5">
@@ -137,7 +122,7 @@ export default function TiendaMegaMenu({ isOpen, onClose, categories, sectionHre
                   >
                     <Link
                       href={sub.href}
-                      className="block py-2 text-[15px] text-neutral-400 transition-colors hover:text-[#C6A75E]"
+                      className="block py-2 text-[15px] text-[#1a1a1a] transition-colors hover:text-[#C6A75E]"
                     >
                       {sub.label}
                     </Link>

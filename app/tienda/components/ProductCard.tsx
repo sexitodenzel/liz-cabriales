@@ -6,6 +6,8 @@ import { useState } from "react"
 import type { ProductWithCategory } from "@/lib/supabase/products"
 import AddToCartButton from "./AddToCartButton"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
+import { Heart } from "lucide-react"
+import { useWishlist } from "@/app/components/wishlist/WishlistContext"
 
 type Props = { product: ProductWithCategory }
 
@@ -19,6 +21,8 @@ function formatPrice(value: number): string {
 }
 
 export default function ProductCard({ product }: Props) {
+  const { toggle, has } = useWishlist()
+  const wishlisted = has(product.slug)
   const brand = product.brand ?? "Sin marca"
   const images = product.images ?? []
   const initials = brand
@@ -84,13 +88,26 @@ export default function ProductCard({ product }: Props) {
             {brand}
           </div>
 
-          {isOutOfStock ? (
+          {isOutOfStock && (
             <div
-              className={`absolute right-2 top-2 ${imagePillClassName} text-red-400 sm:right-3 sm:top-3`}
+              className={`absolute left-2 bottom-2 ${imagePillClassName} text-red-400 sm:left-3 sm:bottom-3`}
             >
               Agotado
             </div>
-          ) : null}
+          )}
+
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(product.slug) }}
+            aria-label={wishlisted ? "Quitar de wishlist" : "Agregar a wishlist"}
+            className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-transform hover:scale-110 active:scale-95 sm:right-3 sm:top-3"
+          >
+            <Heart
+              className={`h-3.5 w-3.5 transition-colors sm:h-4 sm:w-4 ${
+                wishlisted ? "fill-[#C6A75E] text-[#C6A75E]" : "text-neutral-500"
+              }`}
+            />
+          </button>
 
           {hasMultiple ? (
             <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1">

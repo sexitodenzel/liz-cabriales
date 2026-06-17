@@ -1,6 +1,20 @@
 import { z } from "zod"
 
-const optionalAddressField = z.string().trim().optional()
+// Protección contra inyección SQL y XSS en campos de texto libre
+const DANGEROUS_PATTERN = /(?:--|\/\*|\*\/|;\s*[\r\n]|\x00|<script|javascript:|<iframe)/i
+
+function isSafeText(value: string): boolean {
+  return !DANGEROUS_PATTERN.test(value)
+}
+
+function safeOpt(maxLen = 300) {
+  return z
+    .string()
+    .trim()
+    .max(maxLen, "El campo es demasiado largo")
+    .refine(isSafeText, "El campo contiene caracteres no permitidos")
+    .optional()
+}
 
 const rfcSchema = z
   .string()
@@ -14,50 +28,71 @@ const razonSocialSchema = z
   .trim()
   .min(1, "La razón social es obligatoria para facturación")
   .max(200, "La razón social es demasiado larga")
-
-function normalizeOptionalField(value?: string): string | undefined {
-  if (!value) return undefined
-
-  const normalized = value.trim()
-  return normalized.length > 0 ? normalized : undefined
-}
+  .refine(isSafeText, "La razón social contiene caracteres no permitidos")
 
 export const createOrderSchema = z
   .object({
     delivery_type: z.enum(["shipping", "pickup"]),
-    shipping_address: optionalAddressField,
-    shipping_state: optionalAddressField,
-    shipping_city: optionalAddressField,
+    // Campos para emitir guías (todos requeridos si delivery_type === "shipping")
+    nombre_completo: safeOpt(160),
+    calle_numero:    safeOpt(200),
+    colonia:         safeOpt(120),
+    cp:              z.string().trim().max(5).regex(/^\d{0,5}$/, "CP inválido").optional(),
+    municipio:       safeOpt(100),
+    ciudad:          safeOpt(100),
+    estado:          safeOpt(100),
+    telefono:        z.string().trim().max(15).optional(),
+    entre_calles:    safeOpt(200),
+    referencia:      safeOpt(400),
+    // Factura
     requires_invoice: z.boolean().optional().default(false),
-    rfc: z.string().trim().max(13).optional(),
-    razon_social: z.string().trim().max(200).optional(),
+    rfc:              z.string().trim().max(13).optional(),
+    razon_social:     z.string().trim().max(200).optional(),
+    invoice_email:    z.string().trim().max(320).optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.delivery_type !== "shipping") {
-      return
+    if (value.delivery_type !== "shipping") return
+
+    const required = [
+      ["nombre_completo", "El nombre completo"],
+      ["calle_numero", "La calle y número de casa"],
+      ["colonia", "La colonia"],
+      ["cp", "El código postal"],
+      ["municipio", "El municipio"],
+      ["ciudad", "La ciudad"],
+      ["estado", "El estado"],
+      ["telefono", "El teléfono"],
+      ["entre_calles", "Las calles de referencia"],
+      ["referencia", "La referencia del domicilio"],
+    ] as const
+
+    for (const [field, label] of required) {
+      if (!value[field]?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: `${label} es obligatorio`,
+        })
+      }
     }
 
-    if (!value.shipping_address) {
+    // Validar formato teléfono: 10 dígitos locales
+    const tel = value.telefono?.trim() ?? ""
+    if (tel && !/^\d{10}$/.test(tel)) {
       ctx.addIssue({
         code: "custom",
-        path: ["shipping_address"],
-        message: "La direccion de envio es obligatoria",
+        path: ["telefono"],
+        message: "El teléfono debe tener 10 dígitos (sin código de país)",
       })
     }
 
-    if (!value.shipping_state) {
+    // Validar CP: exactamente 5 dígitos
+    const cp = value.cp?.trim() ?? ""
+    if (cp && !/^\d{5}$/.test(cp)) {
       ctx.addIssue({
         code: "custom",
-        path: ["shipping_state"],
-        message: "El estado de envio es obligatorio",
-      })
-    }
-
-    if (!value.shipping_city) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["shipping_city"],
-        message: "La ciudad de envio es obligatoria",
+        path: ["cp"],
+        message: "El código postal debe tener 5 dígitos",
       })
     }
   })
@@ -66,6 +101,7 @@ export const createOrderSchema = z
 
     const rfc = value.rfc?.trim() ?? ""
     const rs = value.razon_social?.trim() ?? ""
+
     const rfcParsed = rfcSchema.safeParse(rfc)
     if (!rfcParsed.success) {
       ctx.addIssue({
@@ -74,6 +110,7 @@ export const createOrderSchema = z
         message: rfcParsed.error.issues[0]?.message ?? "RFC inválido",
       })
     }
+
     const rsParsed = razonSocialSchema.safeParse(rs)
     if (!rsParsed.success) {
       ctx.addIssue({
@@ -82,19 +119,46 @@ export const createOrderSchema = z
         message: rsParsed.error.issues[0]?.message ?? "Razón social inválida",
       })
     }
+
+    const email = value.invoice_email?.trim() ?? ""
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["invoice_email"],
+        message: "Correo de facturación inválido",
+      })
+    }
   })
-  .transform((value) => ({
-    delivery_type: value.delivery_type,
-    shipping_address: normalizeOptionalField(value.shipping_address),
-    shipping_state: normalizeOptionalField(value.shipping_state),
-    shipping_city: normalizeOptionalField(value.shipping_city),
-    requires_invoice: Boolean(value.requires_invoice),
-    rfc: value.requires_invoice
-      ? (value.rfc ?? "").trim().toUpperCase()
-      : undefined,
-    razon_social: value.requires_invoice
-      ? (value.razon_social ?? "").trim()
-      : undefined,
-  }))
+  .transform((value) => {
+    let shippingAddress: string | undefined
+    let shippingState: string | undefined
+    let shippingCity: string | undefined
+
+    if (value.delivery_type === "shipping") {
+      const lines: string[] = []
+      if (value.nombre_completo?.trim()) lines.push(`Nombre: ${value.nombre_completo.trim()}`)
+      if (value.calle_numero?.trim())    lines.push(`Calle/Núm: ${value.calle_numero.trim()}`)
+      if (value.colonia?.trim())         lines.push(`Colonia: ${value.colonia.trim()}`)
+      if (value.cp?.trim())              lines.push(`CP: ${value.cp.trim()}`)
+      if (value.municipio?.trim())       lines.push(`Municipio: ${value.municipio.trim()}`)
+      if (value.telefono?.trim())        lines.push(`Tel: ${value.telefono.trim()}`)
+      if (value.entre_calles?.trim())    lines.push(`Entre calles: ${value.entre_calles.trim()}`)
+      if (value.referencia?.trim())      lines.push(`Referencia: ${value.referencia.trim()}`)
+      shippingAddress = lines.join("\n") || undefined
+      shippingState   = value.estado?.trim() || undefined
+      shippingCity    = value.ciudad?.trim() || undefined
+    }
+
+    return {
+      delivery_type:    value.delivery_type,
+      shipping_address: shippingAddress,
+      shipping_state:   shippingState,
+      shipping_city:    shippingCity,
+      requires_invoice: Boolean(value.requires_invoice),
+      rfc:              value.requires_invoice ? (value.rfc ?? "").trim().toUpperCase() : undefined,
+      razon_social:     value.requires_invoice ? (value.razon_social ?? "").trim() : undefined,
+      invoice_email:    value.requires_invoice ? (value.invoice_email ?? "").trim() || undefined : undefined,
+    }
+  })
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>

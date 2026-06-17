@@ -63,7 +63,7 @@ function WhatsAppIcon() {
 }
 
 const socialLinkClass =
-  "inline-flex items-center gap-2 rounded-full px-[18px] py-2.5 text-[13px] font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+  "inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 lg:gap-2 lg:px-[18px] lg:py-2.5 lg:text-[13px]"
 
 const fadeUp = (inView: boolean, delay: number) =>
   `transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`
@@ -78,8 +78,8 @@ export default function BrandDescription({ photoUrl }: Props) {
 
   return (
     <section ref={ref} className="bg-white text-black">
-      <div className="mx-auto max-w-[1400px] px-6 py-24">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
+      <div className="mx-auto max-w-[1400px] px-6 py-12 lg:py-24">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:items-stretch lg:gap-16">
 
           {/* Text column */}
           <div className="order-2 flex min-h-0 min-w-0 flex-col lg:order-2">
@@ -170,7 +170,7 @@ export default function BrandDescription({ photoUrl }: Props) {
                   Síguenos y contáctanos
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-3 gap-2 lg:flex lg:flex-wrap lg:gap-3">
                 <Link
                   href={SOCIAL.facebook}
                   target="_blank"

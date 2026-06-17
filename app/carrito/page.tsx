@@ -14,26 +14,23 @@ function formatPrice(value: number): string {
 }
 
 const FREE_SHIPPING_THRESHOLD = 2000
-const SHIPPING_COST = 150
 
 export default function CartPage() {
   const router = useRouter()
-  const { items, itemCount, subtotal, updateQuantity, removeItem } = useCart()
+  const { items, itemCount, subtotal, adjustItem, removeItem, removedCount, dismissRemovedNotification } = useCart()
 
   const remainingForFreeShipping = Math.max(
     0,
     FREE_SHIPPING_THRESHOLD - subtotal
   )
   const hasFreeShipping = remainingForFreeShipping === 0
-  const shippingPrice = hasFreeShipping ? 0 : SHIPPING_COST
-  const total = subtotal + shippingPrice
+  const isEmpty = items.length === 0
+  const total = subtotal
 
   const progress =
     subtotal >= FREE_SHIPPING_THRESHOLD
       ? 100
       : Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)
-
-  const isEmpty = items.length === 0
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
@@ -49,7 +46,7 @@ export default function CartPage() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="m15 18-6-6 6-6" />
               </svg>
-              Seguir comprando
+              Seguir explorando
             </button>
             <h1 className="text-xl font-semibold tracking-[0.12em] text-[#0a0a0a]">
               CARRITO{" "}
@@ -77,6 +74,24 @@ export default function CartPage() {
               />
             </div>
           </div>
+
+          {removedCount > 0 && (
+            <div className="flex items-start justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <span>
+                {removedCount === 1
+                  ? "1 producto de tu carrito ya no está disponible y fue eliminado automáticamente."
+                  : `${removedCount} productos de tu carrito ya no están disponibles y fueron eliminados automáticamente.`}
+              </span>
+              <button
+                type="button"
+                onClick={dismissRemovedNotification}
+                aria-label="Cerrar aviso"
+                className="shrink-0 text-amber-500 hover:text-amber-800"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           {isEmpty ? (
             <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-10 text-center">
@@ -148,12 +163,7 @@ export default function CartPage() {
                       <div className="flex items-center gap-2 text-xs text-neutral-600">
                         <button
                           type="button"
-                          onClick={() =>
-                            void updateQuantity(
-                              item.variantId,
-                              Math.max(1, item.quantity - 1)
-                            )
-                          }
+                          onClick={() => adjustItem(item.variantId, -1)}
                           className="h-7 w-7 rounded-full border border-neutral-300 text-center leading-7"
                         >
                           -
@@ -163,12 +173,7 @@ export default function CartPage() {
                         </span>
                         <button
                           type="button"
-                          onClick={() =>
-                            void updateQuantity(
-                              item.variantId,
-                              item.quantity + 1
-                            )
-                          }
+                          onClick={() => adjustItem(item.variantId, 1)}
                           className="h-7 w-7 rounded-full border border-neutral-300 text-center leading-7"
                         >
                           +
@@ -202,15 +207,13 @@ export default function CartPage() {
             <div className="flex items-center justify-between">
               <span className="text-neutral-600">Envío</span>
               <span className="font-medium text-[#0a0a0a]">
-                {hasFreeShipping
-                  ? "Gratis"
-                  : `${formatPrice(SHIPPING_COST)} MXN`}
+                {hasFreeShipping && !isEmpty ? "Gratis" : "Se calcula al finalizar"}
               </span>
             </div>
           </div>
 
           <div className="mt-2 flex items-center justify-between border-t border-neutral-200 pt-3 text-sm font-semibold text-[#0a0a0a]">
-            <span>Total</span>
+            <span>Subtotal</span>
             <span className="text-lg">{formatPrice(total)}</span>
           </div>
 

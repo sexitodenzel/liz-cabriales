@@ -164,7 +164,23 @@ Plantilla completa: `.env.example` y `DEPLOY.md`.
 | Catálogo / fotos reales | A | R | C | Tienda lista |
 | Aprobación diseño final | A/R | C | I | Firma Liz |
 
-### 2.9 Seguridad y continuidad
+### 2.10 Facturación CFDI
+
+| Actividad | LIZ | DEV | OPS | Evidencia |
+|-----------|-----|-----|-----|-----------|
+| SQL `sql-invoice-fields.sql` ejecutado en Supabase | A | R | I | Sin error |
+| Bucket `invoice-docs` creado en Storage (privado, 10 MB) | A | R | I | Storage OK |
+| `ADMIN_EMAIL` en Vercel (recibe alerta de constancia fiscal) | A | R | I | Env activa |
+| % CFDI confirmado con contadora → aplicado en checkout | A | C | R | % definido |
+| Prueba comprador — checkout con factura: campos RFC + razón social + correo visibles, total muestra +16% | A | R | I | UI OK |
+| Prueba comprador — subir constancia fiscal en checkout → correo de alerta llega a Liz | A | R | I | Email recibido |
+| Prueba comprador — subir ticket de pago desde `/orden/[id]` → UI muestra "Ticket recibido" | A | R | I | Confirmación OK |
+| Prueba admin — sección "Facturación CFDI" visible en `/admin/orders/[id]` con RFC, razón social, correo y estado "Pendiente" | A | R | I | Panel OK |
+| Prueba admin — botón "Ver constancia fiscal" abre el documento (cuando la clienta ya lo subió) | A | R | I | Documento abre |
+| Prueba admin — botón "Ver ticket de pago" abre el comprobante | A | R | I | Documento abre |
+| Prueba admin — "Marcar factura como emitida" → estado cambia a "Emitida" + email llega a correo de factura de la clienta | A | R | I | Estado + email OK |
+
+### 2.11 Seguridad y continuidad
 
 | Actividad | LIZ | DEV | OPS | Evidencia |
 |-----------|-----|-----|-----|-----------|
@@ -192,6 +208,15 @@ Plantilla completa: `.env.example` y `DEPLOY.md`.
 - [ ] Variables WhatsApp en Vercel: `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `ADMIN_WHATSAPP_PHONE`
 - [ ] 7 plantillas Meta aprobadas: `phone_verify_otp`, `admin_new_order`, `order_products_confirmed`, `shipping_payment_request`, `shipping_paid_admin`, `order_shipped`, `order_delivered`
 - [ ] Prueba E2E flujo TUA: pago → guía → cobro envío → segundo pago → enviado
+- [ ] `sql-invoice-fields.sql` ejecutado en Supabase (columnas CFDI en `orders`)
+- [ ] Bucket `invoice-docs` creado en Supabase Storage (privado, límite 10 MB)
+- [ ] `ADMIN_EMAIL` en Vercel (alerta cuando clienta sube constancia fiscal)
+- [ ] Prueba comprador — checkout con factura: RFC + razón social + correo de factura, total refleja +16%
+- [ ] Prueba comprador — subir constancia fiscal en checkout → correo de alerta llega a Liz
+- [ ] Prueba comprador — subir ticket de pago desde `/orden/[id]` (orden ya pagada) → UI confirma "Ticket recibido"
+- [ ] Prueba admin — `/admin/orders/[id]` muestra sección "Facturación CFDI" con datos de la clienta y estado "Pendiente"
+- [ ] Prueba admin — botón "Ver constancia fiscal" y "Ver ticket de pago" abren los documentos correctamente
+- [ ] Prueba admin — "Marcar factura como emitida" → `invoice_status = issued` en DB + email de aviso llega al correo de factura de la clienta
 
 ### Contenido y operación
 
@@ -223,6 +248,9 @@ Plantilla completa: `.env.example` y `DEPLOY.md`.
 | Plantillas Meta no aprobadas | Mensajes bloqueados por Meta | Registrar y esperar aprobación (~24 h para Utility) |
 | Token WhatsApp temporal (no de sistema) | Expira en horas → mensajes dejan de salir | Usar token de sistema permanente desde Meta BM |
 | Secretos en chat o repo | Compromiso de cuentas | Rotar keys; solo Vercel / gestor seguro |
+| `sql-invoice-fields.sql` no ejecutado | Checkout con factura rompe (columnas inexistentes en `orders`) | Ejecutar antes del go-live |
+| Bucket `invoice-docs` no creado | Upload de constancia/ticket falla con error de Storage | Crear en Supabase Storage → privado → límite 10 MB |
+| `ADMIN_EMAIL` no configurado | Liz no recibe alerta cuando clienta sube constancia fiscal | Agregar `ADMIN_EMAIL` en Vercel antes de salir |
 
 **Seguridad obligatoria antes de salir:**
 
@@ -335,6 +363,8 @@ Ambos exigen header `Authorization: Bearer <CRON_SECRET>`.
 | Inscripción a curso | Webhook MP |
 | Recordatorio de cita | Cron appointment-reminders |
 | Bienvenida cliente (admin crea usuario) | `POST /api/admin/users` |
+| Solicitud de factura recibida (clienta subió constancia) | `POST /api/orders/[id]/invoice-upload` → `sendInvoiceReceivedAdminEmail` → **a Liz** |
+| Factura emitida por Liz | `POST /api/admin/orders/[id]/invoice-issue` → `sendInvoiceIssuedClientEmail` → **a correo de factura de la clienta** |
 
 Todos dependen de **Resend** + `NEXT_PUBLIC_APP_URL` en enlaces.
 

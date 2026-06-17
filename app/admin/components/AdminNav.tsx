@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/admin/courses", label: "Cursos" },
   { href: "/admin/instructors", label: "Instructores" },
   { href: "/admin/media", label: "Media" },
+  { href: "/admin/nail-art", label: "Nail Art" },
 ] as const
 
 function isActivePath(pathname: string, href: string) {

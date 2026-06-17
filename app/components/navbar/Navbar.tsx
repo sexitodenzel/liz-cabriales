@@ -287,9 +287,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           <div className="relative flex-1 min-w-0">
             <form
               onSubmit={handleSearchSubmit}
-              className={`relative z-[71] flex items-center border border-white/10 bg-[#141414] px-2 py-1 transition-[border-radius,border-bottom-color] duration-200 ${
+              className={`relative z-[71] flex items-center border border-neutral-200 bg-white px-2 py-1 transition-[border-radius,border-bottom-color] duration-200 ${
                 mobileSearchCategoriesOpen || (mobileSuggestionsOpen && searchQuery.trim().length >= 2)
-                  ? "rounded-t-full border-b-[#141414]"
+                  ? "rounded-t-full border-b-white"
                   : "rounded-full"
               }`}
             >
@@ -309,7 +309,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileSearchCategoriesOpen ? "rotate-180" : ""}`} />
                 </button>
               </div>
-              <div className="mx-1.5 h-5 w-px shrink-0 bg-white/15" aria-hidden="true" />
+              <div className="mx-1.5 h-5 w-px shrink-0 bg-neutral-200" aria-hidden="true" />
               <input
                 type="text"
                 inputMode="search"
@@ -327,7 +327,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   if (searchQuery.trim().length >= 2) setMobileSuggestionsOpen(true)
                 }}
                 placeholder="¿Qué estás buscando?"
-                className="navbar-search-input min-w-0 flex-1 bg-transparent px-2 text-base text-neutral-200 placeholder:text-neutral-500 outline-none md:text-sm"
+                className="navbar-search-input min-w-0 flex-1 bg-transparent px-2 text-base text-neutral-900 placeholder:text-neutral-500 outline-none md:text-sm"
                 aria-label="Buscar productos"
               />
               {searchQuery.length > 0 && (
@@ -382,7 +382,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               aria-label="Carrito"
             >
               <span className="relative shrink-0">
-                <ShoppingBag className={`w-5 h-5 transition-colors ${itemCount > 0 ? "text-[#C6A75E]" : ""}`} />
+                <ShoppingBag className="w-5 h-5 text-white transition-colors" />
                 {itemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
                     {itemCount}
@@ -474,9 +474,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             <div className="relative min-w-0 flex-1" data-search-autocomplete>
               <form
                 onSubmit={handleSearchSubmit}
-                className={`relative flex w-full items-center border border-white/10 bg-[#141414] px-1.5 py-1 transition-[border-radius,border-bottom-color] duration-200 ${
+                className={`relative flex w-full items-center border border-neutral-200 bg-white px-1.5 py-1 transition-[border-radius,border-bottom-color] duration-200 ${
                   suggestionsOpen && !allCategoriesOpen && searchQuery.trim().length >= 2
-                    ? "rounded-t-full border-b-[#141414]"
+                    ? "rounded-t-full border-b-white"
                     : "rounded-full"
                 }`}
               >
@@ -508,7 +508,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                     onMouseLeave={scheduleCloseCategories}
                   />
                 </div>
-                <div className="mx-1 h-5 w-px shrink-0 bg-white/15" aria-hidden="true" />
+                <div className="mx-1 h-5 w-px shrink-0 bg-neutral-200" aria-hidden="true" />
                 <input
                   type="text"
                   inputMode="search"
@@ -535,7 +535,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                     if (searchQuery.trim().length >= 2) setSuggestionsOpen(true)
                   }}
                   placeholder="¿Qué estás buscando?"
-                  className="navbar-search-input min-w-0 flex-1 bg-transparent px-2 text-sm text-neutral-200 placeholder:text-neutral-500 outline-none"
+                  className="navbar-search-input min-w-0 flex-1 bg-transparent px-2 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none"
                   aria-label="Buscar productos"
                 />
                 {searchQuery.length > 0 && (
@@ -597,7 +597,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               aria-label="Carrito"
             >
               <span className="relative shrink-0">
-                <ShoppingBag className={`w-7 h-7 transition-colors ${itemCount > 0 ? "text-[#C6A75E]" : ""}`} />
+                <ShoppingBag className="w-7 h-7 text-white transition-colors" />
                 {itemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
                     {itemCount}

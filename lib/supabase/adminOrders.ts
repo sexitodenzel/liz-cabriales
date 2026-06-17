@@ -48,6 +48,17 @@ export type AdminOrderDetail = {
   client_first_name: string | null
   client_last_name: string | null
   client_email: string | null
+  // Factura
+  requires_invoice: boolean
+  rfc: string | null
+  razon_social: string | null
+  invoice_email: string | null
+  invoice_status: string | null
+  constancia_fiscal_url: string | null
+  constancia_signed_url: string | null
+  ticket_photo_url: string | null
+  ticket_signed_url: string | null
+  invoice_issued_at: string | null
   items: AdminOrderItemRow[]
 }
 
@@ -151,6 +162,14 @@ type RawOrderRow = {
   guide_created_at: string | null
   shipped_at: string | null
   created_at: string
+  requires_invoice: boolean | null
+  rfc: string | null
+  razon_social: string | null
+  invoice_email: string | null
+  invoice_status: string | null
+  constancia_fiscal_url: string | null
+  ticket_photo_url: string | null
+  invoice_issued_at: string | null
   users: unknown
   order_items: unknown
 }
@@ -178,6 +197,14 @@ export async function getAdminOrderById(
        guide_created_at,
        shipped_at,
        created_at,
+       requires_invoice,
+       rfc,
+       razon_social,
+       invoice_email,
+       invoice_status,
+       constancia_fiscal_url,
+       ticket_photo_url,
+       invoice_issued_at,
        users ( first_name, last_name, email ),
        order_items (
          quantity,
@@ -230,6 +257,24 @@ export async function getAdminOrderById(
     }
   })
 
+  // Generate signed URLs for private invoice documents (valid 1 hour)
+  let constanciaSignedUrl: string | null = null
+  let ticketSignedUrl: string | null = null
+
+  if (row.constancia_fiscal_url) {
+    const { data: signed } = await supabaseAdmin.storage
+      .from("invoice-docs")
+      .createSignedUrl(row.constancia_fiscal_url, 3600)
+    constanciaSignedUrl = signed?.signedUrl ?? null
+  }
+
+  if (row.ticket_photo_url) {
+    const { data: signed } = await supabaseAdmin.storage
+      .from("invoice-docs")
+      .createSignedUrl(row.ticket_photo_url, 3600)
+    ticketSignedUrl = signed?.signedUrl ?? null
+  }
+
   return {
     data: {
       id: row.id,
@@ -252,6 +297,16 @@ export async function getAdminOrderById(
       client_first_name: names.first,
       client_last_name: names.last,
       client_email: email,
+      requires_invoice: Boolean(row.requires_invoice),
+      rfc: row.rfc,
+      razon_social: row.razon_social,
+      invoice_email: row.invoice_email,
+      invoice_status: row.invoice_status,
+      constancia_fiscal_url: row.constancia_fiscal_url,
+      constancia_signed_url: constanciaSignedUrl,
+      ticket_photo_url: row.ticket_photo_url,
+      ticket_signed_url: ticketSignedUrl,
+      invoice_issued_at: row.invoice_issued_at,
       items,
     },
     error: null,

@@ -1,5 +1,5 @@
 /** Porcentaje aplicado al subtotal del carrito cuando el cliente solicita factura CFDI. */
-export const CFDI_SURCHARGE_PERCENT = 4
+export const CFDI_SURCHARGE_PERCENT = 16
 
 function roundMoney(value: number): number {
   return Math.round(value * 100) / 100
