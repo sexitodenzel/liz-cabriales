@@ -1188,16 +1188,18 @@ export default function CheckoutClient({ initialCart }: Props) {
         </div>
       </div>
 
-      {/* ─── Desktop: breadcrumb 4 pasos ─── */}
+      {/* ─── Desktop: indicador 2 pasos (Datos → Pago) ─── */}
       <div className="mx-auto hidden max-w-[1200px] px-6 pt-6 lg:block">
         <nav className="mb-4 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em]">
-          <span className="font-semibold text-[#1a1a1a]">Orden</span>
+          <span className="flex items-center gap-1.5 font-semibold text-[#1a1a1a]">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white">1</span>
+            Datos de envío y facturación
+          </span>
           <span className="text-neutral-300">›</span>
-          <span className="text-neutral-400">Dirección</span>
-          <span className="text-neutral-300">›</span>
-          <span className="text-neutral-400">Información de facturación</span>
-          <span className="text-neutral-300">›</span>
-          <span className="text-neutral-400">Pago</span>
+          <span className="flex items-center gap-1.5 text-neutral-400">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-bold text-neutral-500">2</span>
+            Pago (MercadoPago)
+          </span>
         </nav>
       </div>
 
