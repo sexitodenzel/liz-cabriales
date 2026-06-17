@@ -290,7 +290,7 @@ type ShippingProps = {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
   onRetryPayment: () => void
   onCancelPendingOrder: () => void
-  errorRef: React.RefObject<HTMLDivElement>
+  errorRef: React.RefObject<HTMLDivElement | null>
 }
 
 function ShippingStep(p: ShippingProps) {
