@@ -122,7 +122,15 @@ export default function RegisterModal({
       }
 
       if (payJson.data?.payment_url) {
-        window.location.href = payJson.data.payment_url
+        // Open MercadoPago in a new tab; navigate the original tab to the
+        // registration detail page where the user can re-open or cancel.
+        const newTab = window.open(payJson.data.payment_url, "_blank")
+        if (!newTab) {
+          setError(
+            "Tu navegador bloqueó la ventana de pago. Ve a la inscripción y reintenta."
+          )
+        }
+        router.push(`/curso/${course.id}/inscripcion/${registrationId}`)
       } else {
         setError("No se recibió URL de pago")
       }

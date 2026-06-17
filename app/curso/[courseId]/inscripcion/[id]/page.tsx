@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server"
 import { getRegistrationForUser } from "@/lib/supabase/courses"
 import type { RegistrationStatus } from "@/types"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import { getMinDeposit } from "@/lib/utils"
+import RetryCoursePaymentButton from "./error/RetryCoursePaymentButton"
 
 export const dynamic = "force-dynamic"
 
@@ -258,6 +260,13 @@ export default async function InscripcionSuccessPage({
             )}
 
             <div className="mt-6 flex flex-col gap-3">
+              {registration.status === "pending" && (
+                <RetryCoursePaymentButton
+                  registrationId={registration.id}
+                  fullPrice={totalCourse}
+                  minDeposit={getMinDeposit(course.price)}
+                />
+              )}
               <Link
                 href="/academia"
                 className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"

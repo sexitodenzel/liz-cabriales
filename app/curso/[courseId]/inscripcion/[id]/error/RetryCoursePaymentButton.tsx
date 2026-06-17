@@ -28,12 +28,14 @@ export default function RetryCoursePaymentButton({
   )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [blockedUrl, setBlockedUrl] = useState<string | null>(null)
 
   const amount = mode === "full" ? fullPrice : minDeposit
 
   const handleRetry = async () => {
     setLoading(true)
     setError(null)
+    setBlockedUrl(null)
     try {
       const res = await fetch("/api/payments/course", {
         method: "POST",
@@ -48,10 +50,15 @@ export default function RetryCoursePaymentButton({
         setError(json?.error?.message ?? "No se pudo iniciar el pago")
         return
       }
-      if (json.data.payment_url) {
-        window.location.href = json.data.payment_url
-      } else {
+      const url = json.data?.payment_url as string | undefined
+      if (!url) {
         setError("MercadoPago no devolvió una URL de pago")
+        return
+      }
+      const newTab = window.open(url, "_blank")
+      if (!newTab) {
+        setBlockedUrl(url)
+        setError("Tu navegador bloqueó la nueva ventana. Abre el enlace de abajo.")
       }
     } catch {
       setError("Error de red al reintentar el pago")
@@ -102,6 +109,16 @@ export default function RetryCoursePaymentButton({
         <p className="mt-2 text-xs text-red-700" role="alert">
           {error}
         </p>
+      )}
+      {blockedUrl && (
+        <a
+          href={blockedUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 inline-block text-xs font-semibold text-[#C9A84C] underline"
+        >
+          Abrir pago manualmente
+        </a>
       )}
     </div>
   )

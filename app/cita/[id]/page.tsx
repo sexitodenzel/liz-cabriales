@@ -6,6 +6,7 @@ import { getAppointmentForUser } from "@/lib/supabase/appointments"
 import type { AppointmentStatus } from "@/types"
 
 import CancelAppointmentButton from "./CancelAppointmentButton"
+import RetryAppointmentPaymentButton from "./error/RetryAppointmentPaymentButton"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type Props = {
@@ -234,6 +235,12 @@ export default async function CitaPage({ params, searchParams }: Props) {
             </div>
 
             <div className="mt-5 flex flex-col gap-3">
+              {appointment.status === "pending" && (
+                <RetryAppointmentPaymentButton
+                  appointmentId={appointment.id}
+                  label={isPending ? "Reabrir pago" : "Pagar cita"}
+                />
+              )}
               {(appointment.status === "pending" ||
                 appointment.status === "paid") && (
                 <CancelAppointmentButton

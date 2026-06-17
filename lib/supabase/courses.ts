@@ -406,20 +406,23 @@ export async function createRegistration(
     }
   }
 
-  // 2) Prevenir inscripción duplicada (pendiente o pagada)
+  // 2) Auto-cancelar inscripciones pendientes abandonadas para este curso/usuario.
+  //    Las inscripciones 'paid' siguen bloqueando (no se cancelan automáticamente).
+  await supabaseAdmin
+    .from("course_registrations")
+    .update({ status: "cancelled" })
+    .eq("course_id", courseId)
+    .eq("user_id", userId)
+    .eq("status", "pending")
+
+  // 3) Prevenir inscripción duplicada solo si ya hay una pagada
   const existing = await findExistingActiveRegistration(courseId, userId)
   if (existing) {
     return {
       data: null,
       error: {
-        message:
-          existing.status === "paid"
-            ? "Ya estás inscrito en este curso"
-            : "Ya tienes una inscripción pendiente de pago para este curso",
-        code:
-          existing.status === "paid"
-            ? "ALREADY_REGISTERED"
-            : "PENDING_REGISTRATION_EXISTS",
+        message: "Ya estás inscrito en este curso",
+        code: "ALREADY_REGISTERED",
       },
     }
   }

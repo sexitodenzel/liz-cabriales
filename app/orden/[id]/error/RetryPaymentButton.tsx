@@ -20,10 +20,12 @@ export default function RetryPaymentButton({ orderId }: Props) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [retryError, setRetryError] = useState<string | null>(null)
+  const [blockedUrl, setBlockedUrl] = useState<string | null>(null)
 
   const handleRetry = async () => {
     setIsLoading(true)
     setRetryError(null)
+    setBlockedUrl(null)
 
     try {
       const response = await fetch("/api/payments/mercadopago", {
@@ -47,8 +49,11 @@ export default function RetryPaymentButton({ orderId }: Props) {
         return
       }
 
-      // Redirigir a MercadoPago
-      window.location.href = json.data.payment_url
+      const newTab = window.open(json.data.payment_url, "_blank")
+      if (!newTab) {
+        setBlockedUrl(json.data.payment_url)
+        setRetryError("Tu navegador bloqueó la nueva ventana. Abre el enlace de abajo.")
+      }
     } catch {
       setRetryError("Error de conexión. Verifica tu internet e intenta de nuevo.")
     } finally {
@@ -71,6 +76,17 @@ export default function RetryPaymentButton({ orderId }: Props) {
         <p className="rounded-2xl border border-[#e7b8b8] bg-[#fff2f2] px-4 py-3 text-sm text-[#8a2f2f]">
           {retryError}
         </p>
+      )}
+
+      {blockedUrl && (
+        <a
+          href={blockedUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm font-semibold text-[#C9A84C] underline"
+        >
+          Abrir pago manualmente
+        </a>
       )}
     </div>
   )

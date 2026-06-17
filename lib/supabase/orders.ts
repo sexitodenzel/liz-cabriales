@@ -308,6 +308,16 @@ export async function createOrderFromActiveCart(
   input: CreateOrderInput
 ): Promise<Result<CreateOrderResult>> {
   const supabase = await createClient()
+
+  // Cancel any orphan pending orders before creating a new one (Zara-style):
+  // ensures the user never accumulates multiple pending orders even when
+  // returning via bfcache where the /checkout server-side cancel didn't run.
+  await supabaseAdmin
+    .from("orders")
+    .update({ status: "cancelled" })
+    .eq("user_id", userId)
+    .eq("status", "pending")
+
   const draftResult = await getOrderDraftWithClient(
     supabase,
     userId,
@@ -374,6 +384,7 @@ export async function createOrderFromActiveCart(
         rfc: input.rfc,
         razon_social: input.razon_social,
         invoice_surcharge: invoiceSurcharge,
+        invoice_email: input.invoice_email ?? null,
       })
       .eq("id", idStr)
       .eq("user_id", userId)
@@ -425,6 +436,12 @@ export type OrderForDisplay = {
   carrier: string | null
   tracking_number: string | null
   created_at: string
+  // Factura
+  requires_invoice: boolean
+  invoice_status: string | null
+  constancia_fiscal_url: string | null
+  ticket_photo_url: string | null
+  invoice_issued_at: string | null
   items: OrderItemForDisplay[]
 }
 
@@ -479,7 +496,7 @@ export async function getOrderWithItemsForUser(
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select(
-      "id, status, total, delivery_type, shipping_address, shipping_state, shipping_city, shipping_cost, shipping_amount_final, shipping_payment_url, shipping_payment_status, carrier, tracking_number, created_at"
+      "id, status, total, delivery_type, shipping_address, shipping_state, shipping_city, shipping_cost, shipping_amount_final, shipping_payment_url, shipping_payment_status, carrier, tracking_number, created_at, requires_invoice, invoice_status, constancia_fiscal_url, ticket_photo_url, invoice_issued_at"
     )
     .eq("id", orderId)
     .eq("user_id", userId)
@@ -540,6 +557,11 @@ export async function getOrderWithItemsForUser(
       carrier: (order.carrier as string | null) ?? null,
       tracking_number: (order.tracking_number as string | null) ?? null,
       created_at: order.created_at as string,
+      requires_invoice: Boolean(order.requires_invoice),
+      invoice_status: (order.invoice_status as string | null) ?? null,
+      constancia_fiscal_url: (order.constancia_fiscal_url as string | null) ?? null,
+      ticket_photo_url: (order.ticket_photo_url as string | null) ?? null,
+      invoice_issued_at: (order.invoice_issued_at as string | null) ?? null,
       items,
     },
     error: null,

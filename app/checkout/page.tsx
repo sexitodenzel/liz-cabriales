@@ -16,6 +16,15 @@ export default async function CheckoutPage() {
     redirect("/login")
   }
 
+  // Auto-cancel any abandoned pending orders before showing checkout.
+  // Stock is only decremented in the MP webhook (deductStockForOrder),
+  // so pending orders here never held inventory — safe to cancel.
+  await supabase
+    .from("orders")
+    .update({ status: "cancelled" })
+    .eq("user_id", user.id)
+    .eq("status", "pending")
+
   const cartResult = await getActiveCartSnapshot(user.id)
 
   if (!cartResult.data) {
@@ -42,7 +51,7 @@ export default async function CheckoutPage() {
               href="/tienda"
               className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
             >
-              Seguir comprando
+              Seguir explorando
             </Link>
           </div>
         </div>

@@ -426,7 +426,17 @@ export default function ServiciosClient({
       }
 
       if (payJson.data.payment_url) {
-        window.location.href = payJson.data.payment_url
+        // Open MercadoPago in a new tab so the user can come back to the
+        // appointment detail page without losing context (Shopify-style).
+        const newTab = window.open(payJson.data.payment_url, "_blank")
+        if (!newTab) {
+          setSubmitError(
+            "Tu navegador bloqueó la ventana de pago. Ve a tu cita y usa el botón de pago."
+          )
+        }
+        // Navigate the original tab to the appointment detail page where the
+        // user can re-open the payment if needed or cancel.
+        router.push(`/cita/${appointmentId}`)
       } else {
         setSubmitError("No se pudo generar el enlace de pago")
       }
