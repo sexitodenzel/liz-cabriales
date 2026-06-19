@@ -2,14 +2,18 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Search, User, ShoppingBag, ChevronDown, X, Menu } from "lucide-react"
-import { useState, useEffect, useRef, useCallback, type FormEvent } from "react"
+import { Search, User, ShoppingBag, ChevronDown, X, Menu, Heart } from "lucide-react"
+import { useState, useEffect, useRef, useCallback, useMemo, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
 import TiendaMegaMenu from "./dropdowns/TiendaMegaMenu"
 import CartMenu from "./dropdowns/CartMenu"
 import TiendaMobileAccordion from "./TiendaMobileAccordion"
 import MobileDrawer from "./MobileDrawer"
+import {
+  withRecentProductsCategory,
+  type RecentProductMenuItem,
+} from "@/lib/navbar/recent-products"
 import {
   DesktopCategoriesDropdown,
   DesktopSearchSuggestions,
@@ -20,6 +24,8 @@ import {
   type SearchSuggestionProduct,
 } from "./SearchBarPanels"
 import { useCart } from "../cart/CartContext"
+import { useWishlist } from "../wishlist/WishlistContext"
+import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
 import { getSearchDestination } from "@/lib/search-navigation"
 
 export type MenuType =
@@ -44,6 +50,8 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [allCategoriesOpen, setAllCategoriesOpen] = useState(false)
   const [categories, setCategories] = useState<NavbarCategory[]>([])
   const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [recentProducts, setRecentProducts] = useState<RecentProductMenuItem[]>([])
+  const [recentProductsLoading, setRecentProductsLoading] = useState(true)
   const [suggestionProducts, setSuggestionProducts] = useState<SearchSuggestionProduct[]>([])
   const [suggestionCategories, setSuggestionCategories] = useState<SearchSuggestionCategory[]>([])
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
@@ -63,6 +71,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     isProgrammatic,
     clearProgrammatic,
   } = useCart()
+  const { count: wishlistCount } = useWishlist()
 
   const categoriesLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -172,6 +181,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     if (isCartOpen) setDrawerOpen(false)
   }, [isCartOpen])
 
+  const tiendaMenuCategories = useMemo(
+    () => withRecentProductsCategory(tiendaCategories, recentProducts),
+    [recentProducts]
+  )
 
   useEffect(() => {
     let isMounted = true
@@ -187,6 +200,30 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       }
     }
     void loadCategories()
+    return () => { isMounted = false }
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    async function loadRecentProducts() {
+      try {
+        const response = await fetch("/api/products/recent")
+        if (!response.ok) return
+        const json = (await response.json()) as {
+          data?: Array<{ name: string; slug: string }>
+        }
+        if (!isMounted || !Array.isArray(json.data)) return
+        setRecentProducts(
+          json.data.map((product) => ({
+            name: product.name,
+            slug: product.slug,
+          }))
+        )
+      } finally {
+        if (isMounted) setRecentProductsLoading(false)
+      }
+    }
+    void loadRecentProducts()
     return () => { isMounted = false }
   }, [])
 
@@ -390,6 +427,21 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                 )}
               </span>
             </button>
+            <Link
+              href="/wishlist"
+              onClick={() => {
+                closeCart()
+                closeSearchPanels()
+                setActiveMenu(null)
+              }}
+              className="relative inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
+              aria-label="Favoritos"
+            >
+              <span className="relative shrink-0">
+                <Heart className="w-5 h-5 text-white transition-colors" />
+                <WishlistCountBadge count={wishlistCount} />
+              </span>
+            </Link>
           </div>
         </div>
 
@@ -454,8 +506,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               <TiendaMegaMenu
                 isOpen={activeMenu === "Tienda"}
                 onClose={() => setActiveMenu(null)}
-                categories={tiendaCategories}
+                categories={tiendaMenuCategories}
                 sectionHref="/tienda"
+                recentProductsLoading={recentProductsLoading}
               />
               <TiendaMegaMenu
                 isOpen={activeMenu === "Academia"}
@@ -608,6 +661,24 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                 <span className="overflow-hidden whitespace-nowrap">Carrito</span>
               </span>
             </button>
+            <Link
+              href="/wishlist"
+              onClick={() => {
+                closeCart()
+                closeSearchPanels()
+                setActiveMenu(null)
+              }}
+              className="group inline-flex items-center text-[16px] tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
+              aria-label="Favoritos"
+            >
+              <span className="relative shrink-0">
+                <Heart className="h-7 w-7 text-white transition-colors" />
+                <WishlistCountBadge count={wishlistCount} />
+              </span>
+              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-200 group-hover:grid-cols-[1fr] group-hover:ml-2">
+                <span className="overflow-hidden whitespace-nowrap">Favoritos</span>
+              </span>
+            </Link>
           </div>
         </div>
 
@@ -618,6 +689,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         isLoggedIn={isLoggedIn}
+        tiendaCategories={tiendaMenuCategories}
       />
 
       {/* ===== Overlay de blur global ===== */}

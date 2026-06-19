@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Swiper, SwiperSlide } from "swiper/react"
-import { Pagination, EffectFade } from "swiper/modules"
+import { Pagination, EffectFade, Autoplay } from "swiper/modules"
 
 import "swiper/css"
 import "swiper/css/pagination"
@@ -24,58 +24,147 @@ function buildHref(type: string, value: string): string | undefined {
   return undefined
 }
 
+/** Solo slides vinculados a un curso en admin/Media muestran texto + CTA debajo de la imagen. */
+function shouldShowCourseContent(slide: HeroSlide): boolean {
+  if (slide.link_type !== "course") return false
+  return Boolean(
+    (slide.show_title !== false && slide.cta_subtext) ||
+      (slide.show_subtitle !== false && slide.subtitle) ||
+      slide.cta_label
+  )
+}
+
+function contentAlignClass(pos: HeroSlide["text_position"]) {
+  if (pos === "center") return "items-center text-center"
+  if (pos === "right") return "items-end text-right"
+  return "items-start text-left"
+}
+
+function buttonAlignClass(pos: HeroSlide["text_position"]) {
+  if (pos === "center") return "self-center"
+  if (pos === "right") return "self-end"
+  return "self-start"
+}
+
+function SlideCourseContent({
+  slide,
+  variant,
+  href,
+}: {
+  slide: HeroSlide
+  variant: "mobile" | "desktop"
+  href?: string
+}) {
+  const pos = slide.text_position ?? "left"
+  const alignClass = contentAlignClass(pos)
+  const btnAlign = buttonAlignClass(pos)
+  const titleClass =
+    variant === "mobile"
+      ? "font-[family-name:var(--font-playfair),serif] text-[clamp(32px,8vw,40px)] font-medium leading-[1.05] tracking-[-0.01em] text-black"
+      : "font-[family-name:var(--font-playfair),serif] text-[clamp(36px,4.4vw,56px)] font-medium leading-[1.05] tracking-[-0.01em] text-black"
+
+  const subtitleClass =
+    variant === "mobile"
+      ? "mt-2 max-w-xl text-sm leading-relaxed text-[#8a8a8a]"
+      : "mt-2 max-w-2xl text-[15px] leading-[1.55] text-[#8a8a8a]"
+
+  const buttonClass =
+    variant === "mobile"
+      ? `mt-5 inline-block rounded-full bg-gray-900 px-10 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors duration-300 active:bg-[#c9a84c] ${btnAlign}`
+      : `mt-6 inline-block rounded-full bg-gray-900 px-10 py-3.5 text-sm font-semibold uppercase tracking-wider text-white transition-colors duration-300 hover:bg-[#c9a84c] ${btnAlign}`
+
+  return (
+    <div
+      className={`flex flex-col bg-white px-5 pt-5 md:px-8 md:pt-6 ${alignClass} ${
+        variant === "mobile" ? "pb-14" : "pb-10"
+      }`}
+    >
+      {slide.show_title !== false && slide.cta_subtext && (
+        <>
+          <h2 className={titleClass}>{slide.cta_subtext}</h2>
+          <div className="mb-4 mt-[18px] h-0.5 w-16 rounded-sm bg-[#c9a84c]" aria-hidden />
+        </>
+      )}
+      {slide.show_subtitle !== false && slide.subtitle && (
+        <p className={subtitleClass}>{slide.subtitle}</p>
+      )}
+      {slide.cta_label &&
+        (href ? (
+          <Link href={href} className={buttonClass}>
+            {slide.cta_label}
+          </Link>
+        ) : (
+          <span className={buttonClass}>{slide.cta_label}</span>
+        ))}
+    </div>
+  )
+}
+
 type Props = { slides?: HeroSlide[] }
 
 export default function HeroSlider({ slides }: Props) {
-  const items = slides && slides.length > 0
-    ? slides.map((s, i) => ({ ...s, url: s.url || FALLBACK_SLIDES[i]?.url || FALLBACK_SLIDES[0].url }))
-    : FALLBACK_SLIDES
+  const items =
+    slides && slides.length > 0
+      ? slides
+          .filter((s) => Boolean(s.url?.trim()))
+          .map((s) => ({ ...s }))
+      : FALLBACK_SLIDES
+
+  const displayItems = items.length > 0 ? items : FALLBACK_SLIDES
+
+  const canLoop = displayItems.length > 1
+  const autoplayConfig = canLoop
+    ? { delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: true }
+    : false
 
   return (
     <>
       {/* ── MÓVIL ── */}
       <section className="-mx-6 md:hidden">
         <Swiper
-          modules={[Pagination, EffectFade]}
+          modules={[Pagination, EffectFade, Autoplay]}
           effect="fade"
           fadeEffect={{ crossFade: true }}
-          loop
+          loop={canLoop}
+          autoplay={autoplayConfig}
           pagination={{ clickable: true }}
           speed={900}
           autoHeight
         >
-          {items.map((slide) => {
+          {displayItems.map((slide) => {
             const href = buildHref(slide.link_type, slide.link_value)
-            const hasCTA = slide.cta_subtext || slide.cta_label
+            const showContent = shouldShowCourseContent(slide)
+            const linkWholeSlide = Boolean(href && !showContent)
             const inner = (
               <div>
                 <div className="relative h-[62vw] w-full">
-                  <Image src={slide.url} alt="" fill priority className="object-cover" sizes="100vw" />
+                  <Image
+                    src={slide.url}
+                    alt=""
+                    fill
+                    priority
+                    className="object-cover"
+                    sizes="100vw"
+                  />
                 </div>
-                {hasCTA && (
-                  <div className="flex flex-col bg-white px-5 pb-14 pt-5">
-                    {slide.cta_subtext && (
-                      <h2 className="text-[2.5rem] font-light leading-tight text-gray-900">
-                        {slide.cta_subtext}
-                      </h2>
-                    )}
-                    {slide.subtitle && (
-                      <p className="mt-2 text-sm leading-relaxed text-gray-900">
-                        {slide.subtitle}
-                      </p>
-                    )}
-                    {slide.cta_label && (
-                      <span className="mt-5 inline-block self-start rounded-full bg-gray-900 px-10 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors duration-300 active:bg-[#c9a84c]">
-                        {slide.cta_label}
-                      </span>
-                    )}
-                  </div>
+                {showContent && (
+                  <SlideCourseContent
+                    slide={slide}
+                    variant="mobile"
+                    href={href}
+                  />
                 )}
               </div>
             )
             return (
               <SwiperSlide key={slide.key}>
-                {href ? <Link href={href} className="block">{inner}</Link> : inner}
+                {linkWholeSlide ? (
+                  <Link href={href!} className="block">
+                    {inner}
+                  </Link>
+                ) : (
+                  inner
+                )}
               </SwiperSlide>
             )
           })}
@@ -85,60 +174,55 @@ export default function HeroSlider({ slides }: Props) {
       {/* ── DESKTOP ── */}
       <section className="hidden md:block md:px-6 md:pt-8">
         <div className="mx-auto max-w-[1400px]">
-          {/* Slider */}
-          <div className="relative h-[78vh] overflow-hidden rounded-md">
-            <Swiper
-              modules={[Pagination, EffectFade]}
-              effect="fade"
-              fadeEffect={{ crossFade: true }}
-              loop
-              pagination={{ clickable: true, el: ".hero-desktop-dots" }}
-              speed={900}
-              className="h-full"
-            >
-              {items.map((slide) => {
-                const href = buildHref(slide.link_type, slide.link_value)
-                const hasCTA = slide.cta_subtext || slide.cta_label
-                const inner = (
-                  <div className="relative h-full">
-                    <Image src={slide.url} alt="" fill priority className="object-cover" sizes="100vw" />
-                    {hasCTA && (() => {
-                      const pos = slide.text_position ?? 'right'
-                      const posClass =
-                        pos === 'left'   ? 'left-[7%]' :
-                        pos === 'center' ? 'left-1/2 -translate-x-1/2 items-center text-center' :
-                                           'right-[7%]'
-                      return (
-                        <div className={`absolute top-1/2 flex w-[42%] -translate-y-1/2 flex-col ${posClass}`}>
-                          {slide.show_title !== false && slide.cta_subtext && (
-                            <h2 className="text-5xl font-light leading-tight text-gray-900">
-                              {slide.cta_subtext}
-                            </h2>
-                          )}
-                          {slide.show_subtitle !== false && slide.subtitle && (
-                            <p className="mt-4 text-base leading-relaxed text-gray-700">
-                              {slide.subtitle}
-                            </p>
-                          )}
-                          {slide.cta_label && (
-                            <span className={`mt-6 inline-block rounded-full bg-gray-900 px-8 py-3.5 text-sm font-semibold uppercase tracking-wider text-white transition-colors duration-300 hover:bg-[#c9a84c] ${pos === 'center' ? 'self-center' : 'self-start'}`}>
-                              {slide.cta_label}
-                            </span>
-                          )}
-                        </div>
-                      )
-                    })()}
+          <Swiper
+            modules={[Pagination, EffectFade, Autoplay]}
+            effect="fade"
+            fadeEffect={{ crossFade: true }}
+            loop={canLoop}
+            autoplay={autoplayConfig}
+            pagination={{ clickable: true, el: ".hero-desktop-dots" }}
+            speed={900}
+            autoHeight
+            className="overflow-hidden rounded-md"
+          >
+            {displayItems.map((slide) => {
+              const href = buildHref(slide.link_type, slide.link_value)
+              const showContent = shouldShowCourseContent(slide)
+              const linkWholeSlide = Boolean(href && !showContent)
+              const inner = (
+                <div>
+                  <div className="relative h-[78vh] w-full">
+                    <Image
+                      src={slide.url}
+                      alt=""
+                      fill
+                      priority
+                      className="object-cover"
+                      sizes="100vw"
+                    />
                   </div>
-                )
-                return (
-                  <SwiperSlide key={slide.key}>
-                    {href ? <Link href={href} className="block h-full">{inner}</Link> : inner}
-                  </SwiperSlide>
-                )
-              })}
-            </Swiper>
-          </div>
-          {/* Puntitos fuera del slider, lado izquierdo */}
+                  {showContent && (
+                    <SlideCourseContent
+                      slide={slide}
+                      variant="desktop"
+                      href={href}
+                    />
+                  )}
+                </div>
+              )
+              return (
+                <SwiperSlide key={slide.key}>
+                  {linkWholeSlide ? (
+                    <Link href={href!} className="block">
+                      {inner}
+                    </Link>
+                  ) : (
+                    inner
+                  )}
+                </SwiperSlide>
+              )
+            })}
+          </Swiper>
           <div className="hero-desktop-dots mt-4 flex gap-2" />
         </div>
       </section>

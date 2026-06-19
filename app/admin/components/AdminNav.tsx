@@ -29,19 +29,30 @@ export default function AdminNav() {
           className="flex flex-wrap items-center gap-13 font-medium capitalize"
           aria-label="Secciones del panel"
         >
-          {NAV_ITEMS.map(({ href, label }) => (
+          {NAV_ITEMS.map(({ href, label }) => {
+            const isActive = isActivePath(pathname, href)
+            return (
             <Link
               key={href}
               href={href}
-              className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)]"
-              aria-current={isActivePath(pathname, href) ? "page" : undefined}
+              className="relative group text-[13px] tracking-[0.05em] text-[#C6A75E]"
+              aria-current={isActive ? "page" : undefined}
             >
-              <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
+              <span
+                className={`transition-colors duration-200 ${
+                  isActive ? "text-[#e8c97a]" : "group-hover:text-[#e8c97a]"
+                }`}
+              >
                 {label}
               </span>
-              <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
+              <span
+                className={`absolute left-0 -bottom-1 h-[1px] bg-[#C6A75E] transition-all duration-200 ${
+                  isActive ? "w-full" : "w-0 group-hover:w-full"
+                }`}
+              />
             </Link>
-          ))}
+            )
+          })}
         </nav>
       </div>
     </div>

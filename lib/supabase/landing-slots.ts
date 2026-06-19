@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { unstable_cache } from "next/cache"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,34 +38,66 @@ export type HeroSlide = {
   show_subtitle: boolean
 }
 
-/** Devuelve un mapa key→url para uso en Server Components (landing page). */
-export async function getLandingSlots(): Promise<Record<string, string>> {
+/** Datos de landing en una sola consulta, cacheados 60s. */
+async function loadLandingPageData(): Promise<{
+  slots: Record<string, string>
+  heroSlides: HeroSlide[]
+}> {
   try {
     const { data, error } = await supabaseAdmin
       .from("landing_slots")
-      .select("key, url")
+      .select(
+        "key, url, section, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle"
+      )
+      .order("key")
 
-    if (error) return {}
-    return Object.fromEntries((data ?? []).map((r) => [r.key as string, r.url as string]))
+    if (error) return { slots: {}, heroSlides: [] }
+
+    const slots: Record<string, string> = {}
+    const heroSlides: HeroSlide[] = []
+
+    for (const row of data ?? []) {
+      const key = row.key as string
+      slots[key] = (row.url as string) ?? ""
+
+      if (row.section === "hero") {
+        heroSlides.push({
+          key,
+          url: (row.url as string) ?? "",
+          link_type: row.link_type as LinkType,
+          link_value: (row.link_value as string) ?? "",
+          cta_label: (row.cta_label as string) ?? "",
+          cta_subtext: (row.cta_subtext as string) ?? "",
+          subtitle: (row.subtitle as string) ?? "",
+          text_position: row.text_position as TextPosition,
+          show_title: Boolean(row.show_title),
+          show_subtitle: Boolean(row.show_subtitle),
+        })
+      }
+    }
+
+    return { slots, heroSlides }
   } catch {
-    return {}
+    return { slots: {}, heroSlides: [] }
   }
 }
 
-/** Devuelve los 3 slides del hero con datos de link para la landing page. */
-export async function getHeroSlides(): Promise<HeroSlide[]> {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("landing_slots")
-      .select("key, url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle")
-      .eq("section", "hero")
-      .order("key")
+export const getLandingPageDataCached = unstable_cache(
+  loadLandingPageData,
+  ["landing-page-data"],
+  { revalidate: 60, tags: ["landing-slots"] }
+)
 
-    if (error) return []
-    return (data ?? []) as HeroSlide[]
-  } catch {
-    return []
-  }
+/** Devuelve un mapa key→url para uso en Server Components (landing page). */
+export async function getLandingSlots(): Promise<Record<string, string>> {
+  const { slots } = await getLandingPageDataCached()
+  return slots
+}
+
+/** Devuelve los slides del hero con datos de link para la landing page. */
+export async function getHeroSlides(): Promise<HeroSlide[]> {
+  const { heroSlides } = await getLandingPageDataCached()
+  return heroSlides
 }
 
 /** Devuelve todos los slots con metadata para la página de administración. */

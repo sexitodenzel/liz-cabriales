@@ -2,28 +2,20 @@ import { redirect } from "next/navigation"
 
 import AdminReceptionistBar from "./components/AdminReceptionistBar"
 import AdminNav from "./components/AdminNav"
-import { createClient } from "@/lib/supabase/server"
+import { getAuthUser, getUserProfile } from "@/lib/supabase/auth-server"
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   if (!user) {
     redirect("/login")
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single()
-
+  const profile = await getUserProfile(user.id)
   const role = profile?.role
 
   if (role !== "admin" && role !== "receptionist") {
@@ -41,7 +33,7 @@ export default async function AdminLayout({
 
   return (
     <>
-      <header className="border-b border-[#ececec] bg-white px-6 py-4">
+      <header className="border-b border-[#2a2a2a] bg-[#0a0a0a] px-6 py-4">
         <AdminNav />
       </header>
       {children}

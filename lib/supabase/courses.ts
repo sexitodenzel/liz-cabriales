@@ -1,8 +1,8 @@
 import { createClient as createServiceClient } from "@supabase/supabase-js"
+import { unstable_cache } from "next/cache"
 
 import type { CourseLevel, RegistrationStatus } from "@/types"
 
-import { createClient } from "./server"
 import type {
   CreateCourseInput,
   ManualRegistrationInput,
@@ -285,9 +285,8 @@ export async function getCourseGallery(
  * Lecturas públicas
  * ────────────────────────────────────────────────────────────────────── */
 
-export async function getPublishedCourses(): Promise<Result<CourseWithStats[]>> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
+async function loadPublishedCourses(): Promise<Result<CourseWithStats[]>> {
+  const { data, error } = await supabaseAdmin
     .from("courses")
     .select(COURSE_COLUMNS)
     .eq("is_published", true)
@@ -303,6 +302,16 @@ export async function getPublishedCourses(): Promise<Result<CourseWithStats[]>> 
 
   const withStats = courses.map((c) => attachStats(c, paidMap.get(c.id) ?? 0))
   return { data: withStats, error: null }
+}
+
+export const getPublishedCoursesCached = unstable_cache(
+  loadPublishedCourses,
+  ["published-courses"],
+  { revalidate: 60, tags: ["courses"] }
+)
+
+export async function getPublishedCourses(): Promise<Result<CourseWithStats[]>> {
+  return getPublishedCoursesCached()
 }
 
 export async function getCourseById(

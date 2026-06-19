@@ -12,13 +12,99 @@ const SOCIAL = {
 } as const
 
 const STATS = [
-  { value: "7+", label: "años de experiencia" },
-  { value: "15+", label: "marcas profesionales" },
-  { value: "20+", label: "masters nacionales" },
-]
+  { target: 7, suffix: "+", label: "años de experiencia" },
+  { target: 15, suffix: "+", label: "marcas profesionales" },
+  { target: 20, suffix: "+", label: "masters nacionales" },
+] as const
 
-function useInView(threshold = 0.12) {
-  const ref = useRef<HTMLElement>(null)
+/** Rápido al inicio, cada vez más lento al acercarse al número final. */
+function easeOutQuint(progress: number): number {
+  return 1 - Math.pow(1 - progress, 5)
+}
+
+function AnimatedStat({
+  target,
+  suffix,
+  label,
+  start,
+  delay = 0,
+}: {
+  target: number
+  suffix: string
+  label: string
+  start: boolean
+  delay?: number
+}) {
+  const [value, setValue] = useState(1)
+  const [pulse, setPulse] = useState(false)
+  const hasFinishedRef = useRef(false)
+  const lastValueRef = useRef(1)
+
+  useEffect(() => {
+    if (!start || hasFinishedRef.current) return
+
+    let raf = 0
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    const duration = 5200 + target * 120
+
+    const run = () => {
+      const startTime = performance.now()
+
+      const tick = (now: number) => {
+        const elapsed = now - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        const eased = easeOutQuint(progress)
+        const next = Math.max(1, Math.round(1 + eased * (target - 1)))
+
+        if (next !== lastValueRef.current) {
+          lastValueRef.current = next
+          setValue(next)
+          setPulse(true)
+          window.setTimeout(() => setPulse(false), 180)
+        }
+
+        if (progress < 1) {
+          raf = requestAnimationFrame(tick)
+        } else {
+          setValue(target)
+          hasFinishedRef.current = true
+        }
+      }
+
+      raf = requestAnimationFrame(tick)
+    }
+
+    if (delay > 0) {
+      timeout = setTimeout(run, delay)
+    } else {
+      run()
+    }
+
+    return () => {
+      if (timeout) clearTimeout(timeout)
+      cancelAnimationFrame(raf)
+    }
+  }, [start, target, delay])
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span
+        className={`font-[family-name:var(--font-playfair),serif] text-[clamp(22px,2.4vw,30px)] font-medium tabular-nums text-[#a8862f] transition-[opacity,transform] duration-300 ease-out ${
+          pulse ? "scale-[0.98] opacity-80" : "scale-100 opacity-100"
+        }`}
+      >
+        {value}
+        {suffix}
+      </span>
+      <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#8a8a8a]">
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function useInView<T extends HTMLElement = HTMLElement>(threshold = 0.12) {
+  const ref = useRef<T>(null)
   const [inView, setInView] = useState(false)
   useEffect(() => {
     const el = ref.current
@@ -75,6 +161,7 @@ type Props = {
 export default function BrandDescription({ photoUrl }: Props) {
   const IMAGE_SRC = photoUrl || FALLBACK_IMAGE
   const { ref, inView } = useInView()
+  const { ref: statsRef, inView: statsInView } = useInView<HTMLDivElement>(0.45)
 
   return (
     <section ref={ref} className="bg-white text-black">
@@ -144,18 +231,19 @@ export default function BrandDescription({ photoUrl }: Props) {
 
             {/* Gold stats row */}
             <div
+              ref={statsRef}
               className={`my-8 grid grid-cols-3 gap-4 border-y border-[#c9a84c]/25 py-6 ${fadeUp(inView, 280)}`}
               style={{ transitionDelay: "280ms" }}
             >
-              {STATS.map((s) => (
-                <div key={s.value} className="flex flex-col gap-0.5">
-                  <span className="font-[family-name:var(--font-playfair),serif] text-[clamp(22px,2.4vw,30px)] font-medium text-[#a8862f]">
-                    {s.value}
-                  </span>
-                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#8a8a8a]">
-                    {s.label}
-                  </span>
-                </div>
+              {STATS.map((stat, index) => (
+                <AnimatedStat
+                  key={stat.label}
+                  target={stat.target}
+                  suffix={stat.suffix}
+                  label={stat.label}
+                  start={statsInView}
+                  delay={index * 400}
+                />
               ))}
             </div>
 

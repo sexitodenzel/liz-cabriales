@@ -7,6 +7,13 @@ import { createClient } from "@/lib/supabase/client"
 
 const PENDING_STORAGE_KEY = "pendingStockAlert"
 
+function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof DOMException || error instanceof Error) &&
+    error.name === "AbortError"
+  )
+}
+
 type PendingStockAlert = {
   variantId: string
   productSlug: string
@@ -43,46 +50,51 @@ export default function NotifyWhenAvailable({
   const refreshSubscription = useCallback(async (signal: AbortSignal) => {
     if (!outOfStock) return
 
-    // getSession() lee de localStorage sin adquirir un Web Lock
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (signal.aborted) return
-
-    if (!session?.user) {
-      setIsAuthenticated(false)
-      setWhatsappEnabled(false)
-      setSubscribed(false)
-      return
-    }
-
-    setIsAuthenticated(true)
-
-    const [profileRes, alertRes] = await Promise.all([
-      supabase
-        .from("users")
-        .select("phone_verified, whatsapp_opt_in")
-        .eq("id", session.user.id)
-        .maybeSingle(),
-      fetch(`/api/stock-alerts?variantId=${encodeURIComponent(variantId)}`, { signal }),
-    ])
-
-    if (signal.aborted) return
-
-    setWhatsappEnabled(
-      Boolean(
-        profileRes.data?.phone_verified && profileRes.data?.whatsapp_opt_in
-      )
-    )
-
     try {
-      const json = await alertRes.json()
-      if (!signal.aborted && alertRes.ok && !json.error) {
-        setSubscribed(Boolean(json.data?.subscribed))
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (signal.aborted) return
+
+      if (!session?.user) {
+        setIsAuthenticated(false)
+        setWhatsappEnabled(false)
+        setSubscribed(false)
+        return
       }
-    } catch {
-      // Si falla la consulta o fue abortada, dejamos el botón usable.
+
+      setIsAuthenticated(true)
+
+      const [profileRes, alertRes] = await Promise.all([
+        supabase
+          .from("users")
+          .select("phone_verified, whatsapp_opt_in")
+          .eq("id", session.user.id)
+          .maybeSingle(),
+        fetch(`/api/stock-alerts?variantId=${encodeURIComponent(variantId)}`, {
+          signal,
+        }),
+      ])
+
+      if (signal.aborted) return
+
+      setWhatsappEnabled(
+        Boolean(
+          profileRes.data?.phone_verified && profileRes.data?.whatsapp_opt_in
+        )
+      )
+
+      try {
+        const json = await alertRes.json()
+        if (!signal.aborted && alertRes.ok && !json.error) {
+          setSubscribed(Boolean(json.data?.subscribed))
+        }
+      } catch {
+        // Respuesta inválida o petición cancelada.
+      }
+    } catch (error) {
+      if (isAbortError(error) || signal.aborted) return
     }
   }, [outOfStock, supabase, variantId])
 
@@ -175,7 +187,7 @@ export default function NotifyWhenAvailable({
     const controller = new AbortController()
     setSubscribed(false)
     setErrorMessage(null)
-    void refreshSubscription(controller.signal)
+    void refreshSubscription(controller.signal).catch(() => {})
     return () => controller.abort()
   }, [outOfStock, refreshSubscription])
 

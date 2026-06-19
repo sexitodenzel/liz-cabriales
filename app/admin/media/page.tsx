@@ -105,6 +105,25 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    setCurrentUrl(slot.url)
+    setLinkType(slot.link_type ?? "none")
+    setLinkValue(slot.link_value ?? "")
+    setCtaLabel(slot.cta_label ?? "")
+    setCtaSubtext(slot.cta_subtext ?? "")
+    setSubtitle(slot.subtitle ?? "")
+    setTextPosition(slot.text_position ?? "right")
+    setShowTitle(slot.show_title ?? true)
+    setShowSubtitle(slot.show_subtitle ?? true)
+  }, [slot])
+
+  useEffect(() => {
+    if (!isHero || !linkPanelOpen) return
+    if (linkType === "product") loadProducts()
+    if (linkType === "course") loadCourses()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHero, linkPanelOpen, linkType])
+
   async function loadProducts() {
     if (products.length > 0) return
     setLoadingOptions(true)
@@ -392,6 +411,10 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
                   ))}
                 </select>
               )}
+              <p className="text-[11px] text-neutral-500">
+                El bloque de texto va debajo del banner en el inicio. Solo el botón
+                enlaza a la página del curso.
+              </p>
             </div>
           )}
 
@@ -459,7 +482,7 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
           {/* Posición del texto en desktop */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-medium text-neutral-600">
-              Posición del texto <span className="font-normal text-neutral-400">(desktop)</span>
+              Alineación del texto y botón <span className="font-normal text-neutral-400">(móvil y desktop)</span>
             </label>
             <div className="flex gap-2">
               {([
@@ -485,7 +508,7 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
 
           {/* Mostrar/ocultar campos en desktop */}
           <div className="flex flex-col gap-2">
-            <label className="text-[11px] font-medium text-neutral-600">Visibilidad en desktop</label>
+            <label className="text-[11px] font-medium text-neutral-600">Visibilidad del bloque de texto</label>
             <label className="flex cursor-pointer items-center justify-between rounded-md border border-neutral-200 px-3 py-2">
               <span className="text-[12px] text-neutral-700">Mostrar título</span>
               <div

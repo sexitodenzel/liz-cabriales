@@ -10,7 +10,7 @@ import type { ProductWithCategory, Category } from "@/lib/supabase/products"
 import ProductGrid from "./components/ProductGrid"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 120
 
 export const metadata: Metadata = {
   title: "Tienda | Liz Cabriales",

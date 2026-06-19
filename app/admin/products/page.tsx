@@ -69,6 +69,11 @@ type ManagedBrand = AdminBrand & {
 const BRAND_GOLD = "#C9A84C"
 const BRAND_BLACK = "#000000"
 
+const PRODUCTS_TABLE_HEAD_CELL =
+  "px-4 py-3 font-semibold text-neutral-500"
+const PRODUCTS_TABLE_BODY_CELL =
+  "border-r-2 border-neutral-300 px-4 py-4 align-top"
+
 function formatProductUpdatedAt(iso: string | null | undefined): string {
   if (!iso) return "—"
   return new Date(iso).toLocaleString("es-MX", {
@@ -2064,25 +2069,25 @@ export default function AdminProductsPage() {
             </div>
 
             <div className={productsFullscreen ? "overflow-x-auto overflow-y-auto flex-1" : "overflow-x-auto overflow-y-auto max-h-[760px]"}>
-              <table className="min-w-full text-left text-sm">
-                <thead className="sticky top-0 z-10 bg-neutral-50 text-xs uppercase tracking-[0.16em] text-neutral-500">
-                  <tr>
-                    <th className="px-6 py-3 font-semibold">PRODUCTO</th>
-                    <th className="px-4 py-3 font-semibold">CÓDIGO</th>
-                    <th className="px-4 py-3 font-semibold">MARCA</th>
-                    <th className="px-4 py-3 font-semibold">CATEGORÍA</th>
-                    <th className="px-4 py-3 font-semibold text-right">P.COSTO</th>
-                    <th className="px-4 py-3 font-semibold text-right">P.VENTA</th>
-                    <th className="px-4 py-3 font-semibold text-right">P.MAYOREO</th>
-                    <th className="px-4 py-3 font-semibold text-center">STOCK</th>
-                    <th className="px-4 py-3 font-semibold">ESTADO</th>
-                    <th className="px-4 py-3 font-semibold text-center">DEST.</th>
-                    <th className="px-4 py-3 font-semibold text-right">
+              <table className="min-w-full border-collapse text-left text-sm">
+                <thead className="sticky top-0 z-10 bg-neutral-100 text-xs uppercase tracking-[0.16em]">
+                  <tr className="border-b border-neutral-200">
+                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} px-6`}>PRODUCTO</th>
+                    <th className={PRODUCTS_TABLE_HEAD_CELL}>CÓDIGO</th>
+                    <th className={PRODUCTS_TABLE_HEAD_CELL}>MARCA</th>
+                    <th className={PRODUCTS_TABLE_HEAD_CELL}>CATEGORÍA</th>
+                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>P.COSTO</th>
+                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>P.VENTA</th>
+                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>P.MAYOREO</th>
+                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-center`}>STOCK</th>
+                    <th className={PRODUCTS_TABLE_HEAD_CELL}>ESTADO</th>
+                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-center`}>DEST.</th>
+                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>
                       ACCIONES
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-neutral-200 bg-white">
                   {filteredProducts.length === 0 ? (
                     <tr>
                       <td
@@ -2096,8 +2101,8 @@ export default function AdminProductsPage() {
                     filteredProducts.map((product) => {
                       const isEditing = editingId === product.id
                       return (
-                        <tr key={product.id} className="align-top">
-                          <td className="px-6 py-4">
+                        <tr key={product.id}>
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} px-6`}>
                             <div className="space-y-1">
                               <p className="text-sm font-semibold text-neutral-900">
                                 {product.name}
@@ -2107,13 +2112,13 @@ export default function AdminProductsPage() {
                               </p>
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-xs font-mono text-neutral-600">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-xs font-mono text-neutral-600`}>
                             {product.sku ?? "—"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-neutral-700">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-neutral-700`}>
                             {product.brand ?? "—"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-neutral-700">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-neutral-700`}>
                             <div>{product.category.name}</div>
                             {product.subcategory && (
                               <div className="text-[11px] text-neutral-400">{product.subcategory}</div>
@@ -2122,16 +2127,16 @@ export default function AdminProductsPage() {
                               Act. {formatProductUpdatedAt(product.updated_at)}
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-sm text-right text-neutral-600">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-right text-neutral-600`}>
                             {product.cost_price !== null ? `$${product.cost_price.toFixed(2)}` : "—"}
                           </td>
-                          <td className="px-4 py-4 text-sm text-right text-neutral-900 font-medium">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-right font-medium text-neutral-900`}>
                             ${product.base_price.toFixed(2)}
                           </td>
-                          <td className="px-4 py-4 text-sm text-right text-neutral-600">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-right text-neutral-600`}>
                             {product.wholesale_price !== null ? `$${product.wholesale_price.toFixed(2)}` : "—"}
                           </td>
-                          <td className="px-4 py-4 text-center">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-center`}>
                             <span
                               className="inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                               style={{
@@ -2147,7 +2152,7 @@ export default function AdminProductsPage() {
                               {product.stock}
                             </span>
                           </td>
-                          <td className="px-4 py-4">
+                          <td className={PRODUCTS_TABLE_BODY_CELL}>
                             <span
                               className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium"
                               style={{
@@ -2165,7 +2170,7 @@ export default function AdminProductsPage() {
                               {product.is_active ? "ACTIVO" : "INACTIVO"}
                             </span>
                           </td>
-                          <td className="px-4 py-4 text-center">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-center`}>
                             <button
                               type="button"
                               onClick={() => toggleFeatured(product)}
@@ -2177,7 +2182,7 @@ export default function AdminProductsPage() {
                               {product.is_featured ? "★" : "☆"}
                             </button>
                           </td>
-                          <td className="px-4 py-4">
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} border-r-0`}>
                             <div className="flex items-center justify-end gap-3 text-xs font-semibold">
                               <button
                                 type="button"

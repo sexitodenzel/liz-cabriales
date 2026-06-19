@@ -9,6 +9,7 @@ type WishlistCtx = {
   toggle: (slug: string) => void
   has: (slug: string) => boolean
   count: number
+  hydrated: boolean
 }
 
 const WishlistContext = createContext<WishlistCtx>({
@@ -16,16 +17,21 @@ const WishlistContext = createContext<WishlistCtx>({
   toggle: () => {},
   has: () => false,
   count: 0,
+  hydrated: false,
 })
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [slugs, setSlugs] = useState<string[]>([])
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) setSlugs(JSON.parse(stored) as string[])
-    } catch {}
+    } catch {
+      // noop
+    }
+    setHydrated(true)
   }, [])
 
   const toggle = useCallback((slug: string) => {
@@ -39,7 +45,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const has = useCallback((slug: string) => slugs.includes(slug), [slugs])
 
   return (
-    <WishlistContext.Provider value={{ slugs, toggle, has, count: slugs.length }}>
+    <WishlistContext.Provider
+      value={{ slugs, toggle, has, count: slugs.length, hydrated }}
+    >
       {children}
     </WishlistContext.Provider>
   )

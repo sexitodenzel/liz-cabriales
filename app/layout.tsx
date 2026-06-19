@@ -3,12 +3,13 @@
    ========================= */
 
 import "./globals.css";
+import { Suspense } from "react";
 import { CartProvider } from "./components/cart/CartContext";
 import { WishlistProvider } from "./components/wishlist/WishlistContext";
 import SiteNavbar from "./components/SiteNavbar";
+import SiteNavbarAuth from "./components/SiteNavbarAuth";
 import SiteFooter from "./components/SiteFooter";
 import WhatsAppButton from "./components/WhatsAppButton";
-import { createClient } from "@/lib/supabase/server";
 
 /* =========================
    IMPORTACIÓN DE FUENTES
@@ -58,24 +59,22 @@ const cormorantGaramond = Cormorant_Garamond({
    (NO TOCAR estructura base)
    ========================= */
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={`${inter.className} ${cormorantGaramond.variable} ${playfairDisplay.variable} flex min-h-screen flex-col`}
       >
         <CartProvider>
           <WishlistProvider>
-            <SiteNavbar isLoggedIn={Boolean(user)} />
+            <Suspense fallback={<SiteNavbar />}>
+              <SiteNavbarAuth />
+            </Suspense>
             <div className="flex-1">{children}</div>
             <SiteFooter />
             <WhatsAppButton />

@@ -124,6 +124,8 @@ export const getBrandsCached = unstable_cache(
 
 /* ── All products (full catalog, no filters) ─────────────────────────────── */
 
+export const RECENT_PRODUCTS_LIMIT = 21
+
 export const getAllProductsCached = unstable_cache(
   async (): Promise<Result<ProductWithCategory[]>> => {
     const { data, error } = await db()
@@ -139,6 +141,27 @@ export const getAllProductsCached = unstable_cache(
     return { data: products, error: null }
   },
   ["products-all"],
+  { revalidate: 120, tags: ["products"] }
+)
+
+/* ── Newest products (mega menu + /tienda/nuevos) ──────────────────────── */
+
+export const getNewestProductsCached = unstable_cache(
+  async (): Promise<Result<ProductWithCategory[]>> => {
+    const { data, error } = await db()
+      .from("products")
+      .select(PRODUCT_SELECT)
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(RECENT_PRODUCTS_LIMIT)
+    if (error) return { data: null, error: { message: error.message, code: error.code } }
+    const products = (data ?? [])
+      .map((row) => mapProduct(row as unknown as ProductRow))
+      .filter((p): p is ProductWithCategory => p !== null)
+    return { data: products, error: null }
+  },
+  ["products-newest"],
   { revalidate: 120, tags: ["products"] }
 )
 

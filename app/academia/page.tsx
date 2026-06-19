@@ -1,11 +1,11 @@
-import { getPublishedCourses } from "@/lib/supabase/courses"
+import { getPublishedCoursesCached } from "@/lib/supabase/courses"
 import CourseGrid from "./CourseGrid"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export default async function AcademiaPage() {
-  const result = await getPublishedCourses()
+  const result = await getPublishedCoursesCached()
 
   if (!result.data) {
     return (

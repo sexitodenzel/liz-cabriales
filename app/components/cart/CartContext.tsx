@@ -80,6 +80,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [removedCount, setRemovedCount] = useState(0)
   const programmaticRef = useRef(false)
   const itemsRef = useRef<CartItem[]>([])
+  const userIdRef = useRef<string | null>(null)
+  const loadInFlightRef = useRef(false)
   const debounceApiRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
   const applySnapshot = useCallback((snapshot: CartApiData) => {
@@ -99,30 +101,45 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     let isMounted = true
 
-    const loadAuthenticatedCart = async (nextUserId: string) => {
+    const loadAuthenticatedCart = async (
+      nextUserId: string,
+      mergeGuest: boolean
+    ) => {
+      if (loadInFlightRef.current) return
+      loadInFlightRef.current = true
+
+      userIdRef.current = nextUserId
       setUserId(nextUserId)
 
-      const guest = readGuestCart()
+      let guestItems: CartItem[] = []
+      if (mergeGuest) {
+        guestItems = readGuestCart().items
+        if (guestItems.length > 0) {
+          clearGuestCart()
+        }
+      }
 
       try {
         const snapshot =
-          guest.items.length > 0
+          guestItems.length > 0
             ? await requestCartSnapshot("POST", {
                 action: "merge",
-                guestItems: guest.items,
+                guestItems,
               })
             : await requestCartSnapshot("GET")
 
         if (!isMounted) return
 
         applySnapshot(snapshot)
-
-        if (guest.items.length > 0) {
-          clearGuestCart()
-        }
+        clearGuestCart()
       } catch {
         if (!isMounted) return
-        setItems(guest.items)
+        if (mergeGuest && guestItems.length > 0) {
+          writeGuestCart(guestItems)
+          setItems(guestItems)
+        }
+      } finally {
+        loadInFlightRef.current = false
       }
     }
 
@@ -136,6 +153,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (!isMounted) return
 
       if (!user) {
+        userIdRef.current = null
         const snapshot = readGuestCart()
         setItems(snapshot.items)
         setUserId(null)
@@ -144,7 +162,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        await loadAuthenticatedCart(user.id)
+        await loadAuthenticatedCart(user.id, false)
       } finally {
         if (!isMounted) return
         setIsLoading(false)
@@ -155,10 +173,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        void loadAuthenticatedCart(session.user.id)
-      } else {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        void loadAuthenticatedCart(session.user.id, true)
+        return
+      }
+
+      if (event === "SIGNED_OUT") {
+        userIdRef.current = null
         setUserId(null)
         setItems(readGuestCart().items)
       }
@@ -168,16 +190,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [])
+  }, [applySnapshot])
 
-  const persistGuest = useCallback(
-    (next: CartItem[]) => {
-      if (!userId) {
-        writeGuestCart(next)
-      }
-    },
-    [userId]
-  )
+  const persistGuest = useCallback((next: CartItem[]) => {
+    if (!userIdRef.current) {
+      writeGuestCart(next)
+    }
+  }, [])
 
   const addItem = useCallback(
     async (item: CartItem) => {
@@ -187,19 +206,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return merged
       })
 
-      if (userId) {
+      if (userIdRef.current) {
         try {
           const snapshot = await requestCartSnapshot("POST", {
             action: "add",
             item,
           })
           applySnapshot(snapshot)
+          clearGuestCart()
         } catch {
           // se reintentara en la siguiente mutacion
         }
       }
     },
-    [applySnapshot, persistGuest, userId]
+    [applySnapshot, persistGuest]
   )
 
   const removeItem = useCallback(
@@ -210,7 +230,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return next
       })
 
-      if (userId) {
+      if (userIdRef.current) {
+        clearGuestCart()
         try {
           const snapshot = await requestCartSnapshot("DELETE", { variantId })
           applySnapshot(snapshot)
@@ -219,7 +240,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [applySnapshot, persistGuest, userId]
+    [applySnapshot, persistGuest]
   )
 
   const updateQuantity = useCallback(
@@ -237,40 +258,35 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return next
       })
 
-      if (userId) {
+      if (userIdRef.current) {
         try {
           const snapshot = await requestCartSnapshot("PATCH", {
             variantId,
             quantity,
           })
           applySnapshot(snapshot)
+          clearGuestCart()
         } catch {
           // ignore
         }
       }
     },
-    [applySnapshot, persistGuest, removeItem, userId]
+    [applySnapshot, persistGuest, removeItem]
   )
 
   const adjustItem = useCallback(
     (variantId: string, delta: number, min = 1) => {
-      setItems((prev) =>
-        prev.map((item) =>
+      setItems((prev) => {
+        const next = prev.map((item) =>
           item.variantId !== variantId
             ? item
             : { ...item, quantity: Math.max(min, item.quantity + delta) }
         )
-      )
+        persistGuest(next)
+        return next
+      })
 
-      persistGuest(
-        itemsRef.current.map((item) =>
-          item.variantId !== variantId
-            ? item
-            : { ...item, quantity: Math.max(min, item.quantity + delta) }
-        )
-      )
-
-      if (!userId) return
+      if (!userIdRef.current) return
 
       const existing = debounceApiRef.current.get(variantId)
       if (existing !== undefined) clearTimeout(existing)
@@ -286,14 +302,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       debounceApiRef.current.set(variantId, timer)
     },
-    [applySnapshot, persistGuest, userId]
+    [applySnapshot]
   )
 
   const clearCart = useCallback(async () => {
     setItems([])
     clearGuestCart()
 
-    if (userId) {
+    if (userIdRef.current) {
       try {
         const snapshot = await requestCartSnapshot("DELETE", {
           clearAll: true,
@@ -303,7 +319,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         // ignore
       }
     }
-  }, [applySnapshot, userId])
+  }, [applySnapshot])
 
   const dismissRemovedNotification = useCallback(() => {
     setRemovedCount(0)

@@ -26,7 +26,7 @@ export default function WishlistPage() {
       <div className="mb-10 flex items-center gap-3">
         <Heart className="h-6 w-6 text-[#C6A75E]" />
         <h1 className="font-[family-name:var(--font-playfair),serif] text-3xl font-medium text-[#111]">
-          Mi wishlist
+          Mis favoritos
         </h1>
         {products.length > 0 && (
           <span className="rounded-full bg-[#C6A75E]/15 px-3 py-0.5 text-sm font-semibold text-[#C6A75E]">
@@ -44,7 +44,9 @@ export default function WishlistPage() {
       ) : products.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-24 text-center">
           <Heart className="h-12 w-12 text-neutral-200" />
-          <p className="text-lg font-medium text-neutral-400">Tu wishlist está vacía</p>
+          <p className="text-lg font-medium text-neutral-400">
+            Aún no tienes productos en favoritos
+          </p>
           <Link
             href="/tienda"
             className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#C6A75E] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#b8952f]"

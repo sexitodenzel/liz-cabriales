@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/admin"
@@ -105,6 +106,9 @@ export async function PATCH(request: Request) {
       )
     }
 
+    revalidatePath("/")
+    revalidateTag("landing-slots", "max")
+
     return NextResponse.json({ data: { ok: true }, error: null })
   } catch {
     return NextResponse.json(
@@ -129,6 +133,9 @@ export async function POST() {
     if (result.error) {
       return NextResponse.json({ data: null, error: { message: result.error } }, { status: 500 })
     }
+
+    revalidatePath("/")
+    revalidateTag("landing-slots", "max")
 
     return NextResponse.json({ data: result.data, error: null })
   } catch {

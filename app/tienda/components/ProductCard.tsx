@@ -21,8 +21,8 @@ function formatPrice(value: number): string {
 }
 
 export default function ProductCard({ product }: Props) {
-  const { toggle, has } = useWishlist()
-  const wishlisted = has(product.slug)
+  const { toggle, has, hydrated: wishlistHydrated } = useWishlist()
+  const wishlisted = wishlistHydrated && has(product.slug)
   const brand = product.brand ?? "Sin marca"
   const images = product.images ?? []
   const initials = brand
@@ -176,7 +176,7 @@ export default function ProductCard({ product }: Props) {
       <div className="flex flex-1 flex-col gap-2 p-2.5 sm:gap-3 sm:p-4">
         <div>
           <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-400 sm:text-xs sm:tracking-[0.18em]">
-            {product.category.name}
+            {product.category?.name ?? "Producto"}
           </p>
           <h3 className="mt-0.5 text-xs font-medium leading-snug text-[#0a0a0a] sm:mt-1 sm:text-sm">
             {product.name}

@@ -7,7 +7,7 @@ import PerfilSignOutButton from "./PerfilSignOutButton"
 import { listAppointmentsForUser } from "@/lib/supabase/appointments"
 import { getUserRegistrations } from "@/lib/supabase/courses"
 import { getUserOrdersSummaries } from "@/lib/supabase/orders"
-import { createClient } from "@/lib/supabase/server"
+import { getAuthUser, getUserProfile } from "@/lib/supabase/auth-server"
 import type { OrderStatus, RegistrationStatus } from "@/types"
 
 export const dynamic = "force-dynamic"
@@ -61,20 +61,13 @@ function registrationStatusLabel(status: RegistrationStatus): string {
 }
 
 export default async function PerfilPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getAuthUser()
 
   if (!user) {
     redirect("/login")
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("first_name, last_name, email, role")
-    .eq("id", user.id)
-    .single()
+  const profile = await getUserProfile(user.id)
 
   const displayName =
     [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||

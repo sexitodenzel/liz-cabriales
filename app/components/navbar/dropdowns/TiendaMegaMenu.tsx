@@ -4,15 +4,23 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import type { TiendaCategory } from "../menuData"
+import { RECENT_PRODUCTS_CATEGORY_SLUG } from "@/lib/navbar/recent-products"
 
 type TiendaMegaMenuProps = {
   isOpen: boolean
   onClose: () => void
   categories: TiendaCategory[]
   sectionHref: string
+  recentProductsLoading?: boolean
 }
 
-export default function TiendaMegaMenu({ isOpen, onClose, categories, sectionHref }: TiendaMegaMenuProps) {
+export default function TiendaMegaMenu({
+  isOpen,
+  onClose,
+  categories,
+  sectionHref,
+  recentProductsLoading = false,
+}: TiendaMegaMenuProps) {
   const [hoveredIndex, setHoveredIndex] = useState(0)
   const [contentVisible, setContentVisible] = useState(false)
 
@@ -107,27 +115,47 @@ export default function TiendaMegaMenu({ isOpen, onClose, categories, sectionHre
                   {cat.label}
                 </Link>
               </div>
-              <ul className="grid grid-cols-2 gap-x-10 gap-y-0.5">
-                {cat.subcategories.map((sub, subIdx) => (
-                  <li
-                    key={sub.label}
-                    className={`
+              <ul
+                className={`grid gap-x-10 gap-y-0.5 ${
+                  cat.slug === RECENT_PRODUCTS_CATEGORY_SLUG
+                    ? "grid-cols-2 md:grid-cols-3"
+                    : "grid-cols-2"
+                }`}
+              >
+                {cat.slug === RECENT_PRODUCTS_CATEGORY_SLUG &&
+                recentProductsLoading &&
+                cat.subcategories.length === 0 ? (
+                  <li className="col-span-full py-2 text-[14px] text-neutral-400">
+                    Cargando productos recientes…
+                  </li>
+                ) : cat.slug === RECENT_PRODUCTS_CATEGORY_SLUG &&
+                  !recentProductsLoading &&
+                  cat.subcategories.length === 0 ? (
+                  <li className="col-span-full py-2 text-[14px] text-neutral-400">
+                    Aún no hay productos recientes.
+                  </li>
+                ) : (
+                  cat.subcategories.map((sub, subIdx) => (
+                    <li
+                      key={`${sub.href}-${sub.label}`}
+                      className={`
                       transition-all duration-300 ease-out
                       ${contentVisible && hoveredIndex === idx
                         ? "opacity-100 translate-y-0"
                         : "opacity-0 translate-y-3"
                       }
                     `}
-                    style={{ transitionDelay: `${subIdx * 35}ms` }}
-                  >
-                    <Link
-                      href={sub.href}
-                      className="block py-2 text-[15px] text-[#1a1a1a] transition-colors hover:text-[#C6A75E]"
+                      style={{ transitionDelay: `${subIdx * 35}ms` }}
                     >
-                      {sub.label}
-                    </Link>
-                  </li>
-                ))}
+                      <Link
+                        href={sub.href}
+                        className="block py-2 text-[15px] text-[#1a1a1a] transition-colors hover:text-[#C6A75E] line-clamp-2"
+                      >
+                        {sub.label}
+                      </Link>
+                    </li>
+                  ))
+                )}
               </ul>
             </div>
           ))}

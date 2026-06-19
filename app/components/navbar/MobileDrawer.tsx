@@ -5,8 +5,10 @@ import Link from "next/link"
 import { ChevronRight, User, MessageCircle, Instagram, Facebook, MapPin, Heart } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
+import type { TiendaCategory } from "./menuData"
 import TiendaMobileAccordion from "./TiendaMobileAccordion"
 import { useWishlist } from "@/app/components/wishlist/WishlistContext"
+import WishlistCountBadge from "@/app/components/wishlist/WishlistCountBadgeClient"
 
 type Section = "Tienda" | "Academia" | "Servicios" | null
 
@@ -14,6 +16,7 @@ type Props = {
   isOpen: boolean
   onClose: () => void
   isLoggedIn: boolean
+  tiendaCategories?: TiendaCategory[]
 }
 
 const NAV_SECTIONS = [
@@ -22,7 +25,12 @@ const NAV_SECTIONS = [
   { key: "Servicios" as const, label: "Servicios", categories: serviciosCategories, href: "/servicios", sectionLabel: "servicios" },
 ]
 
-export default function MobileDrawer({ isOpen, onClose, isLoggedIn }: Props) {
+export default function MobileDrawer({
+  isOpen,
+  onClose,
+  isLoggedIn,
+  tiendaCategories: tiendaMenuCategories = tiendaCategories,
+}: Props) {
   const pathname = usePathname()
   const { count: wishlistCount } = useWishlist()
   const [openSection, setOpenSection] = useState<Section>(null)
@@ -65,6 +73,8 @@ export default function MobileDrawer({ isOpen, onClose, isLoggedIn }: Props) {
           <div>
             {NAV_SECTIONS.map(({ key, label, categories, href, sectionLabel }) => {
               const isExpanded = openSection === key
+              const sectionCategories =
+                key === "Tienda" ? tiendaMenuCategories : categories
               return (
                 <div key={key}>
                   <button
@@ -87,7 +97,7 @@ export default function MobileDrawer({ isOpen, onClose, isLoggedIn }: Props) {
                           openCategory={openCategory}
                           setOpenCategory={setOpenCategory}
                           onClose={onClose}
-                          categories={categories}
+                          categories={sectionCategories}
                           sectionHref={href}
                           sectionLabel={sectionLabel}
                         />
@@ -123,13 +133,12 @@ export default function MobileDrawer({ isOpen, onClose, isLoggedIn }: Props) {
             <Link href="/wishlist" onClick={onClose} className="flex items-center justify-between gap-4 px-5 py-4">
               <div className="flex items-center gap-4">
                 <Heart className="h-5 w-5 shrink-0 text-neutral-500" />
-                <span className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a]">Wishlist</span>
+                <span className="text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a]">Favoritos</span>
               </div>
-              {wishlistCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C6A75E] px-1.5 text-[10px] font-bold text-white">
-                  {wishlistCount}
-                </span>
-              )}
+              <WishlistCountBadge
+                count={wishlistCount}
+                className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C6A75E] px-1.5 text-[10px] font-bold text-white"
+              />
             </Link>
 
             <a
