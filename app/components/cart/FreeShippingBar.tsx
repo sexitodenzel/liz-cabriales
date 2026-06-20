@@ -1,4 +1,4 @@
-const FREE_SHIPPING_THRESHOLD = 2000
+import { FREE_SHIPPING_THRESHOLD_MXN } from "@/lib/constants/shipping"
 
 function formatMXN(value: number) {
   return new Intl.NumberFormat("es-MX", {
@@ -9,9 +9,9 @@ function formatMXN(value: number) {
 }
 
 export default function FreeShippingBar({ amount }: { amount: number }) {
-  const reached = amount >= FREE_SHIPPING_THRESHOLD
-  const progress = Math.min((amount / FREE_SHIPPING_THRESHOLD) * 100, 100)
-  const remaining = FREE_SHIPPING_THRESHOLD - amount
+  const reached = amount >= FREE_SHIPPING_THRESHOLD_MXN
+  const progress = Math.min((amount / FREE_SHIPPING_THRESHOLD_MXN) * 100, 100)
+  const remaining = FREE_SHIPPING_THRESHOLD_MXN - amount
 
   return (
     <div className="mb-3">
@@ -30,7 +30,7 @@ export default function FreeShippingBar({ amount }: { amount: number }) {
           </p>
         )}
         <p className="text-[10px] tabular-nums text-neutral-400">
-          {formatMXN(FREE_SHIPPING_THRESHOLD)}
+          {formatMXN(FREE_SHIPPING_THRESHOLD_MXN)}
         </p>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">

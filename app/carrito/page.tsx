@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 
 import { useCart } from "@/app/components/cart/CartContext"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import { FREE_SHIPPING_THRESHOLD_MXN } from "@/lib/constants/shipping"
 
 function formatPrice(value: number): string {
   return new Intl.NumberFormat("es-MX", {
@@ -14,24 +15,22 @@ function formatPrice(value: number): string {
   }).format(value)
 }
 
-const FREE_SHIPPING_THRESHOLD = 2000
-
 export default function CartPage() {
   const router = useRouter()
   const { items, itemCount, subtotal, adjustItem, removeItem, removedCount, dismissRemovedNotification } = useCart()
 
   const remainingForFreeShipping = Math.max(
     0,
-    FREE_SHIPPING_THRESHOLD - subtotal
+    FREE_SHIPPING_THRESHOLD_MXN - subtotal
   )
   const hasFreeShipping = remainingForFreeShipping === 0
   const isEmpty = items.length === 0
   const total = subtotal
 
   const progress =
-    subtotal >= FREE_SHIPPING_THRESHOLD
+    subtotal >= FREE_SHIPPING_THRESHOLD_MXN
       ? 100
-      : Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)
+      : Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD_MXN) * 100)
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
@@ -53,7 +52,7 @@ export default function CartPage() {
           <div className="rounded-2xl border border-neutral-200 bg-white p-4">
             <div className="mb-2 flex items-center justify-between text-xs">
               <span className="font-medium text-neutral-700">
-                Envío gratis a partir de {formatPrice(FREE_SHIPPING_THRESHOLD)}
+                Envío gratis a partir de {formatPrice(FREE_SHIPPING_THRESHOLD_MXN)}
               </span>
               <span className="text-neutral-500">
                 {hasFreeShipping

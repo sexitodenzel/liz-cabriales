@@ -8,6 +8,7 @@ import {
   CFDI_SURCHARGE_PERCENT,
   computeInvoiceSurchargeMxn,
 } from "@/lib/constants/cfdi"
+import { FREE_SHIPPING_THRESHOLD_MXN } from "@/lib/constants/shipping"
 import type { CartSnapshot } from "@/lib/supabase/cart"
 import { createOrderSchema } from "@/lib/validations/orders"
 import type { DeliveryType } from "@/types"
@@ -371,7 +372,7 @@ function ShippingStep(p: ShippingProps) {
           )}
           <div className="mt-1 flex items-center justify-between">
             <p className="text-[12px] text-neutral-500">Envío</p>
-            {p.initialCart.total >= 2000 ? (
+            {p.initialCart.total >= FREE_SHIPPING_THRESHOLD_MXN ? (
               <p className="text-[12px] font-semibold text-[#C6A75E]">Gratis</p>
             ) : (
               <p className="text-[12px] text-neutral-500">Se define después</p>
@@ -381,7 +382,7 @@ function ShippingStep(p: ShippingProps) {
             <p className="text-[14px] font-semibold text-[#1a1a1a]">Total</p>
             <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">{formatMXN(p.orderTotal)}</p>
           </div>
-          {p.initialCart.total < 2000 && (
+          {p.initialCart.total < FREE_SHIPPING_THRESHOLD_MXN && (
             <p className="mt-2 text-[11px] leading-[1.5] text-neutral-400">
               Enviamos por Estafeta y DHL. El costo se cotiza después de confirmar.
             </p>

@@ -16,8 +16,8 @@
     "hash": "239f3ebf717465dc636818a1a619398d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\layout.tsx": {
-    "mtime": 1781989503.3589637,
-    "hash": "3488d4fb756feecfc7a21a3a84e14043"
+    "mtime": 1781989870.3164062,
+    "hash": "99194516d2af7a04fd6ad6c633f03edd"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\loading.tsx": {
     "mtime": 1781912228.4113998,
@@ -468,12 +468,12 @@
     "hash": "d622f37916d8ecd99f363cf3eb9e65c1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\carrito\\page.tsx": {
-    "mtime": 1781933106.8179958,
-    "hash": "4cb59a90c5c878991d851808adb71a72"
+    "mtime": 1781990833.2208493,
+    "hash": "fdafaf60d7e2e3a2ae8071b8c27b18ca"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\checkout\\CheckoutClient.tsx": {
-    "mtime": 1781933137.6581047,
-    "hash": "2c384dc10863038ad822f38722ca8ae2"
+    "mtime": 1781990838.024233,
+    "hash": "89e056d61bbb48ea4d9e32a670262764"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\checkout\\page.tsx": {
     "mtime": 1781933158.360984,
@@ -504,8 +504,8 @@
     "hash": "50204a585050a1a945b357d096477b88"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\BrandDescription.tsx": {
-    "mtime": 1781933090.6200957,
-    "hash": "aaaa3cf360d1ac40411b4068fe887916"
+    "mtime": 1781990415.6741319,
+    "hash": "22a2a7774bf9c96aead8ee1ef300dbb1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\Footer.tsx": {
     "mtime": 1781933099.9940548,
@@ -528,8 +528,8 @@
     "hash": "5ff9877766da89f9437a70915c17ec5c"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\PillarStage.tsx": {
-    "mtime": 1781933090.6320927,
-    "hash": "0ba3e3f36368522ea380c45cff4cb0ec"
+    "mtime": 1781990019.3035476,
+    "hash": "3931506d406c36c1bac5fb04e49d03ce"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\ShopByBrands.tsx": {
     "mtime": 1781933090.6411078,
@@ -560,12 +560,12 @@
     "hash": "e1476d95e82c5da77c3db6338632a697"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\cart\\FreeShippingBar.tsx": {
-    "mtime": 1781674362.6768026,
-    "hash": "325ad360e7236b1f75b9db1eca8c05fc"
+    "mtime": 1781990830.7797058,
+    "hash": "425fe0e9d81e861546339475b0037c92"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\hero\\HeroSlider.tsx": {
-    "mtime": 1781933086.3918035,
-    "hash": "80f1f6fde299250b6e99a33cf003d5a0"
+    "mtime": 1781990022.0285692,
+    "hash": "3dd2b2cd416a730863e7782245cb862d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\home\\HomeHeroSkeleton.tsx": {
     "mtime": 1781912228.3684738,
@@ -584,8 +584,8 @@
     "hash": "1bc083b4e1836aa5a70114270c15fdb7"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\MobileDrawer.tsx": {
-    "mtime": 1781931713.8891308,
-    "hash": "679364726067a7158bc24ac9b9fb140a"
+    "mtime": 1781990843.4178598,
+    "hash": "4c85c33abf4c7919668e1d3d83c9fdb2"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\MobileSearchOverlay.tsx": {
     "mtime": 1781933082.2217495,
@@ -890,6 +890,10 @@
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\constants\\contact.ts": {
     "mtime": 1779145694.2428584,
     "hash": "76f263e11d9a92387f60cec22ad47cca"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\constants\\shipping.ts": {
+    "mtime": 1781990828.0367036,
+    "hash": "ffc812ea047629db9d237a97d8b33fc2"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\constants\\stock.ts": {
     "mtime": 1779149584.5714078,

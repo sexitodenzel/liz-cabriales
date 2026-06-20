@@ -20,6 +20,7 @@ import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuD
 import type { TiendaCategory } from "./menuData"
 import TiendaMobileAccordion from "./TiendaMobileAccordion"
 import { useCart } from "../cart/CartContext"
+import { formatFreeShippingThreshold } from "@/lib/constants/shipping"
 
 type Section = "Tienda" | "Academia" | "Servicios" | null
 
@@ -177,7 +178,7 @@ export default function MobileDrawer({
           {/* Utility section — grows to fill remaining height */}
           <div className="flex min-h-0 flex-1 flex-col bg-[#f8f7f5]">
             <p className="border-b border-neutral-200/80 px-5 py-3 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-500">
-              Envío gratis en compras mayores a $999
+              Envío gratis en compras mayores a {formatFreeShippingThreshold()}
             </p>
 
             <Link href={isLoggedIn ? "/perfil" : "/login"} onClick={onClose} className="flex items-center gap-4 px-5 py-4">
