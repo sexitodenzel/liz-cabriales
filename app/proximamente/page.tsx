@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function ProximamentePage() {
   return (
-    <main className="min-h-[60vh] bg-white px-6 py-24 text-center text-[#111]">
+    <main className="min-h-[60vh] bg-white site-container py-24 text-center text-[#111]">
       <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a8862f]">
         Servicios
       </p>

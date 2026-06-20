@@ -25,6 +25,7 @@ export type Product = {
   images: string[] | null
   brand: string | null
   is_featured: boolean
+  is_best_seller: boolean
   is_active: boolean
   updated_at: string | null
   created_at: string | null
@@ -79,6 +80,7 @@ type ProductRow = {
   images: string[] | null
   brand: string | null
   is_featured: boolean
+  is_best_seller?: boolean | null
   is_active: boolean
   updated_at?: string | null
   created_at?: string | null
@@ -120,6 +122,7 @@ function mapProductWithCategoryRow(
     images: productRow.images ?? null,
     brand: productRow.brand ?? null,
     is_featured: Boolean(productRow.is_featured),
+    is_best_seller: Boolean(productRow.is_best_seller),
     is_active: Boolean(productRow.is_active),
     updated_at: productRow.updated_at ?? null,
     created_at: productRow.created_at ?? null,
@@ -280,6 +283,7 @@ export async function getProducts(
         images: productRow.images ?? null,
         brand: productRow.brand ?? null,
         is_featured: Boolean(productRow.is_featured),
+        is_best_seller: Boolean(productRow.is_best_seller),
         is_active: Boolean(productRow.is_active),
         updated_at: productRow.updated_at ?? null,
         created_at: productRow.created_at ?? null,
@@ -297,7 +301,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, images, brand, is_featured, is_active, updated_at, created_at")
+    .select("id, category_id, name, slug, description, base_price, images, brand, is_featured, is_best_seller, is_active, updated_at, created_at")
     .eq("is_featured", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -322,6 +326,47 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
         images: productRow.images ?? null,
         brand: productRow.brand ?? null,
         is_featured: Boolean(productRow.is_featured),
+        is_best_seller: Boolean(productRow.is_best_seller),
+        is_active: Boolean(productRow.is_active),
+        updated_at: productRow.updated_at ?? null,
+        created_at: productRow.created_at ?? null,
+      }
+    }),
+    error: null,
+  }
+}
+
+export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, category_id, name, slug, description, base_price, images, brand, is_featured, is_best_seller, is_active, updated_at, created_at")
+    .eq("is_best_seller", true)
+    .eq("is_active", true)
+    .is("deleted_at", null)
+    .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return {
+    data: (data ?? []).map((row) => {
+      const productRow = row as ProductRow
+      return {
+        id: productRow.id,
+        category_id: productRow.category_id,
+        name: productRow.name,
+        slug: productRow.slug,
+        description: productRow.description ?? null,
+        base_price: Number(productRow.base_price),
+        images: productRow.images ?? null,
+        brand: productRow.brand ?? null,
+        is_featured: Boolean(productRow.is_featured),
+        is_best_seller: Boolean(productRow.is_best_seller),
         is_active: Boolean(productRow.is_active),
         updated_at: productRow.updated_at ?? null,
         created_at: productRow.created_at ?? null,
@@ -409,6 +454,7 @@ export async function getProductBySlug(
     images: productRow.images ?? null,
     brand: productRow.brand ?? null,
     is_featured: Boolean(productRow.is_featured),
+    is_best_seller: Boolean(productRow.is_best_seller),
     is_active: Boolean(productRow.is_active),
     updated_at: productRow.updated_at ?? null,
     created_at: productRow.created_at ?? null,

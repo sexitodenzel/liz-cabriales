@@ -208,7 +208,7 @@ export default function ShopByNailPolishColors() {
         .palette-enter { animation: paletteIn 280ms ease both; }
       `}</style>
 
-      <div className="mx-auto max-w-[1400px] px-6">
+      <div>
         <header
           className={`mb-10 max-w-[720px] transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
         >

@@ -53,7 +53,7 @@ export default function TiendaMegaMenu({
         ${isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none"}
       `}
     >
-      <div className="max-w-[1400px] mx-auto px-6 py-10 flex gap-0">
+      <div className="site-container py-10 flex gap-0">
 
         {/* Panel izquierdo: lista de categorías */}
         <div

@@ -2,15 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
-import { PackageOpen, SlidersHorizontal, X } from "lucide-react"
+import { PackageOpen } from "lucide-react"
 
 import type {
   Category,
   ProductWithCategory,
 } from "@/lib/supabase/products"
 import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
-import FilterSidebar from "./FilterSidebar"
+import MobileFilterSheet from "./MobileFilterSheet"
 import ProductCard from "./ProductCard"
+import ProductFilterSortBar from "./ProductFilterSortBar"
+import { useProductViewMode } from "./useProductViewMode"
 import { useCart } from "@/app/components/cart/CartContext"
 
 type FiltersState = {
@@ -54,6 +56,7 @@ export default function ProductGrid({
   const [filters, setFilters] = useState<FiltersState>(initialFilters)
   const [sort, setSort] = useState<SortOption>("destacados")
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const { viewMode, setViewMode } = useProductViewMode()
   const { isCartOpen } = useCart()
 
   useEffect(() => {
@@ -148,6 +151,16 @@ export default function ProductGrid({
     return counts
   }, [products])
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const product of products) {
+      if (product.category?.slug) {
+        counts[product.category.slug] = (counts[product.category.slug] ?? 0) + 1
+      }
+    }
+    return counts
+  }, [products])
+
   const priceBounds = useMemo(() => {
     if (products.length === 0) return { min: 0, max: 0 }
     let min = Infinity
@@ -215,10 +228,6 @@ export default function ProductGrid({
 
   const isEmpty = filteredProducts.length === 0
 
-  const selectedCategoryNames = filters.categorySlugs
-    .map((slug) => categories.find((c) => c.slug === slug)?.name)
-    .filter((n): n is string => Boolean(n))
-
   const formatPriceShort = (value: number) =>
     new Intl.NumberFormat("es-MX", {
       style: "currency",
@@ -242,129 +251,71 @@ export default function ProductGrid({
     return null
   })()
 
-  const sharedSidebarProps = {
-    categories,
-    brands: brandsForSidebar,
-    brandCounts,
-    selectedCategories: filters.categorySlugs,
-    selectedBrands: filters.brands,
-    search: filters.search,
-    priceMin: filters.priceMin,
-    priceMax: filters.priceMax,
-    priceBounds,
-    onCategoriesChange: handleCategoriesChange,
-    onBrandsChange: handleBrandsChange,
-    onSearchChange: handleSearchChange,
-    onPriceChange: handlePriceChange,
-    onClearAll: handleClearAll,
-  }
-
-  const sidebarDesktop = <FilterSidebar {...sharedSidebarProps} defaultExpanded theme="light" />
-  const sidebar = <FilterSidebar {...sharedSidebarProps} />
+  const activeChips = [
+    ...(filters.search.trim().length > 0
+      ? [
+          {
+            id: `search-${filters.search.trim()}`,
+            label: filters.search.trim(),
+            onRemove: () => handleSearchChange(""),
+          },
+        ]
+      : []),
+    ...filters.categorySlugs.map((slug) => {
+      const name = categories.find((c) => c.slug === slug)?.name ?? slug
+      return {
+        id: `category-${slug}`,
+        label: name,
+        onRemove: () =>
+          handleCategoriesChange(filters.categorySlugs.filter((s) => s !== slug)),
+      }
+    }),
+    ...filters.brands.map((brand) => ({
+      id: `brand-${brand}`,
+      label: brand,
+      onRemove: () => handleBrandsChange(filters.brands.filter((b) => b !== brand)),
+    })),
+    ...(priceChipLabel
+      ? [
+          {
+            id: "price",
+            label: priceChipLabel,
+            onRemove: () => handlePriceChange(null, null),
+          },
+        ]
+      : []),
+  ]
 
   return (
-    <div className="grid gap-8 md:grid-cols-[280px_minmax(0,1fr)]">
-      <div className="hidden md:block">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-          {sidebarDesktop}
-        </div>
-      </div>
+    <div>
+      <ProductFilterSortBar
+        sort={sort}
+        sortOptions={SORT_OPTIONS}
+        onSortChange={(value) => setSort(value as SortOption)}
+        onFilterClick={() => setMobileFiltersOpen(true)}
+        onClearFilters={handleClearAll}
+        showFilter
+        activeFilterCount={activeFilterCount}
+        activeChips={activeChips}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        desktopFilters={{
+          categories,
+          brands: brandsForSidebar,
+          categoryCounts,
+          brandCounts,
+          selectedCategories: filters.categorySlugs,
+          selectedBrands: filters.brands,
+          priceMin: filters.priceMin,
+          priceMax: filters.priceMax,
+          priceBounds,
+          onCategoriesChange: handleCategoriesChange,
+          onBrandsChange: handleBrandsChange,
+          onPriceChange: handlePriceChange,
+        }}
+      />
 
-      <section className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-4">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileFiltersOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-700 transition-colors hover:border-[#C9A84C] md:hidden"
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              Filtros
-              {activeFilterCount > 0 && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C9A84C] px-1 text-[10px] font-bold text-[#0a0a0a]">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-            <p className="text-sm text-neutral-500">
-              {hasActiveFilters ? (
-                <>
-                  <span className="font-semibold text-[#0a0a0a]">
-                    {filteredProducts.length}
-                  </span>{" "}
-                  de {products.length} productos
-                </>
-              ) : (
-                <>
-                  <span className="font-semibold text-[#0a0a0a]">
-                    {products.length}
-                  </span>{" "}
-                  productos
-                </>
-              )}
-            </p>
-          </div>
-
-          <label className="flex items-center gap-2 text-xs text-neutral-500">
-            <span className="hidden sm:inline">Ordenar por</span>
-            <select
-              value={sort}
-              onChange={(event) => setSort(event.target.value as SortOption)}
-              className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs text-neutral-700 outline-none transition-colors focus:border-[#C9A84C]"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        {hasActiveFilters && (
-          <div className="flex flex-wrap items-center gap-2">
-            {filters.search.trim().length > 0 && (
-              <FilterChip
-                label={`“${filters.search.trim()}”`}
-                onRemove={() => handleSearchChange("")}
-              />
-            )}
-            {selectedCategoryNames.map((name, i) => (
-              <FilterChip
-                key={filters.categorySlugs[i]}
-                label={name}
-                onRemove={() =>
-                  handleCategoriesChange(
-                    filters.categorySlugs.filter((s) => s !== filters.categorySlugs[i])
-                  )
-                }
-              />
-            ))}
-            {filters.brands.map((brand) => (
-              <FilterChip
-                key={brand}
-                label={brand}
-                onRemove={() =>
-                  handleBrandsChange(filters.brands.filter((b) => b !== brand))
-                }
-              />
-            ))}
-            {priceChipLabel && (
-              <FilterChip
-                label={priceChipLabel}
-                onRemove={() => handlePriceChange(null, null)}
-              />
-            )}
-            <button
-              type="button"
-              onClick={handleClearAll}
-              className="text-xs font-medium text-[#a8862f] transition-colors hover:text-[#C9A84C] hover:underline"
-            >
-              Limpiar todo
-            </button>
-          </div>
-        )}
-
+      <div className="space-y-6">
         {isEmpty ? (
           <div className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-10 text-center">
             <PackageOpen className="mb-4 h-10 w-10 text-neutral-300" />
@@ -385,72 +336,42 @@ export default function ProductGrid({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3"
+                : "flex flex-col"
+            }
+          >
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                layout={viewMode}
+              />
             ))}
           </div>
         )}
-      </section>
-
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 top-[var(--navbar-mobile-h)] z-[40] backdrop-blur-md bg-black/10 transition-opacity duration-300 md:hidden ${
-          mobileFiltersOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setMobileFiltersOpen(false)}
-      />
-
-      {/* Panel de filtros móvil */}
-      <div
-        className={`fixed left-0 top-[var(--navbar-mobile-h)] bottom-0 z-[73] flex w-2/3 flex-col border-r border-white/10 bg-[#0a0a0a] shadow-xl transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] md:hidden ${
-          mobileFiltersOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
-        }`}
-      >
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 p-4">
-          <h3 className="text-[16px] tracking-[0.02em] text-neutral-100">Filtros</h3>
-          <button
-            type="button"
-            onClick={() => setMobileFiltersOpen(false)}
-            aria-label="Cerrar filtros"
-            className="flex items-center justify-center rounded-full p-1 text-neutral-500 transition-colors hover:text-[#C6A75E]"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">{sidebar}</div>
-        <div className="flex-shrink-0 border-t border-white/10 p-4">
-          <button
-            type="button"
-            onClick={() => setMobileFiltersOpen(false)}
-            className="w-full rounded-full bg-[#111] px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#C9A84C]"
-          >
-            Ver {filteredProducts.length} productos
-          </button>
-        </div>
       </div>
-    </div>
-  )
-}
 
-function FilterChip({
-  label,
-  onRemove,
-}: {
-  label: string
-  onRemove: () => void
-}) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#C9A84C] bg-[#C9A84C]/10 py-1 pl-3 pr-1.5 text-xs font-medium text-[#a8862f]">
-      <span className="max-w-[160px] truncate">{label}</span>
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label={`Quitar filtro ${label}`}
-        className="flex h-4 w-4 items-center justify-center rounded-full text-[#a8862f] transition-colors hover:bg-[#C9A84C]/20 hover:text-[#0a0a0a]"
-      >
-        <X className="h-3 w-3" />
-      </button>
-    </span>
+      <MobileFilterSheet
+        open={mobileFiltersOpen}
+        onClose={() => setMobileFiltersOpen(false)}
+        categories={categories}
+        brands={brandsForSidebar}
+        selectedCategories={filters.categorySlugs}
+        selectedBrands={filters.brands}
+        search={filters.search}
+        priceMin={filters.priceMin}
+        priceMax={filters.priceMax}
+        priceBounds={priceBounds}
+        activeChips={activeChips}
+        onCategoriesChange={handleCategoriesChange}
+        onBrandsChange={handleBrandsChange}
+        onSearchChange={handleSearchChange}
+        onPriceChange={handlePriceChange}
+        onClearAll={handleClearAll}
+      />
+    </div>
   )
 }

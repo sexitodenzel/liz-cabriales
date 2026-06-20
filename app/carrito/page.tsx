@@ -3,6 +3,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { useCart } from "@/app/components/cart/CartContext"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 function formatPrice(value: number): string {
   return new Intl.NumberFormat("es-MX", {
@@ -34,20 +35,13 @@ export default function CartPage() {
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
-      <div className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6 py-10 lg:flex-row">
+      <div className="site-container pt-5">
+        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Carrito" }]} />
+      </div>
+      <div className="site-container flex flex-col gap-10 pb-10 lg:flex-row">
         {/* Columna izquierda */}
         <section className="flex-1 space-y-6">
           <header className="space-y-2">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="mb-1 flex items-center gap-2 text-[13px] text-[#6b6b6b] transition-colors hover:text-[#a8893a]"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-              Seguir explorando
-            </button>
             <h1 className="text-xl font-semibold tracking-[0.12em] text-[#0a0a0a]">
               CARRITO{" "}
               <span className="text-sm text-neutral-500">

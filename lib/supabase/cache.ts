@@ -17,8 +17,27 @@ function db() {
   )
 }
 
+function dbAdminReadonly() {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) {
+    return db()
+  }
+
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    serviceKey
+  )
+}
+
 type DbError = { message: string; code?: string }
 type Result<T> = { data: T; error: null } | { data: null; error: DbError }
+export type HomeBrandItem = {
+  id: string
+  name: string
+  slug: string
+  logo_url: string | null
+  show_on_home: boolean
+}
 
 type VariantRow = {
   id: string
@@ -40,6 +59,7 @@ type ProductRow = {
   images: string[] | null
   brand: string | null
   is_featured: boolean
+  is_best_seller?: boolean | null
   is_active: boolean
   updated_at?: string | null
   created_at?: string | null
@@ -49,7 +69,7 @@ type ProductRow = {
 
 const PRODUCT_SELECT = `
   id, category_id, name, slug, description, base_price, images, brand,
-  is_featured, is_active, updated_at, created_at, deleted_at,
+  is_featured, is_best_seller, is_active, updated_at, created_at, deleted_at,
   categories ( id, name, slug ),
   product_variants ( id, product_id, sku, variant_name, price, stock, is_active )
 `
@@ -81,6 +101,7 @@ function mapProduct(row: ProductRow): ProductWithCategory | null {
     images: row.images ?? null,
     brand: row.brand ?? null,
     is_featured: Boolean(row.is_featured),
+    is_best_seller: Boolean(row.is_best_seller),
     is_active: Boolean(row.is_active),
     updated_at: row.updated_at ?? null,
     created_at: row.created_at ?? null,
@@ -108,7 +129,7 @@ export const getCategoriesCached = unstable_cache(
 
 export const getBrandsCached = unstable_cache(
   async (): Promise<Result<string[]>> => {
-    const { data, error } = await db()
+    const { data, error } = await dbAdminReadonly()
       .from("brands")
       .select("name")
       .order("name", { ascending: true })
@@ -119,6 +140,62 @@ export const getBrandsCached = unstable_cache(
     return { data: names, error: null }
   },
   ["brands"],
+  { revalidate: 300, tags: ["brands"] }
+)
+
+export const getHomeBrandsCached = unstable_cache(
+  async (): Promise<Result<HomeBrandItem[]>> => {
+    const { data, error } = await dbAdminReadonly()
+      .from("brands")
+      .select("id, name, slug, logo_url, show_on_home")
+      .eq("show_on_home", true)
+      .order("name", { ascending: true })
+
+    if (!error) {
+      const brands: HomeBrandItem[] = (data ?? [])
+        .map((row) => ({
+          id: row.id as string,
+          name: row.name as string,
+          slug: row.slug as string,
+          logo_url: (row.logo_url as string | null) ?? null,
+          show_on_home: Boolean(row.show_on_home),
+        }))
+        .filter((brand) => typeof brand.name === "string" && brand.name.trim().length > 0)
+      return { data: brands, error: null }
+    }
+
+    if (error.code === "42703") {
+      const { data: fallbackData, error: fallbackError } = await dbAdminReadonly()
+        .from("brands")
+        .select("id, name, slug, logo_url")
+        .order("name", { ascending: true })
+
+      if (fallbackError) {
+        return {
+          data: null,
+          error: { message: fallbackError.message, code: fallbackError.code },
+        }
+      }
+
+      const brands: HomeBrandItem[] = (fallbackData ?? [])
+        .map((row) => {
+          const logo = (row.logo_url as string | null) ?? null
+          return {
+            id: row.id as string,
+            name: row.name as string,
+            slug: row.slug as string,
+            logo_url: logo,
+            show_on_home: typeof logo === "string" && logo.trim().length > 0,
+          }
+        })
+        .filter((brand) => brand.show_on_home)
+
+      return { data: brands, error: null }
+    }
+
+    return { data: null, error: { message: error.message, code: error.code } }
+  },
+  ["home-brands"],
   { revalidate: 300, tags: ["brands"] }
 )
 
@@ -172,7 +249,7 @@ export const getFeaturedProductsCached = unstable_cache(
     const { data, error } = await db()
       .from("products")
       .select(
-        "id, category_id, name, slug, description, base_price, images, brand, is_featured, is_active, updated_at, created_at"
+        "id, category_id, name, slug, description, base_price, images, brand, is_featured, is_best_seller, is_active, updated_at, created_at"
       )
       .eq("is_featured", true)
       .eq("is_active", true)
@@ -191,6 +268,7 @@ export const getFeaturedProductsCached = unstable_cache(
       images: (row.images as string[] | null) ?? null,
       brand: (row.brand as string | null) ?? null,
       is_featured: Boolean(row.is_featured),
+      is_best_seller: Boolean(row.is_best_seller),
       is_active: Boolean(row.is_active),
       updated_at: (row.updated_at as string | null) ?? null,
       created_at: (row.created_at as string | null) ?? null,
@@ -199,6 +277,57 @@ export const getFeaturedProductsCached = unstable_cache(
   },
   ["products-featured"],
   { revalidate: 120, tags: ["products"] }
+)
+
+/* ── Best sellers ────────────────────────────────────────────────────────── */
+
+export const getBestSellersCached = unstable_cache(
+  async (): Promise<Result<ProductWithCategory[]>> => {
+    const { data, error } = await db()
+      .from("products")
+      .select(PRODUCT_SELECT)
+      .eq("is_best_seller", true)
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .order("updated_at", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(12)
+    if (error) return { data: null, error: { message: error.message, code: error.code } }
+    const products = (data ?? [])
+      .map((row) => mapProduct(row as unknown as ProductRow))
+      .filter((p): p is ProductWithCategory => p !== null)
+    return { data: products, error: null }
+  },
+  ["products-best-sellers"],
+  { revalidate: 120, tags: ["products", "best-sellers"] }
+)
+
+/* ── Top searches (chips de "Más buscados") ──────────────────────────────── */
+
+export type TopSearchItem = {
+  id: string
+  label: string
+  href: string | null
+}
+
+export const getTopSearchesCached = unstable_cache(
+  async (): Promise<Result<TopSearchItem[]>> => {
+    const { data, error } = await db()
+      .from("top_searches")
+      .select("id, label, href, position")
+      .eq("is_enabled", true)
+      .order("position", { ascending: true })
+      .limit(24)
+    if (error) return { data: null, error: { message: error.message, code: error.code } }
+    const items: TopSearchItem[] = (data ?? []).map((row) => ({
+      id: row.id as string,
+      label: row.label as string,
+      href: (row.href as string | null) ?? null,
+    }))
+    return { data: items, error: null }
+  },
+  ["top-searches"],
+  { revalidate: 300, tags: ["top-searches"] }
 )
 
 /* ── Product by slug ─────────────────────────────────────────────────────── */
@@ -234,6 +363,7 @@ export const getProductBySlugCached = unstable_cache(
       images: row.images ?? null,
       brand: row.brand ?? null,
       is_featured: Boolean(row.is_featured),
+      is_best_seller: Boolean(row.is_best_seller),
       is_active: Boolean(row.is_active),
       updated_at: row.updated_at ?? null,
       created_at: row.created_at ?? null,

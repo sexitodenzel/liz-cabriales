@@ -9,7 +9,6 @@ import { WishlistProvider } from "./components/wishlist/WishlistContext";
 import SiteNavbar from "./components/SiteNavbar";
 import SiteNavbarAuth from "./components/SiteNavbarAuth";
 import SiteFooter from "./components/SiteFooter";
-import WhatsAppButton from "./components/WhatsAppButton";
 
 /* =========================
    IMPORTACIÓN DE FUENTES
@@ -36,7 +35,7 @@ const playfairDisplay = Playfair_Display({
 
 const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const inter = Inter({
@@ -68,7 +67,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${inter.className} ${cormorantGaramond.variable} ${playfairDisplay.variable} flex min-h-screen flex-col`}
+        className={`${outfit.className} ${cormorantGaramond.variable} ${playfairDisplay.variable} flex min-h-screen flex-col`}
       >
         <CartProvider>
           <WishlistProvider>
@@ -77,7 +76,6 @@ export default function RootLayout({
             </Suspense>
             <div className="flex-1">{children}</div>
             <SiteFooter />
-            <WhatsAppButton />
           </WishlistProvider>
         </CartProvider>
       </body>

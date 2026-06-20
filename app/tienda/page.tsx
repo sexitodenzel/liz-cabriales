@@ -62,7 +62,7 @@ export default async function StorePage({
   if (categoriesResult.error || productsResult.error) {
     return (
       <main className="min-h-screen bg-white text-[#0a0a0a]">
-        <div className="mx-auto max-w-[1200px] px-6 py-12">
+        <div className="site-container pt-5 pb-12">
           <h1 className="text-2xl font-semibold">Tienda</h1>
           <p className="mt-4 text-sm text-red-600">
             Ocurrió un error al cargar la tienda. Intenta de nuevo más tarde.
@@ -87,12 +87,9 @@ export default async function StorePage({
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
-      <div className="mx-auto max-w-[1200px] px-6 py-12">
+      <div className="site-container pt-5 pb-12">
         <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]} />
-        <header className="mb-10 space-y-3 border-b border-neutral-200 pb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#C6A75E]">
-            TIENDA
-          </p>
+        <header className="mb-5 space-y-3">
           <h1 className="text-2xl font-semibold text-[#0a0a0a] md:text-3xl">
             Distribuidores oficiales de las mejores marcas del medio
           </h1>

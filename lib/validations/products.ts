@@ -84,6 +84,7 @@ export const createProductSchema = z.object({
     .optional(),
   isActive: z.boolean().optional().default(true),
   isFeatured: z.boolean().optional().default(false),
+  isBestSeller: z.boolean().optional().default(false),
   initialStock: z.coerce
     .number()
     .int()
@@ -121,6 +122,13 @@ export const createCategorySchema = z.object({
 export const createBrandSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio"),
   logoUrl: z.string().url("URL de logo inválida").nullable().optional(),
+  showOnHome: z.boolean().optional(),
+})
+
+export const updateBrandSchema = z.object({
+  name: z.string().trim().min(1, "El nombre es obligatorio"),
+  logoUrl: z.string().url("URL de logo inválida").nullable().optional(),
+  showOnHome: z.boolean().optional(),
 })
 
 export const deleteCategorySchema = z.object({
@@ -129,3 +137,4 @@ export const deleteCategorySchema = z.object({
 
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>
 export type CreateBrandInput = z.infer<typeof createBrandSchema>
+export type UpdateBrandInput = z.infer<typeof updateBrandSchema>

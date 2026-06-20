@@ -63,7 +63,7 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
     `}
     >
       <div
-        className="max-w-[1400px] mx-auto px-6 py-14 grid grid-cols-3 gap-20 transition-all duration-300 ease-out"
+        className="site-container py-14 grid grid-cols-3 gap-20 transition-all duration-300 ease-out"
       >
         {columns.map(({ delayMs, col }) => (
           <div

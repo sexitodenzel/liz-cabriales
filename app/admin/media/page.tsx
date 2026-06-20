@@ -474,7 +474,7 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
               type="text"
               value={ctaLabel}
               onChange={(e) => setCtaLabel(e.target.value)}
-              placeholder="Ver colección"
+              placeholder="Inscríbete ahora"
               className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
             />
           </div>
@@ -609,7 +609,7 @@ export default function AdminMediaPage() {
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <div className="mx-auto max-w-[1400px] px-6 py-10">
+      <div className="mx-auto max-w-[1400px] px-6 pt-5 pb-10">
         <Breadcrumb
           items={[
             { label: "Inicio", href: "/" },

@@ -12,11 +12,22 @@
   /* Tarjetas / superficies que deben resaltar sobre el fondo */
   --surface: #ffffff;
   /* Altura fija del navbar: la usan el carrito y el overlay para alinearse */
-  --navbar-h: 84px;
-  /* Mobile: logo+search+icons row (84px) + nav-row (~36px) */
-  --navbar-mobile-h: 120px;
+  --navbar-h: 64px;
+  /* Fallback mobile hasta que ResizeObserver actualice --navbar-actual-h */
+  --navbar-mobile-h: 64px;
   /* Valor dinámico actualizado por ResizeObserver en Navbar.tsx; fallback al mobile */
   --navbar-actual-h: var(--navbar-mobile-h);
+  /* Contenedor horizontal unificado (navbar + páginas públicas en desktop) */
+  --site-max-w: 1200px;
+  --site-px: 1.5rem;
+}
+
+/* Rejilla única del sitio público: navbar, tienda, home, footer, etc. */
+.site-container {
+  width: 100%;
+  max-width: var(--site-max-w);
+  margin-inline: auto;
+  padding-inline: var(--site-px);
 }
 
 /* =====================================
@@ -26,42 +37,59 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', sans-serif;
 }
 
 /* =====================================
    SWIPER CUSTOM
 ===================================== */
 
-/* Dots dentro del slider (no usados actualmente en desktop/mobile) */
+/* Hero slider — paginación (móvil dentro del slider, desktop en .hero-desktop-dots) */
 .swiper-pagination-bullet {
-  width: 10px !important;
-  height: 10px !important;
-  background: #ccc !important;
-  opacity: 1 !important;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.swiper-pagination-bullet-active {
-  width: 10px !important;
-  height: 10px !important;
-  background: #1a1a1a !important;
-  opacity: 1 !important;
-}
-
-/* Dots desktop — fuera del slider, sobre fondo blanco */
-.hero-desktop-dots .swiper-pagination-bullet {
-  width: 10px !important;
-  height: 10px !important;
+  width: 6px !important;
+  height: 6px !important;
   background: #ccc !important;
   opacity: 1 !important;
   border-radius: 50% !important;
-  transition: all 0.3s ease !important;
+  cursor: pointer;
+  transition: background-color 0.3s ease !important;
+}
+
+.swiper-pagination-bullet-active {
+  width: 6px !important;
+  height: 6px !important;
+  background: #000 !important;
+  opacity: 1 !important;
+  border-radius: 50% !important;
+}
+
+/* Dots desktop — fuera del slider, sobre fondo blanco */
+.hero-desktop-dots.swiper-pagination {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  transform: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 12px;
+  padding-left: 20px;
+}
+
+.hero-desktop-dots .swiper-pagination-bullet {
+  width: 6px !important;
+  height: 6px !important;
+  margin: 0 !important;
+  background: #ccc !important;
+  opacity: 1 !important;
+  border-radius: 50% !important;
+  transition: background-color 0.3s ease !important;
 }
 
 .hero-desktop-dots .swiper-pagination-bullet-active {
-  background: #1a1a1a !important;
+  width: 6px !important;
+  height: 6px !important;
+  background: #000 !important;
 }
 
 @media (max-width: 767px) {
@@ -71,18 +99,19 @@ body {
     padding-left: 20px;
   }
   .swiper-pagination-bullet {
-    width: 8px !important;
-    height: 8px !important;
+    width: 6px !important;
+    height: 6px !important;
+    margin: 0 6px !important;
     background: #ccc !important;
     opacity: 1 !important;
-    border-radius: 4px !important;
-    transition: all 0.35s ease !important;
+    border-radius: 50% !important;
+    transition: background-color 0.35s ease !important;
   }
   .swiper-pagination-bullet-active {
-    width: 24px !important;
-    height: 8px !important;
-    background: #1a1a1a !important;
-    border-radius: 4px !important;
+    width: 6px !important;
+    height: 6px !important;
+    background: #000 !important;
+    border-radius: 50% !important;
     opacity: 1 !important;
   }
 }
@@ -138,15 +167,16 @@ body {
 
 .price-range {
   position: relative;
-  height: 20px;
+  height: 24px;
 }
 
-.price-range input[type="range"] {
+.price-range input[type="range"],
+.price-range .price-range-input {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 20px;
+  height: 24px;
   margin: 0;
   background: transparent;
   pointer-events: none;

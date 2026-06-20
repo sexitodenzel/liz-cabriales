@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import {
   createAdminBrand,
@@ -91,6 +92,8 @@ export async function POST(request: Request) {
         { status: mapAuthStatus(createResult.error.code) }
       )
     }
+
+    revalidateTag("brands")
 
     return NextResponse.json({ data: createResult.data, error: null }, { status: 201 })
   } catch {

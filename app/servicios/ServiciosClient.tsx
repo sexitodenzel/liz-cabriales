@@ -449,7 +449,7 @@ export default function ServiciosClient({
 
   if (activeAppointmentId) {
     return (
-      <main className="min-h-screen bg-[#f5f5f3] flex items-center justify-center px-6 py-16">
+      <main className="min-h-screen bg-[#f5f5f3] site-container flex items-center justify-center py-16">
         <div className="max-w-md w-full rounded-3xl border border-[#e5e5e5] bg-white p-8 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C9A84C]">
             Cita activa
@@ -590,7 +590,7 @@ export default function ServiciosClient({
   return (
     <div className="min-h-screen bg-[#f5f5f3]">
       <div className="sticky top-0 z-20 bg-[#f5f5f3]/95 backdrop-blur-sm border-b border-[#e8e8e5]">
-        <div className="mx-auto max-w-[1100px] px-6 flex items-center justify-between h-14">
+        <div className="site-container flex items-center justify-between h-14">
           <button
             onClick={handleBack}
             disabled={step === 1}
@@ -633,7 +633,7 @@ export default function ServiciosClient({
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1100px] px-6 py-8 pb-32 lg:pb-12">
+      <div className="site-container py-8 pb-32 lg:pb-12">
         <div className="flex gap-8 items-start">
           <div className="flex-1 min-w-0">
             {step === 1 && (

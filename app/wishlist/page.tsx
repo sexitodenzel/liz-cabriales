@@ -6,6 +6,7 @@ import { Heart } from "lucide-react"
 import { useWishlist } from "@/app/components/wishlist/WishlistContext"
 import ProductCard from "@/app/tienda/components/ProductCard"
 import type { ProductWithCategory } from "@/lib/supabase/products"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 export default function WishlistPage() {
   const { slugs } = useWishlist()
@@ -22,7 +23,8 @@ export default function WishlistPage() {
   }, [slugs])
 
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6">
+    <main className="site-container pt-5 pb-16">
+      <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Mis favoritos" }]} />
       <div className="mb-10 flex items-center gap-3">
         <Heart className="h-6 w-6 text-[#C6A75E]" />
         <h1 className="font-[family-name:var(--font-playfair),serif] text-3xl font-medium text-[#111]">

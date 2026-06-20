@@ -7,7 +7,7 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <main className="min-h-screen bg-white flex flex-col items-center justify-center py-10">
+    <main className="min-h-screen bg-white site-container flex flex-col items-center justify-center py-10">
       <Link href="/" className="mb-6 transition-opacity hover:opacity-80" aria-label="Ir al inicio">
         <Image
           src="/images/logo.png"

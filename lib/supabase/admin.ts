@@ -29,6 +29,7 @@ export type AdminBrand = {
   name: string
   slug: string
   logo_url: string | null
+  show_on_home: boolean
   created_at: string
 }
 
@@ -55,6 +56,7 @@ export type AdminProduct = {
   stock: number
   variant_id: string | null
   is_featured: boolean
+  is_best_seller: boolean
   is_active: boolean
   deleted_at: string | null
   updated_at: string | null
@@ -100,6 +102,7 @@ export type CreateAdminProductInput = {
   images?: string[]
   isActive?: boolean
   isFeatured?: boolean
+  isBestSeller?: boolean
   initialStock?: number
   minStock?: number
   stock?: number | null
@@ -121,6 +124,11 @@ export type CreateAdminCategoryInput = {
 export type CreateAdminBrandInput = {
   name: string
   logoUrl?: string | null
+  showOnHome?: boolean
+}
+
+function hasLogoUrl(value: string | null | undefined): boolean {
+  return typeof value === "string" && value.trim().length > 0
 }
 
 function categoryFromJoin(row: { categories?: unknown }): AdminCategory | null {
@@ -224,7 +232,7 @@ async function ensureBrandsTable(): Promise<Result<null>> {
       data: null,
       error: {
         message:
-          "La tabla brands no existe. Crea la tabla con: id uuid primary key default gen_random_uuid(), name text not null, slug text not null unique, logo_url text null, created_at timestamptz not null default now().",
+          "La tabla brands no existe. Crea la tabla con: id uuid primary key default gen_random_uuid(), name text not null, slug text not null unique, logo_url text null, show_on_home boolean not null default false, created_at timestamptz not null default now().",
         code: "BRANDS_TABLE_MISSING",
       },
     }
@@ -561,7 +569,7 @@ export async function getAdminBrandsWithProductCount(): Promise<
 
   const { data: fullBrandsData, error: fullBrandsError } = await supabaseAdmin
     .from("brands")
-    .select("id, name, slug, logo_url, created_at")
+    .select("id, name, slug, logo_url, show_on_home, created_at")
     .order("name", { ascending: true })
 
   let rows: Array<{
@@ -569,6 +577,7 @@ export async function getAdminBrandsWithProductCount(): Promise<
     name: string
     slug?: string
     logo_url?: string | null
+    show_on_home?: boolean
     created_at?: string
   }> = []
 
@@ -578,6 +587,7 @@ export async function getAdminBrandsWithProductCount(): Promise<
       name: string
       slug: string
       logo_url?: string | null
+      show_on_home?: boolean
       created_at?: string
     }>
   } else if (fullBrandsError.code === "42703") {
@@ -646,6 +656,10 @@ export async function getAdminBrandsWithProductCount(): Promise<
     name: row.name,
     slug: row.slug ?? slugifyBrand(row.name),
     logo_url: "logo_url" in row ? (row.logo_url ?? null) : null,
+    show_on_home:
+      "show_on_home" in row && typeof row.show_on_home === "boolean"
+        ? row.show_on_home
+        : hasLogoUrl(row.logo_url ?? null),
     created_at:
       "created_at" in row && typeof row.created_at === "string"
         ? row.created_at
@@ -678,6 +692,8 @@ export async function createAdminBrand(
   }
 
   const createdAt = new Date().toISOString()
+  const normalizedLogoUrl = input.logoUrl?.trim() ? input.logoUrl.trim() : null
+  const showOnHome = input.showOnHome ?? hasLogoUrl(normalizedLogoUrl)
 
   const { data, error } = await supabaseAdmin
     .from("brands")
@@ -685,10 +701,11 @@ export async function createAdminBrand(
       id: crypto.randomUUID(),
       name: normalizedName,
       slug: uniqueSlugResult.data,
-      logo_url: input.logoUrl ?? null,
+      logo_url: normalizedLogoUrl,
+      show_on_home: showOnHome,
       created_at: createdAt,
     })
-    .select("id, name, slug, logo_url, created_at")
+    .select("id, name, slug, logo_url, show_on_home, created_at")
     .single()
 
   if (error?.code === "42703") {
@@ -728,6 +745,7 @@ export async function createAdminBrand(
           name: minimalData.name as string,
           slug: uniqueSlugResult.data,
           logo_url: null,
+          show_on_home: showOnHome,
           created_at: createdAt,
         },
         error: null,
@@ -750,6 +768,7 @@ export async function createAdminBrand(
         name: basicData.name as string,
         slug: basicData.slug as string,
         logo_url: null,
+        show_on_home: showOnHome,
         created_at: createdAt,
       },
       error: null,
@@ -772,6 +791,10 @@ export async function createAdminBrand(
       name: data.name as string,
       slug: data.slug as string,
       logo_url: (data.logo_url as string | null) ?? null,
+      show_on_home:
+        typeof (data as { show_on_home?: unknown }).show_on_home === "boolean"
+          ? Boolean((data as { show_on_home?: boolean }).show_on_home)
+          : showOnHome,
       created_at: data.created_at as string,
     },
     error: null,
@@ -840,7 +863,7 @@ export async function deleteAdminBrand(id: string): Promise<Result<null>> {
 
 export async function updateAdminBrand(
   id: string,
-  input: { name: string; logoUrl?: string | null }
+  input: { name: string; logoUrl?: string | null; showOnHome?: boolean }
 ): Promise<Result<AdminBrand>> {
   const ensureResult = await ensureBrandsTable()
   if (ensureResult.error) {
@@ -855,26 +878,65 @@ export async function updateAdminBrand(
     }
   }
 
-  const { data: current, error: fetchError } = await supabaseAdmin
+  let current:
+    | {
+        id: string
+        name: string
+        slug: string
+        logo_url: string | null
+        show_on_home?: boolean
+        created_at: string
+      }
+    | null = null
+
+  const { data: currentWithFlag, error: fetchWithFlagError } = await supabaseAdmin
     .from("brands")
-    .select("id, name, slug, logo_url, created_at")
+    .select("id, name, slug, logo_url, show_on_home, created_at")
     .eq("id", id)
     .maybeSingle()
 
-  if (fetchError) {
-    return { data: null, error: { message: fetchError.message, code: fetchError.code } }
+  if (!fetchWithFlagError) {
+    current = currentWithFlag as {
+      id: string
+      name: string
+      slug: string
+      logo_url: string | null
+      show_on_home?: boolean
+      created_at: string
+    } | null
+  } else if (fetchWithFlagError.code === "42703") {
+    const { data: currentBasic, error: fetchBasicError } = await supabaseAdmin
+      .from("brands")
+      .select("id, name, slug, logo_url, created_at")
+      .eq("id", id)
+      .maybeSingle()
+
+    if (fetchBasicError) {
+      return {
+        data: null,
+        error: { message: fetchBasicError.message, code: fetchBasicError.code },
+      }
+    }
+
+    current = currentBasic as {
+      id: string
+      name: string
+      slug: string
+      logo_url: string | null
+      created_at: string
+    } | null
+  } else {
+    return {
+      data: null,
+      error: { message: fetchWithFlagError.message, code: fetchWithFlagError.code },
+    }
   }
+
   if (!current) {
     return { data: null, error: { message: "Marca no encontrada", code: "NOT_FOUND" } }
   }
 
-  const currentRow = current as {
-    id: string
-    name: string
-    slug: string
-    logo_url: string | null
-    created_at: string
-  }
+  const currentRow = current
   let newSlug = currentRow.slug
 
   if (normalizedName.toLowerCase() !== currentRow.name.toLowerCase()) {
@@ -900,16 +962,55 @@ export async function updateAdminBrand(
     }
   }
 
+  const normalizedLogoUrl = input.logoUrl?.trim() ? input.logoUrl.trim() : null
+  const computedShowOnHome = input.showOnHome ?? hasLogoUrl(normalizedLogoUrl)
+
   const { data, error } = await supabaseAdmin
     .from("brands")
     .update({
       name: normalizedName,
       slug: newSlug,
-      logo_url: input.logoUrl ?? null,
+      logo_url: normalizedLogoUrl,
+      show_on_home: computedShowOnHome,
     })
     .eq("id", id)
-    .select("id, name, slug, logo_url, created_at")
+    .select("id, name, slug, logo_url, show_on_home, created_at")
     .single()
+
+  if (error?.code === "42703") {
+    const { data: basicData, error: basicError } = await supabaseAdmin
+      .from("brands")
+      .update({
+        name: normalizedName,
+        slug: newSlug,
+        logo_url: normalizedLogoUrl,
+      })
+      .eq("id", id)
+      .select("id, name, slug, logo_url, created_at")
+      .single()
+
+    if (basicError || !basicData) {
+      return {
+        data: null,
+        error: {
+          message: basicError?.message ?? "No se pudo actualizar la marca",
+          code: basicError?.code,
+        },
+      }
+    }
+
+    return {
+      data: {
+        id: basicData.id as string,
+        name: basicData.name as string,
+        slug: basicData.slug as string,
+        logo_url: (basicData.logo_url as string | null) ?? null,
+        show_on_home: computedShowOnHome,
+        created_at: basicData.created_at as string,
+      },
+      error: null,
+    }
+  }
 
   if (error || !data) {
     return {
@@ -927,6 +1028,10 @@ export async function updateAdminBrand(
       name: data.name as string,
       slug: data.slug as string,
       logo_url: (data.logo_url as string | null) ?? null,
+      show_on_home:
+        typeof (data as { show_on_home?: unknown }).show_on_home === "boolean"
+          ? Boolean((data as { show_on_home?: boolean }).show_on_home)
+          : computedShowOnHome,
       created_at: data.created_at as string,
     },
     error: null,
@@ -956,6 +1061,7 @@ export async function getAdminProducts(): Promise<
       subcategory,
       min_stock,
       is_featured,
+      is_best_seller,
       is_active,
       updated_at,
       deleted_at,
@@ -1000,6 +1106,7 @@ export async function getAdminProducts(): Promise<
         subcategory: string | null
         min_stock: number | null
         is_featured: boolean
+        is_best_seller: boolean | null
         is_active: boolean
         updated_at: string | null
         deleted_at: string | null
@@ -1029,6 +1136,7 @@ export async function getAdminProducts(): Promise<
         stock: activeVariant ? Number(activeVariant.stock) : 0,
         variant_id: activeVariant?.id ?? null,
         is_featured: Boolean(current.is_featured),
+        is_best_seller: Boolean(current.is_best_seller),
         is_active: Boolean(current.is_active),
         updated_at: current.updated_at ?? null,
         deleted_at: current.deleted_at,
@@ -1066,6 +1174,7 @@ export async function createAdminProduct(
       images: input.images && input.images.length > 0 ? input.images : null,
       is_active: input.isActive ?? true,
       is_featured: input.isFeatured ?? false,
+      is_best_seller: input.isBestSeller ?? false,
       min_stock: input.minStock ?? 0,
     })
     .select(
@@ -1086,6 +1195,7 @@ export async function createAdminProduct(
       subcategory,
       min_stock,
       is_featured,
+      is_best_seller,
       is_active,
       updated_at,
       deleted_at,
@@ -1185,6 +1295,7 @@ export async function createAdminProduct(
     stock: input.initialStock ?? 0,
     variant_id: null,
     is_featured: Boolean(product.is_featured),
+    is_best_seller: Boolean(product.is_best_seller),
     is_active: Boolean(product.is_active),
     updated_at: (product.updated_at as string | null) ?? null,
     deleted_at: product.deleted_at as string | null,
@@ -1223,6 +1334,7 @@ export async function updateAdminProduct(
       input.images && input.images.length > 0 ? input.images : null
   if (input.isActive !== undefined) updatePayload.is_active = input.isActive
   if (input.isFeatured !== undefined) updatePayload.is_featured = input.isFeatured
+  if (input.isBestSeller !== undefined) updatePayload.is_best_seller = input.isBestSeller
   if (input.minStock !== undefined) updatePayload.min_stock = input.minStock
   updatePayload.updated_at = new Date().toISOString()
 
@@ -1273,6 +1385,7 @@ export async function updateAdminProduct(
       subcategory,
       min_stock,
       is_featured,
+      is_best_seller,
       is_active,
       updated_at,
       deleted_at,
@@ -1333,6 +1446,7 @@ export async function updateAdminProduct(
     stock: updatedActiveVariant ? Number(updatedActiveVariant.stock) : (input.stock ?? 0),
     variant_id: updatedActiveVariant?.id ?? null,
     is_featured: Boolean(data.is_featured),
+    is_best_seller: Boolean(data.is_best_seller),
     is_active: Boolean(data.is_active),
     updated_at: (data.updated_at as string | null) ?? null,
     deleted_at: data.deleted_at as string | null,

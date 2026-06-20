@@ -31,7 +31,7 @@ export default async function CitasPage() {
 
   if (!servicesRes.data || !profsRes.data) {
     return (
-      <main className="min-h-screen bg-[#f8f6f1] px-6 py-16 text-[#0a0a0a]">
+      <main className="min-h-screen bg-[#f8f6f1] site-container py-16 text-[#0a0a0a]">
         <div className="mx-auto max-w-xl text-center">
           <h1 className="text-2xl font-semibold">
             No pudimos cargar la información

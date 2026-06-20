@@ -238,7 +238,7 @@ export default function CitasClient({
 
   if (activeAppointmentId) {
     return (
-      <main className="min-h-screen bg-[#f8f6f1] px-6 py-16 text-[#0a0a0a]">
+      <main className="min-h-screen bg-[#f8f6f1] site-container py-16 text-[#0a0a0a]">
         <div className="mx-auto max-w-xl rounded-3xl border border-[#e8e1d3] bg-white p-8 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9b8b65]">
             Ya tienes una cita activa
@@ -264,7 +264,7 @@ export default function CitasClient({
   }
 
   return (
-    <main className="min-h-screen bg-[#f8f6f1] px-6 py-12 text-[#0a0a0a]">
+    <main className="min-h-screen bg-[#f8f6f1] site-container pt-5 pb-12 text-[#0a0a0a]">
       <div className="mx-auto max-w-4xl">
         <Breadcrumb
           items={[
@@ -274,10 +274,7 @@ export default function CitasClient({
           ]}
         />
         <header className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9b8b65]">
-            Reservar cita
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold">Agenda tu cita</h1>
+          <h1 className="text-3xl font-semibold">Agenda tu cita</h1>
         </header>
 
         {/* Progreso */}

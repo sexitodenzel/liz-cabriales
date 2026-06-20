@@ -29,10 +29,22 @@ El perfil es básico, no editable más allá del registro inicial. Campos:
 - Inscribirse a un curso (requiere pago previo a la confirmación)
 - Ver cursos en los que está inscrito
 
+**Búsqueda (navbar):**
+- En móvil, ícono de lupa que abre un overlay full-screen con animación de fade
+- Logo centrado entre el menú hamburguesa (izq) y los íconos de favoritos + carrito (der)
+- En desktop, barra de búsqueda inline en el navbar
+- Al enfocar la búsqueda sin texto, se muestra:
+  - Chips de "Más buscados" (configurables por admin)
+  - Grid de "Best Sellers" (productos marcados por admin)
+- Al escribir 2+ caracteres se muestran sugerencias en vivo de productos y colecciones
+- Tap en un chip de "Más buscados" navega al término o link configurado por admin
+
 ### Funcionalidades del administrador
 
 **Productos:**
 - Crear, editar y eliminar productos
+- Marcar productos como `★ Destacado` (aparecen en "Nuevos lanzamientos" del home)
+- Marcar productos como `♥ Best Seller` (aparecen en el overlay de búsqueda)
 
 **Cursos:**
 - Crear cursos y talleres
@@ -40,6 +52,10 @@ El perfil es básico, no editable más allá del registro inicial. Campos:
 
 **Citas:**
 - Ver todas las citas agendadas con detalle: hora, día, costo y servicio solicitado
+
+**Más buscados (navbar):**
+- Gestionar la lista de chips que aparecen en el overlay de búsqueda (panel `/admin/top-searches`)
+- Cada término permite: texto, link opcional (si se omite, busca por el texto), activar/desactivar, reordenar
 
 ---
 

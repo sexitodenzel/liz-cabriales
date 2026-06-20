@@ -29,7 +29,7 @@ export default async function CheckoutPage() {
 
   if (!cartResult.data) {
     return (
-      <main className="min-h-screen bg-white px-6 py-10 text-[#0a0a0a]">
+      <main className="min-h-screen bg-white site-container py-10 text-[#0a0a0a]">
         <div className="mx-auto max-w-[720px] rounded-3xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             Finalizar compra
@@ -61,7 +61,7 @@ export default async function CheckoutPage() {
 
   if (cartResult.data.items.length === 0) {
     return (
-      <main className="min-h-screen bg-white px-6 py-10 text-[#0a0a0a]">
+      <main className="min-h-screen bg-white site-container py-10 text-[#0a0a0a]">
         <div className="mx-auto max-w-[720px] rounded-3xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             Finalizar compra

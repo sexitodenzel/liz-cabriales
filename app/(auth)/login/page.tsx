@@ -269,7 +269,7 @@ export default function LoginPage() {
     : "/forgot-password"
 
   return (
-    <div className="w-full max-w-md px-6">
+    <div className="w-full max-w-md">
       <div className="flex border-b border-gray-200 mb-8">
         <button
           type="button"

@@ -315,7 +315,7 @@ function ShippingStep(p: ShippingProps) {
   const isDesktop = p.mode === "desktop"
 
   return (
-    <div className="mx-auto grid max-w-[1080px] gap-4 lg:max-w-none lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6">
+    <div className="site-container grid gap-4 lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6">
 
       {/* ── Resumen compacto — arriba en móvil, derecha en desktop ── */}
       <aside className="order-first space-y-4 lg:order-2 lg:sticky lg:top-24">
@@ -1168,7 +1168,7 @@ export default function CheckoutClient({ initialCart }: Props) {
   return (
     <main className="min-h-screen bg-neutral-50 text-[#1a1a1a]">
       {/* ─── Móvil: indicador 2 pasos ─── */}
-      <div className="mx-auto max-w-[1080px] px-4 pt-6 sm:px-6 lg:hidden">
+      <div className="site-container pt-6 lg:hidden">
         <div className="mb-4 flex items-center gap-2">
           <button
             type="button"
@@ -1189,7 +1189,7 @@ export default function CheckoutClient({ initialCart }: Props) {
       </div>
 
       {/* ─── Desktop: indicador 2 pasos (Datos → Pago) ─── */}
-      <div className="mx-auto hidden max-w-[1200px] px-6 pt-6 lg:block">
+      <div className="site-container hidden pt-6 lg:block">
         <nav className="mb-4 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em]">
           <span className="flex items-center gap-1.5 font-semibold text-[#1a1a1a]">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white">1</span>
@@ -1204,7 +1204,7 @@ export default function CheckoutClient({ initialCart }: Props) {
       </div>
 
       {/* ─── Móvil: flujo por pasos ─── */}
-      <div className="mx-auto max-w-[1080px] px-4 pb-12 sm:px-6 lg:hidden">
+      <div className="site-container pb-12 lg:hidden">
         {step === "review" ? (
           <ReviewStep
             initialCart={initialCart}
@@ -1220,7 +1220,7 @@ export default function CheckoutClient({ initialCart }: Props) {
       </div>
 
       {/* ─── Desktop: vista unificada ─── */}
-      <div className="mx-auto hidden max-w-[1200px] px-6 pb-12 lg:block">
+      <div className="site-container hidden pb-12 lg:block">
         <ShippingStep
           mode="desktop"
           suggestions={suggestions}

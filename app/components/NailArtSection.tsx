@@ -85,7 +85,7 @@ export default async function NailArtSection() {
 
   return (
     <section className="bg-white py-20 text-black">
-      <div className="mx-auto max-w-[1400px] px-6">
+      <div>
 
         {/* Header */}
         <div className="mb-10 flex items-end justify-between gap-6">

@@ -67,7 +67,7 @@ export default async function ProductPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
-      <div className="mx-auto max-w-[1200px] px-6 py-12">
+      <div className="site-container pt-5 pb-12">
         <Breadcrumb
           items={[
             { label: "Inicio", href: "/" },

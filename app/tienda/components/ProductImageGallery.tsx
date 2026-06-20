@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useCallback, useEffect, useState } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 type Props = {
   images: string[]
@@ -117,51 +118,33 @@ export default function ProductImageGallery({ images, alt }: Props) {
               <button
                 type="button"
                 aria-label="Imagen anterior"
-                className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-black/75"
+                className="absolute left-2 top-1/2 z-10 flex -translate-y-1/2 cursor-pointer items-center justify-center text-black/70 transition-all duration-200 hover:text-black md:opacity-0 md:group-hover:opacity-100 sm:left-3"
                 onClick={(e) => {
                   e.stopPropagation()
                   goToPrev()
                 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
+                <ChevronLeft className="h-4 w-4" strokeWidth={2} />
               </button>
               <button
                 type="button"
                 aria-label="Imagen siguiente"
-                className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-black/75"
+                className="absolute right-2 top-1/2 z-10 flex -translate-y-1/2 cursor-pointer items-center justify-center text-black/70 transition-all duration-200 hover:text-black md:opacity-0 md:group-hover:opacity-100 sm:right-3"
                 onClick={(e) => {
                   e.stopPropagation()
                   goToNext()
                 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
+                <ChevronRight className="h-4 w-4" strokeWidth={2} />
               </button>
 
               {/* Dot indicators */}
-              <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+              <div className="pointer-events-none absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3">
                 {images.map((_, i) => (
                   <span
                     key={i}
-                    className={`block h-1.5 w-1.5 rounded-full transition-colors duration-200 ${
-                      i === activeIndex ? "bg-white" : "bg-white/50"
+                    className={`block h-1.5 w-1.5 rounded-full transition-colors duration-300 ${
+                      i === activeIndex ? "bg-black" : "bg-[#ccc]"
                     }`}
                   />
                 ))}

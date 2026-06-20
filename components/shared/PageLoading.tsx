@@ -6,7 +6,7 @@ export default function PageLoading({ variant = "grid" }: Props) {
   if (variant === "simple") {
     return (
       <main className="min-h-[40vh] bg-white">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-center px-6 py-24">
+        <div className="site-container flex items-center justify-center py-24">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#C6A75E] border-t-transparent" />
         </div>
       </main>
@@ -15,7 +15,7 @@ export default function PageLoading({ variant = "grid" }: Props) {
 
   return (
     <main className="min-h-[50vh] bg-white">
-      <div className="mx-auto max-w-[1200px] animate-pulse px-6 py-12">
+      <div className="site-container animate-pulse py-12">
         <div className="mb-6 h-3 w-28 rounded bg-neutral-200" />
         <div className="mb-3 h-8 w-72 max-w-full rounded bg-neutral-200" />
         <div className="mb-10 h-4 w-96 max-w-full rounded bg-neutral-100" />

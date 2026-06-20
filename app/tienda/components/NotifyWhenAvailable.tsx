@@ -254,7 +254,7 @@ export default function NotifyWhenAvailable({
         disabled={busy}
         className={buttonClassName}
       >
-        {busy ? "Guardando..." : "Avísame cuando esté disponible"}
+        {busy ? "Guardando..." : "Notificar disponibilidad"}
       </button>
       {errorMessage ? (
         <p className="text-center text-xs text-red-500">{errorMessage}</p>

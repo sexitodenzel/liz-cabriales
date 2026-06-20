@@ -63,7 +63,7 @@ export default function AdminDashboardClient({
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <main className="px-6 py-8">
+      <main className="px-6 pt-5 pb-8">
         <div className="mx-auto max-w-[1400px] space-y-6">
           <Breadcrumb
             items={[

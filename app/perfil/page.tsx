@@ -87,14 +87,12 @@ export default async function PerfilPage() {
 
   return (
     <main className="min-h-screen bg-white text-[var(--foreground)]">
-      <div className="mx-auto max-w-[900px] px-6 py-12">
+      <div className="site-container pt-5 pb-12">
+        <div className="mx-auto max-w-[900px]">
         <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Mi Perfil" }]} />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--gold)]">
-              Tu cuenta
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+            <h1 className="text-3xl font-semibold tracking-tight">
               Mi perfil
             </h1>
           </div>
@@ -235,6 +233,7 @@ export default async function PerfilPage() {
             </ul>
           )}
         </section>
+        </div>
       </div>
     </main>
   )

@@ -35,6 +35,11 @@ export default function CartMenu() {
   const { items, itemCount, subtotal, isLoading, updateQuantity, removeItem, isCartOpen, closeCart, addItem } =
     useCart()
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
   const resolvedItems = useMemo(
@@ -131,7 +136,7 @@ export default function CartMenu() {
 
       {/* Items + sugerencias — SCROLLEABLE */}
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        {isLoading ? (
+        {!mounted || isLoading ? (
           <div className="space-y-4 p-4">
             {[1, 2].map((n) => (
               <div key={n} className="flex gap-3">

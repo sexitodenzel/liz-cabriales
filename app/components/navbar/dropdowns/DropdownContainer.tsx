@@ -7,7 +7,14 @@
    ========================================= */
 
 import React, { Children, isValidElement, useEffect, useMemo } from "react"
-import type { MenuType } from "../Navbar"
+
+type MenuType =
+  | "Tienda"
+  | "Academia"
+  | "Servicios"
+  | "cart"
+  | "user"
+  | null
 
 export type DropdownRenderCtx = {
   isOpen: boolean

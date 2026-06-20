@@ -1,11 +1,16 @@
 import BrandDescription from "../BrandDescription"
 import PillarStage from "../PillarStage"
+import ShopByBrands from "../ShopByBrands"
 import HeroSlider from "../hero/HeroSlider"
-import ShopByNailPolishColors from "../ShopByNailPolishColors"
+import { getHomeBrandsCached } from "@/lib/supabase/cache"
 import { getLandingPageDataCached } from "@/lib/supabase/landing-slots"
 
 export default async function HomeTopSections() {
-  const { slots, heroSlides } = await getLandingPageDataCached()
+  const [{ slots, heroSlides }, homeBrandsResult] = await Promise.all([
+    getLandingPageDataCached(),
+    getHomeBrandsCached(),
+  ])
+  const homeBrands = homeBrandsResult.error ? [] : homeBrandsResult.data
 
   const pillarImages = {
     dist: [
@@ -32,7 +37,7 @@ export default async function HomeTopSections() {
       <BrandDescription photoUrl={slots["brand_photo"]} />
       <div className="h-16 shrink-0" aria-hidden />
       <PillarStage pillarImages={pillarImages} />
-      <ShopByNailPolishColors />
+      <ShopByBrands brands={homeBrands} />
     </>
   )
 }

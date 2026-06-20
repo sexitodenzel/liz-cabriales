@@ -13,7 +13,7 @@ type SearchMenuProps = {
 
 export default function SearchMenu({ isOpen }: SearchMenuProps) {
   return (
-    <div className="max-w-[1400px] mx-auto px-6 pt-2 pb-10">
+    <div className="site-container pt-2 pb-10">
       <div className="max-w-[650px] ml-[2px] pt-2">
           {/* SEARCH INPUT */}
 

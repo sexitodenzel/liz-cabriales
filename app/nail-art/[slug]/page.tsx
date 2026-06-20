@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getNailArtPostBySlug } from "@/lib/supabase/nail-art"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 const NAIL_PLACEHOLDERS = [
   "https://picsum.photos/seed/nails1/800/1067",
@@ -29,16 +30,15 @@ export default async function NailArtDetailPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-[1400px] px-6 py-16">
+      <div className="site-container pt-5 pb-16">
 
-        {/* Breadcrumb */}
-        <nav className="mb-10 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em]">
-          <Link href="/" className="text-[#8a8a8a] transition-colors hover:text-[#a8862f]">Inicio</Link>
-          <span className="text-neutral-300">/</span>
-          <Link href="/nail-art" className="text-[#8a8a8a] transition-colors hover:text-[#a8862f]">Nail Art</Link>
-          <span className="text-neutral-300">/</span>
-          <span className="text-[#a8862f]">{post.title}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Nail Art", href: "/nail-art" },
+            { label: post.title },
+          ]}
+        />
 
         <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:items-start">
 

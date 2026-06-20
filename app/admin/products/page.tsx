@@ -46,6 +46,7 @@ type CreateFormState = {
   stock: string
   isActive: boolean
   isFeatured: boolean
+  isBestSeller: boolean
 }
 
 type VariantFormRow = {
@@ -211,6 +212,8 @@ export default function AdminProductsPage() {
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null)
   const [brandName, setBrandName] = useState("")
   const [brandLogoUrl, setBrandLogoUrl] = useState("")
+  const [brandShowOnHome, setBrandShowOnHome] = useState(false)
+  const [brandShowOnHomeTouched, setBrandShowOnHomeTouched] = useState(false)
   const [brandSubmitting, setBrandSubmitting] = useState(false)
   const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null)
   const [editingCategory, setEditingCategory] = useState<ManagedCategory | null>(null)
@@ -219,6 +222,8 @@ export default function AdminProductsPage() {
   const [editingBrand, setEditingBrand] = useState<ManagedBrand | null>(null)
   const [editBrandName, setEditBrandName] = useState("")
   const [editBrandLogoUrl, setEditBrandLogoUrl] = useState("")
+  const [editBrandShowOnHome, setEditBrandShowOnHome] = useState(false)
+  const [editBrandShowOnHomeTouched, setEditBrandShowOnHomeTouched] = useState(false)
   const [savingBrand, setSavingBrand] = useState(false)
   const [form, setForm] = useState<CreateFormState>({
     name: "",
@@ -239,6 +244,7 @@ export default function AdminProductsPage() {
     stock: "",
     isActive: true,
     isFeatured: false,
+    isBestSeller: false,
   })
   const [slugTouched, setSlugTouched] = useState(false)
 
@@ -635,12 +641,16 @@ export default function AdminProductsPage() {
     setEditingBrand(brand)
     setEditBrandName(brand.name)
     setEditBrandLogoUrl(brand.logo_url ?? "")
+    setEditBrandShowOnHome(Boolean(brand.show_on_home))
+    setEditBrandShowOnHomeTouched(false)
   }
 
   function handleCancelEditBrand() {
     setEditingBrand(null)
     setEditBrandName("")
     setEditBrandLogoUrl("")
+    setEditBrandShowOnHome(false)
+    setEditBrandShowOnHomeTouched(false)
   }
 
   async function handleSaveBrand() {
@@ -656,7 +666,11 @@ export default function AdminProductsPage() {
       const res = await fetch(`/api/admin/products/brands/${editingBrand.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, logoUrl: editBrandLogoUrl.trim() || null }),
+        body: JSON.stringify({
+          name,
+          logoUrl: editBrandLogoUrl.trim() || null,
+          showOnHome: editBrandShowOnHome,
+        }),
       })
 
       const json = await res.json()
@@ -672,6 +686,8 @@ export default function AdminProductsPage() {
       setEditingBrand(null)
       setEditBrandName("")
       setEditBrandLogoUrl("")
+      setEditBrandShowOnHome(false)
+      setEditBrandShowOnHomeTouched(false)
       await fetchBrands()
       setToast({ id: Date.now(), type: "success", message: "Marca actualizada correctamente." })
     } catch {
@@ -799,6 +815,7 @@ export default function AdminProductsPage() {
         body: JSON.stringify({
           name,
           logoUrl: brandLogoUrl.trim() || null,
+          showOnHome: brandShowOnHome,
         }),
       })
 
@@ -828,6 +845,8 @@ export default function AdminProductsPage() {
 
       setBrandName("")
       setBrandLogoUrl("")
+      setBrandShowOnHome(false)
+      setBrandShowOnHomeTouched(false)
       void fetchBrands()
       setToast({
         id: Date.now(),
@@ -891,6 +910,47 @@ export default function AdminProductsPage() {
       })
     } finally {
       setDeletingBrandId(null)
+    }
+  }
+
+  async function toggleBrandShowOnHome(brand: ManagedBrand) {
+    try {
+      const res = await fetch(`/api/admin/products/brands/${brand.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: brand.name,
+          logoUrl: brand.logo_url ?? null,
+          showOnHome: !brand.show_on_home,
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ??
+            "No se pudo actualizar la visibilidad de la marca.",
+        })
+        return
+      }
+
+      await fetchBrands()
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: !brand.show_on_home
+          ? "Marca habilitada en home."
+          : "Marca ocultada de home.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al actualizar la visibilidad de la marca.",
+      })
     }
   }
 
@@ -987,6 +1047,7 @@ export default function AdminProductsPage() {
           images,
           isActive: form.isActive,
           isFeatured: form.isFeatured,
+          isBestSeller: form.isBestSeller,
           initialStock: form.initialStock ? Number(form.initialStock) : 0,
           minStock: form.minStock ? Number(form.minStock) : 0,
           variants: createVariants.length > 0
@@ -1035,6 +1096,7 @@ export default function AdminProductsPage() {
         stock: "",
         isActive: true,
         isFeatured: false,
+        isBestSeller: false,
       })
       setCreateVariants([])
       setCreateErrors({})
@@ -1077,6 +1139,7 @@ export default function AdminProductsPage() {
       stock: String(product.stock ?? 0),
       isActive: product.is_active,
       isFeatured: product.is_featured,
+      isBestSeller: product.is_best_seller,
     })
     setLoadingVariants(true)
     try {
@@ -1207,6 +1270,7 @@ export default function AdminProductsPage() {
           images: images.length > 0 ? images : undefined,
           isActive: editForm.isActive,
           isFeatured: editForm.isFeatured,
+          isBestSeller: editForm.isBestSeller,
           stock: editForm.stock !== "" ? Number(editForm.stock) : null,
           minStock: editForm.minStock ? Number(editForm.minStock) : 0,
         }),
@@ -1331,48 +1395,6 @@ export default function AdminProductsPage() {
     }
   }
 
-  async function toggleFeatured(product: AdminProductWithCategory) {
-    setSubmitting(true)
-    try {
-      const res = await fetch(`/api/admin/products/${product.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isFeatured: !product.is_featured }),
-      })
-
-      const json = await res.json()
-
-      if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo actualizar el destacado.",
-        })
-        return
-      }
-
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? json.data : p))
-      )
-
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: json.data.is_featured
-          ? "Producto marcado como destacado."
-          : "Producto quitado de destacados.",
-      })
-    } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al actualizar el destacado.",
-      })
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   async function confirmDelete() {
     if (!confirmDeleteId) return
     setSubmitting(true)
@@ -1426,7 +1448,7 @@ export default function AdminProductsPage() {
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <div className="mx-auto max-w-[1400px] px-6 py-10">
+      <div className="mx-auto max-w-[1400px] px-6 pt-5 pb-10">
         <Breadcrumb
           items={[
             { label: "Inicio", href: "/" },
@@ -1936,15 +1958,15 @@ export default function AdminProductsPage() {
                   <label className="inline-flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={form.isFeatured}
+                      checked={form.isBestSeller}
                       onChange={(event) =>
-                        handleFormChange("isFeatured", event.target.checked)
+                        handleFormChange("isBestSeller", event.target.checked)
                       }
                       className="h-4 w-4 rounded border-neutral-300 focus:ring-[color:var(--brand-gold)]"
                       style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                     />
                     <span className="text-xs font-medium text-[#c9a84c]">
-                      ★ DESTACADO
+                      ♥ BEST SELLER
                     </span>
                   </label>
                 </div>
@@ -2081,7 +2103,6 @@ export default function AdminProductsPage() {
                     <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>P.MAYOREO</th>
                     <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-center`}>STOCK</th>
                     <th className={PRODUCTS_TABLE_HEAD_CELL}>ESTADO</th>
-                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-center`}>DEST.</th>
                     <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>
                       ACCIONES
                     </th>
@@ -2091,7 +2112,7 @@ export default function AdminProductsPage() {
                   {filteredProducts.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={11}
+                        colSpan={10}
                         className="px-6 py-8 text-center text-sm text-neutral-500"
                       >
                         {hasActiveFilters ? "Sin resultados para esta búsqueda." : "Aún no hay productos creados."}
@@ -2169,18 +2190,6 @@ export default function AdminProductsPage() {
                             >
                               {product.is_active ? "ACTIVO" : "INACTIVO"}
                             </span>
-                          </td>
-                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-center`}>
-                            <button
-                              type="button"
-                              onClick={() => toggleFeatured(product)}
-                              disabled={submitting}
-                              title={product.is_featured ? "Quitar de destacados" : "Marcar como destacado"}
-                              className="text-xl leading-none transition-opacity disabled:opacity-40"
-                              style={{ color: product.is_featured ? BRAND_GOLD : "#d4d4d4" }}
-                            >
-                              {product.is_featured ? "★" : "☆"}
-                            </button>
                           </td>
                           <td className={`${PRODUCTS_TABLE_BODY_CELL} border-r-0`}>
                             <div className="flex items-center justify-end gap-3 text-xs font-semibold">
@@ -2609,12 +2618,12 @@ export default function AdminProductsPage() {
                                     <label className="inline-flex items-center gap-2">
                                       <input
                                         type="checkbox"
-                                        checked={editForm.isFeatured}
-                                        onChange={(e) => handleEditFormChange("isFeatured", e.target.checked)}
+                                        checked={editForm.isBestSeller}
+                                        onChange={(e) => handleEditFormChange("isBestSeller", e.target.checked)}
                                         className="h-4 w-4 rounded border-neutral-300 focus:ring-[color:var(--brand-gold)]"
                                         style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                       />
-                                      <span className="text-[11px] font-medium text-[#c9a84c]">★ DESTACADO</span>
+                                      <span className="text-[11px] font-medium text-[#c9a84c]">♥ BEST SELLER</span>
                                     </label>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -2873,9 +2882,20 @@ export default function AdminProductsPage() {
                 </label>
                 <ImageUploader
                   folder="brands"
-                  onUpload={(url) =>
-                    editingBrand ? setEditBrandLogoUrl(url) : setBrandLogoUrl(url)
-                  }
+                  onUpload={(url) => {
+                    if (editingBrand) {
+                      setEditBrandLogoUrl(url)
+                      if (!editBrandShowOnHomeTouched) {
+                        setEditBrandShowOnHome(url.trim().length > 0)
+                      }
+                      return
+                    }
+
+                    setBrandLogoUrl(url)
+                    if (!brandShowOnHomeTouched) {
+                      setBrandShowOnHome(url.trim().length > 0)
+                    }
+                  }}
                   onError={(msg) =>
                     setToast({ id: Date.now(), type: "error", message: msg })
                   }
@@ -2883,16 +2903,46 @@ export default function AdminProductsPage() {
                 <input
                   type="text"
                   value={editingBrand ? editBrandLogoUrl : brandLogoUrl}
-                  onChange={(event) =>
-                    editingBrand
-                      ? setEditBrandLogoUrl(event.target.value)
-                      : setBrandLogoUrl(event.target.value)
-                  }
+                  onChange={(event) => {
+                    const nextValue = event.target.value
+                    if (editingBrand) {
+                      setEditBrandLogoUrl(nextValue)
+                      if (!editBrandShowOnHomeTouched) {
+                        setEditBrandShowOnHome(nextValue.trim().length > 0)
+                      }
+                      return
+                    }
+
+                    setBrandLogoUrl(nextValue)
+                    if (!brandShowOnHomeTouched) {
+                      setBrandShowOnHome(nextValue.trim().length > 0)
+                    }
+                  }}
                   className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
                   style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   placeholder="O pega URL del logo"
                 />
               </div>
+
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editingBrand ? editBrandShowOnHome : brandShowOnHome}
+                  onChange={(event) => {
+                    if (editingBrand) {
+                      setEditBrandShowOnHomeTouched(true)
+                      setEditBrandShowOnHome(event.target.checked)
+                      return
+                    }
+                    setBrandShowOnHomeTouched(true)
+                    setBrandShowOnHome(event.target.checked)
+                  }}
+                  className="h-4 w-4 rounded border-neutral-300 accent-[#c9a84c]"
+                />
+                <span className="text-xs font-medium text-neutral-700">
+                  Mostrar en sección de marcas de home
+                </span>
+              </label>
 
               <div className="flex items-center gap-2">
                 <button
@@ -2925,6 +2975,7 @@ export default function AdminProductsPage() {
                   <tr>
                     <th className="px-4 py-3 font-semibold">MARCA</th>
                     <th className="px-4 py-3 font-semibold">SLUG</th>
+                    <th className="px-4 py-3 font-semibold text-center">HOME</th>
                     <th className="px-4 py-3 font-semibold text-center">PRODUCTOS</th>
                     <th className="px-4 py-3 font-semibold text-right">ACCIÓN</th>
                   </tr>
@@ -2932,7 +2983,7 @@ export default function AdminProductsPage() {
                 <tbody className="divide-y divide-neutral-100">
                   {brands.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-4 py-6 text-center text-sm text-neutral-500">
+                      <td colSpan={5} className="px-4 py-6 text-center text-sm text-neutral-500">
                         No hay marcas registradas.
                       </td>
                     </tr>
@@ -2965,6 +3016,19 @@ export default function AdminProductsPage() {
                           </td>
                           <td className="px-4 py-3 font-mono text-xs text-neutral-600">
                             {brand.slug}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => void toggleBrandShowOnHome(brand)}
+                              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                                brand.show_on_home
+                                  ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                  : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+                              }`}
+                            >
+                              {brand.show_on_home ? "VISIBLE" : "OCULTA"}
+                            </button>
                           </td>
                           <td className="px-4 py-3 text-center text-neutral-700">
                             {brand.productCount}

@@ -23,6 +23,7 @@ type RawRow = {
   images: string[] | null
   brand: string | null
   is_featured: boolean
+  is_best_seller?: boolean | null
   is_active: boolean
   updated_at?: string | null
   created_at?: string | null
@@ -56,6 +57,7 @@ function mapRow(row: RawRow): ProductWithCategory | null {
     images: row.images ?? null,
     brand: row.brand ?? null,
     is_featured: Boolean(row.is_featured),
+    is_best_seller: Boolean(row.is_best_seller),
     is_active: Boolean(row.is_active),
     updated_at: row.updated_at ?? null,
     created_at: row.created_at ?? null,
@@ -82,7 +84,7 @@ export async function GET(req: NextRequest) {
     .from("products")
     .select(`
       id, category_id, name, slug, description, base_price, images, brand,
-      is_featured, is_active, updated_at, created_at,
+      is_featured, is_best_seller, is_active, updated_at, created_at,
       categories ( id, name, slug ),
       product_variants ( id, product_id, sku, variant_name, price, stock, is_active )
     `)

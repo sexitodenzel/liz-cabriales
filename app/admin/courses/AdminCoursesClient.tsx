@@ -103,7 +103,7 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
-      <div className="mx-auto max-w-[1400px] px-6 py-10">
+      <div className="mx-auto max-w-[1400px] px-6 pt-5 pb-10">
         <Breadcrumb
           items={[
             { label: "Inicio", href: "/" },

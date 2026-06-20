@@ -9,13 +9,10 @@ export const metadata: Metadata = {
 
 export default function TerminosYCondicionesPage() {
   return (
-    <main className="min-h-screen bg-white px-6 py-24 text-[#111]">
+    <main className="min-h-screen bg-white site-container pt-5 pb-24 text-[#111]">
       <div className="mx-auto max-w-3xl">
         <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Términos y condiciones" }]} />
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a8862f]">
-          Legal
-        </p>
-        <h1 className="mt-4 font-[family-name:var(--font-playfair),serif] text-[clamp(28px,4vw,44px)] font-medium leading-tight tracking-[-0.02em]">
+        <h1 className="font-[family-name:var(--font-playfair),serif] text-[clamp(28px,4vw,44px)] font-medium leading-tight tracking-[-0.02em]">
           Términos y Condiciones
         </h1>
         <p className="mt-3 text-sm text-[#8a8a8a]">Última actualización: junio 2025</p>

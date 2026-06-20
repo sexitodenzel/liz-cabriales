@@ -1,5 +1,6 @@
 "use client"
 
+import { useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Swiper, SwiperSlide } from "swiper/react"
@@ -16,6 +17,9 @@ const FALLBACK_SLIDES: HeroSlide[] = [
   { key: "f2", url: "https://images.unsplash.com/photo-1583001809873-a128495da465", link_type: "none", link_value: "", cta_label: "", cta_subtext: "", subtitle: "", text_position: "right", show_title: true, show_subtitle: true },
 ]
 
+/** Texto del botón CTA en slides de curso cuando admin no define uno. */
+const HERO_COURSE_CTA_LABEL = "Inscríbete ahora"
+
 function buildHref(type: string, value: string): string | undefined {
   if (type === "product" && value) return `/tienda/${value}`
   if (type === "course" && value) return `/academia/${value}`
@@ -30,7 +34,8 @@ function shouldShowCourseContent(slide: HeroSlide): boolean {
   return Boolean(
     (slide.show_title !== false && slide.cta_subtext) ||
       (slide.show_subtitle !== false && slide.subtitle) ||
-      slide.cta_label
+      slide.cta_label?.trim() ||
+      slide.link_value
   )
 }
 
@@ -46,14 +51,28 @@ function buttonAlignClass(pos: HeroSlide["text_position"]) {
   return "self-start"
 }
 
+/** Reserva la misma altura que el bloque de curso cuando otro slide sí lo muestra. */
+function HeroContentSpacer({ variant }: { variant: "mobile" | "desktop" }) {
+  return (
+    <div
+      className={`bg-white px-5 pt-5 md:px-8 md:pt-6 ${
+        variant === "mobile" ? "pb-14" : "pb-10"
+      } min-h-[220px] md:min-h-[240px]`}
+      aria-hidden
+    />
+  )
+}
+
 function SlideCourseContent({
   slide,
   variant,
   href,
+  reserveHeight,
 }: {
   slide: HeroSlide
   variant: "mobile" | "desktop"
   href?: string
+  reserveHeight?: boolean
 }) {
   const pos = slide.text_position ?? "left"
   const alignClass = contentAlignClass(pos)
@@ -65,19 +84,21 @@ function SlideCourseContent({
 
   const subtitleClass =
     variant === "mobile"
-      ? "mt-2 max-w-xl text-sm leading-relaxed text-[#8a8a8a]"
-      : "mt-2 max-w-2xl text-[15px] leading-[1.55] text-[#8a8a8a]"
+      ? "mt-2 max-w-xl text-sm leading-relaxed text-[#2c2c2c]"
+      : "mt-2 max-w-2xl text-[15px] leading-[1.55] text-[#2c2c2c]"
 
   const buttonClass =
     variant === "mobile"
-      ? `mt-5 inline-block rounded-full bg-gray-900 px-10 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors duration-300 active:bg-[#c9a84c] ${btnAlign}`
-      : `mt-6 inline-block rounded-full bg-gray-900 px-10 py-3.5 text-sm font-semibold uppercase tracking-wider text-white transition-colors duration-300 hover:bg-[#c9a84c] ${btnAlign}`
+      ? `mt-5 inline-block rounded-full bg-black px-10 py-2 text-xs font-normal tracking-wide text-white ${btnAlign}`
+      : `mt-6 inline-block rounded-full bg-black px-10 py-2 text-sm font-normal tracking-wide text-white ${btnAlign}`
+
+  const ctaText = HERO_COURSE_CTA_LABEL
 
   return (
     <div
       className={`flex flex-col bg-white px-5 pt-5 md:px-8 md:pt-6 ${alignClass} ${
         variant === "mobile" ? "pb-14" : "pb-10"
-      }`}
+      } ${reserveHeight ? "min-h-[220px] md:min-h-[240px]" : ""}`}
     >
       {slide.show_title !== false && slide.cta_subtext && (
         <>
@@ -88,14 +109,13 @@ function SlideCourseContent({
       {slide.show_subtitle !== false && slide.subtitle && (
         <p className={subtitleClass}>{slide.subtitle}</p>
       )}
-      {slide.cta_label &&
-        (href ? (
-          <Link href={href} className={buttonClass}>
-            {slide.cta_label}
-          </Link>
-        ) : (
-          <span className={buttonClass}>{slide.cta_label}</span>
-        ))}
+      {href ? (
+        <Link href={href} className={buttonClass}>
+          {ctaText}
+        </Link>
+      ) : (
+        <span className={buttonClass}>{ctaText}</span>
+      )}
     </div>
   )
 }
@@ -103,6 +123,8 @@ function SlideCourseContent({
 type Props = { slides?: HeroSlide[] }
 
 export default function HeroSlider({ slides }: Props) {
+  const desktopPaginationRef = useRef<HTMLDivElement>(null)
+
   const items =
     slides && slides.length > 0
       ? slides
@@ -113,6 +135,7 @@ export default function HeroSlider({ slides }: Props) {
   const displayItems = items.length > 0 ? items : FALLBACK_SLIDES
 
   const canLoop = displayItems.length > 1
+  const anyShowContent = displayItems.some(shouldShowCourseContent)
   const autoplayConfig = canLoop
     ? { delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: true }
     : false
@@ -129,7 +152,6 @@ export default function HeroSlider({ slides }: Props) {
           autoplay={autoplayConfig}
           pagination={{ clickable: true }}
           speed={900}
-          autoHeight
         >
           {displayItems.map((slide) => {
             const href = buildHref(slide.link_type, slide.link_value)
@@ -147,13 +169,16 @@ export default function HeroSlider({ slides }: Props) {
                     sizes="100vw"
                   />
                 </div>
-                {showContent && (
+                {showContent ? (
                   <SlideCourseContent
                     slide={slide}
                     variant="mobile"
                     href={href}
+                    reserveHeight={anyShowContent}
                   />
-                )}
+                ) : anyShowContent ? (
+                  <HeroContentSpacer variant="mobile" />
+                ) : null}
               </div>
             )
             return (
@@ -172,17 +197,35 @@ export default function HeroSlider({ slides }: Props) {
       </section>
 
       {/* ── DESKTOP ── */}
-      <section className="hidden md:block md:px-6 md:pt-8">
-        <div className="mx-auto max-w-[1400px]">
+      <section className="hidden md:block md:pt-8">
+        <div>
           <Swiper
             modules={[Pagination, EffectFade, Autoplay]}
             effect="fade"
             fadeEffect={{ crossFade: true }}
             loop={canLoop}
             autoplay={autoplayConfig}
-            pagination={{ clickable: true, el: ".hero-desktop-dots" }}
+            pagination={{ clickable: true }}
+            onBeforeInit={(swiper) => {
+              const el = desktopPaginationRef.current
+              if (!el || !swiper.params.pagination || typeof swiper.params.pagination === "boolean") {
+                return
+              }
+              swiper.params.pagination.el = el
+            }}
+            onSwiper={(swiper) => {
+              const el = desktopPaginationRef.current
+              if (!el || !swiper.params.pagination || typeof swiper.params.pagination === "boolean") {
+                return
+              }
+              if (swiper.pagination.el === el) return
+              swiper.params.pagination.el = el
+              swiper.pagination.destroy()
+              swiper.pagination.init()
+              swiper.pagination.render()
+              swiper.pagination.update()
+            }}
             speed={900}
-            autoHeight
             className="overflow-hidden rounded-md"
           >
             {displayItems.map((slide) => {
@@ -201,13 +244,16 @@ export default function HeroSlider({ slides }: Props) {
                       sizes="100vw"
                     />
                   </div>
-                  {showContent && (
+                  {showContent ? (
                     <SlideCourseContent
                       slide={slide}
                       variant="desktop"
                       href={href}
+                      reserveHeight={anyShowContent}
                     />
-                  )}
+                  ) : anyShowContent ? (
+                    <HeroContentSpacer variant="desktop" />
+                  ) : null}
                 </div>
               )
               return (
@@ -223,7 +269,7 @@ export default function HeroSlider({ slides }: Props) {
               )
             })}
           </Swiper>
-          <div className="hero-desktop-dots mt-4 flex gap-2" />
+          <div ref={desktopPaginationRef} className="hero-desktop-dots mt-4 flex justify-start gap-3" />
         </div>
       </section>
     </>

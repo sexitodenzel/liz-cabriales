@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { X, Search, ChevronDown } from "lucide-react"
 import { tiendaCategories } from "@/app/components/navbar/menuData"
+import PriceRangeSlider from "./PriceRangeSlider"
 
 type Theme = "dark" | "light"
 
@@ -315,65 +316,5 @@ export default function FilterSidebar({
         </button>
       )}
     </aside>
-  )
-}
-
-function PriceRangeSlider({
-  bounds,
-  valueMin,
-  valueMax,
-  trackClass,
-  onChange,
-}: {
-  bounds: { min: number; max: number }
-  valueMin: number | null
-  valueMax: number | null
-  trackClass: string
-  onChange: (min: number | null, max: number | null) => void
-}) {
-  const span = bounds.max - bounds.min
-
-  const effMin = Math.min(Math.max(valueMin ?? bounds.min, bounds.min), bounds.max)
-  const effMax = Math.max(Math.min(valueMax ?? bounds.max, bounds.max), bounds.min)
-
-  const leftPct  = ((effMin - bounds.min) / span) * 100
-  const rightPct = ((effMax - bounds.min) / span) * 100
-
-  const handleMin = (raw: number) => {
-    const clamped = Math.min(raw, effMax)
-    onChange(clamped <= bounds.min ? null : clamped, valueMax)
-  }
-
-  const handleMax = (raw: number) => {
-    const clamped = Math.max(raw, effMin)
-    onChange(valueMin, clamped >= bounds.max ? null : clamped)
-  }
-
-  return (
-    <div className="px-1">
-      <div className="price-range">
-        <div className={`absolute top-1/2 left-0 h-1 w-full -translate-y-1/2 rounded-full ${trackClass}`} />
-        <div
-          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#C9A84C]"
-          style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
-        />
-        <input
-          type="range"
-          min={bounds.min}
-          max={bounds.max}
-          value={effMin}
-          onChange={(event) => handleMin(Number(event.target.value))}
-          aria-label="Precio mínimo"
-        />
-        <input
-          type="range"
-          min={bounds.min}
-          max={bounds.max}
-          value={effMax}
-          onChange={(event) => handleMax(Number(event.target.value))}
-          aria-label="Precio máximo"
-        />
-      </div>
-    </div>
   )
 }

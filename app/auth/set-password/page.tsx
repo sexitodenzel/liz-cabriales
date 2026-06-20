@@ -90,7 +90,7 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 py-10">
+    <div className="min-h-screen site-container flex flex-col items-center justify-center py-10">
       <Link href="/" className="mb-6 transition-opacity hover:opacity-80" aria-label="Ir al inicio">
         <Image
           src="/images/logo.png"

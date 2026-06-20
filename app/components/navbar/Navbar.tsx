@@ -2,65 +2,40 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Search, User, ShoppingBag, ChevronDown, X, Menu, Heart } from "lucide-react"
-import { useState, useEffect, useRef, useCallback, useMemo, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
-import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
-import TiendaMegaMenu from "./dropdowns/TiendaMegaMenu"
+import { Search, ShoppingBag, X } from "lucide-react"
+import { useState, useEffect, useRef, useMemo } from "react"
+import { tiendaCategories } from "./menuData"
 import CartMenu from "./dropdowns/CartMenu"
-import TiendaMobileAccordion from "./TiendaMobileAccordion"
 import MobileDrawer from "./MobileDrawer"
+import MobileSearchOverlay from "./MobileSearchOverlay"
 import {
   withRecentProductsCategory,
   type RecentProductMenuItem,
 } from "@/lib/navbar/recent-products"
 import {
-  DesktopCategoriesDropdown,
-  DesktopSearchSuggestions,
-  MobileCategoriesDropdown,
-  MobileSearchSuggestions,
-  type NavbarCategory,
   type SearchSuggestionCategory,
   type SearchSuggestionProduct,
+  type TopSearchChip,
 } from "./SearchBarPanels"
 import { useCart } from "../cart/CartContext"
-import { useWishlist } from "../wishlist/WishlistContext"
-import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
-import { getSearchDestination } from "@/lib/search-navigation"
-
-export type MenuType =
-  | "Tienda"
-  | "Academia"
-  | "Servicios"
-  | "cart"
-  | "user"
-  | null
-
+import { SITE_CONTAINER_CLASS } from "@/lib/site-shell"
 
 type NavbarProps = {
   isLoggedIn?: boolean
 }
 
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
-  const router = useRouter()
-
-  const [activeMenu, setActiveMenu] = useState<MenuType>(null)
-  const [mobileSearchCategoriesOpen, setMobileSearchCategoriesOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [allCategoriesOpen, setAllCategoriesOpen] = useState(false)
-  const [categories, setCategories] = useState<NavbarCategory[]>([])
-  const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [recentProducts, setRecentProducts] = useState<RecentProductMenuItem[]>([])
-  const [recentProductsLoading, setRecentProductsLoading] = useState(true)
   const [suggestionProducts, setSuggestionProducts] = useState<SearchSuggestionProduct[]>([])
   const [suggestionCategories, setSuggestionCategories] = useState<SearchSuggestionCategory[]>([])
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
-  const [mobileSuggestionsOpen, setMobileSuggestionsOpen] = useState(false)
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [suggestionTab, setSuggestionTab] = useState<"productos" | "colecciones">("productos")
-  const [mobileSuggestionTab, setMobileSuggestionTab] = useState<"productos" | "colecciones">("productos")
+  const [topSearches, setTopSearches] = useState<TopSearchChip[]>([])
+  const [bestSellers, setBestSellers] = useState<SearchSuggestionProduct[]>([])
+  const [emptyStateLoading, setEmptyStateLoading] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const lastScrollY = useRef(0)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const headerRef = useRef<HTMLElement>(null)
   const overlayGuardRef = useRef(false)
   const {
@@ -71,87 +46,23 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     isProgrammatic,
     clearProgrammatic,
   } = useCart()
-  const { count: wishlistCount } = useWishlist()
-
-  const categoriesLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const clearCategoriesLeaveTimer = useCallback(() => {
-    if (categoriesLeaveTimerRef.current) {
-      clearTimeout(categoriesLeaveTimerRef.current)
-      categoriesLeaveTimerRef.current = null
-    }
-  }, [])
-
-  const closeSearchPanels = useCallback(() => {
-    setSuggestionsOpen(false)
-    setMobileSuggestionsOpen(false)
-    setMobileSearchCategoriesOpen(false)
-    setAllCategoriesOpen(false)
-    clearCategoriesLeaveTimer()
-  }, [clearCategoriesLeaveTimer])
-
-  const finishSearchNavigation = useCallback(() => {
-    setSearchQuery("")
-    closeSearchPanels()
-  }, [closeSearchPanels])
-
-  const clearSearchQuery = useCallback(() => {
-    setSearchQuery("")
-    setSuggestionsOpen(false)
-    setMobileSuggestionsOpen(false)
-  }, [])
-
-  const scheduleCloseCategories = useCallback(() => {
-    clearCategoriesLeaveTimer()
-    categoriesLeaveTimerRef.current = setTimeout(() => {
-      setAllCategoriesOpen(false)
-    }, 120)
-  }, [clearCategoriesLeaveTimer])
-
-  const openCategoriesMenu = useCallback(() => {
-    clearCategoriesLeaveTimer()
-    setActiveMenu(null)
-    setSuggestionsOpen(false)
-    setAllCategoriesOpen(true)
-  }, [clearCategoriesLeaveTimer])
-
-  const openNavMenu = useCallback(
-    (menu: MenuType) => {
-      closeSearchPanels()
-      setActiveMenu(menu)
-    },
-    [closeSearchPanels]
-  )
 
   useEffect(() => {
-    function handleMouseLeavePage(e: MouseEvent) {
-      if (e.clientY <= 0 || e.clientX <= 0) {
-        setActiveMenu(null)
-        closeSearchPanels()
-        closeCart()
-      }
-    }
-    document.addEventListener("mouseleave", handleMouseLeavePage)
-    return () => document.removeEventListener("mouseleave", handleMouseLeavePage)
-  }, [closeCart, closeSearchPanels])
+    if (!drawerOpen) return
 
-  useEffect(() => {
-    if (activeMenu !== null) closeCart()
-  }, [activeMenu, closeCart])
-
-  useEffect(() => {
+    let lastY = window.scrollY
     function handleScroll() {
       const currentY = window.scrollY
-      if (currentY > lastScrollY.current) {
+      // Ignore micro-scrolls from layout shifts / mobile browser chrome
+      if (currentY - lastY > 12) {
         setDrawerOpen(false)
-        setMobileSuggestionsOpen(false)
-        setMobileSearchCategoriesOpen(false)
       }
-      lastScrollY.current = currentY
+      lastY = currentY
     }
+
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  }, [drawerOpen])
 
   useEffect(() => {
     const header = headerRef.current
@@ -164,44 +75,17 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => observer.disconnect()
   }, [])
 
-  // Cierra sugerencias al tocar fuera de la barra de búsqueda
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      const target = e.target as HTMLElement
-      if (!target.closest("[data-mobile-search]")) {
-        setMobileSearchCategoriesOpen(false)
-        setMobileSuggestionsOpen(false)
-      }
+    if (isCartOpen) {
+      setDrawerOpen(false)
+      setMobileSearchOpen(false)
     }
-    document.addEventListener("click", handleClickOutside)
-    return () => document.removeEventListener("click", handleClickOutside)
-  }, [])
-
-  useEffect(() => {
-    if (isCartOpen) setDrawerOpen(false)
   }, [isCartOpen])
 
   const tiendaMenuCategories = useMemo(
     () => withRecentProductsCategory(tiendaCategories, recentProducts),
     [recentProducts]
   )
-
-  useEffect(() => {
-    let isMounted = true
-    async function loadCategories() {
-      try {
-        const response = await fetch("/api/products/categories")
-        if (!response.ok) return
-        const json = (await response.json()) as { data?: NavbarCategory[] }
-        if (!isMounted || !Array.isArray(json.data)) return
-        setCategories(json.data)
-      } finally {
-        if (isMounted) setCategoriesLoading(false)
-      }
-    }
-    void loadCategories()
-    return () => { isMounted = false }
-  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -219,11 +103,38 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             slug: product.slug,
           }))
         )
-      } finally {
-        if (isMounted) setRecentProductsLoading(false)
+      } catch {
+        /* ignore */
       }
     }
     void loadRecentProducts()
+    return () => { isMounted = false }
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    async function loadEmptyState() {
+      try {
+        const [topRes, bestRes] = await Promise.all([
+          fetch("/api/navbar/top-searches"),
+          fetch("/api/products/best-sellers"),
+        ])
+        const [topJson, bestJson] = await Promise.all([
+          topRes.ok ? topRes.json() : Promise.resolve({ data: [] }),
+          bestRes.ok ? bestRes.json() : Promise.resolve({ data: [] }),
+        ])
+        if (!isMounted) return
+        setTopSearches(
+          Array.isArray(topJson?.data) ? (topJson.data as TopSearchChip[]) : []
+        )
+        setBestSellers(
+          Array.isArray(bestJson?.data) ? (bestJson.data as SearchSuggestionProduct[]) : []
+        )
+      } finally {
+        if (isMounted) setEmptyStateLoading(false)
+      }
+    }
+    void loadEmptyState()
     return () => { isMounted = false }
   }, [])
 
@@ -261,425 +172,106 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => { isMounted = false; clearTimeout(timeout) }
   }, [searchQuery])
 
-  const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    router.push(getSearchDestination(searchQuery))
-    finishSearchNavigation()
-    setActiveMenu(null)
+  const toggleMobileSearch = () => {
+    if (mobileSearchOpen) {
+      setMobileSearchOpen(false)
+      return
+    }
     closeCart()
+    setDrawerOpen(false)
+    setMobileSearchOpen(true)
   }
+
+  const navRow = (
+    <>
+      <button
+        type="button"
+        onClick={() => { closeCart(); setMobileSearchOpen(false); setDrawerOpen((o) => !o) }}
+        className="relative shrink-0 inline-flex h-8 w-8 items-center justify-center text-black transition-colors hover:text-[#C6A75E]"
+        aria-label={drawerOpen ? "Cerrar menú" : "Abrir menú"}
+      >
+        <span
+          className={`absolute flex h-6 w-6 flex-col items-center justify-center gap-[5px] transition-all duration-200 ${
+            drawerOpen ? "opacity-0 rotate-90 scale-75" : "opacity-100 rotate-0 scale-100"
+          }`}
+          aria-hidden="true"
+        >
+          <span className="block h-[2px] w-5 rounded-full bg-current" />
+          <span className="block h-[2px] w-5 rounded-full bg-current" />
+        </span>
+        <X
+          className={`absolute h-6 w-6 transition-all duration-200 ${
+            drawerOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-75"
+          }`}
+        />
+      </button>
+
+      <div className="flex flex-1 items-center justify-center">
+        <Link
+          href="/"
+          className="shrink-0 no-underline transition-opacity hover:opacity-90"
+          aria-label="Ir al inicio"
+        >
+          <Image
+            src="/images/logo.png"
+            alt="Liz Cabriales"
+            width={56}
+            height={56}
+            className="object-contain"
+            priority
+          />
+        </Link>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={toggleMobileSearch}
+          className="inline-flex h-8 w-8 items-center justify-center text-black transition-colors hover:text-[#C6A75E]"
+          aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Buscar"}
+        >
+          <Search className="h-5 w-5" />
+        </button>
+
+        <button
+          type="button"
+          className="relative inline-flex h-8 w-8 items-center justify-center text-black transition-colors hover:text-[#C6A75E]"
+          onClick={() => {
+            if (isCartOpen) {
+              closeCart()
+            } else {
+              setMobileSearchOpen(false)
+              setDrawerOpen(false)
+              openCart()
+            }
+          }}
+          aria-label="Carrito"
+        >
+          <span className="relative shrink-0">
+            <ShoppingBag className="h-5 w-5" />
+            {itemCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
+                {itemCount}
+              </span>
+            )}
+          </span>
+        </button>
+      </div>
+    </>
+  )
 
   return (
     <>
-      <header ref={headerRef} className={`relative z-50 w-full sticky top-0 overflow-visible border-b ${isCartOpen ? "border-transparent" : "border-white/10"} bg-[#0a0a0a] px-4 text-neutral-300 md:px-6`}>
+      <header
+        id="site-navbar"
+        ref={headerRef}
+        className="relative z-50 w-full sticky top-0 overflow-visible bg-white text-neutral-800"
+      >
 
-        {/* Video de fondo */}
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-20 pointer-events-none select-none"
-          style={{ zIndex: 0 }}
+        <div
+          className={`${SITE_CONTAINER_CLASS} relative z-10 flex h-[var(--navbar-h)] items-center`}
         >
-          <source src="/videos/navbar-bg.mp4" type="video/mp4" />
-        </video>
-
-        {/* ===== MOBILE: Fila 1 – Hamburger | Logo | Search | User + Cart ===== */}
-        <div className="relative z-10 md:hidden flex items-center gap-2 h-[var(--navbar-h)]" data-mobile-search>
-
-          <button
-            type="button"
-            onClick={() => { closeCart(); setDrawerOpen((o) => !o) }}
-            className="relative shrink-0 inline-flex h-8 w-8 items-center justify-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
-            aria-label={drawerOpen ? "Cerrar menú" : "Abrir menú"}
-          >
-            <Menu
-              className={`absolute h-5 w-5 transition-all duration-200 ${
-                drawerOpen ? "opacity-0 rotate-90 scale-75" : "opacity-100 rotate-0 scale-100"
-              }`}
-            />
-            <X
-              className={`absolute h-5 w-5 transition-all duration-200 ${
-                drawerOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-75"
-              }`}
-            />
-          </button>
-
-          <Link
-            href="/"
-            className="shrink-0 no-underline transition-opacity hover:opacity-90"
-            aria-label="Ir al inicio"
-          >
-            <Image
-              src="/images/logo.png"
-              alt="Liz Cabriales"
-              width={72}
-              height={72}
-              className="mix-blend-screen object-contain"
-              priority
-            />
-          </Link>
-
-          <div className="relative flex-1 min-w-0">
-            <form
-              onSubmit={handleSearchSubmit}
-              className={`relative z-[71] flex items-center border border-neutral-200 bg-white px-2 py-1 transition-[border-radius,border-bottom-color] duration-200 ${
-                mobileSearchCategoriesOpen || (mobileSuggestionsOpen && searchQuery.trim().length >= 2)
-                  ? "rounded-t-full border-b-white"
-                  : "rounded-full"
-              }`}
-            >
-              <div className="relative shrink-0" data-all-categories>
-                <button
-                  type="button"
-                  className="inline-flex shrink-0 items-center justify-center rounded-full p-1.5 text-neutral-400 transition-colors hover:text-[#C6A75E]"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setMobileSearchCategoriesOpen((open) => !open)
-                    setMobileSuggestionsOpen(false)
-                  }}
-                  aria-label="Abrir categorías"
-                  aria-expanded={mobileSearchCategoriesOpen}
-                  aria-haspopup="menu"
-                >
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileSearchCategoriesOpen ? "rotate-180" : ""}`} />
-                </button>
-              </div>
-              <div className="mx-1.5 h-5 w-px shrink-0 bg-neutral-200" aria-hidden="true" />
-              <input
-                type="text"
-                inputMode="search"
-                enterKeyHint="search"
-                autoComplete="off"
-                value={searchQuery}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setSearchQuery(value)
-                  setMobileSearchCategoriesOpen(false)
-                  setMobileSuggestionsOpen(value.trim().length >= 2)
-                  if (value.trim().length >= 2) setMobileSuggestionTab("productos")
-                }}
-                onFocus={() => {
-                  if (searchQuery.trim().length >= 2) setMobileSuggestionsOpen(true)
-                }}
-                placeholder="¿Qué estás buscando?"
-                className="navbar-search-input min-w-0 flex-1 bg-transparent px-2 text-base text-neutral-900 placeholder:text-neutral-500 outline-none md:text-sm"
-                aria-label="Buscar productos"
-              />
-              {searchQuery.length > 0 && (
-                <button
-                  type="button"
-                  onClick={clearSearchQuery}
-                  className="gold-clear-btn inline-flex shrink-0 items-center justify-center rounded-full p-1.5"
-                  aria-label="Limpiar búsqueda"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-              <button
-                type="submit"
-                className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-neutral-400 transition-colors hover:text-[#C6A75E]"
-                aria-label="Buscar"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            </form>
-            <MobileCategoriesDropdown
-              open={mobileSearchCategoriesOpen}
-              categories={categories}
-              loading={categoriesLoading}
-              onClose={finishSearchNavigation}
-            />
-            <MobileSearchSuggestions
-              open={mobileSuggestionsOpen && !mobileSearchCategoriesOpen}
-              query={searchQuery}
-              products={suggestionProducts}
-              categories={suggestionCategories}
-              loading={suggestionsLoading}
-              activeTab={mobileSuggestionTab}
-              onTabChange={setMobileSuggestionTab}
-              onClose={finishSearchNavigation}
-            />
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              type="button"
-              className="relative inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
-              onClick={() => {
-                if (isCartOpen) {
-                  closeCart()
-                } else {
-                  closeSearchPanels()
-                  setActiveMenu(null)
-                  openCart()
-                }
-              }}
-              aria-label="Carrito"
-            >
-              <span className="relative shrink-0">
-                <ShoppingBag className="w-5 h-5 text-white transition-colors" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
-                    {itemCount}
-                  </span>
-                )}
-              </span>
-            </button>
-            <Link
-              href="/wishlist"
-              onClick={() => {
-                closeCart()
-                closeSearchPanels()
-                setActiveMenu(null)
-              }}
-              className="relative inline-flex items-center text-neutral-300 transition-colors hover:text-[#C6A75E]"
-              aria-label="Favoritos"
-            >
-              <span className="relative shrink-0">
-                <Heart className="w-5 h-5 text-white transition-colors" />
-                <WishlistCountBadge count={wishlistCount} />
-              </span>
-            </Link>
-          </div>
-        </div>
-
-
-        {/* ===== DESKTOP: Fila principal ===== */}
-        <div className="relative z-10 hidden md:flex mx-auto h-[var(--navbar-h)] max-w-[1400px] items-center gap-6">
-
-          <Link
-            href="/"
-            className="shrink-0 no-underline transition-opacity hover:opacity-90"
-            aria-label="Ir al inicio"
-          >
-            <Image
-              src="/images/logo.png"
-              alt="Liz Cabriales"
-              width={110}
-              height={110}
-              className="mix-blend-screen object-contain"
-              priority
-            />
-          </Link>
-
-          <div className="flex min-w-0 flex-1 items-center gap-4 overflow-visible">
-
-            <nav className="hidden lg:flex gap-7 text-[15px] tracking-[0.04em] capitalize font-medium">
-              <Link
-                href="/tienda"
-                onMouseEnter={() => openNavMenu("Tienda")}
-                onFocus={() => openNavMenu("Tienda")}
-                className="relative group cursor-pointer border-none bg-transparent text-[16px] tracking-[0.05em] text-neutral-300"
-              >
-                <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
-                  Tienda
-                </span>
-                <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
-              </Link>
-
-              <Link
-                href="/academia"
-                onMouseEnter={() => openNavMenu("Academia")}
-                onFocus={() => openNavMenu("Academia")}
-                className="relative group cursor-pointer border-none bg-transparent text-[16px] tracking-[0.05em] text-neutral-300"
-              >
-                <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
-                  Academia
-                </span>
-                <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
-              </Link>
-
-              <Link
-                href="/servicios"
-                onMouseEnter={() => openNavMenu("Servicios")}
-                onFocus={() => openNavMenu("Servicios")}
-                className="relative group text-[16px] tracking-[0.05em] text-neutral-300"
-              >
-                <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
-                  Servicios
-                </span>
-                <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
-              </Link>
-
-              <TiendaMegaMenu
-                isOpen={activeMenu === "Tienda"}
-                onClose={() => setActiveMenu(null)}
-                categories={tiendaMenuCategories}
-                sectionHref="/tienda"
-                recentProductsLoading={recentProductsLoading}
-              />
-              <TiendaMegaMenu
-                isOpen={activeMenu === "Academia"}
-                onClose={() => setActiveMenu(null)}
-                categories={cursosCategories}
-                sectionHref="/academia"
-              />
-              <TiendaMegaMenu
-                isOpen={activeMenu === "Servicios"}
-                onClose={() => setActiveMenu(null)}
-                categories={serviciosCategories}
-                sectionHref="/servicios"
-              />
-            </nav>
-
-            <div className="relative min-w-0 flex-1" data-search-autocomplete>
-              <form
-                onSubmit={handleSearchSubmit}
-                className={`relative flex w-full items-center border border-neutral-200 bg-white px-1.5 py-1 transition-[border-radius,border-bottom-color] duration-200 ${
-                  suggestionsOpen && !allCategoriesOpen && searchQuery.trim().length >= 2
-                    ? "rounded-t-full border-b-white"
-                    : "rounded-full"
-                }`}
-              >
-                <div
-                  className="relative shrink-0"
-                  data-all-categories
-                  onMouseEnter={openCategoriesMenu}
-                  onMouseLeave={scheduleCloseCategories}
-                >
-                  <button
-                    type="button"
-                    className="inline-flex shrink-0 items-center justify-center rounded-full p-1.5 text-neutral-400 transition-colors hover:text-[#C6A75E]"
-                    aria-label="Abrir categorías"
-                    aria-expanded={allCategoriesOpen}
-                    aria-haspopup="menu"
-                  >
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                        allCategoriesOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  <DesktopCategoriesDropdown
-                    open={allCategoriesOpen}
-                    categories={categories}
-                    loading={categoriesLoading}
-                    onClose={finishSearchNavigation}
-                    onMouseEnter={clearCategoriesLeaveTimer}
-                    onMouseLeave={scheduleCloseCategories}
-                  />
-                </div>
-                <div className="mx-1 h-5 w-px shrink-0 bg-neutral-200" aria-hidden="true" />
-                <input
-                  type="text"
-                  inputMode="search"
-                  enterKeyHint="search"
-                  autoComplete="off"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    const value = e.target.value
-                    setSearchQuery(value)
-                    setAllCategoriesOpen(false)
-                    clearCategoriesLeaveTimer()
-                    if (value.trim().length >= 2) {
-                      setActiveMenu(null)
-                      setSuggestionsOpen(true)
-                      setSuggestionTab("productos")
-                    } else {
-                      setSuggestionsOpen(false)
-                    }
-                  }}
-                  onFocus={() => {
-                    setActiveMenu(null)
-                    clearCategoriesLeaveTimer()
-                    setAllCategoriesOpen(false)
-                    if (searchQuery.trim().length >= 2) setSuggestionsOpen(true)
-                  }}
-                  placeholder="¿Qué estás buscando?"
-                  className="navbar-search-input min-w-0 flex-1 bg-transparent px-2 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none"
-                  aria-label="Buscar productos"
-                />
-                {searchQuery.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={clearSearchQuery}
-                    className="gold-clear-btn inline-flex shrink-0 items-center justify-center rounded-full p-1.5"
-                    aria-label="Limpiar búsqueda"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-neutral-400 transition-colors hover:text-[#C6A75E]"
-                  aria-label="Buscar"
-                >
-                  <Search className="h-4 w-4" />
-                </button>
-              </form>
-              <DesktopSearchSuggestions
-                open={suggestionsOpen && !allCategoriesOpen && searchQuery.trim().length >= 2}
-                query={searchQuery}
-                products={suggestionProducts}
-                categories={suggestionCategories}
-                loading={suggestionsLoading}
-                activeTab={suggestionTab}
-                onTabChange={setSuggestionTab}
-                onClose={finishSearchNavigation}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-10">
-            <Link
-              href={isLoggedIn ? "/perfil" : "/login"}
-              className="group inline-flex items-center text-[16px] tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
-              aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
-            >
-              <User className="w-7 h-7 shrink-0" />
-              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-200 group-hover:grid-cols-[1fr] group-hover:ml-2">
-                <span className="overflow-hidden whitespace-nowrap">
-                  {isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
-                </span>
-              </span>
-            </Link>
-            <button
-              type="button"
-              className="group relative inline-flex items-center text-[16px] tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
-              onClick={() => {
-                if (isCartOpen) {
-                  closeCart()
-                } else {
-                  closeSearchPanels()
-                  setActiveMenu(null)
-                  openCart()
-                }
-              }}
-              aria-label="Carrito"
-            >
-              <span className="relative shrink-0">
-                <ShoppingBag className="w-7 h-7 text-white transition-colors" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#C6A75E] text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full">
-                    {itemCount}
-                  </span>
-                )}
-              </span>
-              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-200 group-hover:grid-cols-[1fr] group-hover:ml-2">
-                <span className="overflow-hidden whitespace-nowrap">Carrito</span>
-              </span>
-            </button>
-            <Link
-              href="/wishlist"
-              onClick={() => {
-                closeCart()
-                closeSearchPanels()
-                setActiveMenu(null)
-              }}
-              className="group inline-flex items-center text-[16px] tracking-[0.05em] text-neutral-300 transition-colors hover:text-[#C6A75E]"
-              aria-label="Favoritos"
-            >
-              <span className="relative shrink-0">
-                <Heart className="h-7 w-7 text-white transition-colors" />
-                <WishlistCountBadge count={wishlistCount} />
-              </span>
-              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-200 group-hover:grid-cols-[1fr] group-hover:ml-2">
-                <span className="overflow-hidden whitespace-nowrap">Favoritos</span>
-              </span>
-            </Link>
-          </div>
+          {navRow}
         </div>
 
         <CartMenu />
@@ -692,32 +284,35 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         tiendaCategories={tiendaMenuCategories}
       />
 
-      {/* ===== Overlay de blur global ===== */}
+      <MobileSearchOverlay
+        open={mobileSearchOpen}
+        onClose={() => setMobileSearchOpen(false)}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        products={suggestionProducts}
+        categories={suggestionCategories}
+        suggestionsLoading={suggestionsLoading}
+        activeTab={suggestionTab}
+        onTabChange={setSuggestionTab}
+        topSearches={topSearches}
+        bestSellers={bestSellers}
+        emptyLoading={emptyStateLoading}
+      />
+
+      {/* Overlay de blur global (carrito) */}
       <div
-        className={`fixed inset-0 top-[var(--navbar-actual-h)] backdrop-blur-md bg-black/10 z-30 transition-opacity duration-300 ${
-          activeMenu || isCartOpen || allCategoriesOpen || suggestionsOpen || mobileSearchCategoriesOpen || mobileSuggestionsOpen
-            ? "opacity-100"
-            : "opacity-0 pointer-events-none"
+        className={`fixed inset-0 top-[var(--navbar-actual-h)] backdrop-blur-md bg-black/10 z-[45] transition-opacity duration-300 ${
+          isCartOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onMouseEnter={() => {
           if (isProgrammatic()) { clearProgrammatic(); return }
           closeCart()
-          setAllCategoriesOpen(false)
-          setSuggestionsOpen(false)
-          setMobileSearchCategoriesOpen(false)
-          setMobileSuggestionsOpen(false)
-          setActiveMenu(null)
           setDrawerOpen(false)
         }}
         onClick={() => {
           if (isProgrammatic()) { clearProgrammatic(); return }
           if (overlayGuardRef.current) return
           closeCart()
-          setAllCategoriesOpen(false)
-          setSuggestionsOpen(false)
-          setMobileSearchCategoriesOpen(false)
-          setMobileSuggestionsOpen(false)
-          setActiveMenu(null)
           setDrawerOpen(false)
         }}
       />

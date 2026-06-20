@@ -135,7 +135,7 @@ export default function InstagramFeed() {
 
   return (
     <section
-      className="bg-white px-6 pb-24 pt-12 md:px-12"
+      className="bg-white site-container pb-24 pt-12"
       style={{ color: "#1a1a18" }}
     >
       {/* Eyebrow */}
@@ -200,7 +200,7 @@ export default function InstagramFeed() {
 
       {/* Grid + arrow */}
       {!isEmpty && (
-        <div className="relative max-w-[1400px] mx-auto">
+        <div className="relative">
           <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: 2 }}>
             {loading
               ? Array.from({ length: 4 }).map((_, i) => <PostSkeleton key={i} />)

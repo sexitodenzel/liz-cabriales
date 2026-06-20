@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { ChevronDown } from "lucide-react"
 
 type Pillar = {
   number: string
@@ -129,7 +130,8 @@ type Props = {
 
 export default function PillarStage({ pillarImages }: Props) {
   const PILLARS = buildPillars(pillarImages)
-  const [active, setActive] = useState(0)
+  const [active, setActive] = useState<number | null>(null)
+  const displayIndex = active ?? 0
   const { ref, inView } = useInView()
 
   const anim = (delay: number) =>
@@ -149,7 +151,7 @@ export default function PillarStage({ pillarImages }: Props) {
         }
       `}</style>
 
-      <div className="mx-auto max-w-[1400px] px-6">
+      <div>
 
         {/* ── Header ─────────────────────────────────────── */}
         <div
@@ -181,18 +183,37 @@ export default function PillarStage({ pillarImages }: Props) {
                   key={pillar.number}
                   role="button"
                   tabIndex={0}
-                  className="w-full cursor-pointer text-left outline-none"
+                  aria-expanded={isActive}
+                  className="relative w-full cursor-pointer text-left outline-none"
                   style={{
                     padding: "28px 0",
                     borderTop: `1px solid ${isActive ? "#c9a84c" : "#ececec"}`,
                     transition: "border-color 400ms ease",
                   }}
-                  onMouseEnter={() => setActive(i)}
-                  onClick={() => setActive(i)}
+                  onClick={() => setActive(isActive ? null : i)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") setActive(i)
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      setActive(isActive ? null : i)
+                    }
                   }}
                 >
+                  <span
+                    aria-hidden
+                    className="absolute right-0 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border transition-colors duration-300 ease-out"
+                    style={{
+                      borderColor: isActive ? "#e8dcc0" : "#ebebeb",
+                      background: isActive ? "#faf6ee" : "#fafafa",
+                      color: isActive ? "#a8862f" : "#9a9a9a",
+                    }}
+                  >
+                    <ChevronDown
+                      className="h-3.5 w-3.5 transition-transform duration-300 ease-out"
+                      style={{ transform: isActive ? "rotate(180deg)" : "rotate(0deg)" }}
+                      strokeWidth={1.75}
+                    />
+                  </span>
+
                   {/* Eyebrow row */}
                   <div className="mb-[14px] flex items-center gap-[14px]">
                     <span
@@ -233,7 +254,7 @@ export default function PillarStage({ pillarImages }: Props) {
                   {/* Body + CTA — only when active */}
                   {isActive && (
                     <div className="pillar-body-enter">
-                      <p className="mt-[18px] mb-[18px] max-w-[380px] text-[13px] font-normal leading-[1.75] text-[#8a8a8a]">
+                      <p className="mt-[18px] mb-[18px] max-w-[380px] text-[13px] font-normal leading-[1.75] text-[#2c2c2c]">
                         {pillar.body}
                       </p>
                       <Link
@@ -290,7 +311,7 @@ export default function PillarStage({ pillarImages }: Props) {
             <div
               className="absolute right-0 top-0 font-[family-name:var(--font-playfair),serif] text-[14px] italic tracking-[0.05em]"
             >
-              <strong className="text-[#a8862f]">{String(active + 1).padStart(2, "0")}</strong>
+              <strong className="text-[#a8862f]">{String(displayIndex + 1).padStart(2, "0")}</strong>
               <span className="mx-1.5 text-[#c9a84c]">/</span>
               <span className="text-[#8a8a8a]">03</span>
             </div>
@@ -317,8 +338,8 @@ export default function PillarStage({ pillarImages }: Props) {
                       key={pi}
                       className="absolute inset-0"
                       style={{
-                        opacity: active === pi ? 1 : 0,
-                        transform: active === pi ? "scale(1)" : "scale(1.05)",
+                        opacity: displayIndex === pi ? (active === null ? 0.35 : 1) : 0,
+                        transform: displayIndex === pi ? "scale(1)" : "scale(1.05)",
                         transition: `opacity 700ms ease ${slot * 60}ms, transform 1200ms ease ${slot * 60}ms`,
                       }}
                     >
@@ -344,7 +365,7 @@ export default function PillarStage({ pillarImages }: Props) {
                     height: "3px",
                     borderRadius: "999px",
                     width: active === i ? "112px" : "8px",
-                    background: active === i ? "#c9a84c" : "#ececec",
+                    background: active === i ? "#c9a84c" : active === null && i === 0 ? "#e8dcc0" : "#ececec",
                     transition: "width 400ms ease, background-color 400ms ease",
                   }}
                 />

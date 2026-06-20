@@ -159,7 +159,7 @@ export default function CourseDetail({
 
   return (
     <>
-      <div className="mx-auto max-w-[1280px] px-4 sm:px-8 py-10 pb-20">
+      <div className="site-container pt-5 pb-20">
         <Breadcrumb
           items={[
             {
@@ -538,7 +538,7 @@ export default function CourseDetail({
 
       {/* Galería retrospectiva */}
       {isPast && gallery.length > 0 && (
-        <div className="mx-auto max-w-[1280px] px-4 sm:px-8">
+        <div className="site-container">
           <CourseGallery items={gallery} />
         </div>
       )}

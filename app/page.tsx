@@ -11,7 +11,7 @@ export const revalidate = 60
 export default function Home() {
   return (
     <main className="min-h-screen bg-white text-black">
-      <div className="mx-auto w-full max-w-[1460px] px-6">
+      <div className="site-container">
         <Suspense fallback={<HomeHeroSkeleton />}>
           <HomeTopSections />
         </Suspense>

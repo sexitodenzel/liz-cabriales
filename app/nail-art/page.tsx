@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { getNailArtPosts } from "@/lib/supabase/nail-art"
 import type { NailArtPost } from "@/lib/supabase/nail-art"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 const NAIL_PLACEHOLDERS = [
   "https://picsum.photos/seed/nails1/400/533",
@@ -94,22 +95,11 @@ export default async function NailArtPage() {
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <div className="mx-auto max-w-[1400px] px-6 py-16">
+      <div className="site-container pt-5 pb-16">
+        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Nail Art" }]} />
 
         {/* Header */}
         <div className="mb-14">
-          <Link
-            href="/"
-            className="mb-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a8a8a] transition-colors hover:text-[#a8862f]"
-          >
-            <svg viewBox="0 0 18 12" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" className="h-3 w-[18px] rotate-180" aria-hidden>
-              <path d="M0 6 H18 M13 1 L18 6 L13 11" />
-            </svg>
-            Inicio
-          </Link>
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f]">
-            Inspiración
-          </p>
           <h1 className="font-[family-name:var(--font-playfair),serif] text-[clamp(36px,5vw,64px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">
             Nail Art
           </h1>

@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { getNewestProductsCached } from "@/lib/supabase/cache"
 import type { ProductWithCategory } from "@/lib/supabase/products"
 import Breadcrumb from "@/components/shared/Breadcrumb"
-import ProductCard from "../components/ProductCard"
+import ProductListingSection from "../components/ProductListingSection"
 
 export const revalidate = 120
 
@@ -17,7 +17,7 @@ export default async function NewProductsPage() {
   if (error) {
     return (
       <main className="min-h-screen bg-white text-[#0a0a0a]">
-        <div className="mx-auto max-w-[1200px] px-6 py-12">
+        <div className="site-container pt-5 pb-12">
           <h1 className="text-2xl font-semibold">
             <span className="text-[#C6A75E]">Nuevos</span>{" "}
             <span className="text-[#0a0a0a]">Productos</span>
@@ -34,7 +34,7 @@ export default async function NewProductsPage() {
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
-      <div className="mx-auto max-w-[1200px] px-6 py-12">
+      <div className="site-container pt-5 pb-12">
         <Breadcrumb
           items={[
             { label: "Inicio", href: "/" },
@@ -54,19 +54,10 @@ export default async function NewProductsPage() {
           </p>
         </header>
 
-        {newestProducts.length === 0 ? (
-          <div className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-10 text-center">
-            <p className="text-sm font-medium text-[#0a0a0a]">
-              Aún no hay productos nuevos en el catálogo.
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {newestProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
+        <ProductListingSection
+          products={newestProducts}
+          emptyMessage="Aún no hay productos nuevos en el catálogo."
+        />
       </div>
     </main>
   )

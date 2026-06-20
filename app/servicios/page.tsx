@@ -36,7 +36,7 @@ export default async function ServiciosPage() {
 
   if (!servicesRes.data || !profsRes.data) {
     return (
-      <main className="min-h-screen bg-[#f5f5f3] px-6 py-16 text-[#0a0a0a]">
+      <main className="min-h-screen bg-[#f5f5f3] site-container py-16 text-[#0a0a0a]">
         <div className="mx-auto max-w-md text-center">
           <h1 className="text-2xl font-semibold">
             No pudimos cargar la información

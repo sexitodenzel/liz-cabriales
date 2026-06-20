@@ -244,7 +244,7 @@ export default function NuevosLanzamientosCarousel({
   return (
     <section
       ref={sectionRef}
-      className="mx-auto max-w-[1400px] px-6 pt-6 pb-16 max-[720px]:pt-6 max-[720px]:pb-12"
+      className="site-container pt-6 pb-16 max-[720px]:pt-6 max-[720px]:pb-12"
       aria-labelledby="nuevos-lanzamientos-title"
     >
       <header className="mb-12">

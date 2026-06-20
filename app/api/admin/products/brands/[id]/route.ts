@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { deleteAdminBrand, requireAdmin, updateAdminBrand } from "@/lib/supabase/admin"
+import { updateBrandSchema } from "@/lib/validations/products"
 
 type RouteContext = {
   params: Promise<{
@@ -34,11 +36,32 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       )
     }
 
-    const body = (await request.json()) as { name?: string; logoUrl?: string | null }
+    const json = await request.json()
+    const parsed = updateBrandSchema.safeParse(json)
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            message: "Datos inválidos",
+            code: "VALIDATION_ERROR",
+            issues: parsed.error.issues,
+          },
+        },
+        { status: 400 }
+      )
+    }
+
     const updateResult = await updateAdminBrand(id, {
-      name: body.name ?? "",
-      logoUrl: body.logoUrl,
+      name: parsed.data.name,
+      logoUrl: parsed.data.logoUrl,
+      showOnHome: parsed.data.showOnHome,
     })
+
+    if (!updateResult.error) {
+      revalidateTag("brands")
+    }
+
     return NextResponse.json(
       { data: updateResult.data, error: updateResult.error },
       { status: mapResultStatus(updateResult.error?.code) }
@@ -68,6 +91,11 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     }
 
     const deleteResult = await deleteAdminBrand(id)
+
+    if (!deleteResult.error) {
+      revalidateTag("brands")
+    }
+
     return NextResponse.json(
       { data: deleteResult.data, error: deleteResult.error },
       { status: mapResultStatus(deleteResult.error?.code) }

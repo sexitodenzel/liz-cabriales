@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 import RetryAppointmentPaymentButton from "./RetryAppointmentPaymentButton"
 
@@ -29,8 +30,16 @@ export default async function CitaErrorPage({
   const isFailure = status === "failure"
 
   return (
-    <main className="min-h-screen bg-[#f8f6f1] px-6 py-10 text-[#0a0a0a]">
+    <main className="min-h-screen bg-[#f8f6f1] site-container pt-5 pb-10 text-[#0a0a0a]">
       <div className="mx-auto max-w-[720px]">
+        <Breadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Servicios" },
+            { label: "Mi cita", href: `/cita/${id}` },
+            { label: "Error" },
+          ]}
+        />
         <div className="rounded-[28px] border border-[#e7b8b8] bg-[#fff2f2] p-8 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8a2f2f]">
             {isFailure ? "Pago fallido" : "Pago no completado"}

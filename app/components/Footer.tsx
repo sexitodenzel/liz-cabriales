@@ -8,7 +8,7 @@ const linkClass =
 export default function Footer() {
   return (
     <footer className="bg-[#0a0a0a] text-neutral-300">
-      <div className="mx-auto max-w-[1200px] px-6 pt-10 pb-10 md:pt-16 md:pb-12">
+      <div className="site-container pt-10 pb-10 md:pt-16 md:pb-12">
         <div className="grid gap-6 md:grid-cols-4 md:gap-8">
           {/* Logo */}
           <div className="flex justify-center md:justify-start">

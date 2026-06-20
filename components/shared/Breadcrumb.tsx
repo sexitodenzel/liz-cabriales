@@ -8,8 +8,8 @@ export type BreadcrumbItem = {
 function ChevLeftIcon() {
   return (
     <svg
-      width="14"
-      height="14"
+      width="12"
+      height="12"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -24,21 +24,21 @@ function ChevLeftIcon() {
 
 export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
-    <nav className="mb-6 flex flex-wrap items-center gap-2 text-[13px] text-[#6b6b6b]">
+    <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#6b6b6b]">
       {items.map((item, index) => {
         const isFirst = index === 0
         const isLast = index === items.length - 1
 
         return (
           <span key={index} className="flex items-center gap-2">
-            {index > 0 && <span className="text-[#9a9a9a]">/</span>}
+            {index > 0 && <span className="text-[#bdbdbd]">/</span>}
 
             {isLast ? (
-              <span className="font-medium text-[#1a1a1a]">{item.label}</span>
+              <span className="text-[#C6A75E]">{item.label}</span>
             ) : item.href ? (
               <Link
                 href={item.href}
-                className="flex items-center gap-2 transition-colors hover:text-[#a8893a]"
+                className="flex items-center gap-2 transition-colors hover:text-[#C6A75E]"
               >
                 {isFirst && <ChevLeftIcon />}
                 {item.label}
