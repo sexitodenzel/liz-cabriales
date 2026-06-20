@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       )
     }
 
-    revalidateTag("brands")
+    revalidateTag("brands", "max")
 
     return NextResponse.json({ data: createResult.data, error: null }, { status: 201 })
   } catch {

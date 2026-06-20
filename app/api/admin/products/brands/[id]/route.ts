@@ -59,7 +59,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     })
 
     if (!updateResult.error) {
-      revalidateTag("brands")
+      revalidateTag("brands", "max")
     }
 
     return NextResponse.json(
@@ -93,7 +93,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     const deleteResult = await deleteAdminBrand(id)
 
     if (!deleteResult.error) {
-      revalidateTag("brands")
+      revalidateTag("brands", "max")
     }
 
     return NextResponse.json(

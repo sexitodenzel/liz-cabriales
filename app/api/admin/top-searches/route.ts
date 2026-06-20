@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     )
   }
 
-  revalidateTag("top-searches")
+  revalidateTag("top-searches", "max")
 
   return NextResponse.json({ data: result.data, error: null }, { status: 201 })
 }

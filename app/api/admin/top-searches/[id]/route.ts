@@ -74,7 +74,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
     )
   }
 
-  revalidateTag("top-searches")
+  revalidateTag("top-searches", "max")
 
   return NextResponse.json({ data: result.data, error: null })
 }
@@ -102,7 +102,7 @@ export async function DELETE(_request: Request, { params }: Ctx) {
     )
   }
 
-  revalidateTag("top-searches")
+  revalidateTag("top-searches", "max")
 
   return NextResponse.json({ data: { ok: true }, error: null })
 }
