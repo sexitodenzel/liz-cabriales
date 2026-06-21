@@ -1,9 +1,15 @@
 import { createClient } from "@supabase/supabase-js"
 import { unstable_cache } from "next/cache"
 
+import {
+  isAbrasivityValue,
+  type AbrasivityValue,
+} from "@/lib/constants/abrasivity"
+
 import type {
   Category,
   Product,
+  ProductDesktopImageMode,
   ProductWithCategory,
   ProductVariant,
   ProductWithVariants,
@@ -37,6 +43,7 @@ export type HomeBrandItem = {
   slug: string
   logo_url: string | null
   show_on_home: boolean
+  description: string | null
 }
 
 type VariantRow = {
@@ -57,7 +64,9 @@ type ProductRow = {
   description: string | null
   base_price: number | string
   images: string[] | null
+  desktop_image_mode?: string | null
   brand: string | null
+  abrasivity?: string | null
   is_featured: boolean
   is_best_seller?: boolean | null
   is_active: boolean
@@ -67,8 +76,20 @@ type ProductRow = {
   product_variants?: VariantRow[] | VariantRow | null
 }
 
+function normalizeDesktopImageMode(
+  value: string | null | undefined
+): ProductDesktopImageMode {
+  return value === "hover" ? "hover" : "carousel"
+}
+
+function normalizeAbrasivity(
+  value: string | null | undefined
+): AbrasivityValue | null {
+  return isAbrasivityValue(value) ? value : null
+}
+
 const PRODUCT_SELECT = `
-  id, category_id, name, slug, description, base_price, images, brand,
+  id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity,
   is_featured, is_best_seller, is_active, updated_at, created_at, deleted_at,
   categories ( id, name, slug ),
   product_variants ( id, product_id, sku, variant_name, price, stock, is_active )
@@ -99,7 +120,9 @@ function mapProduct(row: ProductRow): ProductWithCategory | null {
     description: row.description ?? null,
     base_price: Number(row.base_price),
     images: row.images ?? null,
+    desktop_image_mode: normalizeDesktopImageMode(row.desktop_image_mode),
     brand: row.brand ?? null,
+    abrasivity: normalizeAbrasivity(row.abrasivity),
     is_featured: Boolean(row.is_featured),
     is_best_seller: Boolean(row.is_best_seller),
     is_active: Boolean(row.is_active),
@@ -143,6 +166,151 @@ export const getBrandsCached = unstable_cache(
   { revalidate: 300, tags: ["brands"] }
 )
 
+type BrandRow = {
+  id: string
+  name: string
+  slug: string
+  logo_url: string | null
+  show_on_home: boolean | null
+  description?: string | null
+}
+
+function mapBrandRow(row: BrandRow): HomeBrandItem {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    logo_url: row.logo_url ?? null,
+    show_on_home: Boolean(row.show_on_home),
+    description: row.description ?? null,
+  }
+}
+
+async function fetchBrandsWithLogo(): Promise<Result<HomeBrandItem[]>> {
+  const withDescription = await dbAdminReadonly()
+    .from("brands")
+    .select("id, name, slug, logo_url, show_on_home, description")
+    .not("logo_url", "is", null)
+    .neq("logo_url", "")
+    .order("name", { ascending: true })
+
+  if (withDescription.error && withDescription.error.code !== "42703") {
+    return {
+      data: null,
+      error: {
+        message: withDescription.error.message,
+        code: withDescription.error.code,
+      },
+    }
+  }
+
+  if (!withDescription.error) {
+    const rows = (withDescription.data ?? []) as unknown as BrandRow[]
+    const brands = rows
+      .map(mapBrandRow)
+      .filter(
+        (b) =>
+          typeof b.name === "string" &&
+          b.name.trim().length > 0 &&
+          typeof b.logo_url === "string" &&
+          b.logo_url.trim().length > 0
+      )
+    return { data: brands, error: null }
+  }
+
+  // Columna description no existe — fallback sin ella.
+  const fallback = await dbAdminReadonly()
+    .from("brands")
+    .select("id, name, slug, logo_url, show_on_home")
+    .not("logo_url", "is", null)
+    .neq("logo_url", "")
+    .order("name", { ascending: true })
+
+  if (fallback.error) {
+    if (fallback.error.code === "42703") return { data: [], error: null }
+    return {
+      data: null,
+      error: { message: fallback.error.message, code: fallback.error.code },
+    }
+  }
+
+  const rows = (fallback.data ?? []) as unknown as BrandRow[]
+  const brands = rows
+    .map(mapBrandRow)
+    .filter(
+      (b) =>
+        typeof b.name === "string" &&
+        b.name.trim().length > 0 &&
+        typeof b.logo_url === "string" &&
+        b.logo_url.trim().length > 0
+    )
+  return { data: brands, error: null }
+}
+
+export const getBrandsWithLogoCached = unstable_cache(
+  async (): Promise<Result<HomeBrandItem[]>> => {
+    return fetchBrandsWithLogo()
+  },
+  ["brands-with-logo"],
+  { revalidate: 300, tags: ["brands"] }
+)
+
+async function fetchAllBrandsFull(): Promise<Result<HomeBrandItem[]>> {
+  const withDescription = await dbAdminReadonly()
+    .from("brands")
+    .select("id, name, slug, logo_url, show_on_home, description")
+    .order("name", { ascending: true })
+
+  if (withDescription.error && withDescription.error.code !== "42703") {
+    return {
+      data: null,
+      error: {
+        message: withDescription.error.message,
+        code: withDescription.error.code,
+      },
+    }
+  }
+
+  if (!withDescription.error) {
+    const rows = (withDescription.data ?? []) as unknown as BrandRow[]
+    return {
+      data: rows
+        .map(mapBrandRow)
+        .filter((b) => typeof b.name === "string" && b.name.trim().length > 0),
+      error: null,
+    }
+  }
+
+  const fallback = await dbAdminReadonly()
+    .from("brands")
+    .select("id, name, slug, logo_url, show_on_home")
+    .order("name", { ascending: true })
+
+  if (fallback.error) {
+    if (fallback.error.code === "42703") return { data: [], error: null }
+    return {
+      data: null,
+      error: { message: fallback.error.message, code: fallback.error.code },
+    }
+  }
+
+  const rows = (fallback.data ?? []) as unknown as BrandRow[]
+  return {
+    data: rows
+      .map(mapBrandRow)
+      .filter((b) => typeof b.name === "string" && b.name.trim().length > 0),
+    error: null,
+  }
+}
+
+export const getAllBrandsFullCached = unstable_cache(
+  async (): Promise<Result<HomeBrandItem[]>> => {
+    return fetchAllBrandsFull()
+  },
+  ["brands-all-full"],
+  { revalidate: 300, tags: ["brands"] }
+)
+
 export const getHomeBrandsCached = unstable_cache(
   async (): Promise<Result<HomeBrandItem[]>> => {
     const { data, error } = await dbAdminReadonly()
@@ -159,6 +327,7 @@ export const getHomeBrandsCached = unstable_cache(
           slug: row.slug as string,
           logo_url: (row.logo_url as string | null) ?? null,
           show_on_home: Boolean(row.show_on_home),
+          description: null,
         }))
         .filter((brand) => typeof brand.name === "string" && brand.name.trim().length > 0)
       return { data: brands, error: null }
@@ -186,6 +355,7 @@ export const getHomeBrandsCached = unstable_cache(
             slug: row.slug as string,
             logo_url: logo,
             show_on_home: typeof logo === "string" && logo.trim().length > 0,
+            description: null,
           }
         })
         .filter((brand) => brand.show_on_home)
@@ -249,7 +419,7 @@ export const getFeaturedProductsCached = unstable_cache(
     const { data, error } = await db()
       .from("products")
       .select(
-        "id, category_id, name, slug, description, base_price, images, brand, is_featured, is_best_seller, is_active, updated_at, created_at"
+        "id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at"
       )
       .eq("is_featured", true)
       .eq("is_active", true)
@@ -266,7 +436,11 @@ export const getFeaturedProductsCached = unstable_cache(
       description: (row.description as string | null) ?? null,
       base_price: Number(row.base_price),
       images: (row.images as string[] | null) ?? null,
+      desktop_image_mode: normalizeDesktopImageMode(
+        row.desktop_image_mode as string | null | undefined
+      ),
       brand: (row.brand as string | null) ?? null,
+      abrasivity: normalizeAbrasivity(row.abrasivity as string | null | undefined),
       is_featured: Boolean(row.is_featured),
       is_best_seller: Boolean(row.is_best_seller),
       is_active: Boolean(row.is_active),
@@ -361,7 +535,9 @@ export const getProductBySlugCached = unstable_cache(
       description: row.description ?? null,
       base_price: Number(row.base_price),
       images: row.images ?? null,
+      desktop_image_mode: normalizeDesktopImageMode(row.desktop_image_mode),
       brand: row.brand ?? null,
+      abrasivity: normalizeAbrasivity(row.abrasivity),
       is_featured: Boolean(row.is_featured),
       is_best_seller: Boolean(row.is_best_seller),
       is_active: Boolean(row.is_active),

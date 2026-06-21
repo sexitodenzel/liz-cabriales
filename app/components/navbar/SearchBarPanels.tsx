@@ -18,12 +18,6 @@ export type SearchSuggestionProduct = {
   price: number
 }
 
-export type SearchSuggestionCategory = {
-  id: string
-  name: string
-  slug: string
-}
-
 export type TopSearchChip = {
   id: string
   label: string
@@ -105,81 +99,72 @@ export function DesktopCategoriesDropdown({
 type SearchSuggestionsContentProps = {
   query: string
   products: SearchSuggestionProduct[]
-  categories: SearchSuggestionCategory[]
   loading: boolean
-  activeTab: "productos" | "colecciones"
-  onTabChange: (tab: "productos" | "colecciones") => void
   onClose: () => void
+  variant?: "desktop" | "mobile"
 }
 
 export function SearchSuggestionsContent({
   query,
   products,
-  categories,
   loading,
-  activeTab,
-  onTabChange,
   onClose,
+  variant = "desktop",
 }: SearchSuggestionsContentProps) {
   const trimmed = query.trim()
-
   const hasProducts = products.length > 0
-  const hasCategories = categories.length > 0
-  const effectiveTab =
-    activeTab === "productos" && !hasProducts && hasCategories
-      ? "colecciones"
-      : activeTab === "colecciones" && !hasCategories && hasProducts
-        ? "productos"
-        : activeTab
-
   const searchHref = getSearchDestination(trimmed)
 
-  return (
-    <div className="py-2">
-      <div className="flex border-b border-neutral-200">
-        <button
-          type="button"
-          onClick={() => onTabChange("productos")}
-          className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-            effectiveTab === "productos"
-              ? "border-b-2 border-[#C6A75E] text-neutral-900"
-              : "text-neutral-500 hover:text-neutral-800"
-          }`}
-        >
-          Productos
-        </button>
-        <button
-          type="button"
-          onClick={() => onTabChange("colecciones")}
-          className={`flex-1 px-4 py-2.5 text-sm font-medium transition-colors ${
-            effectiveTab === "colecciones"
-              ? "border-b-2 border-[#C6A75E] text-neutral-900"
-              : "text-neutral-500 hover:text-neutral-800"
-          }`}
-        >
-          Colecciones
-        </button>
-      </div>
+  const isMobile = variant === "mobile"
 
-      <div className="max-h-[360px] overflow-y-auto p-2">
-        {loading ? (
-          <p className="px-3 py-3 text-sm text-neutral-500">Buscando...</p>
-        ) : effectiveTab === "productos" ? (
-          hasProducts ? (
-            products.map((product) => (
+  return (
+    <div className={isMobile ? "pb-8 pt-5" : "px-4 py-4"}>
+      {loading && !hasProducts ? (
+        <p className={isMobile ? "py-6 text-sm text-neutral-500" : "px-2 py-3 text-sm text-neutral-500"}>
+          Buscando...
+        </p>
+      ) : hasProducts ? (
+        <>
+          <h3
+            className={
+              isMobile
+                ? "mb-4 text-[20px] font-semibold tracking-tight text-neutral-900"
+                : "mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500"
+            }
+          >
+            Productos
+          </h3>
+          <div
+            className={
+              isMobile
+                ? "grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 md:gap-5"
+                : "grid grid-cols-2 gap-3"
+            }
+          >
+            {products.map((product) => (
               <Link
                 key={product.id}
-                href={searchHref}
+                href={`/tienda/${product.slug}`}
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-neutral-100"
+                className={isMobile ? "flex flex-col" : "group block overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-md"}
               >
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-neutral-100">
+                <div
+                  className={
+                    isMobile
+                      ? "aspect-square w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50 sm:aspect-[4/5]"
+                      : "aspect-square w-full overflow-hidden bg-neutral-100"
+                  }
+                >
                   {product.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="h-full w-full object-cover"
+                      className={
+                        isMobile
+                          ? "h-full w-full object-cover"
+                          : "h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      }
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-400">
@@ -187,38 +172,51 @@ export function SearchSuggestionsContent({
                     </div>
                   )}
                 </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-neutral-900">
-                    {product.name}
+                <div className={isMobile ? "mt-2 flex flex-1 flex-col" : "px-2.5 py-2"}>
+                  <p
+                    className={
+                      isMobile
+                        ? "line-clamp-2 flex-1 text-[12px] font-light leading-snug text-[#1a1a1a]"
+                        : "line-clamp-2 text-[12px] font-medium text-neutral-900"
+                    }
+                  >
+                    {isMobile ? (
+                      <span className="underline decoration-neutral-700 decoration-[1px] underline-offset-[4px]">
+                        {product.name}
+                      </span>
+                    ) : (
+                      product.name
+                    )}
                   </p>
-                  <p className="text-sm text-neutral-500">
+                  <p
+                    className={
+                      isMobile
+                        ? "mt-1 text-[12px] font-light text-[#C6A75E]"
+                        : "mt-0.5 text-[12px] text-[#C6A75E]"
+                    }
+                  >
                     {formatPrice(product.price)}
                   </p>
                 </div>
               </Link>
-            ))
-          ) : (
-            <p className="px-3 py-3 text-sm text-neutral-500">
-              Sin productos para &quot;{trimmed}&quot;
-            </p>
-          )
-        ) : hasCategories ? (
-          categories.map((category) => (
+            ))}
+          </div>
+
+          <div className={isMobile ? "mt-7 flex justify-center" : "mt-4 flex justify-center"}>
             <Link
-              key={category.id}
               href={searchHref}
               onClick={onClose}
-              className="block rounded-lg px-3 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-[#C6A75E]"
+              className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#1a1a1a]"
             >
-              {category.name}
+              Ver todos los resultados
             </Link>
-          ))
-        ) : (
-          <p className="px-3 py-3 text-sm text-neutral-500">
-            Sin colecciones para &quot;{trimmed}&quot;
-          </p>
-        )}
-      </div>
+          </div>
+        </>
+      ) : (
+        <p className={isMobile ? "py-6 text-sm text-neutral-500" : "px-2 py-3 text-sm text-neutral-500"}>
+          Sin productos para &quot;{trimmed}&quot;
+        </p>
+      )}
     </div>
   )
 }
@@ -398,10 +396,7 @@ type DesktopSearchSuggestionsProps = {
   open: boolean
   query: string
   products: SearchSuggestionProduct[]
-  categories: SearchSuggestionCategory[]
   loading: boolean
-  activeTab: "productos" | "colecciones"
-  onTabChange: (tab: "productos" | "colecciones") => void
   onClose: () => void
   topSearches?: TopSearchChip[]
   bestSellers?: SearchSuggestionProduct[]
@@ -412,10 +407,7 @@ export function DesktopSearchSuggestions({
   open,
   query,
   products,
-  categories,
   loading,
-  activeTab,
-  onTabChange,
   onClose,
   topSearches = [],
   bestSellers = [],
@@ -448,10 +440,7 @@ export function DesktopSearchSuggestions({
           <SearchSuggestionsContent
             query={query}
             products={products}
-            categories={categories}
             loading={loading}
-            activeTab={activeTab}
-            onTabChange={onTabChange}
             onClose={onClose}
           />
         )}

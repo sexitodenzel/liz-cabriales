@@ -5,8 +5,9 @@
    ========================================= */
 
 import { useState, useEffect, useMemo, useRef } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
-import { X, ShoppingBag } from "lucide-react"
+import { X, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { useCart } from "@/app/components/cart/CartContext"
 import { createClient } from "@/lib/supabase/client"
@@ -29,6 +30,184 @@ type Suggestion = {
   brand: string | null
   categories: { name: string } | null
   product_variants: { id: string; price: number; stock: number; is_active: boolean }[]
+}
+
+type SuggestionCardProps = {
+  suggestion: Suggestion
+  category: string | null
+  priceLabel: string
+  canAdd: boolean
+  onAdd: () => Promise<void>
+  onOpen: () => void
+}
+
+function SuggestionCard({
+  suggestion,
+  category,
+  priceLabel,
+  canAdd,
+  onAdd,
+  onOpen,
+}: SuggestionCardProps) {
+  const images = suggestion.images ?? []
+  const hasMultiple = images.length > 1
+  const [imgIndex, setImgIndex] = useState(0)
+  const [leavingImage, setLeavingImage] = useState<string | null>(null)
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next")
+  const currentImage = images[imgIndex] ?? null
+  const slideDurationMs = 240
+
+  useEffect(() => {
+    if (!leavingImage) return
+    const timeoutId = window.setTimeout(() => setLeavingImage(null), slideDurationMs)
+    return () => window.clearTimeout(timeoutId)
+  }, [leavingImage, slideDurationMs])
+
+  const goPrev = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!hasMultiple) return
+    if (currentImage) setLeavingImage(currentImage)
+    setSlideDirection("prev")
+    setImgIndex((i) => (i - 1 + images.length) % images.length)
+  }
+
+  const goNext = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!hasMultiple) return
+    if (currentImage) setLeavingImage(currentImage)
+    setSlideDirection("next")
+    setImgIndex((i) => (i + 1) % images.length)
+  }
+
+  return (
+    <div className="w-36 shrink-0 flex flex-col">
+      <div className="relative">
+        <Link href={`/tienda/${suggestion.slug}`} onClick={onOpen}>
+          <div className="relative h-28 w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50">
+            {currentImage ? (
+              <>
+                {leavingImage ? (
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      animation: `${slideDirection === "next" ? "cartSuggestionSlideOutLeft" : "cartSuggestionSlideOutRight"} ${slideDurationMs}ms ease`,
+                    }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={leavingImage}
+                      alt={suggestion.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : null}
+                <div
+                  className="absolute inset-0"
+                  style={
+                    leavingImage
+                      ? {
+                          animation: `${slideDirection === "next" ? "cartSuggestionSlideInRight" : "cartSuggestionSlideInLeft"} ${slideDurationMs}ms ease`,
+                        }
+                      : undefined
+                  }
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={currentImage}
+                    alt={suggestion.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
+                {suggestion.brand ?? "LC"}
+              </div>
+            )}
+          </div>
+        </Link>
+
+        {hasMultiple ? (
+          <>
+            <button
+              type="button"
+              aria-label="Imagen anterior"
+              onClick={goPrev}
+              className="absolute left-1.5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center text-black/75 transition-colors hover:text-black"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2.25} />
+            </button>
+            <button
+              type="button"
+              aria-label="Imagen siguiente"
+              onClick={goNext}
+              className="absolute right-1.5 top-1/2 z-10 flex -translate-y-1/2 items-center justify-center text-black/75 transition-colors hover:text-black"
+            >
+              <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.25} />
+            </button>
+          </>
+        ) : null}
+      </div>
+
+      <div className="mt-2 flex flex-1 flex-col">
+        {category ? (
+          <p className="text-[9px] uppercase tracking-[0.12em] text-neutral-500">
+            {category}
+          </p>
+        ) : null}
+        <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-medium leading-snug text-[#1a1a1a]">
+          {suggestion.name}
+        </p>
+      </div>
+
+      <p className="mt-1 text-[11px] font-semibold text-[#C6A75E]">{priceLabel}</p>
+      <button
+        type="button"
+        onClick={() => void onAdd()}
+        disabled={!canAdd}
+        className="mt-2 w-full rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:bg-[#C6A75E] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Agregar
+      </button>
+
+      <style jsx>{`
+        @keyframes cartSuggestionSlideInRight {
+          from {
+            transform: translateX(100%);
+          }
+          to {
+            transform: translateX(0);
+          }
+        }
+        @keyframes cartSuggestionSlideInLeft {
+          from {
+            transform: translateX(-100%);
+          }
+          to {
+            transform: translateX(0);
+          }
+        }
+        @keyframes cartSuggestionSlideOutLeft {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-100%);
+          }
+        }
+        @keyframes cartSuggestionSlideOutRight {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(100%);
+          }
+        }
+      `}</style>
+    </div>
+  )
 }
 
 export default function CartMenu() {
@@ -67,6 +246,16 @@ export default function CartMenu() {
   const hasFetchedRef = useRef(false)
 
   useEffect(() => {
+    if (!isCartOpen) return
+
+    document.body.classList.add("cart-scroll-locked")
+
+    return () => {
+      document.body.classList.remove("cart-scroll-locked")
+    }
+  }, [isCartOpen])
+
+  useEffect(() => {
     if (!isCartOpen) {
       hasFetchedRef.current = false
       return
@@ -101,12 +290,13 @@ export default function CartMenu() {
       })
   }, [isCartOpen, isEmpty])
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <>
     {/* Backdrop — bloquea interacciones táctiles fuera del panel */}
     <div
-      style={{ top: "var(--navbar-actual-h)" }}
-      className={`fixed inset-x-0 bottom-0 z-[72] touch-none ${
+      className={`fixed inset-x-0 bottom-0 top-[var(--navbar-actual-h)] z-[72] touch-none md:top-0 ${
         isCartOpen ? "pointer-events-auto" : "pointer-events-none"
       }`}
       onClick={closeCart}
@@ -114,13 +304,12 @@ export default function CartMenu() {
     />
 
     <div
-      style={{ top: "var(--navbar-actual-h)" }}
-      className={`fixed right-0 bottom-0 z-[73] flex w-2/3 flex-col border-l border-neutral-200 bg-white shadow-xl transition-opacity duration-700 ease-in-out md:w-[380px] ${
+      className={`fixed right-0 bottom-0 top-[var(--navbar-actual-h)] z-[73] flex w-2/3 min-h-0 flex-col overflow-hidden bg-white shadow-xl transition-opacity duration-700 ease-in-out md:top-0 md:h-screen md:w-[380px] ${
         isCartOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
       }`}
     >
       {/* Header — FIJO */}
-      <div className="flex flex-shrink-0 items-center justify-between border-b border-neutral-100 p-4">
+      <div className="flex flex-shrink-0 items-center justify-between p-4">
         <h3 className="text-[15px] font-semibold text-[#1a1a1a]">
           Bolsa ({itemCount} {itemCount === 1 ? "artículo" : "artículos"})
         </h3>
@@ -134,8 +323,8 @@ export default function CartMenu() {
         </button>
       </div>
 
-      {/* Items + sugerencias — SCROLLEABLE */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      {/* Items + sugerencias — SCROLLEABLE (sin scrollbar visible, igual que el drawer) */}
+      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
         {!mounted || isLoading ? (
           <div className="space-y-4 p-4">
             {[1, 2].map((n) => (
@@ -169,7 +358,7 @@ export default function CartMenu() {
               {[...resolvedItems].reverse().map((item) => (
                 <li
                   key={item.id}
-                  className="flex gap-3 border-b border-neutral-100 p-4"
+                  className="relative flex gap-3 p-4 after:absolute after:bottom-0 after:left-4 after:right-4 after:h-px after:bg-neutral-200 after:content-[''] last:after:hidden"
                 >
                   {/* Imagen */}
                   <Link
@@ -288,49 +477,15 @@ export default function CartMenu() {
                     }
 
                     return (
-                      <div key={s.id} className="w-36 shrink-0 flex flex-col">
-                        <Link href={`/tienda/${s.slug}`} onClick={closeCart}>
-                          <div className="h-28 w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50">
-                            {s.images?.[0] ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={s.images[0]}
-                                alt={s.name}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
-                                {s.brand ?? "LC"}
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-
-                        {/* Texto variable — crece para nivelar todas las tarjetas */}
-                        <div className="mt-2 flex flex-1 flex-col">
-                          {category && (
-                            <p className="text-[9px] uppercase tracking-[0.12em] text-neutral-500">
-                              {category}
-                            </p>
-                          )}
-                          <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-medium leading-snug text-[#1a1a1a]">
-                            {s.name}
-                          </p>
-                        </div>
-
-                        {/* Precio y botón siempre al fondo */}
-                        <p className="mt-1 text-[11px] font-semibold text-[#C6A75E]">
-                          {formatMXN(price)}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={handleAdd}
-                          disabled={!firstVariant}
-                          className="mt-2 w-full rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:bg-[#C6A75E] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          Agregar
-                        </button>
-                      </div>
+                      <SuggestionCard
+                        key={s.id}
+                        suggestion={s}
+                        category={category}
+                        priceLabel={formatMXN(price)}
+                        canAdd={Boolean(firstVariant)}
+                        onAdd={handleAdd}
+                        onOpen={closeCart}
+                      />
                     )
                   })}
                 </div>
@@ -363,17 +518,27 @@ export default function CartMenu() {
               Seguir explorando
             </Link>
           ) : (
-            <Link
-              href="/checkout"
-              onClick={closeCart}
-              className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900"
-            >
-              Finalizar compra
-            </Link>
+            <>
+              <Link
+                href="/checkout"
+                onClick={closeCart}
+                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900"
+              >
+                Finalizar compra
+              </Link>
+              <Link
+                href="/carrito"
+                onClick={closeCart}
+                className="mt-3 block w-full text-center text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-[#C6A75E]"
+              >
+                Ver bolsa
+              </Link>
+            </>
           )}
         </div>
       </div>
     </div>
-    </>
+    </>,
+    document.body,
   )
 }

@@ -49,7 +49,7 @@ export default function RelatedProductsCarousel({ products }: Props) {
             aria-label="Anterior"
             disabled={!canScrollLeft}
             onClick={() => scroll("left")}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-[#0a0a0a] transition-all hover:border-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-9 w-9 items-center justify-center bg-transparent text-[#0a0a0a] transition-colors hover:text-neutral-600 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +67,7 @@ export default function RelatedProductsCarousel({ products }: Props) {
             aria-label="Siguiente"
             disabled={!canScrollRight}
             onClick={() => scroll("right")}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-[#0a0a0a] transition-all hover:border-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            className="flex h-9 w-9 items-center justify-center bg-transparent text-[#0a0a0a] transition-colors hover:text-neutral-600 disabled:cursor-not-allowed disabled:opacity-30"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -84,8 +84,7 @@ export default function RelatedProductsCarousel({ products }: Props) {
       </div>
       <div
         ref={scrollRef}
-        className="mt-6 flex gap-5 overflow-x-auto pb-3 [&::-webkit-scrollbar]:hidden"
-        style={{ scrollbarWidth: "none" }}
+        className="mt-6 flex gap-5 overflow-x-auto pb-3"
       >
         {products.map((product) => (
           <div key={product.id} className="w-64 flex-none">

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { revalidateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import {
   Result,
@@ -66,6 +67,11 @@ export async function PATCH(
     const updateResult = await updateAdminProduct(id, parseResult.data)
     const status = mapResultToStatus(updateResult)
 
+    if (!updateResult.error) {
+      revalidateTag("products", "max")
+      revalidateTag("best-sellers", "max")
+    }
+
     return NextResponse.json(
       { data: updateResult.data, error: updateResult.error },
       { status }
@@ -105,6 +111,11 @@ export async function DELETE(
 
     const deleteResult = await softDeleteAdminProduct(id)
     const status = mapResultToStatus(deleteResult, 204)
+
+    if (!deleteResult.error) {
+      revalidateTag("products", "max")
+      revalidateTag("best-sellers", "max")
+    }
 
     return NextResponse.json(
       { data: deleteResult.data, error: deleteResult.error },

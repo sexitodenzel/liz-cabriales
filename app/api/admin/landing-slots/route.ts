@@ -53,8 +53,8 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const { key, url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle } = json as {
-      key?: unknown; url?: unknown; link_type?: unknown; link_value?: unknown
+    const { key, label, url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle } = json as {
+      key?: unknown; label?: unknown; url?: unknown; link_type?: unknown; link_value?: unknown
       cta_label?: unknown; cta_subtext?: unknown; subtitle?: unknown
       text_position?: unknown; show_title?: unknown; show_subtitle?: unknown
     }
@@ -66,9 +66,16 @@ export async function PATCH(request: Request) {
       )
     }
 
-    if ([url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle].every(v => v === undefined)) {
+    if ([label, url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle].every(v => v === undefined)) {
       return NextResponse.json(
         { data: null, error: { message: "Se requiere al menos un campo para actualizar", code: "VALIDATION_ERROR" } },
+        { status: 400 }
+      )
+    }
+
+    if (label !== undefined && typeof label !== "string") {
+      return NextResponse.json(
+        { data: null, error: { message: "label debe ser string", code: "VALIDATION_ERROR" } },
         { status: 400 }
       )
     }
@@ -87,7 +94,8 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const fields: { url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string; subtitle?: string; text_position?: string; show_title?: boolean; show_subtitle?: boolean } = {}
+    const fields: { label?: string; url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string; subtitle?: string; text_position?: string; show_title?: boolean; show_subtitle?: boolean } = {}
+    if (typeof label === "string") fields.label = label
     if (typeof url === "string") fields.url = url
     if (typeof link_type === "string") fields.link_type = link_type
     if (typeof link_value === "string") fields.link_value = link_value

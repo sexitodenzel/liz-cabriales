@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import {
+  isAbrasivityValue,
+  type AbrasivityValue,
+} from "@/lib/constants/abrasivity"
 import type { ProductWithCategory } from "@/lib/supabase/products"
 
 type CategoryRow = { id: string; name: string; slug: string }
@@ -21,7 +25,9 @@ type RawRow = {
   description: string | null
   base_price: number | string
   images: string[] | null
+  desktop_image_mode?: string | null
   brand: string | null
+  abrasivity?: string | null
   is_featured: boolean
   is_best_seller?: boolean | null
   is_active: boolean
@@ -34,6 +40,12 @@ type RawRow = {
 function unwrap<T>(value: T | T[] | null | undefined): T | null {
   if (!value) return null
   return Array.isArray(value) ? value[0] ?? null : value
+}
+
+function normalizeAbrasivity(
+  value: string | null | undefined
+): AbrasivityValue | null {
+  return isAbrasivityValue(value) ? value : null
 }
 
 function mapRow(row: RawRow): ProductWithCategory | null {
@@ -55,7 +67,9 @@ function mapRow(row: RawRow): ProductWithCategory | null {
     description: row.description ?? null,
     base_price: Number(row.base_price),
     images: row.images ?? null,
+    desktop_image_mode: row.desktop_image_mode === "hover" ? "hover" : "carousel",
     brand: row.brand ?? null,
+    abrasivity: normalizeAbrasivity(row.abrasivity),
     is_featured: Boolean(row.is_featured),
     is_best_seller: Boolean(row.is_best_seller),
     is_active: Boolean(row.is_active),
@@ -83,7 +97,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from("products")
     .select(`
-      id, category_id, name, slug, description, base_price, images, brand,
+      id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity,
       is_featured, is_best_seller, is_active, updated_at, created_at,
       categories ( id, name, slug ),
       product_variants ( id, product_id, sku, variant_name, price, stock, is_active )

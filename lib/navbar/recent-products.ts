@@ -1,6 +1,6 @@
 import type { TiendaCategory } from "@/app/components/navbar/menuData"
 
-export const RECENT_PRODUCTS_CATEGORY_SLUG = "productos-recientes"
+export const RECENT_PRODUCTS_CATEGORY_SLUG = "nuevos-lanzamientos"
 
 export type RecentProductMenuItem = {
   name: string
@@ -11,7 +11,7 @@ export function buildRecentProductsCategory(
   products: RecentProductMenuItem[]
 ): TiendaCategory {
   return {
-    label: "Productos Recientes",
+    label: "Nuevos lanzamientos",
     slug: RECENT_PRODUCTS_CATEGORY_SLUG,
     href: "/tienda/nuevos",
     subcategories: products.map((product) => ({

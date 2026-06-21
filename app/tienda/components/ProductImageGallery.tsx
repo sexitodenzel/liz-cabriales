@@ -14,19 +14,34 @@ export default function ProductImageGallery({ images, alt }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 })
+  const [leavingImage, setLeavingImage] = useState<string | null>(null)
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev">("next")
 
   const activeImage = images[activeIndex] ?? null
   const hasMultiple = images.length > 1
+  const slideDurationMs = 280
 
   const closeLightbox = useCallback(() => setLightboxOpen(false), [])
 
+  const changeImage = useCallback(
+    (nextIndex: number, direction: "next" | "prev") => {
+      if (nextIndex === activeIndex) return
+      if (activeImage) setLeavingImage(activeImage)
+      setSlideDirection(direction)
+      setActiveIndex(nextIndex)
+    },
+    [activeImage, activeIndex]
+  )
+
   const goToPrev = useCallback(() => {
-    setActiveIndex((i) => (i <= 0 ? images.length - 1 : i - 1))
-  }, [images.length])
+    const nextIndex = activeIndex <= 0 ? images.length - 1 : activeIndex - 1
+    changeImage(nextIndex, "prev")
+  }, [activeIndex, changeImage, images.length])
 
   const goToNext = useCallback(() => {
-    setActiveIndex((i) => (i >= images.length - 1 ? 0 : i + 1))
-  }, [images.length])
+    const nextIndex = activeIndex >= images.length - 1 ? 0 : activeIndex + 1
+    changeImage(nextIndex, "next")
+  }, [activeIndex, changeImage, images.length])
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -38,6 +53,15 @@ export default function ProductImageGallery({ images, alt }: Props) {
   useEffect(() => {
     setIsHovering(false)
   }, [activeIndex])
+
+  useEffect(() => {
+    if (!leavingImage) return
+    const timeoutId = window.setTimeout(
+      () => setLeavingImage(null),
+      slideDurationMs
+    )
+    return () => window.clearTimeout(timeoutId)
+  }, [leavingImage, slideDurationMs])
 
   useEffect(() => {
     if (!lightboxOpen) return
@@ -79,19 +103,48 @@ export default function ProductImageGallery({ images, alt }: Props) {
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
         >
-          <Image
-            key={activeImage}
-            src={activeImage}
-            alt={alt}
-            fill
-            className="object-cover transition-transform duration-200 ease-out"
-            style={{
-              transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
-              transform: isHovering ? "scale(2.2)" : "scale(1)",
-            }}
-            sizes="(max-width: 768px) 100vw, 50vw"
-            priority
-          />
+          {leavingImage ? (
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                animation: `${slideDirection === "next" ? "productSlideOutLeft" : "productSlideOutRight"} ${slideDurationMs}ms ease`,
+              }}
+            >
+              <Image
+                src={leavingImage}
+                alt={alt}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            </div>
+          ) : null}
+
+          <div
+            className="absolute inset-0"
+            style={
+              leavingImage
+                ? {
+                    animation: `${slideDirection === "next" ? "productSlideInRight" : "productSlideInLeft"} ${slideDurationMs}ms ease`,
+                  }
+                : undefined
+            }
+          >
+            <Image
+              key={activeImage}
+              src={activeImage}
+              alt={alt}
+              fill
+              className="object-cover transition-transform duration-200 ease-out"
+              style={{
+                transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
+                transform: isHovering ? "scale(2.2)" : "scale(1)",
+              }}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
+            />
+          </div>
 
           {/* Magnifier icon */}
           <span className="pointer-events-none absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100">
@@ -115,6 +168,10 @@ export default function ProductImageGallery({ images, alt }: Props) {
           {/* Navigation arrows */}
           {hasMultiple ? (
             <>
+              <div className="pointer-events-none absolute right-3 top-3 z-10 px-2 py-1 text-xs font-bold text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
+                {activeIndex + 1}/{images.length}
+              </div>
+
               <button
                 type="button"
                 aria-label="Imagen anterior"
@@ -160,7 +217,9 @@ export default function ProductImageGallery({ images, alt }: Props) {
               <button
                 key={src}
                 type="button"
-                onClick={() => setActiveIndex(index)}
+                onClick={() =>
+                  changeImage(index, index > activeIndex ? "next" : "prev")
+                }
                 className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
                   index === activeIndex
                     ? "border-[#c9a84c]"
@@ -254,6 +313,41 @@ export default function ProductImageGallery({ images, alt }: Props) {
           ) : null}
         </div>
       ) : null}
+
+      <style jsx>{`
+        @keyframes productSlideInRight {
+          from {
+            transform: translateX(100%);
+          }
+          to {
+            transform: translateX(0);
+          }
+        }
+        @keyframes productSlideInLeft {
+          from {
+            transform: translateX(-100%);
+          }
+          to {
+            transform: translateX(0);
+          }
+        }
+        @keyframes productSlideOutLeft {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-100%);
+          }
+        }
+        @keyframes productSlideOutRight {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(100%);
+          }
+        }
+      `}</style>
     </>
   )
 }

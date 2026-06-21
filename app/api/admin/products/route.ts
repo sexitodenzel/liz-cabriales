@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import {
   createAdminProduct,
@@ -109,6 +110,9 @@ export async function POST(request: Request) {
         { status: mapResultStatus(createResult.error.code) }
       )
     }
+
+    revalidateTag("products", "max")
+    revalidateTag("best-sellers", "max")
 
     return NextResponse.json(
       { data: createResult.data, error: null },

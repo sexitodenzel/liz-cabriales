@@ -26,6 +26,7 @@ type Props = {
   variantId: string
   outOfStock: boolean
   className?: string
+  label?: string
 }
 
 export default function NotifyWhenAvailable({
@@ -34,6 +35,7 @@ export default function NotifyWhenAvailable({
   variantId,
   outOfStock,
   className,
+  label = "Notificar disponibilidad",
 }: Props) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
@@ -254,7 +256,7 @@ export default function NotifyWhenAvailable({
         disabled={busy}
         className={buttonClassName}
       >
-        {busy ? "Guardando..." : "Notificar disponibilidad"}
+        {busy ? "Guardando..." : label}
       </button>
       {errorMessage ? (
         <p className="text-center text-xs text-red-500">{errorMessage}</p>

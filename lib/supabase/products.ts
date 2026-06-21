@@ -1,3 +1,8 @@
+import {
+  isAbrasivityValue,
+  type AbrasivityValue,
+} from "@/lib/constants/abrasivity"
+
 import { createClient } from "./server"
 
 type SupabaseError = {
@@ -8,6 +13,8 @@ type SupabaseError = {
 type Result<T> =
   | { data: T; error: null }
   | { data: null; error: SupabaseError }
+
+export type ProductDesktopImageMode = "carousel" | "hover"
 
 export type Category = {
   id: string
@@ -23,7 +30,9 @@ export type Product = {
   description: string | null
   base_price: number
   images: string[] | null
+  desktop_image_mode: ProductDesktopImageMode
   brand: string | null
+  abrasivity: AbrasivityValue | null
   is_featured: boolean
   is_best_seller: boolean
   is_active: boolean
@@ -78,7 +87,9 @@ type ProductRow = {
   description: string | null
   base_price: number | string
   images: string[] | null
+  desktop_image_mode?: string | null
   brand: string | null
+  abrasivity?: string | null
   is_featured: boolean
   is_best_seller?: boolean | null
   is_active: boolean
@@ -86,6 +97,18 @@ type ProductRow = {
   created_at?: string | null
   categories?: Category | null
   product_variants?: ProductVariantRow[] | ProductVariantRow | null
+}
+
+function normalizeDesktopImageMode(
+  value: string | null | undefined
+): ProductDesktopImageMode {
+  return value === "hover" ? "hover" : "carousel"
+}
+
+function normalizeAbrasivity(
+  value: string | null | undefined
+): AbrasivityValue | null {
+  return isAbrasivityValue(value) ? value : null
 }
 
 function mapVariantRow(variant: ProductVariantRow): ProductVariant {
@@ -120,7 +143,11 @@ function mapProductWithCategoryRow(
     description: productRow.description ?? null,
     base_price: Number(productRow.base_price),
     images: productRow.images ?? null,
+    desktop_image_mode: normalizeDesktopImageMode(
+      productRow.desktop_image_mode
+    ),
     brand: productRow.brand ?? null,
+    abrasivity: normalizeAbrasivity(productRow.abrasivity),
     is_featured: Boolean(productRow.is_featured),
     is_best_seller: Boolean(productRow.is_best_seller),
     is_active: Boolean(productRow.is_active),
@@ -209,7 +236,9 @@ export async function getProducts(
       description,
       base_price,
       images,
+      desktop_image_mode,
       brand,
+      abrasivity,
       is_featured,
       is_active,
       updated_at,
@@ -281,7 +310,11 @@ export async function getProducts(
         description: productRow.description ?? null,
         base_price: Number(productRow.base_price),
         images: productRow.images ?? null,
+        desktop_image_mode: normalizeDesktopImageMode(
+          productRow.desktop_image_mode
+        ),
         brand: productRow.brand ?? null,
+        abrasivity: normalizeAbrasivity(productRow.abrasivity),
         is_featured: Boolean(productRow.is_featured),
         is_best_seller: Boolean(productRow.is_best_seller),
         is_active: Boolean(productRow.is_active),
@@ -301,7 +334,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, images, brand, is_featured, is_best_seller, is_active, updated_at, created_at")
+    .select("id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at")
     .eq("is_featured", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -324,7 +357,11 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
         description: productRow.description ?? null,
         base_price: Number(productRow.base_price),
         images: productRow.images ?? null,
+        desktop_image_mode: normalizeDesktopImageMode(
+          productRow.desktop_image_mode
+        ),
         brand: productRow.brand ?? null,
+        abrasivity: normalizeAbrasivity(productRow.abrasivity),
         is_featured: Boolean(productRow.is_featured),
         is_best_seller: Boolean(productRow.is_best_seller),
         is_active: Boolean(productRow.is_active),
@@ -341,7 +378,7 @@ export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, images, brand, is_featured, is_best_seller, is_active, updated_at, created_at")
+    .select("id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at")
     .eq("is_best_seller", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -364,7 +401,11 @@ export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
         description: productRow.description ?? null,
         base_price: Number(productRow.base_price),
         images: productRow.images ?? null,
+        desktop_image_mode: normalizeDesktopImageMode(
+          productRow.desktop_image_mode
+        ),
         brand: productRow.brand ?? null,
+        abrasivity: normalizeAbrasivity(productRow.abrasivity),
         is_featured: Boolean(productRow.is_featured),
         is_best_seller: Boolean(productRow.is_best_seller),
         is_active: Boolean(productRow.is_active),
@@ -392,7 +433,9 @@ export async function getProductBySlug(
       description,
       base_price,
       images,
+      desktop_image_mode,
       brand,
+      abrasivity,
       is_featured,
       is_active,
       updated_at,
@@ -452,7 +495,11 @@ export async function getProductBySlug(
     description: productRow.description ?? null,
     base_price: Number(productRow.base_price),
     images: productRow.images ?? null,
+    desktop_image_mode: normalizeDesktopImageMode(
+      productRow.desktop_image_mode
+    ),
     brand: productRow.brand ?? null,
+    abrasivity: normalizeAbrasivity(productRow.abrasivity),
     is_featured: Boolean(productRow.is_featured),
     is_best_seller: Boolean(productRow.is_best_seller),
     is_active: Boolean(productRow.is_active),
@@ -473,7 +520,9 @@ const RELATED_SELECT = `
   description,
   base_price,
   images,
+  desktop_image_mode,
   brand,
+  abrasivity,
   is_featured,
   is_active,
   updated_at,

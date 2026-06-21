@@ -19,7 +19,11 @@
   --navbar-actual-h: var(--navbar-mobile-h);
   /* Contenedor horizontal unificado (navbar + páginas públicas en desktop) */
   --site-max-w: 1200px;
-  --site-px: 1.5rem;
+  --site-px: 1.25rem;
+  /* Hero slider dots — estilo OPI */
+  --hero-dot-size: 8px;
+  --hero-dot-gap: 12px;
+  --hero-dot-pl: clamp(2.75rem, 7vw, 4.5rem);
 }
 
 /* Rejilla única del sitio público: navbar, tienda, home, footer, etc. */
@@ -33,6 +37,15 @@
 /* =====================================
    BODY BASE
 ===================================== */
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Carrito abierto: bloquear scroll del body sin reflow lateral */
+body.cart-scroll-locked {
+  overflow: hidden;
+}
 
 body {
   background: var(--background);
@@ -62,34 +75,78 @@ body {
   border-radius: 50% !important;
 }
 
-/* Dots desktop — fuera del slider, sobre fondo blanco */
-.hero-desktop-dots.swiper-pagination {
-  position: static !important;
-  inset: auto !important;
-  width: auto !important;
-  transform: none !important;
-  display: flex !important;
+/* Hero slider — dots custom debajo del banner (estilo OPI) */
+.hero-pagination-dots {
+  display: flex;
   align-items: center;
   justify-content: flex-start;
-  text-align: left;
-  gap: 12px;
-  padding-left: 20px;
+  gap: var(--hero-dot-gap);
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 0;
+  padding: 1rem 0 1.25rem var(--hero-dot-pl);
+  background: #fff;
+  box-sizing: border-box;
 }
 
-.hero-desktop-dots .swiper-pagination-bullet {
-  width: 6px !important;
-  height: 6px !important;
-  margin: 0 !important;
-  background: #ccc !important;
-  opacity: 1 !important;
-  border-radius: 50% !important;
-  transition: background-color 0.3s ease !important;
+.hero-pagination-dots .hero-dot-btn {
+  width: var(--hero-dot-size);
+  height: var(--hero-dot-size);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #b3b3b3;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.3s ease;
 }
 
-.hero-desktop-dots .swiper-pagination-bullet-active {
-  width: 6px !important;
-  height: 6px !important;
-  background: #000 !important;
+.hero-pagination-dots .hero-dot-btn.is-active,
+.hero-pagination-dots .hero-dot-btn[aria-selected="true"] {
+  background: #000;
+}
+
+.hero-pagination-dots .hero-dot-arrow {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: #fff;
+  color: #6b6b6b;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.hero-pagination-dots .hero-dot-arrow:hover {
+  color: #111;
+  background: #f3f3f3;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --hero-dot-size: 9px;
+    --hero-dot-gap: 14px;
+  }
+
+  .hero-pagination-dots {
+    min-height: 3.25rem;
+    padding-top: 1.125rem;
+    padding-bottom: 1.375rem;
+  }
+
+  .hero-pagination-dots .hero-dot-arrow {
+    display: inline-flex;
+  }
+
+  .hero-pagination-dots:hover .hero-dot-arrow,
+  .hero-pagination-dots:focus-within .hero-dot-arrow {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 767px) {
@@ -315,4 +372,77 @@ body {
 .cart-scroll {
   scrollbar-width: thin;
   scrollbar-color: #c2c2c2 #ebebeb;
+}
+
+/* =====================================
+   SCROLLBAR HIDE — usado en el drawer del navbar.
+   Replica el comportamiento de mobile (sin scrollbar visible)
+   en PC, manteniendo scroll funcional.
+===================================== */
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* =====================================
+   SCROLLBAR GLOBAL — delgado, gris, auto-hide
+   Aparece sólo al hacer hover sobre el área scrollable.
+   En móvil, los navegadores ya lo ocultan por defecto.
+===================================== */
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+html:hover,
+body:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.25s ease;
+}
+
+/* Sin flechitas arriba/abajo */
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Mostrar la barrita gris al pasar el mouse sobre el contenedor */
+*:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.25);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+  background-clip: padding-box;
 }

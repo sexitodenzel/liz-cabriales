@@ -21,8 +21,7 @@ liz-cabriales/
 │   │   │   ├── dropdowns/
 │   │   │   │   ├── CartMenu.tsx
 │   │   │   │   ├── DropdownContainer.tsx
-│   │   │   │   ├── MegaMenu.tsx
-│   │   │   │   └── SearchMenu.tsx
+│   │   │   │   └── MegaMenu.tsx
 │   │   │   ├── menuData.ts
 │   │   │   └── Navbar.tsx
 │   │   ├── AcademyBanner.tsx

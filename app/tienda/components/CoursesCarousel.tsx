@@ -62,64 +62,50 @@ export default function CoursesCarousel({ courses }: Props) {
   return (
     <section className="mt-16">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Cursos y eventos</h2>
-          <p className="mt-0.5 text-sm text-neutral-500">
-            Aprende con nuestros cursos especializados
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/academia"
-            className="hidden text-sm font-medium text-[#a8862f] hover:underline sm:block"
+        <h2 className="text-xl font-semibold">Cursos y eventos</h2>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            aria-label="Anterior"
+            disabled={!canScrollLeft}
+            onClick={() => scroll("left")}
+            className="flex h-9 w-9 items-center justify-center bg-transparent text-[#0a0a0a] transition-colors hover:text-neutral-600 disabled:cursor-not-allowed disabled:opacity-30"
           >
-            Ver todos →
-          </Link>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              aria-label="Anterior"
-              disabled={!canScrollLeft}
-              onClick={() => scroll("left")}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-[#0a0a0a] transition-all hover:border-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              aria-label="Siguiente"
-              disabled={!canScrollRight}
-              onClick={() => scroll("right")}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-[#0a0a0a] transition-all hover:border-[#0a0a0a] hover:bg-[#0a0a0a] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="Siguiente"
+            disabled={!canScrollRight}
+            onClick={() => scroll("right")}
+            className="flex h-9 w-9 items-center justify-center bg-transparent text-[#0a0a0a] transition-colors hover:text-neutral-600 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
 
       <div
         ref={scrollRef}
-        className="mt-6 flex gap-4 overflow-x-auto pb-3 [&::-webkit-scrollbar]:hidden"
-        style={{ scrollbarWidth: "none" }}
+        className="mt-6 flex gap-5 overflow-x-auto pb-3"
       >
         {courses.map((course) => {
           const parts = course.start_date.split("-")
@@ -137,40 +123,37 @@ export default function CoursesCarousel({ courses }: Props) {
             <Link
               key={course.id}
               href={`/academia/${course.id}`}
-              className="group w-64 flex-none overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+              className="group w-64 flex-none overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow duration-200 hover:shadow-md"
             >
-              <div className="relative h-40 overflow-hidden bg-neutral-900">
+              <div className="relative h-40 overflow-hidden bg-neutral-100">
                 {course.cover_image ? (
                   <Image
                     src={course.cover_image}
                     alt={course.title}
                     fill
-                    className="object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.04]"
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     sizes="256px"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-900 text-2xl font-semibold text-neutral-500">
+                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200 text-2xl font-semibold text-neutral-500">
                     LC
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#C9A84C] backdrop-blur-sm">
-                  {LEVEL_LABEL[course.level] ?? course.level}
-                </span>
-                <div className="absolute right-3 top-3 flex flex-col items-center rounded-lg bg-white/90 px-2 py-1 backdrop-blur-sm">
-                  <span className="text-[9px] font-bold uppercase tracking-wide text-[#a8862f]">
+                <div className="absolute left-3 top-3 rounded-md bg-white/90 px-2 py-1 text-center backdrop-blur-sm">
+                  <p className="text-[9px] font-semibold uppercase tracking-wide text-[#a8862f]">
                     {month}
-                  </span>
-                  <span className="text-base font-bold leading-none text-[#0a0a0a]">
-                    {day}
-                  </span>
+                  </p>
+                  <p className="text-sm font-semibold leading-none text-[#0a0a0a]">{day}</p>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 p-3">
+              <div className="flex flex-col gap-2.5 p-3">
                 <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[#0a0a0a]">
                   {course.title}
                 </h3>
+                <div className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
+                  {LEVEL_LABEL[course.level] ?? course.level}
+                </div>
                 <div className="flex items-center gap-1.5">
                   {instructorPhoto ? (
                     <Image
@@ -193,7 +176,7 @@ export default function CoursesCarousel({ courses }: Props) {
                       {formatPrice(course.price)}
                     </span>
                   ) : (
-                    <span className="text-xs text-neutral-400">Ver detalle</span>
+                    <span className="text-xs text-neutral-500">Ver detalle</span>
                   )}
                   <span className="text-[11px] font-medium text-[#a8862f] transition-colors group-hover:text-[#C9A84C]">
                     Ver más →
@@ -203,12 +186,6 @@ export default function CoursesCarousel({ courses }: Props) {
             </Link>
           )
         })}
-      </div>
-
-      <div className="mt-3 sm:hidden">
-        <Link href="/academia" className="text-sm font-medium text-[#a8862f] hover:underline">
-          Ver todos los cursos →
-        </Link>
       </div>
     </section>
   )
