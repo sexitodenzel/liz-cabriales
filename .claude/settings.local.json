@@ -24,7 +24,10 @@
       "PowerShell(git add *)",
       "Skill(frontend-design)",
       "PowerShell(head *)",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(Stop-Process *)",
+      "WebSearch"
     ]
   }
 }

@@ -43,17 +43,6 @@ export default async function NewProductsPage() {
           ]}
         />
 
-        <header className="mb-10 space-y-3 border-b border-neutral-200 pb-6">
-          <h1 className="text-2xl font-semibold md:text-3xl">
-            <span className="text-[#C6A75E]">Nuevos</span>{" "}
-            <span className="text-[#0a0a0a]">Productos</span>
-          </h1>
-          <p className="max-w-2xl text-sm text-neutral-500">
-            Explora las novedades que hemos incorporado recientemente a nuestro
-            catálogo.
-          </p>
-        </header>
-
         <ProductListingSection
           products={newestProducts}
           emptyMessage="Aún no hay productos nuevos en el catálogo."

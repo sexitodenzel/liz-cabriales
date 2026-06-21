@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import {
@@ -88,6 +87,16 @@ export default async function ProductPage({ params }: PageProps) {
 
             <h1 className="mt-2 text-3xl font-semibold">{product.name}</h1>
 
+            {product.description ? (
+              <p className="mt-6 text-[15px] leading-7 text-neutral-700">
+                {product.description}
+              </p>
+            ) : (
+              <p className="mt-6 text-[15px] leading-7 text-neutral-500">
+                Este producto no tiene descripción disponible por ahora.
+              </p>
+            )}
+
             <div className="mt-6">
               <AddToCartButton
                 productId={product.id}
@@ -98,25 +107,10 @@ export default async function ProductPage({ params }: PageProps) {
                 basePrice={product.base_price}
                 variants={product.variants}
                 enableSelector
+                enableQuantitySelector
                 className="inline-flex w-full items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
               />
-              <Link
-                href="/carrito"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-800 transition-colors hover:border-[#C9A84C] hover:text-[#a8862f]"
-              >
-                Ir al carrito
-              </Link>
             </div>
-
-            {product.description ? (
-              <p className="mt-6 text-[15px] leading-7 text-neutral-700">
-                {product.description}
-              </p>
-            ) : (
-              <p className="mt-6 text-[15px] leading-7 text-neutral-500">
-                Este producto no tiene descripción disponible por ahora.
-              </p>
-            )}
 
             {/* Shipping info */}
             <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">

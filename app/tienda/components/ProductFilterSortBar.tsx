@@ -1,11 +1,17 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { ChevronDown, LayoutGrid, List, X } from "lucide-react"
 import { useCart } from "@/app/components/cart/CartContext"
+import type {
+  ABRASIVITY_LEVELS as AbrasivityLevels,
+  AbrasivityValue,
+} from "@/lib/constants/abrasivity"
 import PriceRangeSlider from "./PriceRangeSlider"
 import MobileSortSheet from "./MobileSortSheet"
 import type { ProductViewMode } from "./useProductViewMode"
+
+type AbrasivityLevel = (typeof AbrasivityLevels)[number]
 
 export type SortOptionItem = {
   value: string
@@ -21,15 +27,19 @@ type CategoryItem = {
 type DesktopFilters = {
   categories: CategoryItem[]
   brands: string[]
+  abrasivityLevels: readonly AbrasivityLevel[]
   categoryCounts: Record<string, number>
   brandCounts: Record<string, number>
+  abrasivityCounts: Record<AbrasivityValue, number>
   selectedCategories: string[]
   selectedBrands: string[]
+  selectedAbrasivities: AbrasivityValue[]
   priceMin: number | null
   priceMax: number | null
   priceBounds: { min: number; max: number }
   onCategoriesChange: (slugs: string[]) => void
   onBrandsChange: (brands: string[]) => void
+  onAbrasivitiesChange: (values: AbrasivityValue[]) => void
   onPriceChange: (min: number | null, max: number | null) => void
 }
 
@@ -53,7 +63,7 @@ type ProductFilterSortBarProps = {
   onViewModeChange?: (mode: ProductViewMode) => void
 }
 
-type OpenPanel = "categories" | "brands" | "price" | "sort" | null
+type OpenPanel = "categories" | "brands" | "abrasivity" | "price" | "sort" | null
 
 function parsePriceInput(value: string): number | null {
   if (value.trim() === "") return null
@@ -99,7 +109,6 @@ export default function ProductFilterSortBar({
   const { isCartOpen } = useCart()
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null)
   const [sortSheetOpen, setSortSheetOpen] = useState(false)
-  const barRef = useRef<HTMLDivElement>(null)
 
   const selectedLabel =
     sortOptions.find((option) => option.value === sort)?.label ?? "Destacados"
@@ -119,7 +128,12 @@ export default function ProductFilterSortBar({
     if (!openPanel) return
 
     const handlePointerDown = (event: MouseEvent) => {
-      if (!barRef.current?.contains(event.target as Node)) {
+      const target = event.target instanceof Element ? event.target : null
+      const clickedInsideDropdown = Boolean(
+        target?.closest('[data-store-dropdown-root="true"]')
+      )
+
+      if (!clickedInsideDropdown) {
         setOpenPanel(null)
       }
     }
@@ -156,6 +170,24 @@ export default function ProductFilterSortBar({
     }
   }
 
+  const toggleAbrasivity = (value: AbrasivityValue) => {
+    if (!desktopFilters) return
+    const { selectedAbrasivities, onAbrasivitiesChange } = desktopFilters
+    if (selectedAbrasivities.includes(value)) {
+      onAbrasivitiesChange(selectedAbrasivities.filter((v) => v !== value))
+    } else {
+      onAbrasivitiesChange([...selectedAbrasivities, value])
+    }
+  }
+
+  const visibleAbrasivityLevels = desktopFilters
+    ? desktopFilters.abrasivityLevels.filter(
+        (level) =>
+          (desktopFilters.abrasivityCounts[level.value] ?? 0) > 0 ||
+          desktopFilters.selectedAbrasivities.includes(level.value)
+      )
+    : []
+
   const hasPriceFilter =
     desktopFilters &&
     (desktopFilters.priceMin !== null || desktopFilters.priceMax !== null)
@@ -169,7 +201,6 @@ export default function ProductFilterSortBar({
 
   return (
     <div
-      ref={barRef}
       className={`sticky top-[var(--navbar-actual-h)] z-20 -mx-6 -mt-2 bg-white px-6 py-2.5 transition-opacity duration-200 ${
         isCartOpen ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
@@ -194,7 +225,7 @@ export default function ProductFilterSortBar({
           {desktopFilters && (
             <div className="hidden items-center gap-6 md:flex">
               {/* Categorías */}
-              <div className="relative">
+              <div className="relative" data-store-dropdown-root="true">
                 <button
                   type="button"
                   onClick={() => togglePanel("categories")}
@@ -237,7 +268,7 @@ export default function ProductFilterSortBar({
               </div>
 
               {/* Marcas */}
-              <div className="relative">
+              <div className="relative" data-store-dropdown-root="true">
                 <button
                   type="button"
                   onClick={() => togglePanel("brands")}
@@ -279,9 +310,64 @@ export default function ProductFilterSortBar({
                 )}
               </div>
 
+              {/* Abrasividad */}
+              {visibleAbrasivityLevels.length > 0 && (
+                <div className="relative" data-store-dropdown-root="true">
+                  <button
+                    type="button"
+                    onClick={() => togglePanel("abrasivity")}
+                    className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                      desktopFilters.selectedAbrasivities.length > 0 || openPanel === "abrasivity"
+                        ? "text-[#a8862f]"
+                        : "text-[#0a0a0a] hover:text-[#a8862f]"
+                    }`}
+                    aria-expanded={openPanel === "abrasivity"}
+                  >
+                    Abrasividad
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                        openPanel === "abrasivity" ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {openPanel === "abrasivity" && (
+                    <div className="absolute left-0 top-full z-50 mt-3 min-w-[240px] rounded-xl border border-neutral-200 bg-white py-2 shadow-lg">
+                      {visibleAbrasivityLevels.map((level) => {
+                        const isActive = desktopFilters.selectedAbrasivities.includes(level.value)
+                        const count = desktopFilters.abrasivityCounts[level.value] ?? 0
+                        return (
+                          <button
+                            key={level.value}
+                            type="button"
+                            onClick={() => toggleAbrasivity(level.value)}
+                            className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-neutral-50 ${
+                              isActive ? "font-medium text-[#a8862f]" : "text-neutral-800"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <span
+                                aria-hidden
+                                className="inline-block h-3 w-3 rounded-full border border-black/10"
+                                style={{ backgroundColor: level.color }}
+                              />
+                              <span>{level.label}</span>
+                              <span className="text-[11px] text-neutral-400">
+                                {level.tape}
+                              </span>
+                            </span>
+                            <span className="text-xs text-neutral-400">({count})</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Precio */}
               {desktopFilters.priceBounds.max > desktopFilters.priceBounds.min && (
-                <div className="relative">
+                <div className="relative" data-store-dropdown-root="true">
                   <button
                     type="button"
                     onClick={() => togglePanel("price")}
@@ -422,7 +508,7 @@ export default function ProductFilterSortBar({
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
 
-          <div className="relative hidden md:block">
+          <div className="relative hidden md:block" data-store-dropdown-root="true">
             <button
               type="button"
               onClick={() => togglePanel("sort")}

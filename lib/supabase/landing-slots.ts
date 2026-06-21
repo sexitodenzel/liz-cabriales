@@ -120,10 +120,19 @@ export async function createHeroSlide(): Promise<{ data: LandingSlot | null; err
     .order("key")
 
   const nums = (existing ?? [])
-    .map((r) => parseInt((r.key as string).replace("hero_", ""), 10))
+    .map((r) => {
+      const key = String(r.key ?? "")
+      const match = key.match(/(\d+)$/)
+      return match ? parseInt(match[1], 10) : NaN
+    })
     .filter((n) => !isNaN(n))
-  const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
-  const key = `hero_${next}`
+  let next = nums.length > 0 ? Math.max(...nums) + 1 : 1
+  const takenKeys = new Set((existing ?? []).map((r) => String(r.key ?? "")))
+  let key = `hero_${next}`
+  while (takenKeys.has(key)) {
+    next += 1
+    key = `hero_${next}`
+  }
 
   const { data, error } = await supabaseAdmin
     .from("landing_slots")
@@ -151,9 +160,10 @@ export async function createHeroSlide(): Promise<{ data: LandingSlot | null; err
 
 export async function updateLandingSlot(
   key: string,
-  fields: { url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string; subtitle?: string; text_position?: string; show_title?: boolean; show_subtitle?: boolean }
+  fields: { label?: string; url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string; subtitle?: string; text_position?: string; show_title?: boolean; show_subtitle?: boolean }
 ): Promise<{ error: string | null }> {
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (fields.label !== undefined) update.label = fields.label
   if (fields.url !== undefined) update.url = fields.url
   if (fields.link_type !== undefined) update.link_type = fields.link_type
   if (fields.link_value !== undefined) update.link_value = fields.link_value

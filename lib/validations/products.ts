@@ -3,6 +3,11 @@ import { z } from "zod"
 const PRICE_MAX = 10_000_000
 const STOCK_MAX = 1_000_000
 
+const abrasivityField = z
+  .enum(["extra-suave", "suave", "media", "fuerte"])
+  .nullable()
+  .optional()
+
 export const variantSchema = z.object({
   variantName: z
     .string()
@@ -78,13 +83,15 @@ export const createProductSchema = z.object({
     .max(120, "El departamento es demasiado largo")
     .nullable()
     .optional(),
+  abrasivity: abrasivityField,
   images: z
     .array(z.string().url("URL de imagen inválida").max(2000))
     .max(20, "Demasiadas imágenes")
     .optional(),
-  isActive: z.boolean().optional().default(true),
-  isFeatured: z.boolean().optional().default(false),
-  isBestSeller: z.boolean().optional().default(false),
+  desktopImageMode: z.enum(["carousel", "hover"]).optional(),
+  isActive: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  isBestSeller: z.boolean().optional(),
   initialStock: z.coerce
     .number()
     .int()
@@ -119,6 +126,15 @@ export const createCategorySchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio"),
 })
 
+export const createSubcategorySchema = z.object({
+  name: z.string().trim().min(1, "El nombre es obligatorio"),
+  categoryId: z.string().uuid("Categoría inválida"),
+})
+
+export const updateSubcategorySchema = z.object({
+  name: z.string().trim().min(1, "El nombre es obligatorio"),
+})
+
 export const createBrandSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio"),
   logoUrl: z.string().url("URL de logo inválida").nullable().optional(),
@@ -136,5 +152,7 @@ export const deleteCategorySchema = z.object({
 })
 
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>
+export type CreateSubcategoryInput = z.infer<typeof createSubcategorySchema>
+export type UpdateSubcategoryInput = z.infer<typeof updateSubcategorySchema>
 export type CreateBrandInput = z.infer<typeof createBrandSchema>
 export type UpdateBrandInput = z.infer<typeof updateBrandSchema>

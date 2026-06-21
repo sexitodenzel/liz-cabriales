@@ -4,7 +4,7 @@
     "hash": "dfa1f5f6a7037bf39dc510f30b180002"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\next-env.d.ts": {
-    "mtime": 1781925165.5103426,
+    "mtime": 1782023711.1538076,
     "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\next.config.ts": {
@@ -16,7 +16,7 @@
     "hash": "239f3ebf717465dc636818a1a619398d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\layout.tsx": {
-    "mtime": 1781989870.3164062,
+    "mtime": 1781992616.146089,
     "hash": "99194516d2af7a04fd6ad6c633f03edd"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\loading.tsx": {
@@ -24,19 +24,19 @@
     "hash": "a78d9d66dac93fe11dcfba045e6223d4"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\page.tsx": {
-    "mtime": 1781933083.8255534,
-    "hash": "f08f70db232756edd24b18cdae39ca83"
+    "mtime": 1782023360.1981003,
+    "hash": "67a91fe74a4b75c035b089b87b6ee12b"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\(auth)\\layout.tsx": {
-    "mtime": 1781933168.3426206,
+    "mtime": 1781992615.8934247,
     "hash": "846a0c02240c1c3f303976566fc6d0b0"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\(auth)\\forgot-password\\page.tsx": {
-    "mtime": 1781933168.571735,
+    "mtime": 1781992615.8914251,
     "hash": "8c8022bd07e63bb97806b0daecf745ef"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\(auth)\\login\\page.tsx": {
-    "mtime": 1781933168.58274,
+    "mtime": 1781992615.8969543,
     "hash": "57c3d50ef2f0223c4c935203b1f50a96"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\academia\\CourseGrid.tsx": {
@@ -48,12 +48,12 @@
     "hash": "2bdc7d8902cc9e2535728653a020030d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\academia\\page.tsx": {
-    "mtime": 1781933107.3402586,
+    "mtime": 1781992615.9039555,
     "hash": "62d5e282a0d05c55884a8471fd550f99"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\academia\\[id]\\CourseDetail.tsx": {
-    "mtime": 1781933115.1334295,
-    "hash": "fdbc5f2adaf74e09006e0b21dc8054c9"
+    "mtime": 1781992615.900956,
+    "hash": "f556245584855e79f76e904f4fb04b89"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\academia\\[id]\\CourseGallery.tsx": {
     "mtime": 1781403474.228592,
@@ -64,7 +64,7 @@
     "hash": "20ccbe301a8b4f09074b6924ab617c83"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\AdminDashboardClient.tsx": {
-    "mtime": 1781929815.6010334,
+    "mtime": 1781992615.9069557,
     "hash": "f231b653f33f9850ad0d2f2eb3dc2507"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\layout.tsx": {
@@ -80,7 +80,7 @@
     "hash": "e85bd906ad84e20c16aff46c758104c0"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\AdminAppointmentsClient.tsx": {
-    "mtime": 1781929819.9580548,
+    "mtime": 1781992615.9109564,
     "hash": "de60802cf566ef78ee6d2a0643430871"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\appointments\\page.tsx": {
@@ -104,7 +104,7 @@
     "hash": "8234bc07fabc6f2f975db187f3a52754"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\components\\AdminNav.tsx": {
-    "mtime": 1781914112.7282488,
+    "mtime": 1781992615.9149537,
     "hash": "5df8762f783494e6dde25a6f0193bf33"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\components\\AdminReceptionistBar.tsx": {
@@ -116,7 +116,7 @@
     "hash": "584f07dfb920322eb6b2c3606eea6d48"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\AdminCoursesClient.tsx": {
-    "mtime": 1781929819.961056,
+    "mtime": 1781992615.919953,
     "hash": "b26045537d8e0f67c3441af0e074cdae"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\courses\\page.tsx": {
@@ -160,8 +160,8 @@
     "hash": "5a3b61022e7c2bab21318c2dbbbf0ea8"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\media\\page.tsx": {
-    "mtime": 1781929819.9522624,
-    "hash": "006a3c45d9a9e4c2cfc4b15a4eadefc7"
+    "mtime": 1782023360.1841161,
+    "hash": "f78a72c24156c4cddea28a54e66c6e95"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\nail-art\\NailArtForm.tsx": {
     "mtime": 1781674362.6488006,
@@ -172,7 +172,7 @@
     "hash": "3a6f458367d9bfaf0b53f25f0e3fedf8"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\orders\\page.tsx": {
-    "mtime": 1781929819.7932985,
+    "mtime": 1781992615.9279547,
     "hash": "287739a0bcdf3d0dba3cce3648d9b823"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\orders\\[id]\\page.tsx": {
@@ -184,12 +184,12 @@
     "hash": "bdc93371125a9dd2211e18cd3c38e6e3"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\products\\page.tsx": {
-    "mtime": 1781929816.0419548,
-    "hash": "1b5b3bdc7bc6b523b5976e5a0ad8f715"
+    "mtime": 1782024763.0243127,
+    "hash": "be9f826e22446b7a7dee532cf41027de"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\admin\\top-searches\\page.tsx": {
-    "mtime": 1781929819.9590545,
-    "hash": "bb98e0aac1f8344f33ad68c26302f1b3"
+    "mtime": 1781992615.9419527,
+    "hash": "f4be85939df450bd388290fc5adf9f3e"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\appointments\\route.ts": {
     "mtime": 1777159211.7403305,
@@ -248,8 +248,8 @@
     "hash": "e125903099ddfe345e2ffa74c0255d93"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\landing-slots\\route.ts": {
-    "mtime": 1781912228.3402774,
-    "hash": "98d2210581d660198ba62a7911f70c45"
+    "mtime": 1782023360.1881163,
+    "hash": "7b516c7be6aa836b9bd96fe836b147a4"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\nail-art\\route.ts": {
     "mtime": 1781674362.6558018,
@@ -280,16 +280,16 @@
     "hash": "b422c2e7ce3aa64046dcaa4201d3a373"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\route.ts": {
-    "mtime": 1778014124.6025841,
-    "hash": "272d6c935301f547fc86ca13d6ac1a43"
+    "mtime": 1782033079.535677,
+    "hash": "66701a6aa80e8be19fe340a49eea971f"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\brands\\route.ts": {
-    "mtime": 1781927534.3774977,
-    "hash": "f1c82a0230bccd481755409935baaded"
+    "mtime": 1781993117.8171096,
+    "hash": "43b967b43ca5ea9c711d6cb986f80e1e"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\brands\\[id]\\route.ts": {
-    "mtime": 1781927538.6480565,
-    "hash": "d84ca8888bc953a890af901f28b9df91"
+    "mtime": 1781993117.8138542,
+    "hash": "51c2438f756464472ed12c0ae806673c"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\categories\\route.ts": {
     "mtime": 1778014124.6015832,
@@ -303,9 +303,17 @@
     "mtime": 1775756362.8414803,
     "hash": "405f5b1e0027bfb2c413039ff902030f"
   },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\subcategories\\route.ts": {
+    "mtime": 1782024534.8027503,
+    "hash": "4526a90620581761d83bdde26f2a9d52"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\subcategories\\[id]\\route.ts": {
+    "mtime": 1782024543.415434,
+    "hash": "d41c882f21a9397cf8bc428aee09ca99"
+  },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\[id]\\route.ts": {
-    "mtime": 1778014124.5955746,
-    "hash": "ae4ff41ab9f8555556e9553113307cda"
+    "mtime": 1782033068.826041,
+    "hash": "ee32fadcb1c69d70fe7c392ca532469a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\products\\[id]\\variants\\route.ts": {
     "mtime": 1780451219.8651705,
@@ -315,13 +323,17 @@
     "mtime": 1780451229.5727248,
     "hash": "5591772b869878ed1faa2ae9ac2c7d21"
   },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\revalidate\\route.ts": {
+    "mtime": 1782032110.9211237,
+    "hash": "70f0a452aed54ec85f2acc91e84ecbc3"
+  },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\top-searches\\route.ts": {
-    "mtime": 1781919111.266839,
-    "hash": "39be2550d3dc77880244b7735456e98a"
+    "mtime": 1781993117.8259332,
+    "hash": "2abdf5df9dfd8432793fb64b0f130a36"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\top-searches\\[id]\\route.ts": {
-    "mtime": 1781919114.1076086,
-    "hash": "0684b74164cf62876c2b296960d13d8f"
+    "mtime": 1781993117.8229363,
+    "hash": "676880f2bbebedb7a50273ed53d5faba"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\admin\\users\\route.ts": {
     "mtime": 1777159211.7473638,
@@ -346,6 +358,10 @@
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\auth\\password-reset-success\\route.ts": {
     "mtime": 1781031995.9209168,
     "hash": "c3153cb2226fa8f7c0a1fdcf60e04988"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\brands\\route.ts": {
+    "mtime": 1782033544.2288043,
+    "hash": "2ddc20516359b8db06d62ef8b4250f48"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\cart\\route.ts": {
     "mtime": 1775678576.0048606,
@@ -383,9 +399,13 @@
     "mtime": 1778289661.1405606,
     "hash": "5c726553c533cfb8055a70956405c3f5"
   },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\nail-art\\list\\route.ts": {
+    "mtime": 1781993723.5464172,
+    "hash": "748a8ea98d71f62b547b672a6cb0bff3"
+  },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\navbar\\top-searches\\route.ts": {
-    "mtime": 1781919124.1208572,
-    "hash": "67aae247926bdf7de274f4eea575526d"
+    "mtime": 1781992615.9639738,
+    "hash": "38a26cfb6fbb20e6e15287e157d61355"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\orders\\route.ts": {
     "mtime": 1777159211.7583601,
@@ -428,12 +448,12 @@
     "hash": "1290938336dd8148ab52cbc3d7ea733a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\products\\best-sellers\\route.ts": {
-    "mtime": 1781919128.6652138,
-    "hash": "e2c40acf2606ff0eb5077c740e2dd685"
+    "mtime": 1781992615.9669576,
+    "hash": "a338d7a15acc62629eca7178ebe5d0ca"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\products\\by-slugs\\route.ts": {
-    "mtime": 1781914607.5397654,
-    "hash": "31646d338d9dc6ffeea976386cf82864"
+    "mtime": 1782023360.189102,
+    "hash": "960947521a74113580883b1bac1fa499"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\api\\products\\categories\\route.ts": {
     "mtime": 1781033415.0171878,
@@ -460,23 +480,23 @@
     "hash": "81b31eac1bd1252ceb46803effbae026"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\auth\\set-password\\page.tsx": {
-    "mtime": 1781933164.6326544,
-    "hash": "a7e78e28b3b675cb14365403575634d3"
+    "mtime": 1781992615.9759543,
+    "hash": "f09a842ea243e56b8be8139478509fc3"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\aviso-de-privacidad\\page.tsx": {
-    "mtime": 1781933138.622628,
-    "hash": "d622f37916d8ecd99f363cf3eb9e65c1"
+    "mtime": 1781992615.980972,
+    "hash": "728cf756a0859a6c04b34199bce51100"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\carrito\\page.tsx": {
-    "mtime": 1781990833.2208493,
-    "hash": "fdafaf60d7e2e3a2ae8071b8c27b18ca"
+    "mtime": 1781992636.0225928,
+    "hash": "c81c06400982a017c4bf892f7c95ea23"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\checkout\\CheckoutClient.tsx": {
-    "mtime": 1781990838.024233,
+    "mtime": 1781992636.030609,
     "hash": "89e056d61bbb48ea4d9e32a670262764"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\checkout\\page.tsx": {
-    "mtime": 1781933158.360984,
+    "mtime": 1781992615.9965203,
     "hash": "f1d0d71cf721a62789d5caaea21cdd0f"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cita\\[id]\\CancelAppointmentButton.tsx": {
@@ -484,11 +504,11 @@
     "hash": "7ac560c613b1bc10171227bd61c470fa"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cita\\[id]\\page.tsx": {
-    "mtime": 1781933156.2273693,
+    "mtime": 1781992616.0065267,
     "hash": "b422674468e798e06c59f757bcdbc749"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cita\\[id]\\error\\page.tsx": {
-    "mtime": 1781933157.734731,
+    "mtime": 1781992616.0025232,
     "hash": "cd23e91a6988940f2dbbd3158337184a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\cita\\[id]\\error\\RetryAppointmentPaymentButton.tsx": {
@@ -496,27 +516,27 @@
     "hash": "ee8495d80aaaf5ca141231e97dec6ab1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\citas\\CitasClient.tsx": {
-    "mtime": 1781933151.1806169,
+    "mtime": 1781992616.0125182,
     "hash": "cfed26370aa662f22a93ca5abca2d8e8"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\citas\\page.tsx": {
-    "mtime": 1781933158.4275186,
+    "mtime": 1781992616.0175235,
     "hash": "50204a585050a1a945b357d096477b88"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\BrandDescription.tsx": {
-    "mtime": 1781990415.6741319,
+    "mtime": 1782031708.184457,
     "hash": "22a2a7774bf9c96aead8ee1ef300dbb1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\Footer.tsx": {
-    "mtime": 1781933099.9940548,
+    "mtime": 1781992616.027521,
     "hash": "d0cf373ac1f9493ac693220dab6f0c24"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\InstagramFeed.tsx": {
-    "mtime": 1781933210.9059207,
-    "hash": "7832dad458937b2d943fab2b6a677910"
+    "mtime": 1781992616.03352,
+    "hash": "f984b2429c1e1c8e9cab1bc7fb11a72c"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\NailArtSection.tsx": {
-    "mtime": 1781933091.4517174,
+    "mtime": 1781992616.0385258,
     "hash": "115e553f55dfd08d45b68b891d7bf9a1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\NuevosLanzamientos.tsx": {
@@ -524,20 +544,20 @@
     "hash": "35c51bb17d61e125b5f23ac2fd3ec115"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\NuevosLanzamientosCarousel.tsx": {
-    "mtime": 1781933086.1715305,
-    "hash": "5ff9877766da89f9437a70915c17ec5c"
+    "mtime": 1782023360.1901045,
+    "hash": "a2c0f6ed310ee078dcee7d85a2c19304"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\PillarStage.tsx": {
-    "mtime": 1781990019.3035476,
+    "mtime": 1782031707.774916,
     "hash": "3931506d406c36c1bac5fb04e49d03ce"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\ShopByBrands.tsx": {
-    "mtime": 1781933090.6411078,
+    "mtime": 1781992616.055533,
     "hash": "dbb51da0070734d149b1be5c618f7787"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\ShopByNailPolishColors.tsx": {
-    "mtime": 1781933090.639104,
-    "hash": "d5e9a0c077e8f7df0b2ac82a78801cf9"
+    "mtime": 1781992616.0615213,
+    "hash": "d1a8a564e24cec498f27e30b89be024e"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\SiteFooter.tsx": {
     "mtime": 1781060949.5641131,
@@ -560,67 +580,67 @@
     "hash": "e1476d95e82c5da77c3db6338632a697"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\cart\\FreeShippingBar.tsx": {
-    "mtime": 1781990830.7797058,
+    "mtime": 1781992636.037594,
     "hash": "425fe0e9d81e861546339475b0037c92"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\hero\\HeroSlider.tsx": {
-    "mtime": 1781990022.0285692,
-    "hash": "3dd2b2cd416a730863e7782245cb862d"
+    "mtime": 1782023360.1911168,
+    "hash": "80ce541f95cf57a69d9ae261c2fed87d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\home\\HomeHero.tsx": {
+    "mtime": 1782022772.2772048,
+    "hash": "c388fc146b834a4b8ffc16fc3c11aba0"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\home\\HomeHeroSkeleton.tsx": {
-    "mtime": 1781912228.3684738,
-    "hash": "702d72bf748f708ff9039035f999f30c"
+    "mtime": 1782023360.1921015,
+    "hash": "75cbc5cb50e1a47a7f1eb7a864580380"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\home\\HomeScrollSnap.tsx": {
     "mtime": 1781912228.371971,
     "hash": "7650ca1c07b6ecdb31663f4c5db11e2d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\home\\HomeTopSections.tsx": {
-    "mtime": 1781927559.9411554,
-    "hash": "b1d6635fc333213c267be9e2a8e6eeb8"
+    "mtime": 1782023360.1921015,
+    "hash": "509fcda28a1fcaac3b1aa049a97a37cd"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\menuData.ts": {
-    "mtime": 1781371070.8249447,
-    "hash": "1bc083b4e1836aa5a70114270c15fdb7"
+    "mtime": 1782031087.5186634,
+    "hash": "ef949722f31dcee7da4a65a0a9ec8eac"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\MobileDrawer.tsx": {
-    "mtime": 1781990843.4178598,
-    "hash": "4c85c33abf4c7919668e1d3d83c9fdb2"
+    "mtime": 1782031188.2585816,
+    "hash": "480c1d091fadb60cf289cd73c1d62777"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\MobileSearchOverlay.tsx": {
-    "mtime": 1781933082.2217495,
-    "hash": "6e7954abdf7a02553ca2af3befd9c4bf"
+    "mtime": 1782033681.6243773,
+    "hash": "636dd92e5c477838607dcda16b8f6f06"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\Navbar.tsx": {
-    "mtime": 1781933081.8793807,
-    "hash": "29a5c5a0c896857e29e2a02a06d329cd"
+    "mtime": 1782033714.3084416,
+    "hash": "25e05606ed22946ba64315d69acac262"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\SearchBarPanels.tsx": {
-    "mtime": 1781931901.4958067,
-    "hash": "70a929633464bdf21576d4066de414c4"
-  },
-  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\TiendaMobileAccordion.tsx": {
-    "mtime": 1781584574.0208213,
-    "hash": "69ae7592de2d7902c3f4b710b39f937d"
+    "mtime": 1782033740.6312833,
+    "hash": "3eaba9c65c3de21dd3254f24fb69d720"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\CartMenu.tsx": {
-    "mtime": 1781988875.8420055,
-    "hash": "2f85aa2c4dad0605c16d957aca5d742d"
+    "mtime": 1782023360.196102,
+    "hash": "ce60d855febcc591b466290a753f7baf"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\DropdownContainer.tsx": {
-    "mtime": 1781931783.3258297,
-    "hash": "aeda82b47cfa414e019546480e07f25f"
+    "mtime": 1781992616.1110868,
+    "hash": "8135737c7981e8f3fd8e1f3a91cea82d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\MegaMenu.tsx": {
-    "mtime": 1781933134.5998497,
+    "mtime": 1781992616.1160848,
     "hash": "c96e47cca45df80efcf31e4f3dd047dc"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\SearchMenu.tsx": {
-    "mtime": 1781933134.59785,
+    "mtime": 1781992616.1200888,
     "hash": "a3039f64ad2399bd817330d7372e6a96"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\navbar\\dropdowns\\TiendaMegaMenu.tsx": {
-    "mtime": 1781933134.3626895,
+    "mtime": 1781992616.124083,
     "hash": "24b3f910276154dd709dfb5beb3b6529"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\components\\wishlist\\WishlistContext.tsx": {
@@ -636,11 +656,11 @@
     "hash": "60efa51af57be2a475a5e5d978ef7ea1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\curso\\[courseId]\\inscripcion\\[id]\\page.tsx": {
-    "mtime": 1781933156.5820043,
+    "mtime": 1781992616.1360886,
     "hash": "609a037979a915dcac02ca07761332d1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\curso\\[courseId]\\inscripcion\\[id]\\error\\page.tsx": {
-    "mtime": 1781933157.8928194,
+    "mtime": 1781992616.1300929,
     "hash": "2267c408ee4a1dea63dc862da06adb20"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\curso\\[courseId]\\inscripcion\\[id]\\error\\RetryCoursePaymentButton.tsx": {
@@ -648,23 +668,23 @@
     "hash": "74d1940914278831ccce6bec6df28161"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\nail-art\\page.tsx": {
-    "mtime": 1781933100.2759387,
+    "mtime": 1781992616.1550877,
     "hash": "bddbb2060bf6e9cd1dbbf197cdfc3f57"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\nail-art\\[slug]\\page.tsx": {
-    "mtime": 1781933100.2779386,
+    "mtime": 1781992616.1510844,
     "hash": "c49a2d1daa8e82275efe4b4f0a1aa5d8"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\orden\\[id]\\page.tsx": {
-    "mtime": 1781933156.1118362,
-    "hash": "446ed7d2fe8a708a5c806f1eab4106c3"
+    "mtime": 1781992616.1660833,
+    "hash": "588731efc692deb479efa8da90b124d8"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\orden\\[id]\\TicketUpload.tsx": {
     "mtime": 1781674362.6918066,
     "hash": "58edddbb89abb55f4db6452cc6512245"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\orden\\[id]\\error\\page.tsx": {
-    "mtime": 1781933157.3799026,
+    "mtime": 1781992616.1610868,
     "hash": "e5338637d28922fe5202574567ddb33b"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\orden\\[id]\\error\\RetryPaymentButton.tsx": {
@@ -676,7 +696,7 @@
     "hash": "a78d9d66dac93fe11dcfba045e6223d4"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\perfil\\page.tsx": {
-    "mtime": 1781933148.6416273,
+    "mtime": 1781992616.1750915,
     "hash": "0949bd2ccc33f72b743345829bfc1493"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\perfil\\PerfilCitasClient.tsx": {
@@ -688,111 +708,119 @@
     "hash": "98fd7010a70151f774a36a72d470eb50"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\proximamente\\page.tsx": {
-    "mtime": 1781933145.5660987,
+    "mtime": 1781992616.1790862,
     "hash": "8d0031c82b1e916e41f0cb91c97bd950"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\servicios\\page.tsx": {
-    "mtime": 1781933160.288721,
-    "hash": "e474bed3b1c4e9bb6aa53e7a7a7f0778"
+    "mtime": 1781992616.1871064,
+    "hash": "08719022e200ed872f3deed98ec512ac"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\servicios\\ServiciosClient.tsx": {
-    "mtime": 1781933164.5790963,
-    "hash": "d8703cea7162c7cfa3c33218d747a5fb"
+    "mtime": 1781992616.1841087,
+    "hash": "fdbfdca9196449427972c62dad7ac749"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\terminos-y-condiciones\\page.tsx": {
-    "mtime": 1781933143.1249113,
-    "hash": "bed6d0d61566d387cc4e07a83b2c87b9"
+    "mtime": 1781992616.1911087,
+    "hash": "f01cfff26c1e4c927ecc90cf45daea2a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\loading.tsx": {
     "mtime": 1781912228.4407399,
     "hash": "2bdc7d8902cc9e2535728653a020030d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\page.tsx": {
-    "mtime": 1781933097.683648,
-    "hash": "d43eee6b55907176107395cf47837e53"
+    "mtime": 1782033820.7315233,
+    "hash": "f02e654b5ca78f39092706a21f0dbc97"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\AddToCartButton.tsx": {
-    "mtime": 1781931979.9688993,
-    "hash": "b4f97e0bb072268a96831352ca029fb3"
+    "mtime": 1782023360.2001014,
+    "hash": "da258cadf3d9c0e1a6d02e2f30ee84c2"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\BrandHeaderInfo.tsx": {
+    "mtime": 1782033234.6773217,
+    "hash": "edcf5d1040db689ddc02d5f4384ec783"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\CoursesCarousel.tsx": {
-    "mtime": 1781060535.0127628,
-    "hash": "b8fd9e5e523453f05db27ac652bd6ff1"
+    "mtime": 1782023360.2011003,
+    "hash": "ee353e23fee31bf11f456b7a46097a77"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\FilterSidebar.tsx": {
-    "mtime": 1781930394.2872682,
-    "hash": "9b0a45a0c6fba543dca338789df6b238"
+    "mtime": 1781992616.2013838,
+    "hash": "65e03dad7c4ca8ec751232531010f5d0"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\MobileFilterSheet.tsx": {
-    "mtime": 1781931533.265576,
-    "hash": "69ccbce3b94079d2a88589772e57fd36"
+    "mtime": 1782023360.2021015,
+    "hash": "447d8e72bc3a75cb11c401497973c326"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\MobileSortSheet.tsx": {
-    "mtime": 1781931520.8136353,
+    "mtime": 1781992616.2114108,
     "hash": "4f50b7c2eb610aaae617033013296fd1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\NotifyWhenAvailable.tsx": {
-    "mtime": 1781933306.106251,
-    "hash": "2a23b48ded3f30e56f6b579f354a8468"
+    "mtime": 1782023360.2031002,
+    "hash": "e5c7f7c6467bfd62940ec3ad8ddad7ff"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\PriceRangeSlider.tsx": {
-    "mtime": 1781930381.0815518,
+    "mtime": 1781992616.2229404,
     "hash": "34c823a534f569d1df7e1565423ac65f"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductCard.tsx": {
-    "mtime": 1781933468.029292,
-    "hash": "d3720f43918af6831c5b2b15e78df66a"
+    "mtime": 1782023463.7659812,
+    "hash": "9fb349e0a2232f58179b4d1654fb6ccf"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductFilterSortBar.tsx": {
-    "mtime": 1781932765.0852702,
-    "hash": "1ab38b7db4747980df798a94a6cc40b2"
+    "mtime": 1782023360.205109,
+    "hash": "36f1af7c64b0285f9c65579a34da46fb"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductGrid.tsx": {
-    "mtime": 1781931668.674217,
-    "hash": "31ff05f6f880fefb96f3950fd0634671"
+    "mtime": 1782033077.2477548,
+    "hash": "e6263aa9a14093c9f6b6538bc46142bd"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductImageGallery.tsx": {
-    "mtime": 1781933469.6323702,
-    "hash": "ad298b7be8f038c784927940c17c110a"
+    "mtime": 1782023360.2061024,
+    "hash": "5c193d0e1816949a891341a865f71c7d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ProductListingSection.tsx": {
-    "mtime": 1781931675.9682913,
+    "mtime": 1781992616.2449436,
     "hash": "7571c086bb630489cdbc8e6d51b1466d"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\RecentlyViewed.tsx": {
-    "mtime": 1780183364.3421264,
-    "hash": "78e679ba8fca9e2b8154f9ac6dabf1b9"
+    "mtime": 1782032560.2354896,
+    "hash": "25a553743081b59923363bdf4454fc4f"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\RelatedProductsCarousel.tsx": {
-    "mtime": 1781060506.6078706,
-    "hash": "cb1cd4b748a38ca401b6e0228e366903"
+    "mtime": 1782023360.2071016,
+    "hash": "b41ba1bc229f55e0d873d06398b54321"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\ServicesSection.tsx": {
     "mtime": 1781060547.1243703,
     "hash": "d90e5e0c7178da291a8c49a2fea258a3"
   },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\StoreDiscoverySections.tsx": {
+    "mtime": 1782032554.5441167,
+    "hash": "5e43c2e5f747fd40922cc3f5235b20f1"
+  },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\components\\useProductViewMode.ts": {
-    "mtime": 1781931652.467916,
+    "mtime": 1781992616.2484636,
     "hash": "0446077738abb96f4b4de86234a61a41"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\mas-vendidos\\page.tsx": {
-    "mtime": 1781933098.2510576,
+    "mtime": 1781992616.252481,
     "hash": "c4720206fd63ffbc9b726e9c2a4ef743"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\nuevos\\page.tsx": {
-    "mtime": 1781933098.0235863,
-    "hash": "17b8b79cbaf1c4fc3b9d8871ac7e22ac"
+    "mtime": 1782033823.2207,
+    "hash": "3d7ec9f643a3535eb344dfeb1ec66476"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\[slug]\\loading.tsx": {
     "mtime": 1781912228.4287233,
     "hash": "a78d9d66dac93fe11dcfba045e6223d4"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\tienda\\[slug]\\page.tsx": {
-    "mtime": 1781933097.8783681,
-    "hash": "f094806d398608cd9d7a58d785fe48f8"
+    "mtime": 1782023360.2001014,
+    "hash": "546eb31b765f300288a429c5254ec46a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\app\\wishlist\\page.tsx": {
-    "mtime": 1781933100.1711202,
+    "mtime": 1781992616.2664857,
     "hash": "8ef6680680427160cae6fdb8e083a428"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\components\\courses\\RegisterModal.tsx": {
@@ -800,15 +828,23 @@
     "hash": "3c0d8702d0e3c775843838a9237b88d8"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\components\\shared\\Breadcrumb.tsx": {
-    "mtime": 1781932625.7486537,
-    "hash": "4addc9ffa44059a7e6eb19a6c2f7d830"
+    "mtime": 1781992616.273485,
+    "hash": "f3785838c3466e5e6fb17e0753ebc0e4"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\components\\shared\\PageLoading.tsx": {
-    "mtime": 1781933110.385167,
-    "hash": "3fbd35408e24e065b1c3511a212fe924"
+    "mtime": 1782023360.2091002,
+    "hash": "36b40d245a9c8c2d3577fcb39ea6239a"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-brand-description.sql": {
+    "mtime": 1782032449.3064694,
+    "hash": "4d0bdd7b18031ef9924d80d17cd59c9c"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-brand-descriptions-seed.sql": {
+    "mtime": 1782033480.8062496,
+    "hash": "67a789ffe8cb6695034a7b4c3ab0b0ef"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-brands-home.sql": {
-    "mtime": 1781927478.5615742,
+    "mtime": 1781992616.2825065,
     "hash": "1dcf8fdbb4a9f3d524bac62cbcf20ae5"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-course-display-settings.sql": {
@@ -836,12 +872,28 @@
     "hash": "868d9835f7afd5923b4777caa4a09bc5"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-navbar-redesign.sql": {
-    "mtime": 1781913735.2909462,
-    "hash": "0ca8e278c2b401bfeccc2b4e403d5415"
+    "mtime": 1781992616.2875051,
+    "hash": "8f7e4ae08b4a375a64fbadc27a55436b"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-product-abrasivity.sql": {
+    "mtime": 1782007116.7133791,
+    "hash": "2bf8889829765e677c5bac0ddbc356a6"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-product-desktop-image-mode.sql": {
+    "mtime": 1782022772.2772048,
+    "hash": "18edfdb93f8ad506b1ad3664ee3f5eaa"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-restore-stock-on-cancel.sql": {
     "mtime": 1781662225.9818816,
     "hash": "e49d14cd1a3d0d3996a5d03f7e287c0d"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-seed-categories-menu.sql": {
+    "mtime": 1782030900.7182188,
+    "hash": "6ee2b53f3bb12ff50007469818047fa1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-seed-puntas.sql": {
+    "mtime": 1782025868.6755142,
+    "hash": "55fc9cbe9654aa3a690998a4e7d874d9"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-shipping-profile.sql": {
     "mtime": 1781674362.7018058,
@@ -858,6 +910,10 @@
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-stock-alerts.sql": {
     "mtime": 1781375559.3660114,
     "hash": "23ffdd66a3230bd8a6c1cf060b44e6d1"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\delivery\\sql-subcategories.sql": {
+    "mtime": 1782024933.5426476,
+    "hash": "f0b16ec7066e25087384436229fea50e"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\appointmentCancelPolicy.ts": {
     "mtime": 1777159211.7897618,
@@ -876,12 +932,16 @@
     "hash": "c3b1ec481f774ef833d8ee908c3a12ed"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\site-shell.ts": {
-    "mtime": 1781933076.0206246,
+    "mtime": 1781992616.3840723,
     "hash": "641212fd14072963338f1daa74044fd6"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\utils.ts": {
     "mtime": 1777159211.7968502,
     "hash": "252ce07a8ca4cba704f12949394b6435"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\constants\\abrasivity.ts": {
+    "mtime": 1782007127.7695422,
+    "hash": "01bb3c531a4928b4a0326a464423ec39"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\constants\\cfdi.ts": {
     "mtime": 1781674362.7248032,
@@ -892,7 +952,7 @@
     "hash": "76f263e11d9a92387f60cec22ad47cca"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\constants\\shipping.ts": {
-    "mtime": 1781990828.0367036,
+    "mtime": 1781992636.207453,
     "hash": "ffc812ea047629db9d237a97d8b33fc2"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\constants\\stock.ts": {
@@ -975,9 +1035,13 @@
     "mtime": 1781061507.9366908,
     "hash": "c96e9dcd50aff9b55661fc35e56051b5"
   },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\navbar\\brands-category.ts": {
+    "mtime": 1782032553.470934,
+    "hash": "8098b275bc9285f808d3f187dd368eac"
+  },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\navbar\\recent-products.ts": {
-    "mtime": 1781912228.4660523,
-    "hash": "f52519fb926122765042111295249e27"
+    "mtime": 1782031182.1154313,
+    "hash": "a37d3f43e57cd47bf936e54e3fd2fd37"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\notifications\\order-notifications.ts": {
     "mtime": 1779145541.2444043,
@@ -1000,8 +1064,8 @@
     "hash": "7127232a8bce366ce14b31c5e3bb138a"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\admin.ts": {
-    "mtime": 1781927528.977695,
-    "hash": "c8bd88a8617756c06074b8d75346a612"
+    "mtime": 1782024522.4999752,
+    "hash": "3388366c4574c6c2cecb27924a5d9b0f"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\adminOrders.ts": {
     "mtime": 1781674362.7298048,
@@ -1024,8 +1088,8 @@
     "hash": "49be5807286490e82cc8fd58a8b75063"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\cache.ts": {
-    "mtime": 1781928153.5184302,
-    "hash": "5bbb9e1bb9ae967835b75316fe105ddb"
+    "mtime": 1782033507.0611129,
+    "hash": "9d3e27f40b5a9b763b1b4e2ee62f6d2e"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\cart.ts": {
     "mtime": 1781674362.7308047,
@@ -1040,8 +1104,8 @@
     "hash": "d20cdf4e6853c6852c9362c606ce8d10"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\landing-slots.ts": {
-    "mtime": 1781912228.4893315,
-    "hash": "3f11c36e9b02ffde43b206dcee5719b5"
+    "mtime": 1782023360.2351277,
+    "hash": "5d0dce2d8052f44277f52ce5a77f5cf1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\nail-art.ts": {
     "mtime": 1781674362.7328029,
@@ -1056,8 +1120,8 @@
     "hash": "873872795581d8f022ec39995c507300"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\products.ts": {
-    "mtime": 1781913811.4594793,
-    "hash": "40b1fde1d061a7e4ca398da5d7f4d4c8"
+    "mtime": 1782023360.2351277,
+    "hash": "618290e4c399eebeef0e29a6259bc017"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\server.ts": {
     "mtime": 1775678576.0697374,
@@ -1068,12 +1132,16 @@
     "hash": "1a7c933ef7d0d45003644a87f8f83c07"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\top-searches.ts": {
-    "mtime": 1781913865.3485742,
-    "hash": "a5aa25e1232d2303fbd598740b0f962b"
+    "mtime": 1781992616.4026093,
+    "hash": "8d8f5e4abdfb65ee354a5526815723bf"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\supabase\\users.ts": {
     "mtime": 1775678576.0707376,
     "hash": "ee2fb6302bb754602dfba5d7af38a6be"
+  },
+  "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\tienda\\related-products.ts": {
+    "mtime": 1782032551.7429717,
+    "hash": "fb0de98fa40be85e4035c1886fe4f7a3"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\adminOrders.ts": {
     "mtime": 1779145552.5621643,
@@ -1116,8 +1184,8 @@
     "hash": "86b2ba0eae2e8caffccf8e651dfc5791"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\products.ts": {
-    "mtime": 1781927509.9583108,
-    "hash": "d4baa74a53d70f71136523ffd532e5b8"
+    "mtime": 1782033044.5849147,
+    "hash": "0209a733a5c495d0466427436056cfe1"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\lib\\validations\\shippingQuote.ts": {
     "mtime": 1779145933.8948445,
@@ -1316,7 +1384,7 @@
     "hash": "bbdc554e55e16e08bd2c38b203717754"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\product\\features.md": {
-    "mtime": 1781915837.823561,
+    "mtime": 1781992616.2935097,
     "hash": "01457c6c798baf6ed88cae75ef173946"
   },
   "C:\\Users\\migue\\Desktop\\liz-cabriales\\docs\\product\\pricing.md": {

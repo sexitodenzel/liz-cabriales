@@ -239,7 +239,7 @@ export default function NuevosLanzamientosCarousel({
   }
 
   const arrowBase =
-    "flex h-[52px] w-[52px] items-center justify-center rounded-full border border-[#c9a84c] bg-white text-[#a8862f] transition-all duration-[220ms] [transition-timing-function:cubic-bezier(0.2,0.7,0.2,1)] hover:not-disabled:bg-[#c9a84c] hover:not-disabled:text-white hover:not-disabled:-translate-y-px hover:not-disabled:shadow-[0_8px_20px_rgba(201,168,76,0.28)] active:not-disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-30 disabled:border-[#d9d9d9] disabled:text-[#b5b5b5]"
+    "flex h-[52px] w-[52px] items-center justify-center rounded-full border border-[#c9a84c] bg-transparent text-[#a8862f] transition-all duration-[220ms] [transition-timing-function:cubic-bezier(0.2,0.7,0.2,1)] hover:not-disabled:bg-[#c9a84c] hover:not-disabled:text-white hover:not-disabled:-translate-y-px hover:not-disabled:shadow-[0_8px_20px_rgba(201,168,76,0.28)] active:not-disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-30 disabled:border-[#d9d9d9] disabled:text-[#b5b5b5]"
 
   return (
     <section
@@ -334,8 +334,8 @@ export default function NuevosLanzamientosCarousel({
             aria-live="polite"
           >
             <strong>{String(index + 1).padStart(2, "0")}</strong>
-            <span className="mx-1.5 text-[#c9a84c]">/</span>
-            <span className="text-[#8a8a8a]">
+            <span className="mx-1.5 text-black">/</span>
+            <span className="text-black">
               {String(pageCount).padStart(2, "0")}
             </span>
           </p>

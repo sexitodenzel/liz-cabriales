@@ -7,10 +7,16 @@ import type {
   AdminCategory,
   AdminProductVariant,
   AdminProductWithCategory,
+  AdminSubcategoryWithProductCount,
 } from "@/lib/supabase/admin"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import { createClient } from "@/lib/supabase/client"
 import ImageUploader from "@/app/admin/components/ImageUploader"
+import {
+  ABRASIVITY_LEVELS,
+  isAbrasivityValue,
+  type AbrasivityValue,
+} from "@/lib/constants/abrasivity"
 import {
   validateProductCritical,
   collectSanityWarnings,
@@ -40,7 +46,9 @@ type CreateFormState = {
   subcategory: string
   brand: string
   department: string
+  abrasivity: "" | AbrasivityValue
   imagesInput: string
+  desktopImageMode: "carousel" | "hover"
   initialStock: string
   minStock: string
   stock: string
@@ -66,6 +74,8 @@ type ManagedCategory = AdminCategory & {
 type ManagedBrand = AdminBrand & {
   productCount: number
 }
+
+type ManagedSubcategory = AdminSubcategoryWithProductCount
 
 const BRAND_GOLD = "#C9A84C"
 const BRAND_BLACK = "#000000"
@@ -186,6 +196,16 @@ function slugify(value: string): string {
     .replace(/[^a-z0-9-]/g, "")
 }
 
+function isPuntasCategory(
+  categoryId: string,
+  categories: AdminCategory[]
+): boolean {
+  const cat = categories.find((c) => c.id === categoryId)
+  if (!cat) return false
+  const name = cat.name.trim().toLowerCase()
+  return name.startsWith("punta") || cat.slug.startsWith("punta")
+}
+
 const ERROR_BORDER =
   "border-red-400 focus:border-red-400 focus:ring-red-300"
 const OK_BORDER =
@@ -238,7 +258,9 @@ export default function AdminProductsPage() {
     subcategory: "",
     brand: "",
     department: "",
+    abrasivity: "",
     imagesInput: "",
+    desktopImageMode: "carousel",
     initialStock: "",
     minStock: "",
     stock: "",
@@ -272,7 +294,20 @@ export default function AdminProductsPage() {
 
   const [productsFullscreen, setProductsFullscreen] = useState(false)
   const [categoriesFullscreen, setCategoriesFullscreen] = useState(false)
+  const [subcategoriesFullscreen, setSubcategoriesFullscreen] = useState(false)
   const [brandsFullscreen, setBrandsFullscreen] = useState(false)
+
+  const [subcategories, setSubcategories] = useState<ManagedSubcategory[]>([])
+  const [subcategoryName, setSubcategoryName] = useState("")
+  const [subcategoryCategoryId, setSubcategoryCategoryId] = useState("")
+  const [subcategorySubmitting, setSubcategorySubmitting] = useState(false)
+  const [editingSubcategory, setEditingSubcategory] =
+    useState<ManagedSubcategory | null>(null)
+  const [editSubcategoryName, setEditSubcategoryName] = useState("")
+  const [savingSubcategory, setSavingSubcategory] = useState(false)
+  const [deletingSubcategoryId, setDeletingSubcategoryId] = useState<
+    string | null
+  >(null)
 
   function syncCategories(nextCategories: ManagedCategory[]) {
     setManagedCategories(nextCategories)
@@ -362,6 +397,40 @@ export default function AdminProductsPage() {
     }
   }
 
+  async function fetchSubcategories() {
+    try {
+      const res = await fetch("/api/admin/products/subcategories", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      if (res.status === 401 || res.status === 403) {
+        router.replace("/login")
+        return
+      }
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        // No interrumpimos el flujo si la tabla no existe; solo avisamos.
+        if (json?.error?.code !== "SUBCATEGORIES_TABLE_MISSING") {
+          setToast({
+            id: Date.now(),
+            type: "error",
+            message:
+              json?.error?.message ??
+              "No se pudieron cargar las subcategorías.",
+          })
+        }
+        setSubcategories([])
+        return
+      }
+
+      setSubcategories((json.data ?? []) as ManagedSubcategory[])
+    } catch {
+      setSubcategories([])
+    }
+  }
+
   async function fetchBrands() {
     try {
       const res = await fetch("/api/admin/products/brands", {
@@ -413,7 +482,7 @@ export default function AdminProductsPage() {
   useEffect(() => {
     const init = async () => {
       setLoading(true)
-      await Promise.all([fetchProducts(), fetchCategories(), fetchBrands()])
+      await Promise.all([fetchProducts(), fetchCategories(), fetchBrands(), fetchSubcategories()])
       setLoading(false)
     }
     init()
@@ -634,6 +703,175 @@ export default function AdminProductsPage() {
       setToast({ id: Date.now(), type: "error", message: "Error de red al actualizar la categoría." })
     } finally {
       setSavingCategory(false)
+    }
+  }
+
+  function handleStartEditSubcategory(sub: ManagedSubcategory) {
+    setEditingSubcategory(sub)
+    setEditSubcategoryName(sub.name)
+  }
+
+  function handleCancelEditSubcategory() {
+    setEditingSubcategory(null)
+    setEditSubcategoryName("")
+  }
+
+  async function handleCreateSubcategory(event: React.FormEvent) {
+    event.preventDefault()
+    const name = subcategoryName.trim()
+    if (!name) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "El nombre de la subcategoría es obligatorio.",
+      })
+      return
+    }
+    if (!subcategoryCategoryId) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Selecciona una categoría padre.",
+      })
+      return
+    }
+
+    setSubcategorySubmitting(true)
+    try {
+      const res = await fetch("/api/admin/products/subcategories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, categoryId: subcategoryCategoryId }),
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message: json?.error?.message ?? "No se pudo crear la subcategoría.",
+        })
+        return
+      }
+
+      setSubcategoryName("")
+      await fetchSubcategories()
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: "Subcategoría creada correctamente.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al crear la subcategoría.",
+      })
+    } finally {
+      setSubcategorySubmitting(false)
+    }
+  }
+
+  async function handleSaveSubcategory() {
+    if (!editingSubcategory) return
+    const name = editSubcategoryName.trim()
+    if (!name) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "El nombre de la subcategoría es obligatorio.",
+      })
+      return
+    }
+
+    setSavingSubcategory(true)
+    try {
+      const res = await fetch(
+        `/api/admin/products/subcategories/${editingSubcategory.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        }
+      )
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ?? "No se pudo actualizar la subcategoría.",
+        })
+        return
+      }
+
+      setEditingSubcategory(null)
+      setEditSubcategoryName("")
+      // El backend renombra la subcategoría también en products → refrescamos
+      await Promise.all([fetchSubcategories(), fetchProducts()])
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: "Subcategoría actualizada correctamente.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al actualizar la subcategoría.",
+      })
+    } finally {
+      setSavingSubcategory(false)
+    }
+  }
+
+  async function handleDeleteSubcategory(sub: ManagedSubcategory) {
+    if (sub.productCount > 0) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "No puedes eliminar subcategorías con productos asociados.",
+      })
+      return
+    }
+
+    const confirmed = window.confirm(
+      `¿Eliminar la subcategoría "${sub.name}"? Esta acción no se puede deshacer.`
+    )
+    if (!confirmed) return
+
+    setDeletingSubcategoryId(sub.id)
+    try {
+      const res = await fetch(`/api/admin/products/subcategories/${sub.id}`, {
+        method: "DELETE",
+      })
+
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ?? "No se pudo eliminar la subcategoría.",
+        })
+        return
+      }
+
+      await fetchSubcategories()
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: "Subcategoría eliminada correctamente.",
+      })
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al eliminar la subcategoría.",
+      })
+    } finally {
+      setDeletingSubcategoryId(null)
     }
   }
 
@@ -1044,7 +1282,11 @@ export default function AdminProductsPage() {
           subcategory: form.subcategory || null,
           brand: form.brand || null,
           department: form.department || null,
+          abrasivity: isPuntasCategory(form.categoryId, categories)
+            ? form.abrasivity || null
+            : null,
           images,
+          desktopImageMode: form.desktopImageMode,
           isActive: form.isActive,
           isFeatured: form.isFeatured,
           isBestSeller: form.isBestSeller,
@@ -1075,7 +1317,7 @@ export default function AdminProductsPage() {
         return
       }
 
-      await Promise.all([fetchProducts(), fetchCategories(), fetchBrands()])
+      await Promise.all([fetchProducts(), fetchCategories(), fetchBrands(), fetchSubcategories()])
 
       setForm({
         name: "",
@@ -1090,7 +1332,9 @@ export default function AdminProductsPage() {
         subcategory: "",
         brand: "",
         department: "",
+        abrasivity: "",
         imagesInput: "",
+        desktopImageMode: "carousel",
         initialStock: "",
         minStock: "",
         stock: "",
@@ -1133,7 +1377,9 @@ export default function AdminProductsPage() {
       subcategory: product.subcategory ?? "",
       brand: product.brand ?? "",
       department: product.department ?? "",
+      abrasivity: product.abrasivity ?? "",
       imagesInput: (product.images ?? []).join(", "),
+      desktopImageMode: product.desktop_image_mode ?? "carousel",
       initialStock: "",
       minStock: String(product.min_stock ?? 0),
       stock: String(product.stock ?? 0),
@@ -1267,7 +1513,11 @@ export default function AdminProductsPage() {
           subcategory: editForm.subcategory || null,
           brand: editForm.brand || null,
           department: editForm.department || null,
+          abrasivity: isPuntasCategory(editForm.categoryId, categories)
+            ? editForm.abrasivity || null
+            : null,
           images: images.length > 0 ? images : undefined,
+          desktopImageMode: editForm.desktopImageMode,
           isActive: editForm.isActive,
           isFeatured: editForm.isFeatured,
           isBestSeller: editForm.isBestSeller,
@@ -1671,9 +1921,17 @@ export default function AdminProductsPage() {
                   </label>
                   <select
                     value={form.categoryId}
-                    onChange={(event) =>
-                      handleFormChange("categoryId", event.target.value)
-                    }
+                    onChange={(event) => {
+                      const nextCategoryId = event.target.value
+                      handleFormChange("categoryId", nextCategoryId)
+                      if (form.subcategory) handleFormChange("subcategory", "")
+                      if (
+                        form.abrasivity &&
+                        !isPuntasCategory(nextCategoryId, categories)
+                      ) {
+                        handleFormChange("abrasivity", "")
+                      }
+                    }}
                     className={`w-full rounded-lg border bg-neutral-50 px-3 py-2 text-sm outline-none focus:ring-1 ${createErrors.categoryId ? ERROR_BORDER : OK_BORDER}`}
                     style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   >
@@ -1690,16 +1948,83 @@ export default function AdminProductsPage() {
                   <label className="block text-xs font-medium tracking-wide text-neutral-600">
                     SUBCATEGORÍA
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={form.subcategory}
                     onChange={(event) => handleFormChange("subcategory", event.target.value)}
-                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    disabled={!form.categoryId}
+                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)] disabled:cursor-not-allowed disabled:opacity-60"
                     style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
-                    placeholder="Ej. Gel UV"
-                  />
+                  >
+                    <option value="">
+                      {form.categoryId ? "Sin subcategoría" : "Selecciona primero una categoría"}
+                    </option>
+                    {subcategories
+                      .filter((sub) => sub.category_id === form.categoryId)
+                      .map((sub) => (
+                        <option key={sub.id} value={sub.name}>
+                          {sub.name}
+                        </option>
+                      ))}
+                  </select>
+                  {form.categoryId &&
+                    subcategories.filter((sub) => sub.category_id === form.categoryId).length === 0 && (
+                      <p className="text-[11px] text-neutral-500">
+                        Esta categoría no tiene subcategorías. Crea una desde el panel "Gestionar subcategorías".
+                      </p>
+                    )}
                 </div>
               </div>
+
+              {isPuntasCategory(form.categoryId, categories) && (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    ABRASIVIDAD <span className="text-neutral-400">(cinta de color)</span>
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFormChange("abrasivity", "")}
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                        form.abrasivity === ""
+                          ? "border-[color:var(--brand-gold)] bg-[color:var(--brand-gold)]/10 font-medium text-neutral-800"
+                          : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+                      }`}
+                      style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                    >
+                      Sin clasificar
+                    </button>
+                    {ABRASIVITY_LEVELS.map((level) => {
+                      const active = form.abrasivity === level.value
+                      return (
+                        <button
+                          key={level.value}
+                          type="button"
+                          onClick={() =>
+                            handleFormChange(
+                              "abrasivity",
+                              isAbrasivityValue(level.value) ? level.value : ""
+                            )
+                          }
+                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                            active
+                              ? "border-[color:var(--brand-gold)] bg-[color:var(--brand-gold)]/10 font-medium text-neutral-800"
+                              : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+                          }`}
+                          style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                        >
+                          <span
+                            aria-hidden
+                            className="inline-block h-3 w-3 rounded-full border border-black/10"
+                            style={{ backgroundColor: level.color }}
+                          />
+                          {level.label}
+                          <span className="text-[10px] text-neutral-400">({level.tape})</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
@@ -1938,6 +2263,29 @@ export default function AdminProductsPage() {
                 />
               </div>
 
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  MODO DE IMAGEN EN PC
+                </label>
+                <select
+                  value={form.desktopImageMode}
+                  onChange={(event) =>
+                    handleFormChange(
+                      "desktopImageMode",
+                      event.target.value as "carousel" | "hover"
+                    )
+                  }
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                >
+                  <option value="carousel">Flechas + dots</option>
+                  <option value="hover">Cambiar imagen al pasar mouse</option>
+                </select>
+                <p className="text-[11px] text-neutral-500">
+                  El modo hover solo aplica cuando el producto tiene exactamente 2 imágenes.
+                </p>
+              </div>
+
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                 <div className="flex items-center gap-4">
                   <label className="inline-flex items-center gap-2">
@@ -2098,6 +2446,7 @@ export default function AdminProductsPage() {
                     <th className={PRODUCTS_TABLE_HEAD_CELL}>CÓDIGO</th>
                     <th className={PRODUCTS_TABLE_HEAD_CELL}>MARCA</th>
                     <th className={PRODUCTS_TABLE_HEAD_CELL}>CATEGORÍA</th>
+                    <th className={PRODUCTS_TABLE_HEAD_CELL}>SUBCATEGORÍA</th>
                     <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>P.COSTO</th>
                     <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>P.VENTA</th>
                     <th className={`${PRODUCTS_TABLE_HEAD_CELL} text-right`}>P.MAYOREO</th>
@@ -2141,12 +2490,34 @@ export default function AdminProductsPage() {
                           </td>
                           <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-neutral-700`}>
                             <div>{product.category.name}</div>
-                            {product.subcategory && (
-                              <div className="text-[11px] text-neutral-400">{product.subcategory}</div>
-                            )}
+                            {product.abrasivity && (() => {
+                              const level = ABRASIVITY_LEVELS.find(
+                                (lvl) => lvl.value === product.abrasivity
+                              )
+                              if (!level) return null
+                              return (
+                                <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-neutral-500">
+                                  <span
+                                    aria-hidden
+                                    className="inline-block h-2 w-2 rounded-full border border-black/10"
+                                    style={{ backgroundColor: level.color }}
+                                  />
+                                  {level.label}
+                                </div>
+                              )
+                            })()}
                             <div className="mt-0.5 text-[10px] text-neutral-400">
                               Act. {formatProductUpdatedAt(product.updated_at)}
                             </div>
+                          </td>
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-neutral-700`}>
+                            {product.subcategory ? (
+                              <span className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-medium text-neutral-700">
+                                {product.subcategory}
+                              </span>
+                            ) : (
+                              <span className="text-neutral-400">—</span>
+                            )}
                           </td>
                           <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-right text-neutral-600`}>
                             {product.cost_price !== null ? `$${product.cost_price.toFixed(2)}` : "—"}
@@ -2292,16 +2663,76 @@ export default function AdminProductsPage() {
                                   </div>
                                   <div className="space-y-1">
                                     <label className="block text-[11px] font-medium tracking-wide text-neutral-600">SUBCATEGORÍA</label>
-                                    <input
-                                      type="text"
+                                    <select
                                       value={editForm.subcategory}
                                       onChange={(e) => handleEditFormChange("subcategory", e.target.value)}
-                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                      disabled={!editForm.categoryId}
+                                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)] disabled:cursor-not-allowed disabled:opacity-60"
                                       style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
-                                      placeholder="Ej. Gel UV"
-                                    />
+                                    >
+                                      <option value="">
+                                        {editForm.categoryId ? "Sin subcategoría" : "Selecciona primero una categoría"}
+                                      </option>
+                                      {subcategories
+                                        .filter((sub) => sub.category_id === editForm.categoryId)
+                                        .map((sub) => (
+                                          <option key={sub.id} value={sub.name}>
+                                            {sub.name}
+                                          </option>
+                                        ))}
+                                    </select>
                                   </div>
                                 </div>
+
+                                {isPuntasCategory(editForm.categoryId, categories) && (
+                                  <div className="space-y-1">
+                                    <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
+                                      ABRASIVIDAD <span className="text-neutral-400">(cinta de color)</span>
+                                    </label>
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleEditFormChange("abrasivity", "")}
+                                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                                          editForm.abrasivity === ""
+                                            ? "border-[color:var(--brand-gold)] bg-[color:var(--brand-gold)]/10 font-medium text-neutral-800"
+                                            : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+                                        }`}
+                                        style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                      >
+                                        Sin clasificar
+                                      </button>
+                                      {ABRASIVITY_LEVELS.map((level) => {
+                                        const active = editForm.abrasivity === level.value
+                                        return (
+                                          <button
+                                            key={level.value}
+                                            type="button"
+                                            onClick={() =>
+                                              handleEditFormChange(
+                                                "abrasivity",
+                                                isAbrasivityValue(level.value) ? level.value : ""
+                                              )
+                                            }
+                                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                                              active
+                                                ? "border-[color:var(--brand-gold)] bg-[color:var(--brand-gold)]/10 font-medium text-neutral-800"
+                                                : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+                                            }`}
+                                            style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                          >
+                                            <span
+                                              aria-hidden
+                                              className="inline-block h-2.5 w-2.5 rounded-full border border-black/10"
+                                              style={{ backgroundColor: level.color }}
+                                            />
+                                            {level.label}
+                                          </button>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
 
                                 <div className="space-y-1">
                                   <label className="block text-[11px] font-medium tracking-wide text-neutral-600">DESCRIPCIÓN CORTA</label>
@@ -2367,7 +2798,17 @@ export default function AdminProductsPage() {
                                     <label className="block text-[11px] font-medium tracking-wide text-neutral-600">CATEGORÍA</label>
                                     <select
                                       value={editForm.categoryId}
-                                      onChange={(e) => handleEditFormChange("categoryId", e.target.value)}
+                                      onChange={(e) => {
+                                        const nextCategoryId = e.target.value
+                                        handleEditFormChange("categoryId", nextCategoryId)
+                                        if (editForm.subcategory) handleEditFormChange("subcategory", "")
+                                        if (
+                                          editForm.abrasivity &&
+                                          !isPuntasCategory(nextCategoryId, categories)
+                                        ) {
+                                          handleEditFormChange("abrasivity", "")
+                                        }
+                                      }}
                                       className={`w-full rounded-lg border bg-white px-3 py-1.5 text-xs outline-none focus:ring-1 ${editErrors.categoryId ? ERROR_BORDER : OK_BORDER}`}
                                       style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                     >
@@ -2603,6 +3044,29 @@ export default function AdminProductsPage() {
                                   />
                                 </div>
 
+                                <div className="space-y-1">
+                                  <label className="block text-[11px] font-medium tracking-wide text-neutral-600">
+                                    MODO DE IMAGEN EN PC
+                                  </label>
+                                  <select
+                                    value={editForm.desktopImageMode}
+                                    onChange={(e) =>
+                                      handleEditFormChange(
+                                        "desktopImageMode",
+                                        e.target.value as "carousel" | "hover"
+                                      )
+                                    }
+                                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[11px] outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                  >
+                                    <option value="carousel">Flechas + dots</option>
+                                    <option value="hover">Cambiar imagen al pasar mouse</option>
+                                  </select>
+                                  <p className="text-[10px] text-neutral-500">
+                                    El modo hover solo se usa en desktop y con exactamente 2 imágenes.
+                                  </p>
+                                </div>
+
                                 <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
                                   <div className="flex items-center gap-4">
                                     <label className="inline-flex items-center gap-2">
@@ -2797,6 +3261,183 @@ export default function AdminProductsPage() {
                                 title={
                                   canDelete
                                     ? "Eliminar categoría"
+                                    : "No se puede eliminar: tiene productos asociados"
+                                }
+                              >
+                                {isDeleting ? "ELIMINANDO..." : "ELIMINAR"}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section className={subcategoriesFullscreen
+          ? "fixed inset-0 z-50 bg-white flex flex-col shadow-2xl mt-0"
+          : "mt-8 rounded-2xl border border-neutral-200/80 bg-white shadow-sm"
+        }>
+          <header className="border-b border-neutral-100 px-6 py-4 flex items-center justify-between shrink-0">
+            <h2 className="text-sm font-semibold tracking-[0.18em] text-neutral-500">
+              GESTIONAR SUBCATEGORÍAS
+            </h2>
+            <button
+              type="button"
+              onClick={() => setSubcategoriesFullscreen((v) => !v)}
+              title={subcategoriesFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+              className="text-neutral-400 hover:text-neutral-700 transition-colors"
+            >
+              {subcategoriesFullscreen ? (
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                  <path fillRule="evenodd" d="M5 4a1 1 0 00-1 1v2a1 1 0 01-2 0V5a3 3 0 013-3h2a1 1 0 010 2H5zm10 0h-2a1 1 0 010-2h2a3 3 0 013 3v2a1 1 0 01-2 0V5a1 1 0 00-1-1zM5 16a1 1 0 001-1v-2a1 1 0 012 0v2a3 3 0 01-3 3H3a1 1 0 010-2h2zm10 0h2a1 1 0 000-2h-2a1 1 0 01-1-1v-2a1 1 0 00-2 0v2a3 3 0 003 3z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H5.414l2.293 2.293a1 1 0 01-1.414 1.414L4 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V5.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 4H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13 2a1 1 0 01-2 0v-1.586l-2.293 2.293a1 1 0 01-1.414-1.414L13.586 15H12a1 1 0 010-2h4a1 1 0 011 1v4z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+          </header>
+
+          <div className={subcategoriesFullscreen
+            ? "grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch flex-1 overflow-auto"
+            : "grid gap-6 px-6 py-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-stretch"
+          }>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault()
+                if (editingSubcategory) {
+                  void handleSaveSubcategory()
+                } else {
+                  void handleCreateSubcategory(event)
+                }
+              }}
+              className="space-y-3"
+            >
+              {!editingSubcategory && (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                    CATEGORÍA PADRE
+                  </label>
+                  <select
+                    value={subcategoryCategoryId}
+                    onChange={(event) => setSubcategoryCategoryId(event.target.value)}
+                    className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  >
+                    <option value="">Selecciona una categoría</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  {editingSubcategory ? "EDITAR SUBCATEGORÍA" : "NUEVA SUBCATEGORÍA"}
+                </label>
+                <input
+                  type="text"
+                  value={editingSubcategory ? editSubcategoryName : subcategoryName}
+                  onChange={(event) =>
+                    editingSubcategory
+                      ? setEditSubcategoryName(event.target.value)
+                      : setSubcategoryName(event.target.value)
+                  }
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  placeholder="Ej. Puntas Diamante"
+                />
+                <p className="text-[11px] text-neutral-500">
+                  El slug se genera automáticamente. Renombrar también actualiza los productos asociados.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="submit"
+                  disabled={editingSubcategory ? savingSubcategory : subcategorySubmitting}
+                  className="inline-flex items-center justify-center rounded-full bg-[#c9a84c] px-5 py-2 text-xs font-semibold tracking-[0.14em] text-white uppercase transition-colors hover:bg-[#a8893a] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {editingSubcategory
+                    ? savingSubcategory ? "GUARDANDO..." : "GUARDAR CAMBIOS"
+                    : subcategorySubmitting ? "CREANDO..." : "CREAR SUBCATEGORÍA"}
+                </button>
+                {editingSubcategory && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEditSubcategory}
+                    className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-neutral-600 uppercase transition-colors hover:bg-neutral-50"
+                  >
+                    CANCELAR
+                  </button>
+                )}
+              </div>
+            </form>
+
+            <div className={subcategoriesFullscreen
+              ? "overflow-auto rounded-xl border border-neutral-200 h-full"
+              : "overflow-auto rounded-xl border border-neutral-200 max-h-[280px]"
+            }>
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-neutral-50/80 text-xs uppercase tracking-[0.16em] text-neutral-500">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">NOMBRE</th>
+                    <th className="px-4 py-3 font-semibold">CATEGORÍA</th>
+                    <th className="px-4 py-3 font-semibold text-center">PRODUCTOS</th>
+                    <th className="px-4 py-3 font-semibold text-right">ACCIÓN</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {subcategories.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-6 text-center text-sm text-neutral-500">
+                        No hay subcategorías registradas.
+                      </td>
+                    </tr>
+                  ) : (
+                    subcategories.map((sub) => {
+                      const isDeleting = deletingSubcategoryId === sub.id
+                      const isEditing = editingSubcategory?.id === sub.id
+                      const canDelete = sub.productCount === 0
+                      return (
+                        <tr key={sub.id} className={isEditing ? "bg-amber-50/60" : undefined}>
+                          <td className="px-4 py-3 font-medium text-neutral-900">
+                            {sub.name}
+                            <div className="text-[11px] font-mono text-neutral-400">
+                              {sub.slug}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-neutral-700">
+                            {sub.category_name}
+                          </td>
+                          <td className="px-4 py-3 text-center text-neutral-700">
+                            {sub.productCount}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-3">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditSubcategory(sub)}
+                                disabled={isDeleting}
+                                className="text-xs font-semibold text-[#c9a84c] transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                EDITAR
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSubcategory(sub)}
+                                disabled={!canDelete || isDeleting}
+                                className="text-xs font-semibold text-red-600 transition-opacity hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                                title={
+                                  canDelete
+                                    ? "Eliminar subcategoría"
                                     : "No se puede eliminar: tiene productos asociados"
                                 }
                               >

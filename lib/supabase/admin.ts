@@ -1,5 +1,9 @@
 import { createClient } from "@supabase/supabase-js"
 
+import {
+  isAbrasivityValue,
+  type AbrasivityValue,
+} from "@/lib/constants/abrasivity"
 import { notifyStockAlertsForVariant } from "@/lib/notifications/stock-alert-notifications"
 
 import { getUserRole } from "./users"
@@ -14,6 +18,8 @@ export type Result<T> =
   | { data: T; error: null }
   | { data: null; error: SupabaseError }
 
+export type ProductDesktopImageMode = "carousel" | "hover"
+
 export type AdminCategory = {
   id: string
   name: string
@@ -22,6 +28,19 @@ export type AdminCategory = {
 
 export type AdminCategoryWithProductCount = AdminCategory & {
   productCount: number
+}
+
+export type AdminSubcategory = {
+  id: string
+  category_id: string
+  name: string
+  slug: string
+  created_at: string
+}
+
+export type AdminSubcategoryWithProductCount = AdminSubcategory & {
+  productCount: number
+  category_name: string
 }
 
 export type AdminBrand = {
@@ -49,9 +68,11 @@ export type AdminProduct = {
   cost_price: number | null
   wholesale_price: number | null
   images: string[] | null
+  desktop_image_mode: ProductDesktopImageMode
   brand: string | null
   department: string | null
   subcategory: string | null
+  abrasivity: AbrasivityValue | null
   min_stock: number
   stock: number
   variant_id: string | null
@@ -99,7 +120,9 @@ export type CreateAdminProductInput = {
   subcategory?: string | null
   brand?: string | null
   department?: string | null
+  abrasivity?: AbrasivityValue | null
   images?: string[]
+  desktopImageMode?: ProductDesktopImageMode
   isActive?: boolean
   isFeatured?: boolean
   isBestSeller?: boolean
@@ -121,6 +144,15 @@ export type CreateAdminCategoryInput = {
   name: string
 }
 
+export type CreateAdminSubcategoryInput = {
+  name: string
+  categoryId: string
+}
+
+export type UpdateAdminSubcategoryInput = {
+  name: string
+}
+
 export type CreateAdminBrandInput = {
   name: string
   logoUrl?: string | null
@@ -134,6 +166,18 @@ function hasLogoUrl(value: string | null | undefined): boolean {
 function categoryFromJoin(row: { categories?: unknown }): AdminCategory | null {
   const c = row.categories as AdminCategory | null | undefined
   return c?.id ? c : null
+}
+
+function normalizeDesktopImageMode(
+  value: string | null | undefined
+): ProductDesktopImageMode {
+  return value === "hover" ? "hover" : "carousel"
+}
+
+function normalizeAbrasivity(
+  value: string | null | undefined
+): AbrasivityValue | null {
+  return isAbrasivityValue(value) ? value : null
 }
 
 const supabaseAdmin = createClient(
@@ -353,6 +397,7 @@ export async function getAdminCategoriesWithProductCount(): Promise<
     .from("products")
     .select("category_id")
     .not("category_id", "is", null)
+    .is("deleted_at", null)
 
   if (error) {
     return {
@@ -451,6 +496,7 @@ export async function deleteAdminCategory(id: string): Promise<Result<null>> {
     .from("products")
     .select("id", { count: "exact", head: true })
     .eq("category_id", id)
+    .is("deleted_at", null)
 
   if (countError) {
     return {
@@ -559,6 +605,335 @@ export async function updateAdminCategory(
   }
 }
 
+function slugifySubcategory(value: string): string {
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+  return normalized || "subcategoria"
+}
+
+async function ensureUniqueSubcategorySlug(
+  categoryId: string,
+  baseSlug: string,
+  excludeId?: string
+): Promise<Result<string>> {
+  let candidate = baseSlug
+  let suffix = 2
+  while (true) {
+    let query = supabaseAdmin
+      .from("subcategories")
+      .select("id")
+      .eq("category_id", categoryId)
+      .eq("slug", candidate)
+    if (excludeId) query = query.neq("id", excludeId)
+    const { data, error } = await query.maybeSingle()
+    if (error) {
+      return { data: null, error: { message: error.message, code: error.code } }
+    }
+    if (!data) return { data: candidate, error: null }
+    candidate = `${baseSlug}-${suffix}`
+    suffix += 1
+  }
+}
+
+export async function getAdminSubcategoriesWithProductCount(): Promise<
+  Result<AdminSubcategoryWithProductCount[]>
+> {
+  const { data: subs, error: subsError } = await supabaseAdmin
+    .from("subcategories")
+    .select("id, category_id, name, slug, created_at, categories(name)")
+    .order("name", { ascending: true })
+
+  if (subsError) {
+    if (subsError.code === "42P01") {
+      return {
+        data: null,
+        error: {
+          message:
+            "La tabla subcategories no existe. Corre docs/delivery/sql-subcategories.sql en Supabase.",
+          code: "SUBCATEGORIES_TABLE_MISSING",
+        },
+      }
+    }
+    return {
+      data: null,
+      error: { message: subsError.message, code: subsError.code },
+    }
+  }
+
+  const { data: productsData, error: productsError } = await supabaseAdmin
+    .from("products")
+    .select("category_id, subcategory")
+    .not("subcategory", "is", null)
+    .is("deleted_at", null)
+
+  if (productsError) {
+    return {
+      data: null,
+      error: { message: productsError.message, code: productsError.code },
+    }
+  }
+
+  const usage = new Map<string, number>()
+  for (const row of productsData ?? []) {
+    const r = row as { category_id: string | null; subcategory: string | null }
+    if (!r.category_id || !r.subcategory) continue
+    const key = `${r.category_id}::${r.subcategory.trim()}`
+    usage.set(key, (usage.get(key) ?? 0) + 1)
+  }
+
+  const rows = (subs ?? []) as Array<{
+    id: string
+    category_id: string
+    name: string
+    slug: string
+    created_at: string
+    categories?: { name: string } | { name: string }[] | null
+  }>
+
+  const data: AdminSubcategoryWithProductCount[] = rows.map((row) => {
+    const cat = Array.isArray(row.categories) ? row.categories[0] : row.categories
+    const key = `${row.category_id}::${row.name}`
+    return {
+      id: row.id,
+      category_id: row.category_id,
+      name: row.name,
+      slug: row.slug,
+      created_at: row.created_at,
+      productCount: usage.get(key) ?? 0,
+      category_name: cat?.name ?? "—",
+    }
+  })
+
+  return { data, error: null }
+}
+
+export async function createAdminSubcategory(
+  input: CreateAdminSubcategoryInput
+): Promise<Result<AdminSubcategory>> {
+  const normalizedName = input.name.trim()
+  if (!normalizedName) {
+    return {
+      data: null,
+      error: { message: "El nombre es obligatorio", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  const { data: cat, error: catError } = await supabaseAdmin
+    .from("categories")
+    .select("id")
+    .eq("id", input.categoryId)
+    .maybeSingle()
+  if (catError) {
+    return { data: null, error: { message: catError.message, code: catError.code } }
+  }
+  if (!cat) {
+    return {
+      data: null,
+      error: { message: "Categoría no encontrada", code: "NOT_FOUND" },
+    }
+  }
+
+  const slugResult = await ensureUniqueSubcategorySlug(
+    input.categoryId,
+    slugifySubcategory(normalizedName)
+  )
+  if (slugResult.error) return { data: null, error: slugResult.error }
+
+  const { data, error } = await supabaseAdmin
+    .from("subcategories")
+    .insert({
+      category_id: input.categoryId,
+      name: normalizedName,
+      slug: slugResult.data,
+    })
+    .select("id, category_id, name, slug, created_at")
+    .single()
+
+  if (error || !data) {
+    if (error?.code === "23505") {
+      return {
+        data: null,
+        error: {
+          message: "Ya existe una subcategoría con ese nombre en esta categoría",
+          code: "DUPLICATE",
+        },
+      }
+    }
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo crear la subcategoría",
+        code: error?.code,
+      },
+    }
+  }
+
+  return {
+    data: {
+      id: data.id as string,
+      category_id: data.category_id as string,
+      name: data.name as string,
+      slug: data.slug as string,
+      created_at: data.created_at as string,
+    },
+    error: null,
+  }
+}
+
+export async function updateAdminSubcategory(
+  id: string,
+  input: UpdateAdminSubcategoryInput
+): Promise<Result<AdminSubcategory>> {
+  const normalizedName = input.name.trim()
+  if (!normalizedName) {
+    return {
+      data: null,
+      error: { message: "El nombre es obligatorio", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  const { data: current, error: fetchError } = await supabaseAdmin
+    .from("subcategories")
+    .select("id, category_id, name, slug, created_at")
+    .eq("id", id)
+    .maybeSingle()
+  if (fetchError) {
+    return {
+      data: null,
+      error: { message: fetchError.message, code: fetchError.code },
+    }
+  }
+  if (!current) {
+    return {
+      data: null,
+      error: { message: "Subcategoría no encontrada", code: "NOT_FOUND" },
+    }
+  }
+
+  const currentRow = current as {
+    id: string
+    category_id: string
+    name: string
+    slug: string
+    created_at: string
+  }
+  const previousName = currentRow.name
+  let newSlug = currentRow.slug
+
+  if (normalizedName.toLowerCase() !== currentRow.name.toLowerCase()) {
+    const slugResult = await ensureUniqueSubcategorySlug(
+      currentRow.category_id,
+      slugifySubcategory(normalizedName),
+      id
+    )
+    if (slugResult.error) return { data: null, error: slugResult.error }
+    newSlug = slugResult.data
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("subcategories")
+    .update({ name: normalizedName, slug: newSlug })
+    .eq("id", id)
+    .select("id, category_id, name, slug, created_at")
+    .single()
+
+  if (error || !data) {
+    if (error?.code === "23505") {
+      return {
+        data: null,
+        error: {
+          message: "Ya existe una subcategoría con ese nombre en esta categoría",
+          code: "DUPLICATE",
+        },
+      }
+    }
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo actualizar la subcategoría",
+        code: error?.code,
+      },
+    }
+  }
+
+  // Propagar el rename al texto denormalizado en products.
+  if (previousName !== normalizedName) {
+    await supabaseAdmin
+      .from("products")
+      .update({ subcategory: normalizedName })
+      .eq("category_id", currentRow.category_id)
+      .eq("subcategory", previousName)
+  }
+
+  return {
+    data: {
+      id: data.id as string,
+      category_id: data.category_id as string,
+      name: data.name as string,
+      slug: data.slug as string,
+      created_at: data.created_at as string,
+    },
+    error: null,
+  }
+}
+
+export async function deleteAdminSubcategory(id: string): Promise<Result<null>> {
+  const { data: sub, error: fetchError } = await supabaseAdmin
+    .from("subcategories")
+    .select("id, category_id, name")
+    .eq("id", id)
+    .maybeSingle()
+  if (fetchError) {
+    return {
+      data: null,
+      error: { message: fetchError.message, code: fetchError.code },
+    }
+  }
+  if (!sub) {
+    return {
+      data: null,
+      error: { message: "Subcategoría no encontrada", code: "NOT_FOUND" },
+    }
+  }
+
+  const subRow = sub as { id: string; category_id: string; name: string }
+
+  const { count, error: countError } = await supabaseAdmin
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("category_id", subRow.category_id)
+    .eq("subcategory", subRow.name)
+    .is("deleted_at", null)
+
+  if (countError) {
+    return {
+      data: null,
+      error: { message: countError.message, code: countError.code },
+    }
+  }
+
+  if ((count ?? 0) > 0) {
+    return {
+      data: null,
+      error: {
+        message: "No se puede eliminar una subcategoría con productos asociados",
+        code: "SUBCATEGORY_HAS_PRODUCTS",
+      },
+    }
+  }
+
+  const { error } = await supabaseAdmin.from("subcategories").delete().eq("id", id)
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+  return { data: null, error: null }
+}
+
 export async function getAdminBrandsWithProductCount(): Promise<
   Result<AdminBrandWithProductCount[]>
 > {
@@ -636,6 +1011,7 @@ export async function getAdminBrandsWithProductCount(): Promise<
     .from("products")
     .select("brand")
     .not("brand", "is", null)
+    .is("deleted_at", null)
 
   if (productsError) {
     return {
@@ -832,6 +1208,7 @@ export async function deleteAdminBrand(id: string): Promise<Result<null>> {
     .from("products")
     .select("id", { count: "exact", head: true })
     .eq("brand", brandName)
+    .is("deleted_at", null)
 
   if (countError) {
     return {
@@ -1056,9 +1433,11 @@ export async function getAdminProducts(): Promise<
       cost_price,
       wholesale_price,
       images,
+      desktop_image_mode,
       brand,
       department,
       subcategory,
+      abrasivity,
       min_stock,
       is_featured,
       is_best_seller,
@@ -1101,9 +1480,11 @@ export async function getAdminProducts(): Promise<
         cost_price: number | null
         wholesale_price: number | null
         images: string[] | null
+        desktop_image_mode?: string | null
         brand: string | null
         department: string | null
         subcategory: string | null
+        abrasivity?: string | null
         min_stock: number | null
         is_featured: boolean
         is_best_seller: boolean | null
@@ -1129,9 +1510,13 @@ export async function getAdminProducts(): Promise<
         cost_price: current.cost_price !== null ? Number(current.cost_price) : null,
         wholesale_price: current.wholesale_price !== null ? Number(current.wholesale_price) : null,
         images: current.images ?? null,
+        desktop_image_mode: normalizeDesktopImageMode(
+          current.desktop_image_mode
+        ),
         brand: current.brand ?? null,
         department: current.department ?? null,
         subcategory: current.subcategory ?? null,
+        abrasivity: normalizeAbrasivity(current.abrasivity),
         min_stock: Number(current.min_stock ?? 0),
         stock: activeVariant ? Number(activeVariant.stock) : 0,
         variant_id: activeVariant?.id ?? null,
@@ -1171,7 +1556,9 @@ export async function createAdminProduct(
       subcategory: input.subcategory ?? null,
       brand: normalizedBrandResult.data,
       department: input.department ?? null,
+      abrasivity: input.abrasivity ?? null,
       images: input.images && input.images.length > 0 ? input.images : null,
+      desktop_image_mode: input.desktopImageMode ?? "carousel",
       is_active: input.isActive ?? true,
       is_featured: input.isFeatured ?? false,
       is_best_seller: input.isBestSeller ?? false,
@@ -1190,9 +1577,11 @@ export async function createAdminProduct(
       cost_price,
       wholesale_price,
       images,
+      desktop_image_mode,
       brand,
       department,
       subcategory,
+      abrasivity,
       min_stock,
       is_featured,
       is_best_seller,
@@ -1288,9 +1677,13 @@ export async function createAdminProduct(
     cost_price: product.cost_price !== null ? Number(product.cost_price) : null,
     wholesale_price: product.wholesale_price !== null ? Number(product.wholesale_price) : null,
     images: (product.images as string[] | null) ?? null,
+    desktop_image_mode: normalizeDesktopImageMode(
+      product.desktop_image_mode as string | null | undefined
+    ),
     brand: (product.brand as string | null) ?? null,
     department: (product.department as string | null) ?? null,
     subcategory: (product.subcategory as string | null) ?? null,
+    abrasivity: normalizeAbrasivity(product.abrasivity as string | null | undefined),
     min_stock: Number(product.min_stock ?? 0),
     stock: input.initialStock ?? 0,
     variant_id: null,
@@ -1329,9 +1722,12 @@ export async function updateAdminProduct(
     updatePayload.brand = normalizedBrandResult.data
   }
   if (input.department !== undefined) updatePayload.department = input.department
+  if (input.abrasivity !== undefined) updatePayload.abrasivity = input.abrasivity ?? null
   if (input.images !== undefined)
     updatePayload.images =
       input.images && input.images.length > 0 ? input.images : null
+  if (input.desktopImageMode !== undefined)
+    updatePayload.desktop_image_mode = input.desktopImageMode
   if (input.isActive !== undefined) updatePayload.is_active = input.isActive
   if (input.isFeatured !== undefined) updatePayload.is_featured = input.isFeatured
   if (input.isBestSeller !== undefined) updatePayload.is_best_seller = input.isBestSeller
@@ -1380,9 +1776,11 @@ export async function updateAdminProduct(
       cost_price,
       wholesale_price,
       images,
+      desktop_image_mode,
       brand,
       department,
       subcategory,
+      abrasivity,
       min_stock,
       is_featured,
       is_best_seller,
@@ -1439,9 +1837,13 @@ export async function updateAdminProduct(
     cost_price: data.cost_price !== null ? Number(data.cost_price) : null,
     wholesale_price: data.wholesale_price !== null ? Number(data.wholesale_price) : null,
     images: (data.images as string[] | null) ?? null,
+    desktop_image_mode: normalizeDesktopImageMode(
+      data.desktop_image_mode as string | null | undefined
+    ),
     brand: (data.brand as string | null) ?? null,
     department: (data.department as string | null) ?? null,
     subcategory: (data.subcategory as string | null) ?? null,
+    abrasivity: normalizeAbrasivity(data.abrasivity as string | null | undefined),
     min_stock: Number(data.min_stock ?? 0),
     stock: updatedActiveVariant ? Number(updatedActiveVariant.stock) : (input.stock ?? 0),
     variant_id: updatedActiveVariant?.id ?? null,

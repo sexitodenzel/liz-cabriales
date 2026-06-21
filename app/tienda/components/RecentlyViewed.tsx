@@ -16,7 +16,8 @@ export type RecentlyViewedItem = {
 }
 
 type Props = {
-  current: RecentlyViewedItem
+  /** Si se omite, solo muestra el historial sin registrar una visita nueva. */
+  current?: RecentlyViewedItem
 }
 
 function formatPrice(value: number): string {
@@ -51,6 +52,12 @@ export default function RecentlyViewed({ current }: Props) {
 
   useEffect(() => {
     const stored = readStored()
+
+    if (!current) {
+      setItems(stored.slice(0, MAX_SHOWN))
+      return
+    }
+
     const next = [current, ...stored.filter((item) => item.slug !== current.slug)].slice(
       0,
       MAX_STORED

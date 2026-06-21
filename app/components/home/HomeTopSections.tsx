@@ -1,12 +1,11 @@
 import BrandDescription from "../BrandDescription"
 import PillarStage from "../PillarStage"
 import ShopByBrands from "../ShopByBrands"
-import HeroSlider from "../hero/HeroSlider"
 import { getHomeBrandsCached } from "@/lib/supabase/cache"
 import { getLandingPageDataCached } from "@/lib/supabase/landing-slots"
 
 export default async function HomeTopSections() {
-  const [{ slots, heroSlides }, homeBrandsResult] = await Promise.all([
+  const [{ slots }, homeBrandsResult] = await Promise.all([
     getLandingPageDataCached(),
     getHomeBrandsCached(),
   ])
@@ -32,8 +31,6 @@ export default async function HomeTopSections() {
 
   return (
     <>
-      <HeroSlider slides={heroSlides} />
-      <div className="h-16 shrink-0" aria-hidden />
       <BrandDescription photoUrl={slots["brand_photo"]} />
       <div className="h-16 shrink-0" aria-hidden />
       <PillarStage pillarImages={pillarImages} />

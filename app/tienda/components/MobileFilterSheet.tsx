@@ -3,7 +3,14 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { ChevronDown, X } from "lucide-react"
 
+import type {
+  ABRASIVITY_LEVELS as AbrasivityLevels,
+  AbrasivityValue,
+} from "@/lib/constants/abrasivity"
+
 import PriceRangeSlider from "./PriceRangeSlider"
+
+type AbrasivityLevel = (typeof AbrasivityLevels)[number]
 
 type CategoryItem = {
   id: string
@@ -22,8 +29,11 @@ type MobileFilterSheetProps = {
   onClose: () => void
   categories: CategoryItem[]
   brands: string[]
+  abrasivityLevels: readonly AbrasivityLevel[]
+  abrasivityCounts: Record<AbrasivityValue, number>
   selectedCategories: string[]
   selectedBrands: string[]
+  selectedAbrasivities: AbrasivityValue[]
   search: string
   priceMin: number | null
   priceMax: number | null
@@ -31,6 +41,7 @@ type MobileFilterSheetProps = {
   activeChips: ActiveChip[]
   onCategoriesChange: (slugs: string[]) => void
   onBrandsChange: (brands: string[]) => void
+  onAbrasivitiesChange: (values: AbrasivityValue[]) => void
   onSearchChange: (value: string) => void
   onPriceChange: (min: number | null, max: number | null) => void
   onClearAll: () => void
@@ -138,8 +149,11 @@ export default function MobileFilterSheet({
   onClose,
   categories,
   brands,
+  abrasivityLevels,
+  abrasivityCounts,
   selectedCategories,
   selectedBrands,
+  selectedAbrasivities,
   search,
   priceMin,
   priceMax,
@@ -147,16 +161,26 @@ export default function MobileFilterSheet({
   activeChips,
   onCategoriesChange,
   onBrandsChange,
+  onAbrasivitiesChange,
   onSearchChange,
   onPriceChange,
   onClearAll,
 }: MobileFilterSheetProps) {
   const [categoriesOpen, setCategoriesOpen] = useState(selectedCategories.length > 0)
   const [brandsOpen, setBrandsOpen] = useState(selectedBrands.length > 0)
+  const [abrasivityOpen, setAbrasivityOpen] = useState(
+    selectedAbrasivities.length > 0
+  )
   const [priceOpen, setPriceOpen] = useState(
     priceMin !== null || priceMax !== null
   )
   const [searchOpen, setSearchOpen] = useState(search.trim().length > 0)
+
+  const visibleAbrasivityLevels = abrasivityLevels.filter(
+    (level) =>
+      (abrasivityCounts[level.value] ?? 0) > 0 ||
+      selectedAbrasivities.includes(level.value)
+  )
 
   useEffect(() => {
     if (!open) return
@@ -183,10 +207,19 @@ export default function MobileFilterSheet({
     }
   }
 
+  const toggleAbrasivity = (value: AbrasivityValue) => {
+    if (selectedAbrasivities.includes(value)) {
+      onAbrasivitiesChange(selectedAbrasivities.filter((v) => v !== value))
+    } else {
+      onAbrasivitiesChange([...selectedAbrasivities, value])
+    }
+  }
+
   const handleClearAll = () => {
     onClearAll()
     setCategoriesOpen(false)
     setBrandsOpen(false)
+    setAbrasivityOpen(false)
     setPriceOpen(false)
   }
 
@@ -264,6 +297,50 @@ export default function MobileFilterSheet({
               ))
             )}
           </AccordionSection>
+
+          {visibleAbrasivityLevels.length > 0 && (
+            <AccordionSection
+              title="Abrasividad"
+              open={abrasivityOpen}
+              onToggle={() => setAbrasivityOpen((value) => !value)}
+            >
+              {visibleAbrasivityLevels.map((level) => {
+                const selected = selectedAbrasivities.includes(level.value)
+                const count = abrasivityCounts[level.value] ?? 0
+                return (
+                  <button
+                    key={level.value}
+                    type="button"
+                    onClick={() => toggleAbrasivity(level.value)}
+                    className="flex w-full items-center gap-3 py-3 text-left text-sm text-[#0a0a0a] transition-colors"
+                  >
+                    <span
+                      className={`inline-flex h-4 w-4 shrink-0 items-center justify-center text-sm ${
+                        selected ? "opacity-100" : "opacity-0"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                    <span
+                      aria-hidden
+                      className="inline-block h-3 w-3 shrink-0 rounded-full border border-black/10"
+                      style={{ backgroundColor: level.color }}
+                    />
+                    <span
+                      className={`flex-1 ${selected ? "font-semibold" : "font-normal"}`}
+                    >
+                      {level.label}
+                      <span className="ml-1.5 text-xs text-neutral-400">
+                        {level.tape}
+                      </span>
+                    </span>
+                    <span className="text-xs text-neutral-400">({count})</span>
+                  </button>
+                )
+              })}
+            </AccordionSection>
+          )}
 
           {priceBounds.max > priceBounds.min && (
             <AccordionSection

@@ -4,20 +4,32 @@ import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
 import { PackageOpen } from "lucide-react"
 
+import {
+  ABRASIVITY_LEVELS,
+  getAbrasivityLevel,
+  type AbrasivityValue,
+} from "@/lib/constants/abrasivity"
+import type { HomeBrandItem } from "@/lib/supabase/cache"
+import type { CourseWithStats } from "@/lib/supabase/courses"
+import type { ServiceRow } from "@/lib/supabase/appointments"
 import type {
   Category,
   ProductWithCategory,
 } from "@/lib/supabase/products"
+import { pickRelatedProductsForFilters } from "@/lib/tienda/related-products"
 import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
+import BrandHeaderInfo from "./BrandHeaderInfo"
 import MobileFilterSheet from "./MobileFilterSheet"
 import ProductCard from "./ProductCard"
 import ProductFilterSortBar from "./ProductFilterSortBar"
+import StoreDiscoverySections from "./StoreDiscoverySections"
 import { useProductViewMode } from "./useProductViewMode"
 import { useCart } from "@/app/components/cart/CartContext"
 
 type FiltersState = {
   categorySlugs: string[]
   brands: string[]
+  abrasivities: AbrasivityValue[]
   search: string
   priceMin: number | null
   priceMax: number | null
@@ -42,14 +54,20 @@ type ProductGridProps = {
   products: ProductWithCategory[]
   categories: Category[]
   brands: string[]
+  brandsWithLogo?: HomeBrandItem[]
   initialFilters: FiltersState
+  upcomingCourses: CourseWithStats[]
+  activeServices: ServiceRow[]
 }
 
 export default function ProductGrid({
   products,
   categories,
   brands,
+  brandsWithLogo = [],
   initialFilters,
+  upcomingCourses,
+  activeServices,
 }: ProductGridProps) {
   const pathname = usePathname()
 
@@ -68,6 +86,7 @@ export default function ProductGrid({
   }, [
     initialFilters.categorySlugs,
     initialFilters.brands,
+    initialFilters.abrasivities,
     initialFilters.search,
     initialFilters.priceMin,
     initialFilters.priceMax,
@@ -80,6 +99,8 @@ export default function ProductGrid({
     const params = new URLSearchParams()
     if (filters.categorySlugs.length > 0) params.set("categoria", filters.categorySlugs.join(","))
     if (filters.brands.length > 0) params.set("marca", filters.brands.join(","))
+    if (filters.abrasivities.length > 0)
+      params.set("abrasividad", filters.abrasivities.join(","))
     if (filters.search.trim().length > 0)
       params.set("search", filters.search.trim())
     if (filters.priceMin !== null) params.set("precio_min", String(filters.priceMin))
@@ -101,6 +122,10 @@ export default function ProductGrid({
     setFilters((prev) => ({ ...prev, brands: brandsList }))
   }
 
+  const handleAbrasivitiesChange = (values: AbrasivityValue[]) => {
+    setFilters((prev) => ({ ...prev, abrasivities: values }))
+  }
+
   const handleSearchChange = (value: string) => {
     setFilters((prev) => ({ ...prev, search: value }))
   }
@@ -116,6 +141,7 @@ export default function ProductGrid({
     setFilters({
       categorySlugs: [],
       brands: [],
+      abrasivities: [],
       search: "",
       priceMin: null,
       priceMax: null,
@@ -125,6 +151,7 @@ export default function ProductGrid({
   const hasActiveFilters =
     filters.categorySlugs.length > 0 ||
     filters.brands.length > 0 ||
+    filters.abrasivities.length > 0 ||
     filters.search.trim().length > 0 ||
     filters.priceMin !== null ||
     filters.priceMax !== null
@@ -132,6 +159,7 @@ export default function ProductGrid({
   const activeFilterCount =
     filters.categorySlugs.length +
     filters.brands.length +
+    filters.abrasivities.length +
     (filters.search.trim().length > 0 ? 1 : 0) +
     (filters.priceMin !== null || filters.priceMax !== null ? 1 : 0)
 
@@ -161,6 +189,19 @@ export default function ProductGrid({
     return counts
   }, [products])
 
+  const abrasivityCounts = useMemo(() => {
+    const counts: Record<AbrasivityValue, number> = {
+      "extra-suave": 0,
+      suave: 0,
+      media: 0,
+      fuerte: 0,
+    }
+    for (const product of products) {
+      if (product.abrasivity) counts[product.abrasivity] += 1
+    }
+    return counts
+  }, [products])
+
   const priceBounds = useMemo(() => {
     if (products.length === 0) return { min: 0, max: 0 }
     let min = Infinity
@@ -184,6 +225,12 @@ export default function ProductGrid({
       if (
         filters.brands.length > 0 &&
         !(product.brand && filters.brands.includes(product.brand))
+      ) {
+        return false
+      }
+      if (
+        filters.abrasivities.length > 0 &&
+        !(product.abrasivity && filters.abrasivities.includes(product.abrasivity))
       ) {
         return false
       }
@@ -225,6 +272,29 @@ export default function ProductGrid({
 
     return result
   }, [products, filters, sort])
+
+  const filteredProductIds = useMemo(
+    () => new Set(filteredProducts.map((p) => p.id)),
+    [filteredProducts]
+  )
+
+  const relatedProducts = useMemo(() => {
+    if (!hasActiveFilters) return []
+    return pickRelatedProductsForFilters({
+      products,
+      categories,
+      categorySlugs: filters.categorySlugs,
+      brands: filters.brands,
+      excludeIds: filteredProductIds,
+    })
+  }, [
+    hasActiveFilters,
+    products,
+    categories,
+    filters.categorySlugs,
+    filters.brands,
+    filteredProductIds,
+  ])
 
   const isEmpty = filteredProducts.length === 0
 
@@ -275,6 +345,17 @@ export default function ProductGrid({
       label: brand,
       onRemove: () => handleBrandsChange(filters.brands.filter((b) => b !== brand)),
     })),
+    ...filters.abrasivities.map((value) => {
+      const level = getAbrasivityLevel(value)
+      return {
+        id: `abrasivity-${value}`,
+        label: level ? `${level.label} (${level.tape})` : value,
+        onRemove: () =>
+          handleAbrasivitiesChange(
+            filters.abrasivities.filter((v) => v !== value)
+          ),
+      }
+    }),
     ...(priceChipLabel
       ? [
           {
@@ -286,8 +367,26 @@ export default function ProductGrid({
       : []),
   ]
 
+  const singleSelectedBrand = useMemo(() => {
+    if (filters.brands.length !== 1) return null
+    return (
+      brandsWithLogo.find((b) => b.name === filters.brands[0]) ?? null
+    )
+  }, [filters.brands, brandsWithLogo])
+
+  const singleSelectedBrandCount = useMemo(() => {
+    if (!singleSelectedBrand) return 0
+    return brandCounts[singleSelectedBrand.name] ?? 0
+  }, [singleSelectedBrand, brandCounts])
+
   return (
     <div>
+      {singleSelectedBrand ? (
+        <BrandHeaderInfo
+          brand={singleSelectedBrand}
+          productCount={singleSelectedBrandCount}
+        />
+      ) : null}
       <ProductFilterSortBar
         sort={sort}
         sortOptions={SORT_OPTIONS}
@@ -302,15 +401,19 @@ export default function ProductGrid({
         desktopFilters={{
           categories,
           brands: brandsForSidebar,
+          abrasivityLevels: ABRASIVITY_LEVELS,
           categoryCounts,
           brandCounts,
+          abrasivityCounts,
           selectedCategories: filters.categorySlugs,
           selectedBrands: filters.brands,
+          selectedAbrasivities: filters.abrasivities,
           priceMin: filters.priceMin,
           priceMax: filters.priceMax,
           priceBounds,
           onCategoriesChange: handleCategoriesChange,
           onBrandsChange: handleBrandsChange,
+          onAbrasivitiesChange: handleAbrasivitiesChange,
           onPriceChange: handlePriceChange,
         }}
       />
@@ -354,13 +457,24 @@ export default function ProductGrid({
         )}
       </div>
 
+      {hasActiveFilters && (
+        <StoreDiscoverySections
+          relatedProducts={relatedProducts}
+          courses={upcomingCourses}
+          services={activeServices}
+        />
+      )}
+
       <MobileFilterSheet
         open={mobileFiltersOpen}
         onClose={() => setMobileFiltersOpen(false)}
         categories={categories}
         brands={brandsForSidebar}
+        abrasivityLevels={ABRASIVITY_LEVELS}
+        abrasivityCounts={abrasivityCounts}
         selectedCategories={filters.categorySlugs}
         selectedBrands={filters.brands}
+        selectedAbrasivities={filters.abrasivities}
         search={filters.search}
         priceMin={filters.priceMin}
         priceMax={filters.priceMax}
@@ -368,6 +482,7 @@ export default function ProductGrid({
         activeChips={activeChips}
         onCategoriesChange={handleCategoriesChange}
         onBrandsChange={handleBrandsChange}
+        onAbrasivitiesChange={handleAbrasivitiesChange}
         onSearchChange={handleSearchChange}
         onPriceChange={handlePriceChange}
         onClearAll={handleClearAll}

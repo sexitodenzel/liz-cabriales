@@ -1,6 +1,6 @@
 "use client"
 
-import { useId, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 
 import { useCart } from "@/app/components/cart/CartContext"
 import type { CartItem } from "@/lib/cart"
@@ -17,6 +17,8 @@ type Props = {
   variants: ProductVariant[]
   enableSelector?: boolean
   className?: string
+  enableQuantitySelector?: boolean
+  openCartOnAdd?: boolean
 }
 
 function formatPrice(value: number): string {
@@ -47,6 +49,8 @@ export default function AddToCartButton({
   variants,
   enableSelector = false,
   className,
+  enableQuantitySelector = false,
+  openCartOnAdd = true,
 }: Props) {
   const { addItem, openCart } = useCart()
   const [isAdding, setIsAdding] = useState(false)
@@ -60,6 +64,7 @@ export default function AddToCartButton({
   const [selectedId, setSelectedId] = useState<string | null>(
     defaultVariant?.id ?? null
   )
+  const [quantity, setQuantity] = useState(1)
 
   const selectedVariant = useMemo(() => {
     if (selectedId) {
@@ -72,7 +77,16 @@ export default function AddToCartButton({
   const showSelector = enableSelector && activeVariants.length > 1
   const outOfStock = selectedVariant ? selectedVariant.stock <= 0 : true
   const canAdd = Boolean(selectedVariant) && !outOfStock
+  const maxQuantity = 99
   const displayPrice = selectedVariant?.price ?? basePrice
+
+  useEffect(() => {
+    setQuantity((current) => {
+      if (current < 1) return 1
+      if (current > maxQuantity) return maxQuantity
+      return current
+    })
+  }, [maxQuantity])
 
   const handleAdd = async () => {
     if (!selectedVariant || !canAdd || isAdding) return
@@ -81,7 +95,7 @@ export default function AddToCartButton({
       productId,
       productSlug: productSlug ?? null,
       variantId: selectedVariant.id,
-      quantity: 1,
+      quantity,
       price: selectedVariant.price || basePrice,
       name:
         selectedVariant.variant_name?.trim().length > 0
@@ -94,7 +108,10 @@ export default function AddToCartButton({
     setIsAdding(true)
     try {
       await addItem(item)
-      openCart()
+      setQuantity(1)
+      if (openCartOnAdd) {
+        openCart()
+      }
     } finally {
       setIsAdding(false)
     }
@@ -117,6 +134,19 @@ export default function AddToCartButton({
             ? "Agregando..."
             : "Agregar al carrito"}
     </button>
+  )
+
+  const primaryAction = outOfStock && selectedVariant ? (
+    <NotifyWhenAvailable
+      productId={productId}
+      productSlug={productSlug ?? null}
+      productName={productName}
+      variantId={selectedVariant.id}
+      outOfStock={outOfStock}
+      className={className}
+    />
+  ) : (
+    button
   )
 
   if (!enableSelector) {
@@ -185,17 +215,37 @@ export default function AddToCartButton({
         </p>
       ) : null}
 
-      {outOfStock && selectedVariant ? (
-        <NotifyWhenAvailable
-          productId={productId}
-          productSlug={productSlug ?? null}
-          productName={productName}
-          variantId={selectedVariant.id}
-          outOfStock={outOfStock}
-          className={className}
-        />
+      {enableQuantitySelector ? (
+        <div className="grid grid-cols-[1fr_2fr] items-center gap-3 sm:grid-cols-[minmax(0,140px)_1fr]">
+          <div className="inline-flex w-full items-center justify-between rounded-full border border-neutral-300 px-2 py-1">
+            <button
+              type="button"
+              onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+              disabled={!canAdd || quantity <= 1 || isAdding}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-lg text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-300"
+              aria-label="Disminuir cantidad"
+            >
+              -
+            </button>
+            <span className="min-w-[2ch] text-center text-sm font-semibold text-[#0a0a0a]">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                setQuantity((current) => Math.min(maxQuantity, current + 1))
+              }
+              disabled={outOfStock || quantity >= maxQuantity || isAdding}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-lg text-neutral-700 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-300"
+              aria-label="Aumentar cantidad"
+            >
+              +
+            </button>
+          </div>
+          {primaryAction}
+        </div>
       ) : (
-        button
+        primaryAction
       )}
     </div>
   )

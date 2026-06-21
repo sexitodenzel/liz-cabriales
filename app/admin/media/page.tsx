@@ -28,7 +28,7 @@ type CourseOption = { id: string; title: string }
 const SECTION_META: Record<string, { title: string; description: string }> = {
   hero: {
     title: "Hero Slider",
-    description: "Banners principales del carrusel de inicio. Formato recomendado: 1400×700 px.",
+    description: "Banners principales del carrusel de inicio. Formato recomendado: 1920×600 px (también 1600×500).",
   },
   brand: {
     title: "Quiénes somos",
@@ -77,6 +77,10 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentUrl, setCurrentUrl] = useState(slot.url)
+  const [label, setLabel] = useState(slot.label ?? "")
+  const [savingLabel, setSavingLabel] = useState(false)
+  const [labelSaved, setLabelSaved] = useState(false)
+  const [labelError, setLabelError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [linkType, setLinkType] = useState<LinkType>(slot.link_type ?? "none")
@@ -107,6 +111,7 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
 
   useEffect(() => {
     setCurrentUrl(slot.url)
+    setLabel(slot.label ?? "")
     setLinkType(slot.link_type ?? "none")
     setLinkValue(slot.link_value ?? "")
     setCtaLabel(slot.cta_label ?? "")
@@ -249,6 +254,37 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
     }
   }
 
+  async function saveLabel() {
+    setLabelError(null)
+    setSavingLabel(true)
+    setLabelSaved(false)
+    try {
+      const nextLabel = label.trim() || slot.label || slot.key
+      const res = await fetch("/api/admin/landing-slots", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: slot.key,
+          label: nextLabel,
+        }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error?.message ?? "Error al guardar nombre.")
+      }
+
+      onUpdate(slot.key, { label: nextLabel })
+      setLabel(nextLabel)
+      setLabelSaved(true)
+      setTimeout(() => setLabelSaved(false), 2500)
+    } catch (err: unknown) {
+      setLabelError(err instanceof Error ? err.message : "Error al guardar nombre.")
+    } finally {
+      setSavingLabel(false)
+    }
+  }
+
   const hasImage = Boolean(currentUrl)
 
   return (
@@ -294,6 +330,28 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
             Guardado
           </span>
         )}
+      </div>
+
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <label className="mb-1 block text-[11px] font-medium text-neutral-600">Nombre del slide</label>
+          <input
+            type="text"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Hero 1"
+            className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
+          />
+          {labelError && <p className="mt-1 text-[11px] text-red-500">{labelError}</p>}
+        </div>
+        <button
+          type="button"
+          disabled={savingLabel}
+          onClick={saveLabel}
+          className="mt-[22px] inline-flex shrink-0 items-center justify-center rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-[11px] font-medium text-neutral-700 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {savingLabel ? "Guardando…" : labelSaved ? "Guardado" : "Guardar nombre"}
+        </button>
       </div>
 
       {error && <p className="text-[11px] text-red-500">{error}</p>}
@@ -412,8 +470,8 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
                 </select>
               )}
               <p className="text-[11px] text-neutral-500">
-                El bloque de texto va debajo del banner en el inicio. Solo el botón
-                enlaza a la página del curso.
+                En desktop el bloque va a la derecha de la imagen; en móvil va debajo.
+                Puedes usar título/subtítulo/botón en cualquier destino (producto, curso o URL).
               </p>
             </div>
           )}
@@ -477,9 +535,12 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
               placeholder="Inscríbete ahora"
               className="w-full rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-[12px] text-neutral-700 focus:border-[#c9a84c] focus:outline-none"
             />
+            <p className="text-[11px] text-neutral-500">
+              Si el destino es producto/curso/custom y defines este texto, se muestra el botón en el hero.
+            </p>
           </div>
 
-          {/* Posición del texto en desktop */}
+          {/* Posición del texto y botón */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-medium text-neutral-600">
               Alineación del texto y botón <span className="font-normal text-neutral-400">(móvil y desktop)</span>
@@ -506,7 +567,7 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
             </div>
           </div>
 
-          {/* Mostrar/ocultar campos en desktop */}
+          {/* Mostrar/ocultar campos del bloque de texto */}
           <div className="flex flex-col gap-2">
             <label className="text-[11px] font-medium text-neutral-600">Visibilidad del bloque de texto</label>
             <label className="flex cursor-pointer items-center justify-between rounded-md border border-neutral-200 px-3 py-2">
