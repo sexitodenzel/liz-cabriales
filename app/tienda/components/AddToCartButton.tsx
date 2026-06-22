@@ -97,10 +97,12 @@ export default function AddToCartButton({
       variantId: selectedVariant.id,
       quantity,
       price: selectedVariant.price || basePrice,
-      name:
-        selectedVariant.variant_name?.trim().length > 0
-          ? `${productName} - ${selectedVariant.variant_name}`
-          : productName,
+      name: (() => {
+        const variant = selectedVariant.variant_name?.trim() ?? ""
+        if (!variant) return productName
+        if (variant === productName) return productName
+        return `${productName} - ${variant}`
+      })(),
       brand,
       image,
     }
