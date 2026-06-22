@@ -9,6 +9,8 @@ import { WishlistProvider } from "./components/wishlist/WishlistContext";
 import SiteNavbar from "./components/SiteNavbar";
 import SiteNavbarAuth from "./components/SiteNavbarAuth";
 import SiteFooter from "./components/SiteFooter";
+import AnnouncementBar from "./components/AnnouncementBar";
+import SiteChromeMetrics from "./components/SiteChromeMetrics";
 
 /* =========================
    IMPORTACIÓN DE FUENTES
@@ -71,6 +73,10 @@ export default function RootLayout({
       >
         <CartProvider>
           <WishlistProvider>
+            <SiteChromeMetrics />
+            <Suspense fallback={null}>
+              <AnnouncementBar />
+            </Suspense>
             <Suspense fallback={<SiteNavbar />}>
               <SiteNavbarAuth />
             </Suspense>

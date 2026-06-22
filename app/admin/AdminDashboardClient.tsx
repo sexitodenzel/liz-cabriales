@@ -4,7 +4,7 @@ import type { LucideProps } from "lucide-react"
 import type { FC } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AlertTriangle, CalendarDays, ClipboardList, GraduationCap, Image as ImageIcon, Package, PackageOpen } from "lucide-react"
+import { AlertTriangle, CalendarDays, ClipboardList, GraduationCap, Image as ImageIcon, Megaphone, Package, PackageOpen } from "lucide-react"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import { createClient } from "@/lib/supabase/client"
 
@@ -58,6 +58,12 @@ export default function AdminDashboardClient({
       title: "Media",
       description: "Sube y actualiza banners, fotos y GIFs de la landing page.",
       icon: ImageIcon,
+    },
+    {
+      href: "/admin/announcements",
+      title: "Barra de anuncios",
+      description: "Edita los slides de la franja negra superior de la tienda.",
+      icon: Megaphone,
     },
   ]
 

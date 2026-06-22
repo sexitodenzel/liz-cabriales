@@ -33,9 +33,9 @@ export default function FreeShippingBar({ amount }: { amount: number }) {
           {formatMXN(FREE_SHIPPING_THRESHOLD_MXN)}
         </p>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+      <div className="h-1.5 w-full overflow-hidden bg-neutral-200">
         <div
-          className="h-full rounded-full bg-[#C6A75E] transition-all duration-500"
+          className="h-full bg-[#C6A75E] transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>

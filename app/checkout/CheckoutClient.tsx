@@ -1,20 +1,31 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, useCallback, type FormEvent } from "react"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ChevronDown, Clock, MapPin, Package } from "lucide-react"
+
+import Breadcrumb from "@/components/shared/Breadcrumb"
+import RelatedProductsCarousel from "@/app/tienda/components/RelatedProductsCarousel"
+import { getOrderRetryContext } from "@/lib/order-retry-context"
 
 import {
   CFDI_SURCHARGE_PERCENT,
   computeInvoiceSurchargeMxn,
 } from "@/lib/constants/cfdi"
 import { FREE_SHIPPING_THRESHOLD_MXN } from "@/lib/constants/shipping"
+import {
+  PICKUP_LOCATION_ADDRESS,
+  PICKUP_LOCATION_HOURS,
+  PICKUP_LOCATION_NAME,
+  PICKUP_MAPS_URL,
+  PICKUP_READY_NOTE,
+} from "@/lib/constants/contact"
 import type { CartSnapshot } from "@/lib/supabase/cart"
+import type { ProductWithCategory } from "@/lib/supabase/products"
 import { createOrderSchema } from "@/lib/validations/orders"
 import type { DeliveryType } from "@/types"
 import { useCart } from "@/app/components/cart/CartContext"
 import { createClient } from "@/lib/supabase/client"
-import type { CartItem } from "@/lib/cart"
 import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
@@ -24,18 +35,9 @@ type PaymentData = { payment_url: string; payment_id: string }
 type ApiResponse<T> =
   | { data: T; error: null }
   | { data: null; error: { message: string; code?: string } }
-type Props = { initialCart: CartSnapshot }
+type Props = { initialCart: CartSnapshot; relatedProducts: ProductWithCategory[] }
 
-type Suggestion = {
-  id: string
-  name: string
-  slug: string
-  base_price: number
-  images: string[] | null
-  brand: string | null
-  categories: { name: string } | null
-  product_variants: { id: string; price: number; stock: number; is_active: boolean }[]
-}
+const CHECKOUT_FORM_ID = "checkout-form"
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -52,211 +54,13 @@ function getCheckoutErrorMessage(code?: string, fallback?: string): string {
   return fallback ?? "Ocurrio un error inesperado. Intenta de nuevo."
 }
 
-// ─── Pantalla 1: Revisión de orden ───────────────────────────────────────────
-
-type ReviewProps = {
-  initialCart: CartSnapshot
-  suggestions: Suggestion[]
-  addedIds: Set<string>
-  onAddSuggestion: (s: Suggestion) => void
-  onContinue: () => void
-  onOpenCart: () => void
-}
-
-function ReviewStep({
-  initialCart,
-  suggestions,
-  addedIds,
-  onAddSuggestion,
-  onContinue,
-  onOpenCart,
-}: ReviewProps) {
-  const totalItems = initialCart.items.reduce((s, i) => s + i.quantity, 0)
-
-  return (
-    <div className="mx-auto max-w-[480px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-
-      {/* Cabecera */}
-      <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3.5">
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">
-            Revisa tu pedido
-          </p>
-          <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
-            {totalItems} {totalItems === 1 ? "artículo" : "artículos"}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onOpenCart}
-          className="text-[11px] uppercase tracking-[0.1em] text-neutral-500 underline underline-offset-2 transition-colors hover:text-[#1a1a1a]"
-        >
-          Editar bolsa
-        </button>
-      </div>
-
-      {/* Items */}
-      <ul>
-        {[...initialCart.items].reverse().map((item) => (
-          <li key={item.id} className="flex gap-3 border-b border-neutral-100 p-4">
-            {/* Imagen */}
-            <Link
-              href={item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"}
-              className="shrink-0 self-start"
-            >
-              <div className="h-20 w-20 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
-                {item.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-400">
-                    {item.brand ?? "LC"}
-                  </div>
-                )}
-              </div>
-            </Link>
-
-            {/* Info */}
-            <div className="min-w-0 flex-1">
-              {item.brand && (
-                <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">
-                  {item.brand}
-                </p>
-              )}
-              <Link href={item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"}>
-                <p className="mt-0.5 text-[13px] font-medium leading-snug text-[#1a1a1a] hover:underline">
-                  {item.name}
-                </p>
-              </Link>
-              {item.variantName && item.variantName !== item.name && (
-                <p className="mt-0.5 text-[11px] uppercase tracking-[0.1em] text-neutral-400">
-                  {item.variantName}
-                </p>
-              )}
-              <p className="mt-1 text-[12px] tabular-nums text-neutral-500">
-                {item.quantity} × {formatMXN(item.price)}
-              </p>
-            </div>
-
-            {/* Precio total */}
-            <div className="shrink-0 self-start">
-              <p className="text-[13px] font-semibold tabular-nums text-[#C6A75E]">
-                {formatMXN(item.price * item.quantity)}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      {/* También te puede gustar */}
-      {suggestions.length > 0 && (
-        <div className="border-b border-neutral-100 p-4">
-          <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#1a1a1a]">
-            También te puede gustar
-          </p>
-          <div className="cart-scroll flex gap-3 overflow-x-auto pb-2">
-            {suggestions.map((s) => {
-              const firstVariant = s.product_variants?.find((v) => v.is_active && v.stock > 0)
-              const price = firstVariant?.price ?? s.base_price
-              const category =
-                s.categories && typeof s.categories === "object" && "name" in s.categories
-                  ? (s.categories as { name: string }).name
-                  : null
-              const added = addedIds.has(s.id)
-
-              return (
-                <div key={s.id} className="flex w-36 shrink-0 flex-col">
-                  <Link href={`/tienda/${s.slug}`}>
-                    <div className="h-28 w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50">
-                      {s.images?.[0] ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={s.images[0]}
-                          alt={s.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
-                          {s.brand ?? "LC"}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                  <div className="mt-2 flex flex-1 flex-col">
-                    {category && (
-                      <p className="text-[9px] uppercase tracking-[0.12em] text-neutral-500">
-                        {category}
-                      </p>
-                    )}
-                    <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-medium leading-snug text-[#1a1a1a]">
-                      {s.name}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-[11px] font-semibold text-[#C6A75E]">
-                    {formatMXN(price)}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => onAddSuggestion(s)}
-                    disabled={!firstVariant || added}
-                    className="mt-2 w-full rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:bg-[#C6A75E] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {added ? "Agregado" : "Agregar"}
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Footer: subtotal + CTA */}
-      <div className="bg-[#fafafa] px-4 py-4">
-        <FreeShippingBar amount={initialCart.total} />
-        <div className="flex items-center justify-between">
-          <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal</p>
-          <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">
-            {formatMXN(initialCart.total)}
-          </p>
-        </div>
-        <p className="mt-1 text-[11px] text-neutral-400">
-          Envío y costos calculados al finalizar compra
-        </p>
-        <div className="mt-3">
-          <button
-            type="button"
-            onClick={onContinue}
-            className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-800"
-          >
-            Continuar con la compra
-          </button>
-        </div>
-        <div className="mt-2">
-          <Link
-            href="/tienda"
-            className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
-          >
-            Seguir explorando
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Pantalla 2: Datos de envío ───────────────────────────────────────────────
+// ─── Datos de envío ───────────────────────────────────────────────────────────
 
 type ShippingProps = {
-  mode?: "mobile" | "desktop"
-  suggestions?: Suggestion[]
-  addedIds?: Set<string>
-  onAddSuggestion?: (s: Suggestion) => void
-  onOpenCart?: () => void
   initialCart: CartSnapshot
   requiresInvoice: boolean
   invoiceSurcharge: number
   orderTotal: number
-  onBack: () => void
   // form state
   deliveryType: DeliveryType
   setDeliveryType: (v: DeliveryType) => void
@@ -295,9 +99,10 @@ type ShippingProps = {
 }
 
 function ShippingStep(p: ShippingProps) {
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false)
   // Returns input class — red only when field has error AND user hasn't touched it yet
   const inp = (field?: string) =>
-    `w-full rounded-xl border px-3 py-2.5 text-[13px] text-[#1a1a1a] outline-none transition-colors placeholder:text-neutral-400 focus:border-[#C6A75E] ${
+    `w-full border px-3 py-2.5 text-[13px] text-[#1a1a1a] outline-none transition-colors placeholder:text-neutral-400 focus:border-[#C6A75E] ${
       field && p.fieldErrors[field] ? "border-red-300 bg-red-50" : "border-neutral-200 bg-white"
     }`
 
@@ -313,203 +118,177 @@ function ShippingStep(p: ShippingProps) {
   }
 
   const totalItems = p.initialCart.items.reduce((s, i) => s + i.quantity, 0)
-  const isDesktop = p.mode === "desktop"
+  const isPaymentStep = Boolean(p.createdOrder && (p.paymentUrl || p.paymentError))
+  const previewItems = [...p.initialCart.items].reverse().slice(0, 2)
+  const shippingIsFree =
+    p.deliveryType === "pickup" ||
+    p.initialCart.total >= FREE_SHIPPING_THRESHOLD_MXN
+  const shippingPending = p.deliveryType === "shipping" && !shippingIsFree
 
-  return (
-    <div className="site-container grid gap-4 lg:grid-cols-[1fr_380px] lg:items-start lg:gap-6">
-
-      {/* ── Resumen compacto — arriba en móvil, derecha en desktop ── */}
-      <aside className="order-first space-y-4 lg:order-2 lg:sticky lg:top-24">
-        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3.5">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">Tu pedido</p>
-            <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
-              {totalItems} {totalItems === 1 ? "artículo" : "artículos"}
-            </p>
-          </div>
-          {isDesktop && p.onOpenCart && (
-            <button
-              type="button"
-              onClick={p.onOpenCart}
-              className="text-[11px] uppercase tracking-[0.1em] text-neutral-500 underline underline-offset-2 transition-colors hover:text-[#1a1a1a]"
-            >
-              Editar bolsa
-            </button>
-          )}
-        </div>
-        <ul>
-          {[...p.initialCart.items].reverse().map((item) => (
-            <li key={item.id} className="flex items-start justify-between gap-3 border-b border-neutral-100 px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium leading-snug text-[#1a1a1a]">{item.name}</p>
-                {item.variantName && item.variantName !== item.name && (
-                  <p className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-neutral-400">
-                    {item.variantName}
-                  </p>
-                )}
-                <p className="mt-0.5 text-[12px] tabular-nums text-neutral-500">
-                  {item.quantity} × {formatMXN(item.price)}
+  const orderSummaryBody = (
+    <>
+      <div className="pb-3.5">
+        <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">Tu pedido</p>
+        <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
+          {totalItems} {totalItems === 1 ? "artículo" : "artículos"}
+        </p>
+      </div>
+      <ul>
+        {[...p.initialCart.items].reverse().map((item) => (
+          <li key={item.id} className="flex items-start justify-between gap-3 border-b border-neutral-200 py-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-medium leading-snug text-[#1a1a1a]">{item.name}</p>
+              {item.variantName && item.variantName !== item.name && (
+                <p className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-neutral-400">
+                  {item.variantName}
                 </p>
-              </div>
-              <p className="shrink-0 text-[13px] font-semibold tabular-nums text-[#C6A75E]">
-                {formatMXN(item.price * item.quantity)}
+              )}
+              <p className="mt-0.5 text-[11px] text-neutral-500">
+                Cantidad: {item.quantity}
               </p>
-            </li>
-          ))}
-        </ul>
-        <div className="bg-[#fafafa] px-4 py-4">
-          <FreeShippingBar amount={p.initialCart.total} />
+            </div>
+            <p className="shrink-0 text-[13px] font-semibold tabular-nums text-[#1a1a1a]">
+              {formatMXN(item.price * item.quantity)}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <div className="border-t border-neutral-200 pt-4">
+        {p.deliveryType !== "pickup" && <FreeShippingBar amount={p.initialCart.total} />}
+        {!shippingPending && (
           <div className="flex items-center justify-between">
             <p className="text-[13px] text-neutral-500">Subtotal</p>
             <p className="text-[13px] font-medium tabular-nums text-[#1a1a1a]">{formatMXN(p.initialCart.total)}</p>
           </div>
-          {p.requiresInvoice && p.invoiceSurcharge > 0 && (
-            <div className="mt-1 flex items-center justify-between">
-              <p className="text-[12px] text-neutral-500">Cargo CFDI ({CFDI_SURCHARGE_PERCENT}%)</p>
-              <p className="text-[12px] tabular-nums text-[#1a1a1a]">{formatMXN(p.invoiceSurcharge)}</p>
-            </div>
-          )}
-          <div className="mt-1 flex items-center justify-between">
-            <p className="text-[12px] text-neutral-500">Envío</p>
-            {p.initialCart.total >= FREE_SHIPPING_THRESHOLD_MXN ? (
-              <p className="text-[12px] font-semibold text-[#C6A75E]">Gratis</p>
-            ) : (
-              <p className="text-[12px] text-neutral-500">Se define después</p>
-            )}
-          </div>
-          <div className="mt-3 flex items-center justify-between border-t border-neutral-200 pt-3">
-            <p className="text-[14px] font-semibold text-[#1a1a1a]">Total</p>
-            <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">{formatMXN(p.orderTotal)}</p>
-          </div>
-          {p.initialCart.total < FREE_SHIPPING_THRESHOLD_MXN && (
-            <p className="mt-2 text-[11px] leading-[1.5] text-neutral-400">
-              Enviamos por Estafeta y DHL. El costo se cotiza después de confirmar.
-            </p>
-          )}
-        </div>
-        </div>
-
-        {/* Sugerencias — solo desktop */}
-        {isDesktop && p.suggestions && p.suggestions.length > 0 && p.onAddSuggestion && (
-          <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-            <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#1a1a1a]">
-              También te puede gustar
-            </p>
-            <div className="cart-scroll flex gap-3 overflow-x-auto pb-2">
-              {p.suggestions.map((s) => {
-                const firstVariant = s.product_variants?.find((v) => v.is_active && v.stock > 0)
-                const price = firstVariant?.price ?? s.base_price
-                const category =
-                  s.categories && typeof s.categories === "object" && "name" in s.categories
-                    ? (s.categories as { name: string }).name
-                    : null
-                const added = p.addedIds?.has(s.id) ?? false
-                const onAdd = p.onAddSuggestion!
-
-                return (
-                  <div key={s.id} className="flex w-36 shrink-0 flex-col">
-                    <Link href={`/tienda/${s.slug}`}>
-                      <div className="h-28 w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50">
-                        {s.images?.[0] ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={s.images[0]}
-                            alt={s.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[10px] text-neutral-400">
-                            {s.brand ?? "LC"}
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                    <div className="mt-2 flex flex-1 flex-col">
-                      {category && (
-                        <p className="text-[9px] uppercase tracking-[0.12em] text-neutral-500">
-                          {category}
-                        </p>
-                      )}
-                      <p className="mt-0.5 line-clamp-2 flex-1 text-[11px] font-medium leading-snug text-[#1a1a1a]">
-                        {s.name}
-                      </p>
-                    </div>
-                    <p className="mt-1 text-[11px] font-semibold text-[#C6A75E]">
-                      {formatMXN(price)}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => onAdd(s)}
-                      disabled={!firstVariant || added}
-                      className="mt-2 w-full rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:bg-[#C6A75E] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      {added ? "Agregado" : "Agregar"}
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
+        )}
+        {p.requiresInvoice && p.invoiceSurcharge > 0 && (
+          <div className={`flex items-center justify-between ${shippingPending ? "" : "mt-1"}`}>
+            <p className="text-[12px] text-neutral-500">Cargo CFDI ({CFDI_SURCHARGE_PERCENT}%)</p>
+            <p className="text-[12px] tabular-nums text-[#1a1a1a]">{formatMXN(p.invoiceSurcharge)}</p>
           </div>
         )}
+        <div className={`flex items-center justify-between ${shippingPending || p.requiresInvoice ? "mt-1" : ""}`}>
+          <p className="text-[12px] text-neutral-500">Envío</p>
+          {p.deliveryType === "pickup" ? (
+            <p className="text-[12px] font-medium text-[#1a1a1a]">Retiro en local</p>
+          ) : shippingIsFree ? (
+            <p className="text-[12px] font-semibold text-[#C6A75E]">Gratis</p>
+          ) : (
+            <p className="text-[12px] text-neutral-500">Por cotizar</p>
+          )}
+        </div>
+        <div className="mt-3 flex items-center justify-between border-t border-neutral-200 pt-3">
+          <p className="text-[14px] font-semibold text-[#1a1a1a]">
+            {shippingPending ? "Pagas hoy" : "Total"}
+          </p>
+          <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">{formatMXN(p.orderTotal)}</p>
+        </div>
+        {shippingPending && (
+          <p className="mt-2 text-[11px] leading-[1.5] text-neutral-500">
+            El envío se cotiza y cobra por separado después de confirmar tu pago.
+          </p>
+        )}
+      </div>
+    </>
+  )
+
+  const mobileExpandedSummary = (
+    <>
+      <ul className="space-y-2">
+        {[...p.initialCart.items].reverse().map((item) => (
+          <li key={item.id} className="flex items-center justify-between gap-3 text-[12px]">
+            <p className="min-w-0 truncate text-[#1a1a1a]">
+              {item.quantity}× {item.name}
+            </p>
+            <p className="shrink-0 tabular-nums text-neutral-600">
+              {formatMXN(item.price * item.quantity)}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 space-y-2 border-t border-neutral-200 pt-3">
+        {p.deliveryType !== "pickup" && <FreeShippingBar amount={p.initialCart.total} />}
+        {p.requiresInvoice && p.invoiceSurcharge > 0 && (
+          <div className="flex items-center justify-between text-[12px]">
+            <p className="text-neutral-500">CFDI ({CFDI_SURCHARGE_PERCENT}%)</p>
+            <p className="tabular-nums text-neutral-600">{formatMXN(p.invoiceSurcharge)}</p>
+          </div>
+        )}
+        <div className="flex items-center justify-between text-[12px]">
+          <p className="text-neutral-500">Envío</p>
+          {p.deliveryType === "pickup" ? (
+            <p className="font-medium text-[#1a1a1a]">Retiro en local</p>
+          ) : shippingIsFree ? (
+            <p className="font-medium text-[#C6A75E]">Gratis</p>
+          ) : (
+            <p className="text-neutral-500">Por cotizar</p>
+          )}
+        </div>
+        {shippingPending && (
+          <p className="text-[11px] leading-[1.5] text-neutral-500">
+            El envío se cotiza y cobra por separado.
+          </p>
+        )}
+      </div>
+    </>
+  )
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-6">
+
+      {/* ── Resumen — sidebar en desktop ── */}
+      <aside className="hidden w-full min-w-0 shrink-0 bg-[#fafafa] p-4 lg:order-2 lg:sticky lg:top-24 lg:block lg:w-[380px]">
+        <div>
+        {orderSummaryBody}
+          {!p.createdOrder && (
+            <div className="mt-4">
+              <button
+                type="submit"
+                form={CHECKOUT_FORM_ID}
+                disabled={p.isSubmitting}
+                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
+              </button>
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* ── Formulario ── */}
-      <section className="order-last overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm lg:order-1">
-
-        {/* Cabecera con botón regresar (solo móvil) */}
-        <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3.5">
-          {!isDesktop && (
-            <button
-              type="button"
-              onClick={p.onBack}
-              className="flex items-center justify-center rounded-full p-1 text-neutral-400 transition-colors hover:text-[#1a1a1a]"
-              aria-label="Regresar"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-          )}
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">
-              {isDesktop ? "Completa tus datos" : "Paso 2 de 2"}
-            </p>
-            <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
-              {isDesktop ? "Dirección y facturación" : "Datos de envío y pago"}
-            </p>
-          </div>
-        </div>
+      <section className="order-first min-w-0 lg:order-1">
 
         {/* Estado: pago con error */}
         {p.createdOrder && p.paymentError ? (
-          <div className="p-5">
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+          <div className="py-4 lg:py-5">
+            <div className="border border-neutral-200 bg-neutral-50 p-4">
               <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">Error de pago</p>
               <p className="mt-1 text-[13px] font-semibold text-[#1a1a1a]">No se pudo abrir MercadoPago</p>
               <p className="mt-1 text-[12px] text-neutral-500">{p.paymentError}</p>
               <p className="mt-3 text-[10px] uppercase tracking-[0.12em] text-neutral-400">ID de orden</p>
               <p className="mt-0.5 break-all text-[12px] font-medium text-[#1a1a1a]">{p.createdOrder.order_id}</p>
             </div>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <div className="mt-4 flex w-full flex-col gap-2">
               <button
                 type="button"
                 onClick={p.onRetryPayment}
                 disabled={p.isRetryingPayment}
-                className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {p.isRetryingPayment ? "Procesando..." : "Reintentar pago"}
               </button>
               <button
                 type="button"
                 onClick={p.onCancelPendingOrder}
-                className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
               >
                 Cancelar y volver
               </button>
             </div>
           </div>
         ) : p.createdOrder && p.paymentUrl ? (
-          <div className="p-5">
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <div className="py-4 lg:py-5">
+            <div className="border border-amber-200 bg-amber-50 p-4">
               <p className="text-[10px] uppercase tracking-[0.15em] text-amber-700">Pago en proceso</p>
               <p className="mt-1 text-[13px] font-semibold text-[#1a1a1a]">
                 Completa tu pago en la nueva pestaña
@@ -521,69 +300,115 @@ function ShippingStep(p: ShippingProps) {
               <p className="mt-3 text-[10px] uppercase tracking-[0.12em] text-neutral-400">ID de orden</p>
               <p className="mt-0.5 break-all text-[12px] font-medium text-[#1a1a1a]">{p.createdOrder.order_id}</p>
             </div>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <div className="mt-4 flex w-full flex-col gap-2">
               <a
                 href={p.paymentUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-800"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-800"
               >
                 Abrir pago
               </a>
               <button
                 type="button"
                 onClick={p.onCancelPendingOrder}
-                className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
               >
                 Cancelar y editar pedido
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={p.onSubmit}>
+          <form id={CHECKOUT_FORM_ID} onSubmit={p.onSubmit}>
 
             {/* Tipo de entrega */}
-            <div className="border-b border-neutral-100 px-5 py-4">
-              <p className="mb-3 text-[10px] uppercase tracking-[0.15em] text-neutral-500">
-                Método de entrega
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 p-3.5 transition-colors has-[:checked]:border-[#C6A75E] has-[:checked]:bg-neutral-50">
+            <div className="border-b border-neutral-200 px-0 py-4 lg:px-0">
+              <div
+                className="flex rounded-xl bg-neutral-100 p-1"
+                role="radiogroup"
+                aria-label="Elige envío a domicilio o retiro en local"
+              >
+                <label
+                  className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg py-2.5 text-[13px] font-medium transition-all ${
+                    p.deliveryType === "shipping"
+                      ? "bg-white text-[#1a1a1a] shadow-sm"
+                      : "bg-transparent text-neutral-500"
+                  }`}
+                >
                   <input
-                    type="radio" name="delivery_type" value="shipping"
+                    type="radio"
+                    name="delivery_type"
+                    value="shipping"
                     checked={p.deliveryType === "shipping"}
                     onChange={() => p.setDeliveryType("shipping")}
-                    className="mt-0.5 h-4 w-4 accent-[#C6A75E]"
+                    className="sr-only"
                   />
-                  <span>
-                    <span className="block text-[13px] font-semibold text-[#1a1a1a]">Envío a domicilio</span>
-                    <span className="mt-0.5 block text-[11px] text-neutral-500">Llena tus datos para la guía.</span>
-                  </span>
+                  <Package className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                  <span>Envío</span>
                 </label>
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 p-3.5 transition-colors has-[:checked]:border-[#C6A75E] has-[:checked]:bg-neutral-50">
+                <label
+                  className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg py-2.5 text-[13px] font-medium transition-all ${
+                    p.deliveryType === "pickup"
+                      ? "bg-white text-[#1a1a1a] shadow-sm"
+                      : "bg-transparent text-neutral-500"
+                  }`}
+                >
                   <input
-                    type="radio" name="delivery_type" value="pickup"
+                    type="radio"
+                    name="delivery_type"
+                    value="pickup"
                     checked={p.deliveryType === "pickup"}
                     onChange={() => p.setDeliveryType("pickup")}
-                    className="mt-0.5 h-4 w-4 accent-[#C6A75E]"
+                    className="sr-only"
                   />
-                  <span>
-                    <span className="block text-[13px] font-semibold text-[#1a1a1a]">Retiro en local</span>
-                    <span className="mt-0.5 block text-[11px] text-neutral-500">Sin datos de envío.</span>
-                  </span>
+                  <MapPin className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                  <span>Retiro</span>
                 </label>
               </div>
+
+              {p.deliveryType === "pickup" && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-[12px] text-neutral-500">Recoge en nuestro local</p>
+                  <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-[13px] font-semibold text-[#1a1a1a]">{PICKUP_LOCATION_NAME}</p>
+                      <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[#C6A75E]">
+                        Gratis
+                      </p>
+                    </div>
+                    <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-600">
+                      {PICKUP_LOCATION_ADDRESS}
+                    </p>
+                    <p className="mt-2 flex items-start gap-1.5 text-[11px] text-neutral-500">
+                      <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+                      <span>
+                        {PICKUP_READY_NOTE}
+                        <span className="mt-0.5 block">{PICKUP_LOCATION_HOURS}</span>
+                      </span>
+                    </p>
+                    <a
+                      href={PICKUP_MAPS_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-neutral-600"
+                    >
+                      <MapPin className="h-3 w-3 shrink-0" strokeWidth={1.75} />
+                      Ver en mapa
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Datos para guías */}
             {p.deliveryType === "shipping" && (
-              <div className="border-b border-neutral-100 px-5 py-4">
+              <div className="border-b border-neutral-200 px-0 py-4 lg:px-0">
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">
                     Datos para emitir guías
                   </p>
                   {p.autoFilled && (
-                    <p className="text-[11px] text-emerald-600">Datos de tu perfil precargados ✓</p>
+                    <p className="text-[11px] text-neutral-500 underline">Datos de tu perfil precargados</p>
                   )}
                 </div>
                 <div className="space-y-3">
@@ -621,7 +446,7 @@ function ShippingStep(p: ShippingProps) {
                         <p className="mt-1 text-[11px] text-neutral-400">Buscando C.P.…</p>
                       )}
                       {p.cpLookupState === "found" && (
-                        <p className="mt-1 text-[11px] text-emerald-600">✓ Datos autocompletados</p>
+                        <p className="mt-1 text-[11px] text-neutral-500 underline">Datos autocompletados</p>
                       )}
                       {p.cpLookupState === "notfound" && (
                         <p className="mt-1 text-[11px] text-neutral-400">C.P. no encontrado — llena los campos manualmente</p>
@@ -690,9 +515,9 @@ function ShippingStep(p: ShippingProps) {
             )}
 
             {/* Factura */}
-            <div className="border-b border-neutral-100 px-5 py-4">
+            <div className="border-b border-neutral-200 px-0 py-4 lg:px-0">
               <p className="mb-3 text-[10px] uppercase tracking-[0.15em] text-neutral-500">Facturación</p>
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 p-3.5 transition-colors has-[:checked]:border-[#C6A75E] has-[:checked]:bg-neutral-50">
+              <label className="flex cursor-pointer items-start gap-3 border border-neutral-200 p-3.5 transition-colors has-[:checked]:border-[#C6A75E] has-[:checked]:bg-neutral-50">
                 <input
                   type="checkbox"
                   checked={p.requiresInvoice}
@@ -728,12 +553,12 @@ function ShippingStep(p: ShippingProps) {
                     <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">Constancia de situación fiscal <span className="text-neutral-400 font-normal">(opcional)</span></p>
                     <p className="mb-2 text-[11px] text-neutral-400">PDF, JPG o PNG · máx. 10 MB. Puedes subirla ahora o después.</p>
                     {p.constanciaFile ? (
-                      <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+                      <div className="flex items-center justify-between border border-neutral-200 bg-neutral-50 px-3 py-2">
                         <p className="truncate text-[12px] font-medium text-[#1a1a1a]">{p.constanciaFile.name}</p>
                         <button type="button" onClick={() => p.setConstanciaFile(null)} className="ml-2 shrink-0 text-[11px] text-neutral-400 hover:text-[#1a1a1a]">Quitar</button>
                       </div>
                     ) : (
-                      <label className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 py-3 text-[12px] text-neutral-500 transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]">
+                      <label className="flex w-full cursor-pointer items-center justify-center border border-dashed border-neutral-300 bg-neutral-50 py-3 text-[12px] text-neutral-500 transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]">
                         Seleccionar archivo
                         <input type="file" accept=".pdf,image/*" className="hidden" onChange={(e) => p.setConstanciaFile(e.target.files?.[0] ?? null)} />
                       </label>
@@ -745,7 +570,7 @@ function ShippingStep(p: ShippingProps) {
 
             {/* Error general */}
             {p.errorMessage && (
-              <div ref={p.errorRef} className="mx-5 my-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+              <div ref={p.errorRef} className="my-4 border border-red-100 bg-red-50 px-4 py-3">
                 <p className="text-[12px] font-semibold text-[#1a1a1a]">
                   {p.errorCode === "OUT_OF_STOCK" ? "Stock insuficiente"
                     : p.errorCode === "UNAUTHORIZED" ? "Sesión expirada"
@@ -765,40 +590,115 @@ function ShippingStep(p: ShippingProps) {
               </div>
             )}
 
-            {/* CTA */}
-            <div className="flex flex-col gap-2 px-5 py-4 sm:flex-row">
-              <button
-                type="submit"
-                disabled={p.isSubmitting}
-                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
-              </button>
-              {!isDesktop && (
-                <button
-                  type="button"
-                  onClick={p.onBack}
-                  className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
-                >
-                  Regresar
-                </button>
-              )}
-            </div>
           </form>
         )}
       </section>
+
+      {/* ── Resumen comprimido — abajo en móvil ── */}
+      {!isPaymentStep && (
+        <div className="order-last bg-[#fafafa] p-4 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileSummaryOpen((open) => !open)}
+            className="flex w-full items-center justify-between gap-3"
+            aria-expanded={mobileSummaryOpen}
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="relative h-9 w-[52px] shrink-0">
+                {previewItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="absolute top-0 h-9 w-9 overflow-hidden rounded-md border-2 border-white bg-neutral-100"
+                    style={{ left: `${index * 14}px`, zIndex: previewItems.length - index }}
+                  >
+                    {item.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.image} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[8px] font-semibold text-neutral-400">
+                        {item.brand?.slice(0, 2) ?? "LC"}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="min-w-0 text-left">
+                <p className="text-[14px] font-semibold text-[#1a1a1a]">Total</p>
+                <p className="text-[12px] text-neutral-500">
+                  {totalItems} {totalItems === 1 ? "artículo" : "artículos"}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500">
+                MXN
+              </span>
+              <span className="text-[16px] font-semibold tabular-nums text-[#1a1a1a]">
+                {formatMXN(p.orderTotal)}
+              </span>
+              <ChevronDown
+                className={`h-4 w-4 text-neutral-400 transition-transform ${mobileSummaryOpen ? "rotate-180" : ""}`}
+              />
+            </div>
+          </button>
+
+          {mobileSummaryOpen && (
+            <div className="mt-3 border-t border-neutral-200 pt-3">
+              {mobileExpandedSummary}
+            </div>
+          )}
+
+          <div className="mt-3 w-full">
+            <button
+              type="submit"
+              form={CHECKOUT_FORM_ID}
+              disabled={p.isSubmitting}
+              className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
-export default function CheckoutClient({ initialCart }: Props) {
-  const [step, setStep] = useState<"review" | "shipping">("review")
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
-  const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
-  const hasFetchedRef = useRef(false)
-  const { addItem, openCart } = useCart()
+export default function CheckoutClient({ initialCart, relatedProducts }: Props) {
+  const hasAutoFilledRef = useRef(false)
+  const { itemCount, isLoading: isCartLoading } = useCart()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const queryFromOrderId =
+    searchParams.get("from") === "order" ? searchParams.get("orderId") : null
+  const [storedOrderId, setStoredOrderId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!queryFromOrderId) {
+      setStoredOrderId(getOrderRetryContext())
+    }
+  }, [queryFromOrderId])
+
+  const fromOrderId = queryFromOrderId ?? storedOrderId
+  const breadcrumbItems = fromOrderId
+    ? [
+        { label: "Inicio", href: "/" },
+        { label: "Mi cuenta", href: "/perfil" },
+        { label: "Pedidos", href: "/perfil/pedidos" },
+        { label: "Mi pedido", href: `/orden/${fromOrderId}` },
+        {
+          label: "Carrito",
+          href: `/carrito?from=order&orderId=${fromOrderId}`,
+        },
+        { label: "Checkout" },
+      ]
+    : [
+        { label: "Inicio", href: "/" },
+        { label: "Carrito", href: "/carrito" },
+        { label: "Checkout" },
+      ]
 
   // Datos del formulario (persisten entre pasos)
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("shipping")
@@ -831,7 +731,18 @@ export default function CheckoutClient({ initialCart }: Props) {
   const [cpLookupState, setCpLookupState] = useState<"idle" | "loading" | "found" | "notfound">("idle")
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
   const errorRef = useRef<HTMLDivElement>(null)
-  const hasAutoFilledRef = useRef(false)
+
+  // Si el carrito queda vacío (p. ej. el usuario borra el último producto desde
+  // la bolsa), sacarlo del flujo de checkout y mandarlo al carrito vacío.
+  // No redirigir mientras la bolsa está cargando ni durante el paso de pago,
+  // ya que ahí el carrito se vacía al confirmar la orden.
+  useEffect(() => {
+    if (isCartLoading) return
+    if (createdOrder) return
+    if (itemCount === 0) {
+      router.replace("/carrito")
+    }
+  }, [isCartLoading, itemCount, createdOrder, router])
 
   const clearFieldError = useCallback((field: string) => {
     setFieldErrors((prev) => {
@@ -888,55 +799,6 @@ export default function CheckoutClient({ initialCart }: Props) {
     handleAutoFill()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // Fetch sugerencias al montar
-  useEffect(() => {
-    if (hasFetchedRef.current) return
-    hasFetchedRef.current = true
-
-    const cartSlugs = initialCart.items.map((i) => i.productSlug).filter(Boolean)
-    const supabase = createClient()
-
-    supabase
-      .from("products")
-      .select(
-        "id, name, slug, base_price, images, brand, categories(name), product_variants(id, price, stock, is_active)"
-      )
-      .is("deleted_at", null)
-      .eq("is_active", true)
-      .limit(40)
-      .then(({ data }) => {
-        if (!data) return
-        const filtered = (data as unknown as Suggestion[])
-          .filter(
-            (s) =>
-              Boolean(s.images?.[0]) &&
-              !cartSlugs.includes(s.slug) &&
-              s.product_variants?.some((v) => v.is_active && v.stock > 0)
-          )
-          .slice(0, 6)
-        setSuggestions(filtered)
-      })
-  }, [initialCart.items])
-
-  const handleAddSuggestion = async (s: Suggestion) => {
-    const firstVariant = s.product_variants?.find((v) => v.is_active && v.stock > 0)
-    if (!firstVariant) return
-
-    const cartItem: CartItem = {
-      productId: s.id,
-      productSlug: s.slug,
-      variantId: firstVariant.id,
-      quantity: 1,
-      price: firstVariant.price,
-      name: s.name,
-      brand: s.brand,
-      image: s.images?.[0] ?? null,
-    }
-
-    await addItem(cartItem)
-    setAddedIds((prev) => new Set([...prev, s.id]))
-  }
 
   async function callPaymentEndpoint(orderId: string): Promise<boolean> {
     setSubmitLabel("Abriendo MercadoPago...")
@@ -1128,12 +990,13 @@ export default function CheckoutClient({ initialCart }: Props) {
     setPaymentError(null)
   }
 
+  const isPaymentStep = Boolean(createdOrder && (paymentUrl || paymentError))
+
   const shippingProps = {
     initialCart,
     requiresInvoice,
     invoiceSurcharge,
     orderTotal,
-    onBack: () => setStep("review"),
     deliveryType, setDeliveryType,
     nombreCompleto, setNombreCompleto,
     calleNumero, setCalleNumero,
@@ -1167,70 +1030,58 @@ export default function CheckoutClient({ initialCart }: Props) {
   } as const
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-[#1a1a1a]">
-      {/* ─── Móvil: indicador 2 pasos ─── */}
-      <div className="site-container pt-6 lg:hidden">
-        <div className="mb-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => step === "shipping" && setStep("review")}
-            className={`flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] transition-colors ${
-              step === "review" ? "font-semibold text-[#1a1a1a]" : "text-neutral-400 hover:text-[#1a1a1a]"
-            }`}
-          >
-            <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${step === "review" ? "bg-black text-white" : "bg-neutral-200 text-neutral-500"}`}>1</span>
-            Revisa tu pedido
-          </button>
-          <span className="text-neutral-300">›</span>
-          <span className={`flex items-center gap-1.5 text-[11px] uppercase tracking-[0.12em] ${step === "shipping" ? "font-semibold text-[#1a1a1a]" : "text-neutral-400"}`}>
-            <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${step === "shipping" ? "bg-black text-white" : "bg-neutral-200 text-neutral-500"}`}>2</span>
-            Datos de envío
-          </span>
-        </div>
+    <main className="min-h-screen bg-white text-[#1a1a1a]">
+      <div className="site-container pt-5">
+        <Breadcrumb items={breadcrumbItems} />
       </div>
 
-      {/* ─── Desktop: indicador 2 pasos (Datos → Pago) ─── */}
-      <div className="site-container hidden pt-6 lg:block">
+      <div className="site-container pt-6">
         <nav className="mb-4 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em]">
-          <span className="flex items-center gap-1.5 font-semibold text-[#1a1a1a]">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white">1</span>
+          <span
+            className={`flex items-center gap-1.5 ${
+              isPaymentStep ? "text-neutral-400" : "font-semibold text-[#1a1a1a]"
+            }`}
+          >
+            <span
+              className={`flex h-5 w-5 items-center justify-center text-[10px] font-bold ${
+                isPaymentStep
+                  ? "bg-neutral-200 text-neutral-500"
+                  : "bg-black text-white"
+              }`}
+            >
+              1
+            </span>
             Datos de envío y facturación
           </span>
           <span className="text-neutral-300">›</span>
-          <span className="flex items-center gap-1.5 text-neutral-400">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-200 text-[10px] font-bold text-neutral-500">2</span>
+          <span
+            className={`flex items-center gap-1.5 ${
+              isPaymentStep ? "font-semibold text-[#1a1a1a]" : "text-neutral-400"
+            }`}
+          >
+            <span
+              className={`flex h-5 w-5 items-center justify-center text-[10px] font-bold ${
+                isPaymentStep
+                  ? "bg-black text-white"
+                  : "bg-neutral-200 text-neutral-500"
+              }`}
+            >
+              2
+            </span>
             Pago (MercadoPago)
           </span>
         </nav>
       </div>
 
-      {/* ─── Móvil: flujo por pasos ─── */}
-      <div className="site-container pb-12 lg:hidden">
-        {step === "review" ? (
-          <ReviewStep
-            initialCart={initialCart}
-            suggestions={suggestions}
-            addedIds={addedIds}
-            onAddSuggestion={handleAddSuggestion}
-            onContinue={() => setStep("shipping")}
-            onOpenCart={openCart}
-          />
-        ) : (
-          <ShippingStep mode="mobile" {...shippingProps} />
-        )}
+      <div className="site-container pb-12">
+        <ShippingStep {...shippingProps} />
       </div>
 
-      {/* ─── Desktop: vista unificada ─── */}
-      <div className="site-container hidden pb-12 lg:block">
-        <ShippingStep
-          mode="desktop"
-          suggestions={suggestions}
-          addedIds={addedIds}
-          onAddSuggestion={handleAddSuggestion}
-          onOpenCart={openCart}
-          {...shippingProps}
-        />
-      </div>
+      {relatedProducts.length > 0 && (
+        <div className="site-container pb-16">
+          <RelatedProductsCarousel products={relatedProducts} />
+        </div>
+      )}
     </main>
   )
 }

@@ -7,6 +7,7 @@ const STORAGE_KEY = "lc_wishlist"
 type WishlistCtx = {
   slugs: string[]
   toggle: (slug: string) => void
+  clearAll: () => void
   has: (slug: string) => boolean
   count: number
   hydrated: boolean
@@ -15,6 +16,7 @@ type WishlistCtx = {
 const WishlistContext = createContext<WishlistCtx>({
   slugs: [],
   toggle: () => {},
+  clearAll: () => {},
   has: () => false,
   count: 0,
   hydrated: false,
@@ -43,10 +45,18 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const has = useCallback((slug: string) => slugs.includes(slug), [slugs])
+  const clearAll = useCallback(() => {
+    setSlugs([])
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([]))
+    } catch {
+      // noop
+    }
+  }, [])
 
   return (
     <WishlistContext.Provider
-      value={{ slugs, toggle, has, count: slugs.length, hydrated }}
+      value={{ slugs, toggle, clearAll, has, count: slugs.length, hydrated }}
     >
       {children}
     </WishlistContext.Provider>

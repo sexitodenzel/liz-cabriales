@@ -1,240 +1,123 @@
 import Link from "next/link"
-import { redirect } from "next/navigation"
 
-import PerfilCitasClient from "./PerfilCitasClient"
-import Breadcrumb from "@/components/shared/Breadcrumb"
-import PerfilSignOutButton from "./PerfilSignOutButton"
-import { listAppointmentsForUser } from "@/lib/supabase/appointments"
-import { getUserRegistrations } from "@/lib/supabase/courses"
-import { getUserOrdersSummaries } from "@/lib/supabase/orders"
+import AccountShell from "./AccountShell"
+import {
+  buildPrimaryAddress,
+  formatMoney,
+  orderStatusBadgeClassName,
+  orderStatusClass,
+  orderStatusLabel,
+} from "./account-utils"
+import { getUserOrdersSummaries, getUserSavedAddressesFromOrders } from "@/lib/supabase/orders"
 import { getAuthUser, getUserProfile } from "@/lib/supabase/auth-server"
-import type { OrderStatus, RegistrationStatus } from "@/types"
 
 export const dynamic = "force-dynamic"
 
-function formatMoney(value: number): string {
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
-function orderStatusLabel(status: OrderStatus): string {
-  const map: Record<OrderStatus, string> = {
-    pending: "Pendiente",
-    paid: "Pagado",
-    awaiting_shipping_payment: "Esperando pago de envío",
-    shipping_paid: "Envío pagado",
-    shipped: "Enviado",
-    delivered: "Entregado",
-    cancelled: "Cancelado",
-  }
-  return map[status] ?? status
-}
-
-function orderStatusClass(status: OrderStatus): string {
-  switch (status) {
-    case "pending":
-      return "bg-amber-100 text-amber-900 border-amber-200"
-    case "paid":
-      return "bg-blue-100 text-blue-900 border-blue-200"
-    case "shipped":
-      return "bg-violet-100 text-violet-900 border-violet-200"
-    case "delivered":
-      return "bg-emerald-100 text-emerald-900 border-emerald-200"
-    case "cancelled":
-      return "bg-red-100 text-red-900 border-red-200"
-    default:
-      return "bg-neutral-100 text-neutral-800 border-neutral-200"
-  }
-}
-
-function registrationStatusLabel(status: RegistrationStatus): string {
-  const map = {
-    pending: "Pendiente de pago",
-    paid: "Pagada",
-    cancelled: "Cancelada",
-  } as const
-  return map[status] ?? status
-}
-
 export default async function PerfilPage() {
   const user = await getAuthUser()
-
-  if (!user) {
-    redirect("/login")
-  }
+  if (!user) return null
 
   const profile = await getUserProfile(user.id)
-
-  const displayName =
-    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
-    "Cliente"
-  const email = profile?.email ?? user.email ?? ""
   const isAdmin = profile?.role === "admin" || profile?.role === "receptionist"
+  const firstName = profile?.first_name?.trim() || "Cliente"
+  const displayName =
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Cliente"
+  const email = profile?.email ?? user.email ?? ""
+  const memberSince = user.created_at
+    ? new Date(user.created_at).toLocaleDateString("es-MX", { dateStyle: "long" })
+    : null
 
-  const [ordersRes, apptsRes, regsRes] = await Promise.all([
+  const [ordersRes, savedAddressesRes] = await Promise.all([
     getUserOrdersSummaries(user.id),
-    listAppointmentsForUser(user.id),
-    getUserRegistrations(user.id),
+    getUserSavedAddressesFromOrders(user.id),
   ])
 
   const orders = ordersRes.data ?? []
-  const appointments = apptsRes.data ?? []
-  const registrations = regsRes.data ?? []
+  const savedAddresses = savedAddressesRes.data ?? []
+  const primaryAddress = buildPrimaryAddress(profile) ?? savedAddresses[0]?.address ?? null
 
   return (
-    <main className="min-h-screen bg-white text-[var(--foreground)]">
-      <div className="site-container pt-5 pb-12">
-        <div className="mx-auto max-w-[900px]">
-        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Mi Perfil" }]} />
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">
-              Mi perfil
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="shrink-0 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--gold)] hover:text-[var(--gold)]"
+    <AccountShell active="resumen" title="Resumen de cuenta" isAdmin={isAdmin}>
+      <p className="text-sm text-neutral-700">Bienvenida de vuelta, {firstName}.</p>
+
+      <div className="mt-8">
+        <h3 className="text-xl font-medium text-neutral-900">Pedidos recientes</h3>
+        {orders.length === 0 ? (
+          <p className="mt-4 text-sm text-neutral-600">
+            Aún no tienes pedidos. Explora la{" "}
+            <Link href="/tienda" className="font-medium text-[var(--gold)] underline">
+              tienda
+            </Link>
+            .
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-neutral-300">
+            {orders.slice(0, 3).map((o) => (
+              <li
+                key={o.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0"
               >
-                Panel de administrador
-              </Link>
-            )}
-            <PerfilSignOutButton />
-          </div>
-        </div>
+                <div>
+                  <p className="text-sm text-neutral-600">
+                    {new Date(o.created_at).toLocaleString("es-MX", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </p>
+                  <p className="mt-1 text-base font-semibold text-neutral-900">{formatMoney(o.total)}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`${orderStatusBadgeClassName} ${orderStatusClass(o.status)}`}
+                  >
+                    {orderStatusLabel(o.status)}
+                  </span>
+                  <Link
+                    href={`/orden/${o.id}`}
+                    className={`${orderStatusBadgeClassName} text-neutral-900 transition-colors hover:text-[var(--gold)]`}
+                  >
+                    Ver orden
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {orders.length > 0 && (
+          <Link
+            href="/perfil/pedidos"
+            className="mt-4 inline-block text-xs font-medium uppercase tracking-[0.18em] text-neutral-700 underline underline-offset-4 transition-colors hover:text-black"
+          >
+            Ver todos los pedidos
+          </Link>
+        )}
+      </div>
 
-        <section className="mt-10 rounded-[28px] border border-[#ececec] bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="text-lg font-semibold text-neutral-900">
-            Datos del usuario
-          </h2>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-                Nombre
-              </dt>
-              <dd className="mt-1 text-neutral-900">{displayName}</dd>
+      <div className="mt-10">
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
+          <div>
+            <h3 className="text-xl font-medium text-neutral-900">Datos principales</h3>
+            <div className="mt-4 border-t border-neutral-300 pt-4 text-sm text-neutral-800">
+              <p>{displayName}</p>
+              <p className="mt-1">{email}</p>
+              {memberSince && <p className="mt-1 text-neutral-600">Miembro desde {memberSince}</p>}
             </div>
-            <div>
-              <dt className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-                Correo
-              </dt>
-              <dd className="mt-1 text-neutral-900">{email}</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="mt-8 rounded-[28px] border border-[#ececec] bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="text-lg font-semibold text-neutral-900">Mis pedidos</h2>
-          {orders.length === 0 ? (
-            <p className="mt-4 text-sm text-neutral-600">
-              Aún no tienes pedidos. Explora la{" "}
-              <Link href="/tienda" className="font-medium text-[var(--gold)] underline">
-                tienda
-              </Link>
-              .
-            </p>
-          ) : (
-            <ul className="mt-4 divide-y divide-neutral-200">
-              {orders.map((o) => (
-                <li
-                  key={o.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0"
-                >
-                  <div>
-                    <p className="text-sm text-neutral-600">
-                      {new Date(o.created_at).toLocaleString("es-MX", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </p>
-                    <p className="mt-1 text-base font-semibold text-neutral-900">
-                      {formatMoney(o.total)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${orderStatusClass(o.status)}`}
-                    >
-                      {orderStatusLabel(o.status)}
-                    </span>
-                    <Link
-                      href={`/orden/${o.id}`}
-                      className="text-sm font-medium text-[var(--gold)] underline-offset-2 hover:underline"
-                    >
-                      Ver orden
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="mt-8 rounded-[28px] border border-[#ececec] bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="text-lg font-semibold text-neutral-900">Mis citas</h2>
-          <div className="mt-4">
-            <PerfilCitasClient initialAppointments={appointments} />
           </div>
-        </section>
 
-        <section className="mt-8 rounded-[28px] border border-[#ececec] bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="text-lg font-semibold text-neutral-900">Mis cursos</h2>
-          {registrations.length === 0 ? (
-            <p className="mt-4 text-sm text-neutral-600">
-              No tienes inscripciones. Consulta los{" "}
-              <Link href="/academia" className="font-medium text-[var(--gold)] underline">
-                cursos disponibles
-              </Link>
-              .
-            </p>
-          ) : (
-            <ul className="mt-4 divide-y divide-neutral-200">
-              {registrations.map((r) => {
-                const title = r.course?.title ?? "Curso"
-                const paid =
-                  r.payment_amount != null
-                    ? r.payment_amount
-                    : r.course
-                      ? r.course.price * r.attendees
-                      : null
-                return (
-                  <li key={r.id} className="py-4 first:pt-0">
-                    <p className="font-semibold text-neutral-900">{title}</p>
-                    <p className="mt-1 text-sm text-neutral-600">
-                      Inscripción:{" "}
-                      {new Date(r.created_at).toLocaleDateString("es-MX", {
-                        dateStyle: "medium",
-                      })}
-                    </p>
-                    <p className="mt-1 text-sm text-neutral-700">
-                      Monto:{" "}
-                      {paid != null ? formatMoney(paid) : "—"}{" "}
-                      <span
-                        className={`ml-2 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-                          r.status === "paid"
-                            ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                            : r.status === "pending"
-                              ? "border-amber-200 bg-amber-50 text-amber-900"
-                              : "border-neutral-200 bg-neutral-50 text-neutral-700"
-                        }`}
-                      >
-                        {registrationStatusLabel(r.status)}
-                      </span>
-                    </p>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </section>
+          <div>
+            <h3 className="text-xl font-medium text-neutral-900">Dirección principal</h3>
+            <div className="mt-4 border-t border-neutral-300 pt-4 text-sm text-neutral-800">
+              {primaryAddress ? (
+                <p className="whitespace-pre-line">{primaryAddress}</p>
+              ) : (
+                <p className="text-neutral-600">
+                  Aún no tienes una dirección principal. Se guardará al completar tu primer pedido con envío.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </main>
+    </AccountShell>
   )
 }

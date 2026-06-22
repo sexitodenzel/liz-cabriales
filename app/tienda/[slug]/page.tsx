@@ -9,6 +9,7 @@ import { getServicesCached } from "@/lib/supabase/cache"
 import { getPublishedCourses } from "@/lib/supabase/courses"
 import { getBlockedSlotsForDate } from "@/lib/supabase/appointments"
 import AddToCartButton from "../components/AddToCartButton"
+import { storeDetailButtonClassName } from "../components/store-button-styles"
 import CoursesCarousel from "../components/CoursesCarousel"
 import ProductImageGallery from "../components/ProductImageGallery"
 import RelatedProductsCarousel from "../components/RelatedProductsCarousel"
@@ -108,7 +109,7 @@ export default async function ProductPage({ params }: PageProps) {
                 variants={product.variants}
                 enableSelector
                 enableQuantitySelector
-                className="inline-flex w-full items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+                className={storeDetailButtonClassName}
               />
             </div>
 

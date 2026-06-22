@@ -12,6 +12,7 @@ import {
 } from "./SearchBarPanels"
 import { getSearchDestination } from "@/lib/search-navigation"
 import { SITE_CONTAINER_CLASS } from "@/lib/site-shell"
+import { MOBILE_CHROME_PANEL_CLASS } from "@/lib/site-chrome"
 
 type Props = {
   open: boolean
@@ -70,12 +71,12 @@ export default function MobileSearchOverlay({
 
   const overlayContent = (
     <>
-      <div className="shrink-0 pt-4 pb-1">
+      <div className="shrink-0 pt-8 pb-2 md:pt-10 md:pb-4">
         <form
           onSubmit={handleSubmit}
-          className="flex items-center gap-3 border-b-[1.5px] border-neutral-900 pb-2.5"
+          className="flex items-center gap-4 border-b border-neutral-900 pb-3 md:pb-4"
         >
-          <Search className="h-[18px] w-[18px] shrink-0 text-neutral-900" strokeWidth={1.75} />
+          <Search className="h-6 w-6 shrink-0 text-neutral-900" strokeWidth={1.5} />
           <input
             ref={inputRef}
             type="text"
@@ -85,7 +86,7 @@ export default function MobileSearchOverlay({
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="¿Qué estás buscando?"
-            className="navbar-search-input min-w-0 flex-1 bg-transparent text-[13px] tracking-wide text-neutral-900 placeholder:text-neutral-400 outline-none"
+            className="navbar-search-input min-w-0 flex-1 bg-transparent text-base tracking-wide text-neutral-900 placeholder:text-neutral-400 outline-none md:text-[17px]"
             aria-label="Buscar productos"
           />
           <button
@@ -100,12 +101,12 @@ export default function MobileSearchOverlay({
             className="inline-flex shrink-0 items-center justify-center p-1 text-neutral-900 transition-colors hover:text-[#C6A75E]"
             aria-label={query.length > 0 ? "Limpiar búsqueda" : "Cerrar búsqueda"}
           >
-            <X className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            <X className="h-6 w-6" strokeWidth={1.5} />
           </button>
         </form>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
         {isEmpty ? (
           <EmptyStatePanel
             topSearches={topSearches}
@@ -129,10 +130,10 @@ export default function MobileSearchOverlay({
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 top-[var(--navbar-actual-h)] z-40 flex flex-col bg-white transition-[opacity,transform] duration-[900ms] will-change-[opacity,transform] ${
+      className={`${MOBILE_CHROME_PANEL_CLASS} z-40 flex flex-col overflow-x-hidden bg-white transition-opacity will-change-[opacity] ${
         open
-          ? "opacity-100 translate-y-0 pointer-events-auto ease-[cubic-bezier(.16,1,.3,1)]"
-          : "opacity-0 -translate-y-4 pointer-events-none ease-[cubic-bezier(.7,0,.84,0)]"
+          ? "opacity-100 pointer-events-auto duration-200 ease-out"
+          : "opacity-0 pointer-events-none duration-150 ease-in"
       }`}
       aria-hidden={!open}
     >

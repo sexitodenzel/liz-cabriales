@@ -5,6 +5,7 @@ import NailArtSection from "./components/NailArtSection"
 import HomeHero from "./components/home/HomeHero"
 import HomeTopSections from "./components/home/HomeTopSections"
 import HomeHeroSkeleton from "./components/home/HomeHeroSkeleton"
+import HomeSpotlightSection from "./components/home/HomeSpotlightSection"
 import InstagramFeed from "./components/InstagramFeed"
 
 export const revalidate = 60
@@ -26,6 +27,9 @@ export default function Home() {
       </div>
       <Suspense fallback={null}>
         <NuevosLanzamientos />
+      </Suspense>
+      <Suspense fallback={null}>
+        <HomeSpotlightSection />
       </Suspense>
       <InstagramFeed />
     </main>

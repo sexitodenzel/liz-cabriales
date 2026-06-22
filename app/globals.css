@@ -17,8 +17,10 @@
   --navbar-mobile-h: 64px;
   /* Valor dinámico actualizado por ResizeObserver en Navbar.tsx; fallback al mobile */
   --navbar-actual-h: var(--navbar-mobile-h);
+  /* Borde inferior del chrome (anuncios + navbar); SiteChromeMetrics.tsx */
+  --site-chrome-bottom: var(--navbar-actual-h);
   /* Contenedor horizontal unificado (navbar + páginas públicas en desktop) */
-  --site-max-w: 1200px;
+  --site-max-w: 1440px;
   --site-px: 1.25rem;
   /* Hero slider dots — estilo OPI */
   --hero-dot-size: 8px;
@@ -28,6 +30,14 @@
 
 /* Rejilla única del sitio público: navbar, tienda, home, footer, etc. */
 .site-container {
+  width: 100%;
+  max-width: var(--site-max-w);
+  margin-inline: auto;
+  padding-inline: var(--site-px);
+}
+
+/* Navbar: mismo contenedor que el resto del sitio (.site-container) */
+.navbar-toolbar {
   width: 100%;
   max-width: var(--site-max-w);
   margin-inline: auto;
@@ -106,27 +116,6 @@ body {
   background: #000;
 }
 
-.hero-pagination-dots .hero-dot-arrow {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  border-radius: 9999px;
-  background: #fff;
-  color: #6b6b6b;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-}
-
-.hero-pagination-dots .hero-dot-arrow:hover {
-  color: #111;
-  background: #f3f3f3;
-}
-
 @media (min-width: 768px) {
   :root {
     --hero-dot-size: 9px;
@@ -137,15 +126,6 @@ body {
     min-height: 3.25rem;
     padding-top: 1.125rem;
     padding-bottom: 1.375rem;
-  }
-
-  .hero-pagination-dots .hero-dot-arrow {
-    display: inline-flex;
-  }
-
-  .hero-pagination-dots:hover .hero-dot-arrow,
-  .hero-pagination-dots:focus-within .hero-dot-arrow {
-    opacity: 1;
   }
 }
 
@@ -173,6 +153,14 @@ body {
   }
 }
 
+/* Testimonios /sobre-liz — bullets dorados */
+.sobre-liz-testimonials .swiper-pagination-bullet {
+  background: #d8c79a !important;
+}
+.sobre-liz-testimonials .swiper-pagination-bullet-active {
+  background: #c9a84c !important;
+}
+
 /* =====================================
    HERO SLIDER — CTA BUTTON
 ===================================== */
@@ -190,6 +178,40 @@ body {
 
 .animate-fade-up {
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* =====================================
+   ANNOUNCEMENT BAR — SLIDE TRANSITIONS
+===================================== */
+
+@keyframes announcement-slide-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes announcement-slide-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.announcement-slide-next {
+  animation: announcement-slide-from-right 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.announcement-slide-prev {
+  animation: announcement-slide-from-left 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* =====================================

@@ -11,26 +11,27 @@ export default function BrandHeaderInfo({
   brand,
   productCount,
 }: BrandHeaderInfoProps) {
+  const description = brand.description?.trim() ?? ""
+  const hasDescription = description.length > 0
+
   return (
     <section
       className="mb-5"
       aria-label={`Información de la marca ${brand.name}`}
     >
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-10">
-        <div className="min-w-0 flex-1">
-          <h2 className="font-[family-name:var(--font-playfair),serif] text-[clamp(28px,3.6vw,42px)] font-medium leading-[1.1] tracking-[-0.01em] text-[#0a0a0a]">
-            {brand.name}{" "}
-            <span className="text-sm font-normal text-neutral-500 md:text-base">
-              ({productCount} {productCount === 1 ? "producto" : "productos"})
-            </span>
-          </h2>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-3 md:items-center">
+        <h2 className="col-span-2 font-[family-name:var(--font-playfair),serif] text-[clamp(28px,3.6vw,42px)] font-medium leading-[1.1] tracking-[-0.01em] text-[#0a0a0a] md:col-span-1">
+          {brand.name}{" "}
+          <span className="text-sm font-normal text-neutral-500 md:text-base">
+            ({productCount} {productCount === 1 ? "producto" : "productos"})
+          </span>
+        </h2>
 
-          {brand.description && brand.description.trim().length > 0 ? (
-            <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-neutral-600 md:text-[15px]">
-              {brand.description}
-            </p>
-          ) : null}
-        </div>
+        {hasDescription ? (
+          <p className="col-start-1 row-start-2 min-w-0 text-sm leading-relaxed text-neutral-600 md:max-w-[640px] md:text-[15px]">
+            {description}
+          </p>
+        ) : null}
 
         {brand.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -38,7 +39,9 @@ export default function BrandHeaderInfo({
             src={brand.logo_url}
             alt={brand.name}
             loading="lazy"
-            className="h-[120px] w-auto max-w-[260px] shrink-0 object-contain md:h-[140px] md:max-w-[300px]"
+            className={`col-start-2 h-[110px] w-auto max-w-[130px] shrink-0 self-start object-contain md:h-[140px] md:max-w-[300px] md:row-span-2 md:self-center ${
+              hasDescription ? "row-start-2 md:row-start-1" : "row-start-1"
+            }`}
           />
         ) : null}
       </div>

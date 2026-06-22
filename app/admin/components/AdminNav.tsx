@@ -13,6 +13,8 @@ const NAV_ITEMS = [
   { href: "/admin/media", label: "Media" },
   { href: "/admin/nail-art", label: "Nail Art" },
   { href: "/admin/top-searches", label: "Más buscados" },
+  { href: "/admin/announcements", label: "Anuncios" },
+  { href: "/admin/sobre-liz", label: "Sobre Liz" },
 ] as const
 
 function isActivePath(pathname: string, href: string) {

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
+import { getOrderWithItemsForUser } from "@/lib/supabase/orders"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import RetryPaymentButton from "./RetryPaymentButton"
 
@@ -23,6 +24,9 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
     redirect("/login")
   }
 
+  const orderResult = await getOrderWithItemsForUser(id, user.id)
+  const order = orderResult.data ?? undefined
+
   const isFailure = status === "failure"
 
   return (
@@ -31,7 +35,8 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
         <Breadcrumb
           items={[
             { label: "Inicio", href: "/" },
-            { label: "Tienda", href: "/tienda" },
+            { label: "Mi cuenta", href: "/perfil" },
+            { label: "Pedidos", href: "/perfil/pedidos" },
             { label: "Mi pedido", href: `/orden/${id}` },
             { label: "Error" },
           ]}
@@ -86,7 +91,7 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
                 tarjeta.
               </p>
               <div className="mt-4">
-                <RetryPaymentButton orderId={id} />
+                <RetryPaymentButton orderId={id} order={order} />
               </div>
             </div>
 

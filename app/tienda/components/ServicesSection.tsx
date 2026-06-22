@@ -1,5 +1,6 @@
 import Link from "next/link"
 import type { ServiceRow } from "@/lib/supabase/appointments"
+import { storeInlineButtonClassName } from "./store-button-styles"
 
 function formatDuration(min: number): string {
   if (min < 60) return `${min} min`
@@ -64,7 +65,7 @@ export default function ServicesSection({ services }: Props) {
               </div>
               <Link
                 href="/citas"
-                className="rounded-full bg-[#0a0a0a] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+                className={storeInlineButtonClassName}
               >
                 Agendar
               </Link>

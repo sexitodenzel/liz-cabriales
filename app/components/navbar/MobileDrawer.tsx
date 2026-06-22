@@ -20,6 +20,7 @@ import { usePathname } from "next/navigation"
 import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
 import type { TiendaCategory } from "./menuData"
 import { formatFreeShippingThreshold } from "@/lib/constants/shipping"
+import { MOBILE_CHROME_INSET_CLASS } from "@/lib/site-chrome"
 
 type SectionKey = "Tienda" | "Academia" | "Servicios"
 
@@ -84,7 +85,6 @@ export default function MobileDrawer({
   const [nailArtPosts, setNailArtPosts] = useState<NailArtTile[] | null>(null)
   const [bestSellers, setBestSellers] = useState<BestSellerTile[] | null>(null)
   const [mounted, setMounted] = useState(false)
-  const [topOffset, setTopOffset] = useState(0)
   const prevPathname = useRef(pathname)
 
   const sectionsByKey = useMemo(() => {
@@ -130,29 +130,6 @@ export default function MobileDrawer({
     return () => cancelAnimationFrame(raf)
   }, [pendingIndex])
 
-  useEffect(() => {
-    if (!isOpen) return
-
-    const updateTopOffset = () => {
-      const navbar = document.getElementById("site-navbar")
-      if (!navbar) {
-        setTopOffset(0)
-        return
-      }
-      const rect = navbar.getBoundingClientRect()
-      const nextOffset = Math.round(Math.max(0, Math.min(window.innerHeight, rect.bottom)))
-      setTopOffset(nextOffset)
-    }
-
-    updateTopOffset()
-    window.addEventListener("scroll", updateTopOffset, { passive: true })
-    window.addEventListener("resize", updateTopOffset)
-    return () => {
-      window.removeEventListener("scroll", updateTopOffset)
-      window.removeEventListener("resize", updateTopOffset)
-    }
-  }, [isOpen])
-
   const push = (view: DrawerView) => {
     setStack((prev) => [...prev.slice(0, activeIndex + 1), view])
     setPendingIndex(activeIndex + 1)
@@ -191,20 +168,18 @@ export default function MobileDrawer({
       <div className="absolute inset-0">
         {/* Backdrop */}
         <div
-          className={`absolute left-0 right-0 bottom-0 transition-opacity duration-700 ease-in-out ${
+          className={`absolute ${MOBILE_CHROME_INSET_CLASS} transition-opacity duration-700 ease-in-out ${
             isOpen ? "pointer-events-auto bg-black/45 opacity-100" : "pointer-events-none bg-black/45 opacity-0"
           }`}
-          style={{ top: topOffset }}
           onClick={onClose}
           aria-hidden
         />
 
         {/* Drawer */}
         <div
-          className={`absolute left-0 bottom-0 z-10 flex w-2/3 max-w-sm flex-col overflow-hidden bg-white shadow-xl transition-opacity duration-700 ease-in-out ${
+          className={`absolute left-0 ${MOBILE_CHROME_INSET_CLASS} z-10 flex w-2/3 max-w-sm flex-col overflow-hidden bg-white shadow-xl transition-opacity duration-700 ease-in-out ${
             isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
           }`}
-          style={{ top: topOffset }}
         >
         {/* Sliding nav stack */}
         <div className="relative min-h-0 flex-1 overflow-hidden">
@@ -339,6 +314,17 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
         </button>
+
+        <Link
+          href="/sobre-liz"
+          onClick={onClose}
+          className="flex w-full items-center justify-between pl-4 pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+        >
+          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#a8862f] lg:text-[14px]">
+            Conócenos
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-[#a8862f]" />
+        </Link>
       </div>
 
       {/* Utility section */}

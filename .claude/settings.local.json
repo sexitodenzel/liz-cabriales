@@ -27,7 +27,15 @@
       "PowerShell(Get-Process *)",
       "PowerShell(Get-NetTCPConnection *)",
       "PowerShell(Stop-Process *)",
-      "WebSearch"
+      "WebSearch",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -Last 30)",
+      "PowerShell(npx eslint \"app/components/AnnouncementBar.tsx\" \"app/components/AnnouncementBarClient.tsx\" \"lib/supabase/announcements.ts\" \"app/api/admin/announcements/route.ts\" \"app/api/admin/announcements/[id]/route.ts\" \"app/admin/announcements/page.tsx\" \"app/layout.tsx\" \"lib/supabase/cache.ts\" \"app/admin/AdminDashboardClient.tsx\" \"app/admin/components/AdminNav.tsx\" 2>&1 | Select-Object -Last 40)",
+      "PowerShell($p='C:\\\\Users\\\\migue\\\\Desktop\\\\liz-cabriales\\\\app\\\\perfil\\\\AccountSubNavSlider.tsx'; $c=[IO.File]::ReadAllText\\($p\\); $c=$c.Replace\\([string]\\([char]13+[char]13+[char]10\\),[string]\\([char]13+[char]10\\)\\); [IO.File]::WriteAllText\\($p,$c\\); 'done')",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 100)",
+      "PowerShell(npx next lint --dir app --dir lib 2>&1 | Select-Object -Last 80)",
+      "PowerShell(npm run *)",
+      "PowerShell(npx eslint app/components/orders app/api/orders/[id]/contact lib/email/templates/order-question.ts app/orden/[id]/page.tsx 2>&1)"
     ]
   }
 }

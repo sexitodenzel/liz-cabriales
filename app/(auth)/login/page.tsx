@@ -59,6 +59,11 @@ export default function LoginPage() {
     return callbackUrl.toString()
   }
 
+  const navigateAndRefresh = (path: string) => {
+    router.push(path)
+    router.refresh()
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -97,15 +102,15 @@ export default function LoginPage() {
       }
       const role = profile?.role ?? "client"
       if (safeInternalRedirect) {
-        router.push(safeInternalRedirect)
+        navigateAndRefresh(safeInternalRedirect)
         return
       }
       if (role === "admin") {
-        router.push("/admin")
+        navigateAndRefresh("/admin")
       } else if (role === "receptionist") {
-        router.push("/admin/appointments")
+        navigateAndRefresh("/admin/appointments")
       } else {
-        router.push("/")
+        navigateAndRefresh("/perfil")
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error al iniciar sesión."
@@ -193,8 +198,7 @@ export default function LoginPage() {
       }
 
       if (hasSession) {
-        router.push("/")
-        router.refresh()
+        navigateAndRefresh("/perfil")
       } else {
         setError(
           "Revisa tu correo para confirmar la cuenta antes de iniciar sesión."
@@ -229,8 +233,7 @@ export default function LoginPage() {
         return
       }
 
-      router.push("/")
-      router.refresh()
+      navigateAndRefresh("/perfil")
     } catch {
       setError("Error de red. Intenta de nuevo.")
     } finally {
@@ -239,8 +242,7 @@ export default function LoginPage() {
   }
 
   const handleSkipOtp = () => {
-    router.push("/")
-    router.refresh()
+    navigateAndRefresh("/perfil")
   }
 
   const handleGoogleLogin = async () => {
@@ -453,6 +455,7 @@ export default function LoginPage() {
             <input
               id="address" type="text" value={regAddress}
               onChange={(e) => { setRegAddress(e.target.value); clearRegError("address") }}
+              required
               className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.address ? "border-red-300 bg-red-50" : "border-gray-300"}`}
             />
             {regFieldErrors.address && <p className="mt-1 text-xs text-red-600">{regFieldErrors.address}</p>}
@@ -463,6 +466,7 @@ export default function LoginPage() {
               <input
                 id="state" type="text" value={regState}
                 onChange={(e) => { setRegState(e.target.value); clearRegError("state") }}
+                required
                 className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.state ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               />
               {regFieldErrors.state && <p className="mt-1 text-xs text-red-600">{regFieldErrors.state}</p>}
@@ -472,6 +476,7 @@ export default function LoginPage() {
               <input
                 id="city" type="text" value={regCity}
                 onChange={(e) => { setRegCity(e.target.value); clearRegError("city") }}
+                required
                 className={`w-full border rounded-md px-4 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${regFieldErrors.city ? "border-red-300 bg-red-50" : "border-gray-300"}`}
               />
               {regFieldErrors.city && <p className="mt-1 text-xs text-red-600">{regFieldErrors.city}</p>}

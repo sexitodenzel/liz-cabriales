@@ -81,29 +81,15 @@ function HeroDots({
   count,
   activeIndex,
   onSelect,
-  onPrev,
-  onNext,
 }: {
   count: number
   activeIndex: number
   onSelect: (index: number) => void
-  onPrev: () => void
-  onNext: () => void
 }) {
   if (count <= 1) return null
 
   return (
     <div className="hero-pagination-dots" role="tablist" aria-label="Slides del hero">
-      <button
-        type="button"
-        className="hero-dot-arrow hero-dot-arrow-left"
-        aria-label="Slide anterior"
-        onClick={onPrev}
-      >
-        <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-hidden>
-          <path d="M12.5 4.5L7 10l5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
       {Array.from({ length: count }, (_, index) => (
         <button
           key={index}
@@ -115,16 +101,6 @@ function HeroDots({
           onClick={() => onSelect(index)}
         />
       ))}
-      <button
-        type="button"
-        className="hero-dot-arrow hero-dot-arrow-right"
-        aria-label="Siguiente slide"
-        onClick={onNext}
-      >
-        <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" aria-hidden>
-          <path d="M7.5 4.5L13 10l-5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
     </div>
   )
 }
@@ -299,8 +275,6 @@ export default function HeroSlider({ slides }: Props) {
           count={displayItems.length}
           activeIndex={mobileActiveIndex}
           onSelect={(index) => goToSlide(mobileSwiperRef.current, index)}
-          onPrev={() => mobileSwiperRef.current?.slidePrev()}
-          onNext={() => mobileSwiperRef.current?.slideNext()}
         />
       </section>
 
@@ -347,8 +321,6 @@ export default function HeroSlider({ slides }: Props) {
           count={displayItems.length}
           activeIndex={desktopActiveIndex}
           onSelect={(index) => goToSlide(desktopSwiperRef.current, index)}
-          onPrev={() => desktopSwiperRef.current?.slidePrev()}
-          onNext={() => desktopSwiperRef.current?.slideNext()}
         />
       </section>
     </>

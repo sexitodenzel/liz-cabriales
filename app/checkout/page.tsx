@@ -4,6 +4,11 @@ import { redirect } from "next/navigation"
 import CheckoutClient from "./CheckoutClient"
 
 import { getActiveCartSnapshot } from "@/lib/supabase/cart"
+import {
+  getProductBySlugCached,
+  getRelatedProductsCached,
+} from "@/lib/supabase/cache"
+import type { ProductWithCategory } from "@/lib/supabase/products"
 import { createClient } from "@/lib/supabase/server"
 
 export default async function CheckoutPage() {
@@ -30,7 +35,7 @@ export default async function CheckoutPage() {
   if (!cartResult.data) {
     return (
       <main className="min-h-screen bg-white site-container py-10 text-[#0a0a0a]">
-        <div className="mx-auto max-w-[720px] rounded-3xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto max-w-[720px] border border-neutral-200 bg-white p-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             Finalizar compra
           </p>
@@ -43,13 +48,13 @@ export default async function CheckoutPage() {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/carrito"
-              className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
+              className="inline-flex items-center justify-center border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
             >
               Volver al carrito
             </Link>
             <Link
               href="/tienda"
-              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+              className="inline-flex items-center justify-center bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C6A75E] hover:text-[#0a0a0a]"
             >
               Seguir explorando
             </Link>
@@ -60,36 +65,30 @@ export default async function CheckoutPage() {
   }
 
   if (cartResult.data.items.length === 0) {
-    return (
-      <main className="min-h-screen bg-white site-container py-10 text-[#0a0a0a]">
-        <div className="mx-auto max-w-[720px] rounded-3xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-            Finalizar compra
-          </p>
-          <h1 className="mt-3 text-2xl font-semibold">
-            Tu carrito esta vacio
-          </h1>
-          <p className="mt-3 text-sm text-neutral-600">
-            Agrega productos antes de continuar con tu compra.
-          </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link
-              href="/carrito"
-              className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
-            >
-              Ver carrito
-            </Link>
-            <Link
-              href="/tienda"
-              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
-            >
-              Ir a la tienda
-            </Link>
-          </div>
-        </div>
-      </main>
-    )
+    redirect("/carrito")
   }
 
-  return <CheckoutClient initialCart={cartResult.data} />
+  const cartProductIds = new Set(cartResult.data.items.map((item) => item.productId))
+  const firstSlug = cartResult.data.items[0]?.productSlug
+  let relatedProducts: ProductWithCategory[] = []
+
+  if (firstSlug) {
+    const { data: anchorProduct } = await getProductBySlugCached(firstSlug)
+    if (anchorProduct) {
+      const { data: related } = await getRelatedProductsCached(
+        anchorProduct.category_id,
+        anchorProduct.brand,
+        anchorProduct.id,
+        8,
+      )
+      relatedProducts = (related ?? []).filter((product) => !cartProductIds.has(product.id))
+    }
+  }
+
+  return (
+    <CheckoutClient
+      initialCart={cartResult.data}
+      relatedProducts={relatedProducts}
+    />
+  )
 }

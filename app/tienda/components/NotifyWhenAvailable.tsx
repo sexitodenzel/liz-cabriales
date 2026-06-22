@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/client"
+import { storeDetailButtonClassName } from "./store-button-styles"
 
 const PENDING_STORAGE_KEY = "pendingStockAlert"
 
@@ -45,9 +46,7 @@ export default function NotifyWhenAvailable({
   const [whatsappEnabled, setWhatsappEnabled] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
-  const buttonClassName =
-    className ??
-    "inline-flex w-full items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+  const buttonClassName = className ?? storeDetailButtonClassName
 
   const refreshSubscription = useCallback(async (signal: AbortSignal) => {
     if (!outOfStock) return

@@ -10,6 +10,11 @@ import Link from "next/link"
 import { X, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { useCart } from "@/app/components/cart/CartContext"
+import {
+  cartItemThumbClassName,
+  cartItemThumbImageClassName,
+  cartItemThumbLinkClassName,
+} from "@/app/components/cart/cart-item-styles"
 import { createClient } from "@/lib/supabase/client"
 import { CartItem } from "@/lib/cart"
 import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
@@ -167,7 +172,7 @@ function SuggestionCard({
         type="button"
         onClick={() => void onAdd()}
         disabled={!canAdd}
-        className="mt-2 w-full rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:bg-[#C6A75E] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        className="mt-2 w-full rounded-full border border-neutral-300 px-3 py-1.5 text-[10px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-neutral-900 hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
       >
         Agregar
       </button>
@@ -360,19 +365,18 @@ export default function CartMenu() {
                   key={item.id}
                   className="relative flex gap-3 p-4 after:absolute after:bottom-0 after:left-4 after:right-4 after:h-px after:bg-neutral-200 after:content-[''] last:after:hidden"
                 >
-                  {/* Imagen */}
                   <Link
                     href={item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"}
                     onClick={closeCart}
-                    className="shrink-0 self-start"
+                    className={cartItemThumbLinkClassName}
                   >
-                    <div className="h-20 w-20 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+                    <div className={cartItemThumbClassName}>
                       {item.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={item.image}
                           alt={item.name}
-                          className="h-full w-full object-cover"
+                          className={cartItemThumbImageClassName}
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-400">
@@ -382,7 +386,6 @@ export default function CartMenu() {
                     </div>
                   </Link>
 
-                  {/* Centro: marca, nombre, cantidad */}
                   <div className="min-w-0 flex-1">
                     {item.brand && (
                       <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">
@@ -401,7 +404,6 @@ export default function CartMenu() {
                       {formatMXN(item.price)} c/u
                     </p>
 
-                    {/* Controles de cantidad */}
                     <div className="mt-3 flex items-center">
                       <div className="flex items-center rounded-full border border-neutral-300">
                         <button
@@ -427,8 +429,7 @@ export default function CartMenu() {
                     </div>
                   </div>
 
-                  {/* Derecha: precio total + quitar */}
-                  <div className="flex shrink-0 flex-col items-end justify-between">
+                  <div className="flex shrink-0 flex-col items-end justify-between self-start">
                     <p className="text-[13px] font-semibold tabular-nums text-[#C6A75E]">
                       {formatMXN(item.price * item.qty)}
                     </p>

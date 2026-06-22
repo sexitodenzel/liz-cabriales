@@ -1,75 +1,69 @@
 "use client"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
+import { ShoppingBag } from "lucide-react"
 
 import { useCart } from "@/app/components/cart/CartContext"
+import {
+  cartItemThumbClassName,
+  cartItemThumbImageClassName,
+  cartItemThumbLinkClassName,
+} from "@/app/components/cart/cart-item-styles"
+import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
 import Breadcrumb from "@/components/shared/Breadcrumb"
-import { FREE_SHIPPING_THRESHOLD_MXN } from "@/lib/constants/shipping"
+import { getOrderRetryContext } from "@/lib/order-retry-context"
 
-function formatPrice(value: number): string {
+function formatMXN(value: number) {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
   }).format(value)
 }
 
 export default function CartPage() {
-  const router = useRouter()
   const { items, itemCount, subtotal, adjustItem, removeItem, removedCount, dismissRemovedNotification } = useCart()
+  const searchParams = useSearchParams()
+  const queryFromOrderId =
+    searchParams.get("from") === "order" ? searchParams.get("orderId") : null
+  const [storedOrderId, setStoredOrderId] = useState<string | null>(null)
 
-  const remainingForFreeShipping = Math.max(
-    0,
-    FREE_SHIPPING_THRESHOLD_MXN - subtotal
-  )
-  const hasFreeShipping = remainingForFreeShipping === 0
+  useEffect(() => {
+    if (!queryFromOrderId) {
+      setStoredOrderId(getOrderRetryContext())
+    }
+  }, [queryFromOrderId])
+
+  const fromOrderId = queryFromOrderId ?? storedOrderId
+
+  const breadcrumbItems = fromOrderId
+    ? [
+        { label: "Inicio", href: "/" },
+        { label: "Mi cuenta", href: "/perfil" },
+        { label: "Pedidos", href: "/perfil/pedidos" },
+        { label: "Mi pedido", href: `/orden/${fromOrderId}` },
+        { label: "Carrito" },
+      ]
+    : [{ label: "Inicio", href: "/" }, { label: "Carrito" }]
+
   const isEmpty = items.length === 0
-  const total = subtotal
-
-  const progress =
-    subtotal >= FREE_SHIPPING_THRESHOLD_MXN
-      ? 100
-      : Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD_MXN) * 100)
 
   return (
-    <main className="min-h-screen bg-white text-[#0a0a0a]">
+    <main className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="site-container pt-5">
-        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Carrito" }]} />
+        <Breadcrumb items={breadcrumbItems} />
       </div>
-      <div className="site-container flex flex-col gap-10 pb-10 lg:flex-row">
-        {/* Columna izquierda */}
-        <section className="flex-1 space-y-6">
-          <header className="space-y-2">
-            <h1 className="text-xl font-semibold tracking-[0.12em] text-[#0a0a0a]">
-              CARRITO{" "}
-              <span className="text-sm text-neutral-500">
-                ({itemCount} {itemCount === 1 ? "artículo" : "artículos"})
-              </span>
+
+      <div className="site-container flex flex-col gap-8 pb-16 lg:flex-row lg:items-start lg:gap-10">
+        <section className="min-w-0 flex-1">
+          <header className="mb-4">
+            <h1 className="text-[15px] font-semibold text-[#1a1a1a]">
+              Carrito ({itemCount} {itemCount === 1 ? "artículo" : "artículos"})
             </h1>
           </header>
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4">
-            <div className="mb-2 flex items-center justify-between text-xs">
-              <span className="font-medium text-neutral-700">
-                Envío gratis a partir de {formatPrice(FREE_SHIPPING_THRESHOLD_MXN)}
-              </span>
-              <span className="text-neutral-500">
-                {hasFreeShipping
-                  ? "¡Ya tienes envío gratis!"
-                  : `Agrega ${formatPrice(remainingForFreeShipping)} más`}
-              </span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
-              <div
-                className="h-full rounded-full bg-[#C9A84C]"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
           {removedCount > 0 && (
-            <div className="flex items-start justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <div className="mb-4 flex items-start justify-between gap-3 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               <span>
                 {removedCount === 1
                   ? "1 producto de tu carrito ya no está disponible y fue eliminado automáticamente."
@@ -87,96 +81,105 @@ export default function CartPage() {
           )}
 
           {isEmpty ? (
-            <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-10 text-center">
-              <p className="text-sm font-medium text-[#0a0a0a]">
-                Tu carrito está vacío.
-              </p>
-              <p className="mt-1 text-xs text-neutral-500">
-                Descubre los productos profesionales de Liz Cabriales.
-              </p>
+            <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 py-12 text-center">
+              <div className="flex h-16 w-16 items-center justify-center border border-neutral-200 bg-neutral-50">
+                <ShoppingBag className="h-7 w-7 text-neutral-300" />
+              </div>
+              <div>
+                <p className="text-[14px] font-medium text-neutral-600">
+                  Tu carrito está vacío
+                </p>
+                <p className="mt-1 text-[12px] text-neutral-400">
+                  Agrega productos para comenzar
+                </p>
+              </div>
               <Link
                 href="/tienda"
-                className="mt-4 rounded-full bg-[#0a0a0a] px-6 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+                className="inline-flex h-9 items-center justify-center rounded-full bg-[#c2c2c2] px-6 text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:bg-neutral-400"
               >
-                Ir a la tienda
+                Seguir explorando
               </Link>
             </div>
           ) : (
-            <ul className="space-y-4">
+            <ul>
               {items.map((item) => (
                 <li
                   key={item.variantId}
-                  className="flex gap-4 rounded-2xl border border-neutral-200 bg-white p-4"
+                  className="relative flex gap-3 py-4 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-neutral-200 after:content-[''] last:after:hidden"
                 >
                   <Link
                     href={item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"}
-                    className="flex min-w-0 flex-1 gap-4 rounded-xl transition-colors hover:bg-neutral-50"
+                    className={cartItemThumbLinkClassName}
                   >
-                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
+                    <div className={cartItemThumbClassName}>
                       {item.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={item.image}
                           alt={item.name}
-                          className="h-full w-full object-cover"
+                          className={cartItemThumbImageClassName}
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-neutral-400">
+                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-400">
                           {item.brand ?? "LC"}
                         </div>
                       )}
                     </div>
-
-                    <div className="min-w-0">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.16em] text-neutral-400">
-                          {item.brand ?? "Sin marca"}
-                        </p>
-                        <p className="truncate text-sm font-medium text-[#0a0a0a]">
-                          {item.name}
-                        </p>
-                        <p className="mt-1 text-xs font-medium text-[#a8862f]">
-                          Ver producto
-                        </p>
-                      </div>
-                    </div>
                   </Link>
 
-                  <div className="flex flex-col items-end justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => void removeItem(item.variantId)}
-                      className="text-xs text-neutral-400 hover:text-red-500"
-                      aria-label="Quitar del carrito"
+                  <div className="min-w-0 flex-1">
+                    {item.brand && (
+                      <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">
+                        {item.brand}
+                      </p>
+                    )}
+                    <Link
+                      href={item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"}
                     >
-                      ×
-                    </button>
+                      <p className="mt-0.5 text-[13px] font-medium leading-snug text-[#1a1a1a] hover:underline">
+                        {item.name}
+                      </p>
+                    </Link>
+                    <p className="mt-0.5 text-[12px] tabular-nums text-neutral-500">
+                      {formatMXN(item.price)} c/u
+                    </p>
 
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2 text-xs text-neutral-600">
+                    <div className="mt-3 flex items-center">
+                      <div className="flex items-center rounded-full border border-neutral-300">
                         <button
                           type="button"
                           onClick={() => adjustItem(item.variantId, -1)}
-                          className="h-7 w-7 rounded-full border border-neutral-300 text-center leading-7"
+                          aria-label="Disminuir cantidad"
+                          className="flex h-7 w-7 items-center justify-center rounded-full text-[14px] transition-colors hover:bg-neutral-100"
                         >
-                          -
+                          −
                         </button>
-                        <span className="w-6 text-center tabular-nums">
+                        <span className="w-6 text-center text-[12px] font-medium tabular-nums text-[#1a1a1a]">
                           {item.quantity}
                         </span>
                         <button
                           type="button"
                           onClick={() => adjustItem(item.variantId, 1)}
-                          className="h-7 w-7 rounded-full border border-neutral-300 text-center leading-7"
+                          aria-label="Aumentar cantidad"
+                          className="flex h-7 w-7 items-center justify-center rounded-full text-[14px] transition-colors hover:bg-neutral-100"
                         >
                           +
                         </button>
                       </div>
-
-                      <p className="text-sm font-semibold text-[#0a0a0a]">
-                        {formatPrice(item.price * item.quantity)}
-                      </p>
                     </div>
+                  </div>
+
+                  <div className="flex shrink-0 flex-col items-end justify-between self-start">
+                    <p className="text-[13px] font-semibold tabular-nums text-[#C6A75E]">
+                      {formatMXN(item.price * item.quantity)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void removeItem(item.variantId)}
+                      className="text-[10px] uppercase tracking-[0.12em] text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-red-400"
+                    >
+                      Quitar
+                    </button>
                   </div>
                 </li>
               ))}
@@ -184,58 +187,41 @@ export default function CartPage() {
           )}
         </section>
 
-        {/* Columna derecha */}
-        <aside className="w-full space-y-4 rounded-2xl border border-neutral-200 bg-white p-5 lg:w-[360px] lg:self-start lg:sticky lg:top-24">
-          <h2 className="text-sm font-semibold tracking-[0.16em] text-neutral-600">
-            RESUMEN DEL PEDIDO
-          </h2>
+        {!isEmpty && (
+          <aside className="w-full shrink-0 bg-[#fafafa] p-4 lg:w-[380px] lg:self-start lg:sticky lg:top-24">
+            <FreeShippingBar amount={subtotal} />
 
-          <div className="space-y-2 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-neutral-600">Subtotal</span>
-              <span className="font-medium text-[#0a0a0a]">
-                {formatPrice(subtotal)}
-              </span>
+              <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal:</p>
+              <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">
+                {formatMXN(subtotal)}
+              </p>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-neutral-600">Envío</span>
-              <span className="font-medium text-[#0a0a0a]">
-                {hasFreeShipping && !isEmpty ? "Gratis" : "Se calcula al finalizar"}
-              </span>
-            </div>
-          </div>
+            <p className="mt-1 text-[11px] text-neutral-400">
+              Envío y costos calculados al finalizar compra
+            </p>
 
-          <div className="mt-2 flex items-center justify-between border-t border-neutral-200 pt-3 text-sm font-semibold text-[#0a0a0a]">
-            <span>Subtotal</span>
-            <span className="text-lg">{formatPrice(total)}</span>
-          </div>
-
-          <Link
-            href="/checkout"
-            className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-[#0a0a0a] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
-          >
-            PROCEDER AL PAGO
-          </Link>
-
-          <div className="space-y-1 text-xs text-neutral-500">
-            <p>
-              O{" "}
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="font-medium text-[#0a0a0a] underline-offset-2 hover:underline"
+            <div className="mt-3 space-y-3">
+              <Link
+                href={
+                  fromOrderId
+                    ? `/checkout?from=order&orderId=${fromOrderId}`
+                    : "/checkout"
+                }
+                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900"
               >
-                continúa comprando
-              </button>
-              .
-            </p>
-            <p className="text-[11px] text-neutral-500">
-              Pago 100% seguro con los principales proveedores.
-            </p>
-          </div>
-        </aside>
+                Finalizar compra
+              </Link>
+              <Link
+                href="/tienda"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 bg-white text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
+              >
+                Continuar explorando
+              </Link>
+            </div>
+          </aside>
+        )}
       </div>
     </main>
   )
 }
-

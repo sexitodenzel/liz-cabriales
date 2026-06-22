@@ -1,4 +1,3 @@
-import BrandDescription from "../BrandDescription"
 import PillarStage from "../PillarStage"
 import ShopByBrands from "../ShopByBrands"
 import { getHomeBrandsCached } from "@/lib/supabase/cache"
@@ -31,8 +30,6 @@ export default async function HomeTopSections() {
 
   return (
     <>
-      <BrandDescription photoUrl={slots["brand_photo"]} />
-      <div className="h-16 shrink-0" aria-hidden />
       <PillarStage pillarImages={pillarImages} />
       <ShopByBrands brands={homeBrands} />
     </>

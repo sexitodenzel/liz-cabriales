@@ -504,6 +504,38 @@ export const getTopSearchesCached = unstable_cache(
   { revalidate: 300, tags: ["top-searches"] }
 )
 
+/* ── Announcement bar (línea superior con slides) ────────────────────────── */
+
+export type AnnouncementItem = {
+  id: string
+  label: string
+  href: string | null
+}
+
+export const getAnnouncementsCached = unstable_cache(
+  async (): Promise<Result<AnnouncementItem[]>> => {
+    const { data, error } = await db()
+      .from("announcements")
+      .select("id, label, href, position")
+      .eq("is_enabled", true)
+      .order("position", { ascending: true })
+      .limit(12)
+    if (error) {
+      // Tabla inexistente: degrada en vacío en vez de romper el render.
+      if (error.code === "42P01") return { data: [], error: null }
+      return { data: null, error: { message: error.message, code: error.code } }
+    }
+    const items: AnnouncementItem[] = (data ?? []).map((row) => ({
+      id: row.id as string,
+      label: row.label as string,
+      href: (row.href as string | null) ?? null,
+    }))
+    return { data: items, error: null }
+  },
+  ["announcements"],
+  { revalidate: 300, tags: ["announcements"] }
+)
+
 /* ── Product by slug ─────────────────────────────────────────────────────── */
 
 export const getProductBySlugCached = unstable_cache(

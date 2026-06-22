@@ -42,9 +42,9 @@ export const loginCredentialsSchema = z.object({
 export const registerAccountSchema = z.object({
   firstName: requiredSafeText("El nombre", 80),
   lastName: requiredSafeText("El apellido", 80),
-  address: optionalSafeText("La dirección", 160),
-  state: optionalSafeText("El estado", 80),
-  city: optionalSafeText("La ciudad", 80),
+  address: requiredSafeText("La dirección", 160),
+  state: requiredSafeText("El estado", 80),
+  city: requiredSafeText("La ciudad", 80),
   email: authEmailSchema,
   password: z
     .string()

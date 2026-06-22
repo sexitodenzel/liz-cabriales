@@ -88,6 +88,14 @@ export type UserOrderSummary = {
   created_at: string
 }
 
+export type UserSavedAddress = {
+  orderId: string
+  address: string
+  city: string | null
+  state: string | null
+  created_at: string
+}
+
 export async function getUserOrdersSummaries(
   userId: string
 ): Promise<Result<UserOrderSummary[]>> {
@@ -121,6 +129,51 @@ export async function getUserOrdersSummaries(
     })),
     error: null,
   }
+}
+
+export async function getUserSavedAddressesFromOrders(
+  userId: string
+): Promise<Result<UserSavedAddress[]>> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("orders")
+    .select("id, shipping_address, shipping_city, shipping_state, created_at")
+    .eq("user_id", userId)
+    .eq("delivery_type", "shipping")
+    .not("shipping_address", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(100)
+
+  if (error) {
+    return {
+      data: null,
+      error: { message: error.message, code: error.code },
+    }
+  }
+
+  const rows = (data ?? []) as Array<{
+    id: string
+    shipping_address: string | null
+    shipping_city: string | null
+    shipping_state: string | null
+    created_at: string
+  }>
+
+  const addresses: UserSavedAddress[] = []
+
+  for (const row of rows) {
+    const address = row.shipping_address?.trim()
+    if (!address) continue
+    addresses.push({
+      orderId: row.id,
+      address,
+      city: row.shipping_city ?? null,
+      state: row.shipping_state ?? null,
+      created_at: row.created_at,
+    })
+  }
+
+  return { data: addresses, error: null }
 }
 
 function unwrapJoin<T>(value: T | T[] | null): T | null {
@@ -417,6 +470,9 @@ export type OrderItemForDisplay = {
   variant_id: string
   product_name: string
   variant_name: string
+  product_slug: string | null
+  product_brand: string | null
+  product_image: string | null
   quantity: number
   unit_price: number
 }
@@ -458,7 +514,10 @@ type RawOrderItemJoin = {
   variant_id: string
   quantity: number
   unit_price: number
-  products: { id: string; name: string } | { id: string; name: string }[] | null
+  products:
+    | { id: string; name: string; slug: string; brand: string | null; images: string[] | null }
+    | { id: string; name: string; slug: string; brand: string | null; images: string[] | null }[]
+    | null
   product_variants:
     | { id: string; variant_name: string }
     | { id: string; variant_name: string }[]
@@ -477,6 +536,9 @@ function unwrapOrderItemJoins(rows: RawOrderItemJoin[]): OrderItemForDisplay[] {
       variant_id: row.variant_id,
       product_name: product?.name ?? "Producto",
       variant_name: variant?.variant_name ?? "",
+      product_slug: product?.slug ?? null,
+      product_brand: product?.brand ?? null,
+      product_image: product?.images?.[0] ?? null,
       quantity: Number(row.quantity),
       unit_price: Number(row.unit_price),
     }
@@ -520,7 +582,7 @@ export async function getOrderWithItemsForUser(
     .from("order_items")
     .select(
       `id, product_id, variant_id, quantity, unit_price,
-       products ( id, name ),
+       products ( id, name, slug, brand, images ),
        product_variants ( id, variant_name )`
     )
     .eq("order_id", orderId)
@@ -569,6 +631,96 @@ export async function getOrderWithItemsForUser(
 }
 
 /**
+ * Obtiene todas las ordenes del usuario con sus items, para mostrarlas
+ * desplegables en linea dentro de /perfil/pedidos.
+ */
+export async function getUserOrdersWithItems(
+  userId: string
+): Promise<Result<OrderForDisplay[]>> {
+  const supabase = await createClient()
+
+  const { data: orders, error: ordersError } = await supabase
+    .from("orders")
+    .select(
+      "id, status, total, delivery_type, shipping_address, shipping_state, shipping_city, shipping_cost, shipping_amount_final, shipping_payment_url, shipping_payment_status, carrier, tracking_number, created_at, requires_invoice, invoice_status, constancia_fiscal_url, ticket_photo_url, invoice_issued_at"
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+
+  if (ordersError) {
+    return {
+      data: null,
+      error: { message: ordersError.message, code: ordersError.code },
+    }
+  }
+
+  const orderRows = (orders ?? []) as Array<Record<string, unknown>>
+
+  if (orderRows.length === 0) {
+    return { data: [], error: null }
+  }
+
+  const orderIds = orderRows.map((o) => o.id as string)
+
+  const { data: rawItems, error: itemsError } = await supabase
+    .from("order_items")
+    .select(
+      `order_id, id, product_id, variant_id, quantity, unit_price,
+       products ( id, name, slug, brand, images ),
+       product_variants ( id, variant_name )`
+    )
+    .in("order_id", orderIds)
+
+  if (itemsError) {
+    return {
+      data: null,
+      error: { message: itemsError.message, code: itemsError.code },
+    }
+  }
+
+  const itemsByOrder = new Map<string, RawOrderItemJoin[]>()
+  for (const row of (rawItems ?? []) as Array<RawOrderItemJoin & { order_id: string }>) {
+    const list = itemsByOrder.get(row.order_id) ?? []
+    list.push(row)
+    itemsByOrder.set(row.order_id, list)
+  }
+
+  const data: OrderForDisplay[] = orderRows.map((order) => {
+    const id = order.id as string
+    return {
+      id,
+      status: order.status as OrderStatus,
+      total: Number(order.total),
+      delivery_type: order.delivery_type as DeliveryType,
+      shipping_address: (order.shipping_address as string | null) ?? null,
+      shipping_state: (order.shipping_state as string | null) ?? null,
+      shipping_city: (order.shipping_city as string | null) ?? null,
+      shipping_cost: Number(order.shipping_cost),
+      shipping_amount_final:
+        order.shipping_amount_final != null
+          ? Number(order.shipping_amount_final)
+          : null,
+      shipping_payment_url:
+        (order.shipping_payment_url as string | null) ?? null,
+      shipping_payment_status:
+        (order.shipping_payment_status as string | null) ?? null,
+      carrier: (order.carrier as string | null) ?? null,
+      tracking_number: (order.tracking_number as string | null) ?? null,
+      created_at: order.created_at as string,
+      requires_invoice: Boolean(order.requires_invoice),
+      invoice_status: (order.invoice_status as string | null) ?? null,
+      constancia_fiscal_url:
+        (order.constancia_fiscal_url as string | null) ?? null,
+      ticket_photo_url: (order.ticket_photo_url as string | null) ?? null,
+      invoice_issued_at: (order.invoice_issued_at as string | null) ?? null,
+      items: unwrapOrderItemJoins(itemsByOrder.get(id) ?? []),
+    }
+  })
+
+  return { data, error: null }
+}
+
+/**
  * Obtiene una orden con sus items para construir la preferencia de MercadoPago.
  * Verifica que la orden pertenezca al usuario y esté en estado 'pending'.
  */
@@ -613,7 +765,7 @@ export async function getOrderForPayment(
     .from("order_items")
     .select(
       `product_id, variant_id, quantity, unit_price,
-       products ( id, name ),
+       products ( id, name, slug, brand, images ),
        product_variants ( id, variant_name )`
     )
     .eq("order_id", orderId)

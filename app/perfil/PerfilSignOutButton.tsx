@@ -5,7 +5,14 @@ import { useState } from "react"
 
 import { createClient } from "@/lib/supabase/client"
 
-export default function PerfilSignOutButton() {
+type PerfilSignOutButtonProps = {
+  variant?: "header" | "nav" | "nav-inline"
+}
+
+const signOutLinkClass =
+  "text-xs font-medium uppercase tracking-[0.18em] text-neutral-900 underline underline-offset-4 transition-colors hover:text-black disabled:opacity-60"
+
+export default function PerfilSignOutButton({ variant = "header" }: PerfilSignOutButtonProps) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
 
@@ -21,12 +28,38 @@ export default function PerfilSignOutButton() {
     }
   }
 
+  if (variant === "nav") {
+    return (
+      <button
+        type="button"
+        onClick={() => void handleSignOut()}
+        disabled={busy}
+        className={`block w-full text-left ${signOutLinkClass}`}
+      >
+        {busy ? "Cerrando sesión…" : "Cerrar sesión"}
+      </button>
+    )
+  }
+
+  if (variant === "nav-inline") {
+    return (
+      <button
+        type="button"
+        onClick={() => void handleSignOut()}
+        disabled={busy}
+        className={`shrink-0 whitespace-nowrap ${signOutLinkClass}`}
+      >
+        {busy ? "Cerrando sesión…" : "Cerrar sesión"}
+      </button>
+    )
+  }
+
   return (
     <button
       type="button"
       onClick={() => void handleSignOut()}
       disabled={busy}
-      className="shrink-0 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--gold)] hover:text-[var(--gold)] disabled:opacity-60"
+      className={`shrink-0 ${signOutLinkClass}`}
     >
       {busy ? "Cerrando sesión…" : "Cerrar sesión"}
     </button>

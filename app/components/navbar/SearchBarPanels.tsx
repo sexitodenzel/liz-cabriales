@@ -261,8 +261,8 @@ export function EmptyStatePanel({
       <div className="space-y-7 pb-8 pt-5">
         {hasTop && (
           <section>
-            <h3 className="mb-3 text-[15px] font-medium text-neutral-900">
-              Más buscados:
+            <h3 className="mb-4 text-[20px] font-semibold tracking-tight text-neutral-900">
+              Más buscados
             </h3>
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3">
               {visibleTop.map((chip) => (
@@ -285,13 +285,13 @@ export function EmptyStatePanel({
             <h3 className="mb-4 text-[20px] font-semibold tracking-tight text-neutral-900">
               Best Sellers
             </h3>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-5">
+            <div className="scrollbar-hide -mx-5 flex gap-3 overflow-x-auto overscroll-x-contain px-5 pb-2 snap-x snap-mandatory md:gap-5">
               {visibleBest.map((product) => (
                 <Link
                   key={product.id}
                   href={`/producto/${product.slug}`}
                   onClick={onClose}
-                  className="flex flex-col"
+                  className="flex shrink-0 snap-start flex-col basis-[46%] sm:basis-[31%] md:basis-[23%] lg:basis-[19%]"
                 >
                   <div className="aspect-square w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50 sm:aspect-[4/5]">
                     {product.image ? (

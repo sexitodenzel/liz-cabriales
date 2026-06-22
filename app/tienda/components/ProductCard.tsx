@@ -7,6 +7,7 @@ import type { ProductWithCategory } from "@/lib/supabase/products"
 import { getAbrasivityLevel } from "@/lib/constants/abrasivity"
 import AddToCartButton from "./AddToCartButton"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
+import { storeCardButtonClassName } from "./store-button-styles"
 import { Heart, ChevronLeft, ChevronRight } from "lucide-react"
 import { useWishlist } from "@/app/components/wishlist/WishlistContext"
 
@@ -61,10 +62,30 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
   const imageNavButtonClassName =
     "absolute top-1/2 z-10 flex -translate-y-1/2 cursor-pointer items-center justify-center text-black/70 transition-all duration-200 hover:text-black md:opacity-0 md:group-hover:opacity-100"
 
-  const cardButtonClassName =
-    "inline-flex w-full items-center justify-center rounded-full bg-[#0a0a0a] px-2 py-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-white transition-all duration-200 hover:bg-[#C9A84C] hover:text-[#0a0a0a] hover:shadow-[0_0_14px_rgba(201,168,76,0.45)] active:bg-[#C9A84C] active:text-[#0a0a0a] active:shadow-[0_0_14px_rgba(201,168,76,0.45)] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400 disabled:opacity-60 disabled:shadow-none sm:px-4 sm:py-2.5 sm:text-[11px] sm:tracking-[0.2em]"
+  const cardButtonClassName = storeCardButtonClassName
 
   const singleVariant = activeVariants.length === 1 ? activeVariants[0] : null
+
+  function handleWishlistToggle(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    toggle(product.slug)
+  }
+
+  const heartButton = (
+    <button
+      type="button"
+      onClick={handleWishlistToggle}
+      aria-label={wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
+      className="shrink-0 p-0.5 text-neutral-900 transition-colors hover:text-neutral-600 active:scale-95"
+    >
+      <Heart
+        className={`h-3.5 w-3.5 transition-colors sm:h-4 sm:w-4${
+          wishlisted ? " fill-neutral-900 text-neutral-900" : ""
+        }`}
+      />
+    </button>
+  )
 
   const actionButton =
     hasMultipleVariants ? (
@@ -127,7 +148,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
       <article className="flex gap-5 border-b border-neutral-200 py-5 sm:gap-8 sm:py-7 md:gap-10 md:py-8">
         <Link
           href={`/tienda/${product.slug}`}
-          className="relative h-36 w-36 shrink-0 overflow-hidden rounded-xl sm:h-44 sm:w-44 md:h-52 md:w-52 lg:h-60 lg:w-60"
+          className="relative h-36 w-36 shrink-0 overflow-hidden sm:h-44 sm:w-44 md:h-52 md:w-52 lg:h-60 lg:w-60"
         >
           {currentImage ? (
             <Image
@@ -171,7 +192,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
             </div>
             <button
               type="button"
-              onClick={() => toggle(product.slug)}
+              onClick={handleWishlistToggle}
               aria-label={wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
               className="shrink-0 p-1 text-neutral-900 transition-colors hover:text-neutral-600 active:scale-95"
             >
@@ -216,7 +237,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
   }, [leavingImage, slideDurationMs])
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-lg sm:rounded-xl border border-neutral-200 bg-white shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+    <article className="group flex h-full flex-col overflow-hidden border border-neutral-200 bg-white shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-lg">
       <div className="relative h-36 overflow-hidden bg-neutral-100 sm:h-64">
         <Link href={`/tienda/${product.slug}`} className="block h-full">
           {currentImage ? (
@@ -360,18 +381,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
               {product.name}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={() => toggle(product.slug)}
-            aria-label={wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
-            className="shrink-0 p-0.5 text-neutral-900 transition-colors hover:text-neutral-600 active:scale-95"
-          >
-            <Heart
-              className={`h-3.5 w-3.5 transition-colors sm:h-4 sm:w-4 ${
-                wishlisted ? "fill-neutral-900 text-neutral-900" : ""
-              }`}
-            />
-          </button>
+          {heartButton}
         </div>
 
         <p className="text-sm font-semibold text-[#C9A84C] sm:text-lg">
