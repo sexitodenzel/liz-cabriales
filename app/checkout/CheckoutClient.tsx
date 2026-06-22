@@ -125,71 +125,75 @@ function ShippingStep(p: ShippingProps) {
     p.initialCart.total >= FREE_SHIPPING_THRESHOLD_MXN
   const shippingPending = p.deliveryType === "shipping" && !shippingIsFree
 
-  const orderSummaryBody = (
-    <>
-      <div className="pb-3.5">
-        <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">Tu pedido</p>
-        <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
-          {totalItems} {totalItems === 1 ? "artículo" : "artículos"}
-        </p>
-      </div>
-      <ul>
-        {[...p.initialCart.items].reverse().map((item) => (
-          <li key={item.id} className="flex items-start justify-between gap-3 border-b border-neutral-200 py-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-medium leading-snug text-[#1a1a1a]">{item.name}</p>
-              {item.variantName && item.variantName !== item.name && (
-                <p className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-neutral-400">
-                  {item.variantName}
-                </p>
-              )}
-              <p className="mt-0.5 text-[11px] text-neutral-500">
-                Cantidad: {item.quantity}
+  const summaryHeader = (
+    <div className="shrink-0 pb-3.5">
+      <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">Tu pedido</p>
+      <p className="mt-0.5 text-[15px] font-semibold text-[#1a1a1a]">
+        {totalItems} {totalItems === 1 ? "artículo" : "artículos"}
+      </p>
+    </div>
+  )
+
+  const summaryList = (
+    <ul className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+      {[...p.initialCart.items].reverse().map((item) => (
+        <li key={item.id} className="flex items-start justify-between gap-3 border-b border-neutral-200 py-3 first:pt-0">
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-medium leading-snug text-[#1a1a1a]">{item.name}</p>
+            {item.variantName && item.variantName !== item.name && (
+              <p className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-neutral-400">
+                {item.variantName}
               </p>
-            </div>
-            <p className="shrink-0 text-[13px] font-semibold tabular-nums text-[#1a1a1a]">
-              {formatMXN(item.price * item.quantity)}
+            )}
+            <p className="mt-0.5 text-[11px] text-neutral-500">
+              Cantidad: {item.quantity}
             </p>
-          </li>
-        ))}
-      </ul>
-      <div className="border-t border-neutral-200 pt-4">
-        {p.deliveryType !== "pickup" && <FreeShippingBar amount={p.initialCart.total} />}
-        {!shippingPending && (
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] text-neutral-500">Subtotal</p>
-            <p className="text-[13px] font-medium tabular-nums text-[#1a1a1a]">{formatMXN(p.initialCart.total)}</p>
           </div>
-        )}
-        {p.requiresInvoice && p.invoiceSurcharge > 0 && (
-          <div className={`flex items-center justify-between ${shippingPending ? "" : "mt-1"}`}>
-            <p className="text-[12px] text-neutral-500">Cargo CFDI ({CFDI_SURCHARGE_PERCENT}%)</p>
-            <p className="text-[12px] tabular-nums text-[#1a1a1a]">{formatMXN(p.invoiceSurcharge)}</p>
-          </div>
-        )}
-        <div className={`flex items-center justify-between ${shippingPending || p.requiresInvoice ? "mt-1" : ""}`}>
-          <p className="text-[12px] text-neutral-500">Envío</p>
-          {p.deliveryType === "pickup" ? (
-            <p className="text-[12px] font-medium text-[#1a1a1a]">Retiro en local</p>
-          ) : shippingIsFree ? (
-            <p className="text-[12px] font-semibold text-[#C6A75E]">Gratis</p>
-          ) : (
-            <p className="text-[12px] text-neutral-500">Por cotizar</p>
-          )}
-        </div>
-        <div className="mt-3 flex items-center justify-between border-t border-neutral-200 pt-3">
-          <p className="text-[14px] font-semibold text-[#1a1a1a]">
-            {shippingPending ? "Pagas hoy" : "Total"}
+          <p className="shrink-0 text-[13px] font-semibold tabular-nums text-[#1a1a1a]">
+            {formatMXN(item.price * item.quantity)}
           </p>
-          <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">{formatMXN(p.orderTotal)}</p>
+        </li>
+      ))}
+    </ul>
+  )
+
+  const summaryTotals = (
+    <div className="shrink-0 border-t border-neutral-200 pt-4">
+      {p.deliveryType !== "pickup" && <FreeShippingBar amount={p.initialCart.total} />}
+      {!shippingPending && (
+        <div className="flex items-center justify-between">
+          <p className="text-[13px] text-neutral-500">Subtotal</p>
+          <p className="text-[13px] font-medium tabular-nums text-[#1a1a1a]">{formatMXN(p.initialCart.total)}</p>
         </div>
-        {shippingPending && (
-          <p className="mt-2 text-[11px] leading-[1.5] text-neutral-500">
-            El envío se cotiza y cobra por separado después de confirmar tu pago.
-          </p>
+      )}
+      {p.requiresInvoice && p.invoiceSurcharge > 0 && (
+        <div className={`flex items-center justify-between ${shippingPending ? "" : "mt-1"}`}>
+          <p className="text-[12px] text-neutral-500">Cargo CFDI ({CFDI_SURCHARGE_PERCENT}%)</p>
+          <p className="text-[12px] tabular-nums text-[#1a1a1a]">{formatMXN(p.invoiceSurcharge)}</p>
+        </div>
+      )}
+      <div className={`flex items-center justify-between ${shippingPending || p.requiresInvoice ? "mt-1" : ""}`}>
+        <p className="text-[12px] text-neutral-500">Envío</p>
+        {p.deliveryType === "pickup" ? (
+          <p className="text-[12px] font-medium text-[#1a1a1a]">Retiro en local</p>
+        ) : shippingIsFree ? (
+          <p className="text-[12px] font-semibold text-[#C6A75E]">Gratis</p>
+        ) : (
+          <p className="text-[12px] text-neutral-500">Por cotizar</p>
         )}
       </div>
-    </>
+      <div className="mt-3 flex items-center justify-between border-t border-neutral-200 pt-3">
+        <p className="text-[14px] font-semibold text-[#1a1a1a]">
+          {shippingPending ? "Pagas hoy" : "Total"}
+        </p>
+        <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">{formatMXN(p.orderTotal)}</p>
+      </div>
+      {shippingPending && (
+        <p className="mt-2 text-[11px] leading-[1.5] text-neutral-500">
+          El envío se cotiza y cobra por separado después de confirmar tu pago.
+        </p>
+      )}
+    </div>
   )
 
   const mobileExpandedSummary = (
@@ -237,22 +241,22 @@ function ShippingStep(p: ShippingProps) {
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-6">
 
       {/* ── Resumen — sidebar en desktop ── */}
-      <aside className="hidden w-full min-w-0 shrink-0 bg-[#fafafa] p-4 lg:order-2 lg:sticky lg:top-24 lg:block lg:w-[380px]">
-        <div>
-        {orderSummaryBody}
-          {!p.createdOrder && (
-            <div className="mt-4">
-              <button
-                type="submit"
-                form={CHECKOUT_FORM_ID}
-                disabled={p.isSubmitting}
-                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
-              </button>
-            </div>
-          )}
-        </div>
+      <aside className="hidden w-full min-w-0 shrink-0 flex-col bg-[#fafafa] p-4 lg:order-2 lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-8rem)] lg:w-[380px]">
+        {summaryHeader}
+        {summaryList}
+        {summaryTotals}
+        {!p.createdOrder && (
+          <div className="mt-4 shrink-0">
+            <button
+              type="submit"
+              form={CHECKOUT_FORM_ID}
+              disabled={p.isSubmitting}
+              className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* ── Formulario ── */}
