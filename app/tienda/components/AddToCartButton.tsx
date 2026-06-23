@@ -1,14 +1,12 @@
 "use client"
 
 import { useEffect, useId, useMemo, useState } from "react"
-import { Check, Loader2, ShoppingBag, XCircle } from "lucide-react"
 
 import { useCart } from "@/app/components/cart/CartContext"
 import type { CartItem } from "@/lib/cart"
 import type { ProductVariant } from "@/lib/supabase/products"
 import { applyDiscount } from "@/lib/tienda/discount"
-import { ActionSwapIcon, ActionSwapText } from "@/app/components/ui/motion/action-swap"
-import { Magnetic } from "@/app/components/ui/motion/magnetic"
+import { ActionSwapText } from "@/app/components/ui/motion/action-swap"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
 
 type Props = {
@@ -24,7 +22,6 @@ type Props = {
   className?: string
   enableQuantitySelector?: boolean
   openCartOnAdd?: boolean
-  magnetic?: boolean
 }
 
 function formatPrice(value: number): string {
@@ -58,7 +55,6 @@ export default function AddToCartButton({
   className,
   enableQuantitySelector = false,
   openCartOnAdd = true,
-  magnetic = false,
 }: Props) {
   const { addItem, openCart } = useCart()
   const [isAdding, setIsAdding] = useState(false)
@@ -158,18 +154,7 @@ export default function AddToCartButton({
             ? "Agregado"
             : "Agregar al carrito"
 
-  const swapIcon =
-    swapKey === "no-variant" || swapKey === "out-of-stock" ? (
-      <XCircle className="h-full w-full" strokeWidth={2} />
-    ) : swapKey === "adding" ? (
-      <Loader2 className="h-full w-full animate-spin" strokeWidth={2} />
-    ) : swapKey === "added" ? (
-      <Check className="h-full w-full" strokeWidth={2.5} />
-    ) : (
-      <ShoppingBag className="h-full w-full" strokeWidth={2} />
-    )
-
-  const buttonEl = (
+  const button = (
     <button
       type="button"
       onClick={handleAdd}
@@ -178,23 +163,10 @@ export default function AddToCartButton({
       aria-disabled={!canAdd || isAdding}
       title={!canAdd ? "Presentación sin inventario disponible" : undefined}
     >
-      <span className="inline-flex items-center justify-center gap-2">
-        <ActionSwapIcon value={swapKey} animation="blur" className="h-4 w-4">
-          {swapIcon}
-        </ActionSwapIcon>
-        <ActionSwapText value={swapKey} animation="blur">
-          {swapLabel}
-        </ActionSwapText>
-      </span>
+      <ActionSwapText value={swapKey} animation="blur">
+        {swapLabel}
+      </ActionSwapText>
     </button>
-  )
-
-  const button = magnetic && canAdd ? (
-    <Magnetic strength={0.2} className="block w-full">
-      {buttonEl}
-    </Magnetic>
-  ) : (
-    buttonEl
   )
 
   const primaryAction = outOfStock && selectedVariant ? (

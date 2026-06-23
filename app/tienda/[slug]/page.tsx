@@ -110,7 +110,6 @@ export default async function ProductPage({ params }: PageProps) {
                 variants={product.variants}
                 enableSelector
                 enableQuantitySelector
-                magnetic
                 className={storeDetailButtonClassName}
               />
             </div>

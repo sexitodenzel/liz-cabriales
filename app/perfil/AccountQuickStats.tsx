@@ -64,16 +64,18 @@ export default function AccountQuickStats({
           <Link
             key={item.key}
             href={item.href}
-            className="group flex items-center gap-3 rounded-xl border border-neutral-200/80 bg-[var(--surface)] p-4 shadow-sm transition-colors hover:border-[var(--gold)]/40"
+            className="group flex items-center gap-4 border border-neutral-200 bg-white px-5 py-4 transition-colors hover:border-neutral-900"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#faf8f5] text-[var(--gold)] transition-colors group-hover:bg-[var(--gold)]/10">
-              <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-            </span>
+            <Icon
+              className="h-5 w-5 shrink-0 text-neutral-500 transition-colors group-hover:text-neutral-900"
+              strokeWidth={1.5}
+              aria-hidden
+            />
             <span className="min-w-0">
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+              <span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-neutral-500">
                 {item.label}
               </span>
-              <span className="mt-0.5 block text-2xl font-medium leading-none text-neutral-900">
+              <span className="mt-1 block text-2xl font-medium leading-none text-neutral-900">
                 {counts[item.countKey]}
               </span>
             </span>

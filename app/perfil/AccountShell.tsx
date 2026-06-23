@@ -28,16 +28,15 @@ export type AccountSection =
 const NAV_ITEMS: {
   id: AccountSection
   label: string
-  sidebarLabel: string
   href: string
   icon: LucideIcon
 }[] = [
-  { id: "resumen", label: "Resumen de cuenta", sidebarLabel: "Resumen", href: "/perfil", icon: LayoutGrid },
-  { id: "pedidos", label: "Pedidos", sidebarLabel: "Pedidos", href: "/perfil/pedidos", icon: Package },
-  { id: "direcciones", label: "Direcciones", sidebarLabel: "Direcciones", href: "/perfil/direcciones", icon: MapPin },
-  { id: "cursos", label: "Cursos", sidebarLabel: "Cursos", href: "/perfil/cursos", icon: BookOpen },
-  { id: "servicios", label: "Servicios", sidebarLabel: "Servicios", href: "/perfil/servicios", icon: Sparkles },
-  { id: "wishlist", label: "Wishlist", sidebarLabel: "Wishlist", href: "/wishlist", icon: Heart },
+  { id: "resumen", label: "Resumen de cuenta", href: "/perfil", icon: LayoutGrid },
+  { id: "pedidos", label: "Pedidos", href: "/perfil/pedidos", icon: Package },
+  { id: "direcciones", label: "Direcciones", href: "/perfil/direcciones", icon: MapPin },
+  { id: "cursos", label: "Cursos", href: "/perfil/cursos", icon: BookOpen },
+  { id: "servicios", label: "Servicios", href: "/perfil/servicios", icon: Sparkles },
+  { id: "wishlist", label: "Wishlist", href: "/wishlist", icon: Heart },
 ]
 
 function MobileNavLink({
@@ -65,7 +64,6 @@ type AccountShellProps = {
   children: ReactNode
   contentClassName?: string
   showFooter?: boolean
-  hideDefaultTitle?: boolean
 }
 
 export default function AccountShell({
@@ -77,14 +75,13 @@ export default function AccountShell({
   children,
   contentClassName,
   showFooter = true,
-  hideDefaultTitle = false,
 }: AccountShellProps) {
   const breadcrumbItems = breadcrumbLabel
     ? [{ label: "Inicio", href: "/" }, { label: "Mi cuenta", href: "/perfil" }, { label: breadcrumbLabel }]
     : [{ label: "Inicio", href: "/" }, { label: "Mi cuenta" }]
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--background)] text-[var(--foreground)]">
+    <main className="min-h-screen overflow-x-hidden bg-white text-[var(--foreground)]">
       <div className="site-container pt-5">
         <Breadcrumb items={breadcrumbItems} />
       </div>
@@ -93,12 +90,7 @@ export default function AccountShell({
         <div className="site-container">
           <div className="grid w-full min-w-0 md:grid-cols-[240px_1fr]">
             <div className="flex items-center justify-between gap-4 py-6 md:justify-start">
-              <h1
-                className="text-3xl font-medium tracking-tight text-neutral-900 sm:text-4xl"
-                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-              >
-                Mi cuenta
-              </h1>
+              <h1 className="text-4xl font-medium tracking-tight text-neutral-900">Mi cuenta</h1>
               <div className="md:hidden">
                 <PerfilSignOutButton />
               </div>
@@ -133,24 +125,23 @@ export default function AccountShell({
 
         <div className="site-container">
           <div className="grid w-full min-w-0 md:grid-cols-[240px_1fr]">
-            <aside className="hidden py-6 md:block md:pr-6">
-              <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                Mi panel
-              </p>
-              <nav className="space-y-1">
+            <aside className="hidden border-neutral-200 py-6 md:block md:border-r md:pr-8">
+              <nav className="space-y-4 text-xs font-medium uppercase tracking-[0.18em] text-neutral-700">
                 {NAV_ITEMS.map((item) => {
                   const Icon = item.icon
                   const isActive = item.id === active
+                  const baseClass =
+                    "flex items-center gap-2.5 underline underline-offset-4 transition-colors"
 
                   if (isActive) {
                     return (
                       <span
                         key={item.id}
-                        className="flex items-center gap-3 rounded-r-lg border-l-2 border-[var(--gold)] bg-[#f5f0e8] px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-900"
+                        className={`${baseClass} text-black`}
                         aria-current="page"
                       >
-                        <Icon className="h-4 w-4 shrink-0 text-[var(--gold)]" strokeWidth={1.75} aria-hidden />
-                        {item.sidebarLabel}
+                        <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
+                        {item.label}
                       </span>
                     )
                   }
@@ -159,37 +150,31 @@ export default function AccountShell({
                     <Link
                       key={item.id}
                       href={item.href}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-600 transition-colors hover:bg-white/70 hover:text-neutral-900"
+                      className={`${baseClass} hover:text-black`}
                     >
-                      <Icon className="h-4 w-4 shrink-0 text-neutral-400" strokeWidth={1.75} aria-hidden />
-                      {item.sidebarLabel}
+                      <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
+                      {item.label}
                     </Link>
                   )
                 })}
                 {isAdmin && (
                   <Link
                     href="/admin"
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-600 transition-colors hover:bg-white/70 hover:text-neutral-900"
+                    className="block underline underline-offset-4 transition-colors hover:text-black"
                   >
                     Panel admin
                   </Link>
                 )}
+                <PerfilSignOutButton variant="nav" />
               </nav>
             </aside>
 
-            <section className={`min-w-0 pt-6 pb-7 md:pl-4 lg:pl-8 ${contentClassName ?? ""}`}>
-              {!hideDefaultTitle && (
-                <div className="flex items-center justify-between gap-3">
-                  <h2
-                    className="text-3xl font-medium leading-tight tracking-tight text-neutral-900"
-                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                  >
-                    {title}
-                  </h2>
-                  {headerAction}
-                </div>
-              )}
-              <div className={hideDefaultTitle ? "min-w-0" : "mt-7 min-w-0"}>{children}</div>
+            <section className={`min-w-0 pt-6 pb-7 md:pl-8 ${contentClassName ?? ""}`}>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-3xl font-medium leading-tight tracking-tight text-neutral-900">{title}</h2>
+                {headerAction}
+              </div>
+              <div className="mt-7 min-w-0">{children}</div>
             </section>
           </div>
         </div>

@@ -4,8 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
-import { Magnetic } from "@/app/components/ui/motion/magnetic"
-
 type Card = {
   href: string
   eyebrow: string
@@ -79,6 +77,12 @@ export default function HomeHeroTriCards() {
   // no queremos que el browser siga animando algo invisible mientras lucha
   // con el scroll. Snap libera CPU y el scroll fluye.
   const [animEnabled, setAnimEnabled] = useState(true)
+  // sidesExpanded: estado separado para los laterales, atrasado DELAY_SIDES
+  // ms respecto a `expanded` en forward (instantáneo en reverse). Sustituye
+  // a `transition-delay` cuyo expiry causaba un setup point sincronizado con
+  // la animación de la central → twitch visible justo antes de que entren
+  // las imágenes laterales.
+  const [sidesExpanded, setSidesExpanded] = useState(false)
   const sectionRef = useRef<HTMLElement | null>(null)
   const lastYRef = useRef(0)
   const tickingRef = useRef(false)
@@ -168,6 +172,16 @@ export default function HomeHeroTriCards() {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
+  // Atrasa el cambio de sidesExpanded para crear el staging sin
+  // transition-delay. Forward: espera DELAY_SIDES. Reverse: instantáneo.
+  useEffect(() => {
+    if (expanded) {
+      const timer = window.setTimeout(() => setSidesExpanded(true), DELAY_SIDES)
+      return () => window.clearTimeout(timer)
+    }
+    setSidesExpanded(false)
+  }, [expanded])
+
   // IntersectionObserver: si la sección sale del viewport, desactivamos las
   // transitions (snap). Reduce carga CPU/GPU mientras el user scrollea rápido
   // pasando la sección y elimina la traba que aparecía con scroll largo.
@@ -199,13 +213,21 @@ export default function HomeHeroTriCards() {
       transition: animEnabled
         ? `width ${durCenter}ms ${EASE}, left ${durCenter}ms ${EASE}`
         : "none",
-      transform: "translateZ(0)",
+      // translateZ pequeño no-cero + preserve-3d: fuerza al browser a usar
+      // sub-pixel positioning continuo durante toda la transition, sin snap
+      // al pixel entero al final (que es el "detalle" visible al terminar).
+      transform: "translate3d(0,0,0.0001px)",
+      transformStyle: "preserve-3d",
       backfaceVisibility: "hidden",
       willChange: "width, left",
+      isolation: "isolate",
     }),
     [expanded, durCenter, animEnabled]
   )
 
+  // Usamos `sidesExpanded` (atrasado por setTimeout) en lugar de `expanded` +
+  // transition-delay. Las transitions arrancan limpias desde su t=0 cuando
+  // el state cambia, sin setup point sincronizado con la central.
   const sideLeftStyle = useMemo<React.CSSProperties>(
     () => ({
       position: "absolute",
@@ -213,15 +235,14 @@ export default function HomeHeroTriCards() {
       height: "100%",
       width: "32%",
       left: 0,
-      transform: expanded ? "translate3d(0,0,0)" : "translate3d(0,110%,0)",
-      opacity: expanded ? 1 : 0,
+      transform: sidesExpanded ? "translate3d(0,0,0)" : "translate3d(0,110%,0)",
+      opacity: sidesExpanded ? 1 : 0,
       transition: animEnabled
         ? `transform ${durSides}ms ${EASE}, opacity ${durSides}ms ${EASE}`
         : "none",
-      transitionDelay: animEnabled && expanded ? `${DELAY_SIDES}ms` : "0ms",
       willChange: "transform, opacity",
     }),
-    [expanded, durSides, animEnabled]
+    [sidesExpanded, durSides, animEnabled]
   )
 
   const sideRightStyle = useMemo<React.CSSProperties>(
@@ -231,15 +252,14 @@ export default function HomeHeroTriCards() {
       height: "100%",
       width: "32%",
       right: 0,
-      transform: expanded ? "translate3d(0,0,0)" : "translate3d(0,110%,0)",
-      opacity: expanded ? 1 : 0,
+      transform: sidesExpanded ? "translate3d(0,0,0)" : "translate3d(0,110%,0)",
+      opacity: sidesExpanded ? 1 : 0,
       transition: animEnabled
         ? `transform ${durSides}ms ${EASE}, opacity ${durSides}ms ${EASE}`
         : "none",
-      transitionDelay: animEnabled && expanded ? `${DELAY_SIDES}ms` : "0ms",
       willChange: "transform, opacity",
     }),
-    [expanded, durSides, animEnabled]
+    [sidesExpanded, durSides, animEnabled]
   )
 
   // Cross-fade entre dos versiones del texto (grande y chica), secuencial sin
@@ -272,6 +292,9 @@ export default function HomeHeroTriCards() {
             height: "calc(100vh - var(--navbar-actual-h, 64px) - 24px)",
             contain: "layout paint",
             transform: "translateZ(0)",
+            // perspective + preserve-3d en hijos = el browser usa el compositor
+            // 3D para todo el subárbol, lo cual evita el snap final de pixel.
+            perspective: "1000px",
           }}
         >
           <div className="relative h-full w-full">
@@ -283,15 +306,15 @@ export default function HomeHeroTriCards() {
               hideHeroText
               style={centerStyle}
               onMouseEnter={() => {
-                // No re-renderear durante la animación: si los bordes del card
-                // se mueven mientras el mouse está cerca, mouseEnter/Leave
-                // pueden dispararse involuntariamente y meter un re-render
-                // que causa el micro-tirón.
-                if (performance.now() < animLockUntilRef.current) return
+                // Buffer de +250ms post-lock: previene que un mouseEnter justo
+                // al expirar el lock (cuando el borde animado terminó cerca
+                // del mouse) meta un re-render en el último frame de la
+                // transition, lo cual causa el twitch al final.
+                if (performance.now() < animLockUntilRef.current + 250) return
                 setCenterHover(true)
               }}
               onMouseLeave={() => {
-                if (performance.now() < animLockUntilRef.current) return
+                if (performance.now() < animLockUntilRef.current + 250) return
                 setCenterHover(false)
               }}
             />
@@ -384,11 +407,17 @@ function CardBlock({
         alt={card.alt}
         fill
         sizes={hero ? "(min-width: 768px) 95vw, 100vw" : "(min-width: 768px) 31vw, 50vw"}
-        className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+        // En hero NO aplicamos hover-scale: el hover dispara/cancela una
+        // transition de scale 1200ms en paralelo a la animación de width/left
+        // del padre — son dos animaciones peleando por el mismo frame y eso
+        // es la causa del twitch cuando el centro se comprime/expande. Los
+        // laterales mantienen el hover scale (no animan width).
+        className={
+          hero
+            ? "object-cover"
+            : "object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+        }
         priority={hero}
-        // Promueve la imagen a su propia capa GPU: cuando el contenedor padre
-        // anima width/left, el navegador sólo cambia el clip; no re-rasteriza
-        // ni repinta los píxeles de la imagen. Es el truco que da fluidez.
         style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/55" />
@@ -405,11 +434,9 @@ function CardBlock({
             <p className="mt-5 max-w-md text-sm text-white/85 md:text-base">
               {card.subtitle}
             </p>
-            <Magnetic strength={0.3} className="mt-8">
-              <span className="inline-flex items-center border-b border-white/70 pb-1 text-xs uppercase tracking-[0.28em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">
-                {card.cta}
-              </span>
-            </Magnetic>
+            <span className="mt-8 inline-flex items-center border-b border-white/70 pb-1 text-xs uppercase tracking-[0.28em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">
+              {card.cta}
+            </span>
           </div>
         </div>
       )}
@@ -422,11 +449,9 @@ function CardBlock({
           <h3 className="font-[family-name:var(--font-cormorant-garamond)] text-2xl font-light leading-tight md:text-3xl">
             {card.title}
           </h3>
-          <Magnetic strength={0.3} className="mt-3 w-fit">
-            <span className="inline-flex items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">
-              {card.cta}
-            </span>
-          </Magnetic>
+          <span className="mt-3 inline-flex w-fit items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">
+            {card.cta}
+          </span>
         </div>
       )}
     </Link>

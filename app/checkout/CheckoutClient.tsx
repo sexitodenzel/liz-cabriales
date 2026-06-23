@@ -6,7 +6,6 @@ import { ChevronDown, Clock, MapPin, Package } from "lucide-react"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import RelatedProductsCarousel from "@/app/tienda/components/RelatedProductsCarousel"
-import { Magnetic } from "@/app/components/ui/motion/magnetic"
 import { getOrderRetryContext } from "@/lib/order-retry-context"
 
 import {
@@ -248,16 +247,14 @@ function ShippingStep(p: ShippingProps) {
         {summaryTotals}
         {!p.createdOrder && (
           <div className="mt-4 shrink-0">
-            <Magnetic strength={0.25} className="block w-full">
-              <button
-                type="submit"
-                form={CHECKOUT_FORM_ID}
-                disabled={p.isSubmitting}
-                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
-              </button>
-            </Magnetic>
+            <button
+              type="submit"
+              form={CHECKOUT_FORM_ID}
+              disabled={p.isSubmitting}
+              className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
+            </button>
           </div>
         )}
       </aside>
@@ -656,16 +653,14 @@ function ShippingStep(p: ShippingProps) {
           )}
 
           <div className="mt-3 w-full">
-            <Magnetic strength={0.25} className="block w-full">
-              <button
-                type="submit"
-                form={CHECKOUT_FORM_ID}
-                disabled={p.isSubmitting}
-                className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
-              </button>
-            </Magnetic>
+            <button
+              type="submit"
+              form={CHECKOUT_FORM_ID}
+              disabled={p.isSubmitting}
+              className="inline-flex h-9 w-full items-center justify-center rounded-full bg-black text-[11px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {p.isSubmitting ? p.submitLabel : "Continuar al pago"}
+            </button>
           </div>
         </div>
       )}

@@ -30,16 +30,16 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
         </header>
 
         <Marquee
-          speed={32}
+          speed={60}
           pauseOnHover
-          gap="0.5rem"
-          className="border-y border-neutral-200 py-3"
+          gap="1.5rem"
+          className="py-4"
         >
           {brands.map((brand) => (
             <Link
               key={brand.id}
               href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
-              className="group flex h-[84px] w-[172px] shrink-0 items-center justify-center rounded-xl border border-transparent bg-transparent px-5 py-3 transition-colors duration-200 hover:border-neutral-200 hover:bg-neutral-50"
+              className="group flex h-[120px] w-[220px] shrink-0 items-center justify-center bg-transparent px-6 py-4 transition-opacity duration-200 hover:opacity-100"
               aria-label={`Ver productos de ${brand.name}`}
             >
               {brand.logo_url ? (
@@ -47,7 +47,7 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
                 <img
                   src={brand.logo_url}
                   alt={brand.name}
-                  className="max-h-[44px] w-auto max-w-full object-contain opacity-90 transition-all duration-200 group-hover:opacity-100 group-hover:grayscale-0"
+                  className="max-h-[88px] w-auto max-w-full object-contain opacity-90 transition-all duration-200 group-hover:opacity-100"
                   loading="lazy"
                 />
               ) : (

@@ -257,7 +257,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden border border-neutral-200 bg-white shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-      <TiltCard max={8} className="h-36 bg-neutral-100 rounded-none sm:h-64">
+      <TiltCard max={8} glare={false} className="h-36 bg-neutral-100 rounded-none sm:h-64">
         <Link href={`/tienda/${product.slug}`} className="block h-full">
           {currentImage ? (
             desktopHoverSwapEnabled ? (
