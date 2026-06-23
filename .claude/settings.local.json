@@ -35,7 +35,19 @@
       "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 100)",
       "PowerShell(npx next lint --dir app --dir lib 2>&1 | Select-Object -Last 80)",
       "PowerShell(npm run *)",
-      "PowerShell(npx eslint app/components/orders app/api/orders/[id]/contact lib/email/templates/order-question.ts app/orden/[id]/page.tsx 2>&1)"
+      "PowerShell(npx eslint app/components/orders app/api/orders/[id]/contact lib/email/templates/order-question.ts app/orden/[id]/page.tsx 2>&1)",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -Last 80)",
+      "PowerShell(node scripts\\\\check-nivea.mjs)",
+      "PowerShell(npx tsc --noEmit > tsc-out.txt 2>&1; Get-Content tsc-out.txt -Tail 80)",
+      "PowerShell(node scripts\\\\check-search.mjs)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3001/api/products/search-suggestions?q=acrilico\" -UseBasicParsing; Write-Output \"Status: $\\($r.StatusCode\\)\"; Write-Output $r.Content)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/api/products/search-suggestions?q=acrilico\" -UseBasicParsing -SkipHttpErrorCheck; Write-Output \"Status: $\\($r.StatusCode\\)\"; Write-Output $r.Content)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/products/search-suggestions?q=acrilico\" -UseBasicParsing -ErrorAction Stop; Write-Output \"Status: $\\($r.StatusCode\\)\"; Write-Output $r.Content } catch { Write-Output \"Status: $\\($_.Exception.Response.StatusCode.value__\\)\"; $reader = New-Object System.IO.StreamReader\\($_.Exception.Response.GetResponseStream\\(\\)\\); Write-Output $reader.ReadToEnd\\(\\) })",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 40)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/products/search-suggestions?q=cardone\" -UseBasicParsing -ErrorAction Stop; Write-Output \"Status: $\\($r.StatusCode\\)\"; $r.Content | Out-String } catch { Write-Output \"ERR: $\\($_.Exception.Response.StatusCode\\)\"; $reader = New-Object System.IO.StreamReader\\($_.Exception.Response.GetResponseStream\\(\\)\\); $reader.ReadToEnd\\(\\) })",
+      "PowerShell($ProgressPreference='SilentlyContinue'; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/products/search-suggestions?q=cardone\" -UseBasicParsing; Write-Output \"Status: $\\($r.StatusCode\\)\"; $r.Content } catch { Write-Output \"Caught: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 60)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

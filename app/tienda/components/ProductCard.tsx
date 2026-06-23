@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import type { ProductWithCategory } from "@/lib/supabase/products"
 import { getAbrasivityLevel } from "@/lib/constants/abrasivity"
+import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 import AddToCartButton from "./AddToCartButton"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
 import { storeCardButtonClassName } from "./store-button-styles"
@@ -47,6 +48,8 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
   const slideDurationMs = 260
 
   const abrasivityLevel = getAbrasivityLevel(product.abrasivity)
+  const productHasDiscount = hasDiscount(product.discount_percent)
+  const discountedPrice = applyDiscount(product.base_price, product.discount_percent)
 
   const activeVariants = (product.variants ?? []).filter(
     (variant) => variant.is_active
@@ -139,6 +142,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
           brand={product.brand ?? null}
           image={currentImage}
           basePrice={product.base_price}
+          discountPercent={product.discount_percent}
           variants={product.variants ?? []}
           className={cardButtonClassName}
         />
@@ -204,9 +208,23 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
             </button>
           </div>
 
-          <p className="text-base font-semibold text-[#C9A84C] sm:text-lg md:text-xl">
-            {formatPrice(product.base_price)}
-          </p>
+          {productHasDiscount ? (
+            <div className="flex items-baseline gap-2">
+              <p className="text-base font-semibold text-[#C9A84C] sm:text-lg md:text-xl">
+                {formatPrice(discountedPrice)}
+              </p>
+              <p className="text-xs text-neutral-400 line-through sm:text-sm">
+                {formatPrice(product.base_price)}
+              </p>
+              <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:text-[11px]">
+                -{product.discount_percent}%
+              </span>
+            </div>
+          ) : (
+            <p className="text-base font-semibold text-[#C9A84C] sm:text-lg md:text-xl">
+              {formatPrice(product.base_price)}
+            </p>
+          )}
 
           <div className="w-full max-w-sm">{listActionButton}</div>
         </div>
@@ -318,6 +336,12 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
             </div>
           )}
 
+          {productHasDiscount && !isOutOfStock && (
+            <div className="absolute right-2 top-2 z-10 rounded-full bg-[#C9A84C] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm sm:right-3 sm:top-3 sm:px-3 sm:py-1 sm:text-xs">
+              -{product.discount_percent}%
+            </div>
+          )}
+
           {abrasivityLevel && (
             <span
               aria-label={`Abrasividad ${abrasivityLevel.label} (cinta ${abrasivityLevel.tape})`}
@@ -384,9 +408,23 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
           {heartButton}
         </div>
 
-        <p className="text-sm font-semibold text-[#C9A84C] sm:text-lg">
-          {formatPrice(product.base_price)}
-        </p>
+        {productHasDiscount ? (
+          <div className="flex flex-wrap items-baseline gap-1.5">
+            <p className="text-sm font-semibold text-[#C9A84C] sm:text-lg">
+              {formatPrice(discountedPrice)}
+            </p>
+            <p className="text-[11px] text-neutral-400 line-through sm:text-xs">
+              {formatPrice(product.base_price)}
+            </p>
+            <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
+              -{product.discount_percent}%
+            </span>
+          </div>
+        ) : (
+          <p className="text-sm font-semibold text-[#C9A84C] sm:text-lg">
+            {formatPrice(product.base_price)}
+          </p>
+        )}
 
         <div className="mt-auto flex flex-col gap-1.5 sm:gap-2">
           {actionButton}

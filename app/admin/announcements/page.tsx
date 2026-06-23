@@ -27,6 +27,9 @@ type ToastState =
 export default function AdminAnnouncementsPage() {
   const router = useRouter()
   const [items, setItems] = useState<AnnouncementRow[]>([])
+  const [barEnabled, setBarEnabled] = useState(false)
+  const [barSettingsLoading, setBarSettingsLoading] = useState(true)
+  const [barSettingsSaving, setBarSettingsSaving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, EditDraft>>({})
@@ -40,6 +43,64 @@ export default function AdminAnnouncementsPage() {
     const t = setTimeout(() => setToast(null), 2400)
     return () => clearTimeout(t)
   }, [toast])
+
+  async function loadBarSettings() {
+    try {
+      const res = await fetch("/api/admin/announcements/settings")
+      if (res.status === 401 || res.status === 403) {
+        router.replace("/login")
+        return
+      }
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message: json?.error?.message ?? "No se pudo cargar la configuración.",
+        })
+        return
+      }
+      setBarEnabled(Boolean(json.data?.barEnabled))
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al cargar la configuración.",
+      })
+    } finally {
+      setBarSettingsLoading(false)
+    }
+  }
+
+  async function toggleBarEnabled(next: boolean) {
+    setBarSettingsSaving(true)
+    try {
+      const res = await fetch("/api/admin/announcements/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ barEnabled: next }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message: json?.error?.message ?? "No se pudo guardar la configuración.",
+        })
+        return
+      }
+      setBarEnabled(Boolean(json.data?.barEnabled))
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message: next ? "Barra de anuncios activada." : "Barra de anuncios desactivada.",
+      })
+    } catch {
+      setToast({ id: Date.now(), type: "error", message: "Error de red." })
+    } finally {
+      setBarSettingsSaving(false)
+    }
+  }
 
   async function load() {
     try {
@@ -78,6 +139,7 @@ export default function AdminAnnouncementsPage() {
   }
 
   useEffect(() => {
+    void loadBarSettings()
     void load()
   }, [])
 
@@ -256,6 +318,36 @@ export default function AdminAnnouncementsPage() {
           Rotan automáticamente cada 5 segundos. El link es opcional.
         </p>
       </header>
+
+      <section className="mb-6 rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-neutral-900">
+              Mostrar barra en el sitio
+            </h2>
+            <p className="mt-1 text-xs text-neutral-500">
+              Activa o desactiva la franja negra superior en la página principal.
+              Los slides se conservan aunque la barra esté apagada.
+            </p>
+          </div>
+          <label className="inline-flex shrink-0 items-center gap-3 self-start sm:self-center">
+            <span className="text-xs font-medium text-neutral-700">
+              {barSettingsLoading
+                ? "..."
+                : barEnabled
+                  ? "Activa"
+                  : "Desactivada"}
+            </span>
+            <input
+              type="checkbox"
+              checked={barEnabled}
+              disabled={barSettingsLoading || barSettingsSaving}
+              onChange={(e) => void toggleBarEnabled(e.target.checked)}
+              className="h-5 w-5 rounded border-neutral-300 accent-[#c9a84c] disabled:opacity-50"
+            />
+          </label>
+        </div>
+      </section>
 
       <section className="mb-6 rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <header className="border-b border-neutral-100 px-4 py-3">

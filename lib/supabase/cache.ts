@@ -63,6 +63,7 @@ type ProductRow = {
   slug: string
   description: string | null
   base_price: number | string
+  discount_percent?: number | string | null
   images: string[] | null
   desktop_image_mode?: string | null
   brand: string | null
@@ -89,7 +90,7 @@ function normalizeAbrasivity(
 }
 
 const PRODUCT_SELECT = `
-  id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity,
+  id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity,
   is_featured, is_best_seller, is_active, updated_at, created_at, deleted_at,
   categories ( id, name, slug ),
   product_variants ( id, product_id, sku, variant_name, price, stock, is_active )
@@ -119,6 +120,7 @@ function mapProduct(row: ProductRow): ProductWithCategory | null {
     slug: row.slug,
     description: row.description ?? null,
     base_price: Number(row.base_price),
+    discount_percent: Number(row.discount_percent ?? 0),
     images: row.images ?? null,
     desktop_image_mode: normalizeDesktopImageMode(row.desktop_image_mode),
     brand: row.brand ?? null,
@@ -419,7 +421,7 @@ export const getFeaturedProductsCached = unstable_cache(
     const { data, error } = await db()
       .from("products")
       .select(
-        "id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at"
+        "id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at"
       )
       .eq("is_featured", true)
       .eq("is_active", true)
@@ -435,6 +437,7 @@ export const getFeaturedProductsCached = unstable_cache(
       slug: row.slug as string,
       description: (row.description as string | null) ?? null,
       base_price: Number(row.base_price),
+      discount_percent: Number((row as { discount_percent?: number | string | null }).discount_percent ?? 0),
       images: (row.images as string[] | null) ?? null,
       desktop_image_mode: normalizeDesktopImageMode(
         row.desktop_image_mode as string | null | undefined
@@ -451,6 +454,43 @@ export const getFeaturedProductsCached = unstable_cache(
   },
   ["products-featured"],
   { revalidate: 120, tags: ["products"] }
+)
+
+/* ── On sale products (discount_percent > 0) ─────────────────────────────── */
+
+export const getOnSaleProductsCached = unstable_cache(
+  async (): Promise<Result<ProductWithCategory[]>> => {
+    const { data, error } = await db()
+      .from("products")
+      .select(PRODUCT_SELECT)
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .gt("discount_percent", 0)
+      .order("updated_at", { ascending: false })
+      .order("created_at", { ascending: false })
+    if (error) return { data: null, error: { message: error.message, code: error.code } }
+    const products = (data ?? [])
+      .map((row) => mapProduct(row as unknown as ProductRow))
+      .filter((p): p is ProductWithCategory => p !== null)
+    return { data: products, error: null }
+  },
+  ["products-on-sale"],
+  { revalidate: 120, tags: ["products", "on-sale"] }
+)
+
+export const getOnSaleCountCached = unstable_cache(
+  async (): Promise<Result<number>> => {
+    const { count, error } = await db()
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .gt("discount_percent", 0)
+    if (error) return { data: null, error: { message: error.message, code: error.code } }
+    return { data: count ?? 0, error: null }
+  },
+  ["products-on-sale-count"],
+  { revalidate: 120, tags: ["products", "on-sale"] }
 )
 
 /* ── Best sellers ────────────────────────────────────────────────────────── */
@@ -505,6 +545,24 @@ export const getTopSearchesCached = unstable_cache(
 )
 
 /* ── Announcement bar (línea superior con slides) ────────────────────────── */
+
+export const getAnnouncementBarEnabledCached = unstable_cache(
+  async (): Promise<boolean> => {
+    const { data, error } = await db()
+      .from("app_settings")
+      .select("value")
+      .eq("key", "announcement_bar_enabled")
+      .maybeSingle()
+    if (error) {
+      if (error.code === "42P01") return false
+      return false
+    }
+    if (!data?.value) return false
+    return data.value === true || data.value === "true"
+  },
+  ["announcement-bar-enabled"],
+  { revalidate: 300, tags: ["announcement-bar-settings"] }
+)
 
 export type AnnouncementItem = {
   id: string
@@ -566,6 +624,7 @@ export const getProductBySlugCached = unstable_cache(
       slug: row.slug,
       description: row.description ?? null,
       base_price: Number(row.base_price),
+      discount_percent: Number(row.discount_percent ?? 0),
       images: row.images ?? null,
       desktop_image_mode: normalizeDesktopImageMode(row.desktop_image_mode),
       brand: row.brand ?? null,

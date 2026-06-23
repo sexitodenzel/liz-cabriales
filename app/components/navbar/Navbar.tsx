@@ -21,6 +21,8 @@ import {
   type BrandMenuItem,
 } from "@/lib/navbar/brands-category"
 import {
+  type SearchSuggestionBrand,
+  type SearchSuggestionCategory,
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
@@ -41,6 +43,8 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [recentProducts, setRecentProducts] = useState<RecentProductMenuItem[]>([])
   const [brandMenuItems, setBrandMenuItems] = useState<BrandMenuItem[]>([])
   const [suggestionProducts, setSuggestionProducts] = useState<SearchSuggestionProduct[]>([])
+  const [suggestionBrands, setSuggestionBrands] = useState<SearchSuggestionBrand[]>([])
+  const [suggestionCategories, setSuggestionCategories] = useState<SearchSuggestionCategory[]>([])
   const [suggestionsLoading, setSuggestionsLoading] = useState(false)
   const [topSearches, setTopSearches] = useState<TopSearchChip[]>([])
   const [bestSellers, setBestSellers] = useState<SearchSuggestionProduct[]>([])
@@ -229,6 +233,8 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     const query = searchQuery.trim()
     if (query.length < 2) {
       setSuggestionProducts([])
+      setSuggestionBrands([])
+      setSuggestionCategories([])
       setSuggestionsLoading(false)
       return
     }
@@ -243,10 +249,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         const json = (await response.json()) as {
           data?: {
             products?: SearchSuggestionProduct[]
+            brands?: SearchSuggestionBrand[]
+            categories?: SearchSuggestionCategory[]
           }
         }
         if (!isMounted) return
         setSuggestionProducts(Array.isArray(json.data?.products) ? json.data!.products! : [])
+        setSuggestionBrands(Array.isArray(json.data?.brands) ? json.data!.brands! : [])
+        setSuggestionCategories(Array.isArray(json.data?.categories) ? json.data!.categories! : [])
       } finally {
         if (isMounted) setSuggestionsLoading(false)
       }
@@ -308,7 +318,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               className="shrink-0 no-underline transition-opacity hover:opacity-90"
               aria-label="Ir al inicio"
             >
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-black p-1.5 sm:h-12 sm:w-12 sm:p-2">
+              <span className="inline-flex h-10 w-10 items-center justify-center sm:h-12 sm:w-12">
                 <Image
                   src="/images/logo.png"
                   alt="Liz Cabriales"
@@ -368,7 +378,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             aria-label="Ir al inicio"
             onMouseEnter={scheduleMenuClose}
           >
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-black p-2 lg:h-14 lg:w-14 lg:p-2.5">
+            <span className="inline-flex h-12 w-12 items-center justify-center lg:h-14 lg:w-14">
               <Image
                 src="/images/logo.png"
                 alt="Liz Cabriales"
@@ -533,6 +543,8 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         query={searchQuery}
         onQueryChange={setSearchQuery}
         products={suggestionProducts}
+        brands={suggestionBrands}
+        categories={suggestionCategories}
         suggestionsLoading={suggestionsLoading}
         topSearches={topSearches}
         bestSellers={bestSellers}

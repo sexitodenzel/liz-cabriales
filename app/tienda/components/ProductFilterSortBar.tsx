@@ -37,6 +37,9 @@ type DesktopFilters = {
   priceMin: number | null
   priceMax: number | null
   priceBounds: { min: number; max: number }
+  onSale?: boolean
+  showOnSale?: boolean
+  onOnSaleChange?: (value: boolean) => void
   onCategoriesChange: (slugs: string[]) => void
   onBrandsChange: (brands: string[]) => void
   onAbrasivitiesChange: (values: AbrasivityValue[]) => void
@@ -457,6 +460,24 @@ export default function ProductFilterSortBar({
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* En oferta */}
+              {desktopFilters.showOnSale && desktopFilters.onOnSaleChange && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    desktopFilters.onOnSaleChange?.(!desktopFilters.onSale)
+                  }
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                    desktopFilters.onSale
+                      ? "bg-[#C9A84C] text-white"
+                      : "border border-[#C9A84C] text-[#a8862f] hover:bg-[#C9A84C]/10"
+                  }`}
+                  aria-pressed={desktopFilters.onSale}
+                >
+                  En oferta
+                </button>
               )}
             </div>
           )}

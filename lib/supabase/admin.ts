@@ -64,6 +64,7 @@ export type AdminProduct = {
   sku: string | null
   description: string | null
   long_description: string | null
+  search_synonyms: string | null
   base_price: number
   cost_price: number | null
   wholesale_price: number | null
@@ -76,6 +77,7 @@ export type AdminProduct = {
   min_stock: number
   stock: number
   variant_id: string | null
+  discount_percent: number
   is_featured: boolean
   is_best_seller: boolean
   is_active: boolean
@@ -113,6 +115,7 @@ export type CreateAdminProductInput = {
   sku?: string | null
   description?: string | null
   longDescription?: string | null
+  searchSynonyms?: string | null
   basePrice: number
   costPrice?: number | null
   wholesalePrice?: number | null
@@ -1429,6 +1432,7 @@ export async function getAdminProducts(): Promise<
       sku,
       description,
       long_description,
+      search_synonyms,
       base_price,
       cost_price,
       wholesale_price,
@@ -1439,6 +1443,7 @@ export async function getAdminProducts(): Promise<
       subcategory,
       abrasivity,
       min_stock,
+      discount_percent,
       is_featured,
       is_best_seller,
       is_active,
@@ -1476,6 +1481,7 @@ export async function getAdminProducts(): Promise<
         sku: string | null
         description: string | null
         long_description: string | null
+        search_synonyms: string | null
         base_price: number
         cost_price: number | null
         wholesale_price: number | null
@@ -1486,6 +1492,7 @@ export async function getAdminProducts(): Promise<
         subcategory: string | null
         abrasivity?: string | null
         min_stock: number | null
+        discount_percent?: number | string | null
         is_featured: boolean
         is_best_seller: boolean | null
         is_active: boolean
@@ -1506,6 +1513,7 @@ export async function getAdminProducts(): Promise<
         sku: current.sku ?? null,
         description: current.description ?? null,
         long_description: current.long_description ?? null,
+        search_synonyms: current.search_synonyms ?? null,
         base_price: Number(current.base_price),
         cost_price: current.cost_price !== null ? Number(current.cost_price) : null,
         wholesale_price: current.wholesale_price !== null ? Number(current.wholesale_price) : null,
@@ -1520,6 +1528,7 @@ export async function getAdminProducts(): Promise<
         min_stock: Number(current.min_stock ?? 0),
         stock: activeVariant ? Number(activeVariant.stock) : 0,
         variant_id: activeVariant?.id ?? null,
+        discount_percent: Number(current.discount_percent ?? 0),
         is_featured: Boolean(current.is_featured),
         is_best_seller: Boolean(current.is_best_seller),
         is_active: Boolean(current.is_active),
@@ -1549,6 +1558,7 @@ export async function createAdminProduct(
       sku: input.sku ?? null,
       description: input.description ?? null,
       long_description: input.longDescription ?? null,
+      search_synonyms: input.searchSynonyms ?? null,
       base_price: input.basePrice,
       cost_price: input.costPrice ?? null,
       wholesale_price: input.wholesalePrice ?? null,
@@ -1573,6 +1583,7 @@ export async function createAdminProduct(
       sku,
       description,
       long_description,
+      search_synonyms,
       base_price,
       cost_price,
       wholesale_price,
@@ -1583,6 +1594,7 @@ export async function createAdminProduct(
       subcategory,
       abrasivity,
       min_stock,
+      discount_percent,
       is_featured,
       is_best_seller,
       is_active,
@@ -1673,6 +1685,7 @@ export async function createAdminProduct(
     sku: (product.sku as string | null) ?? null,
     description: (product.description as string) ?? null,
     long_description: (product.long_description as string | null) ?? null,
+    search_synonyms: (product.search_synonyms as string | null) ?? null,
     base_price: Number(product.base_price),
     cost_price: product.cost_price !== null ? Number(product.cost_price) : null,
     wholesale_price: product.wholesale_price !== null ? Number(product.wholesale_price) : null,
@@ -1687,6 +1700,7 @@ export async function createAdminProduct(
     min_stock: Number(product.min_stock ?? 0),
     stock: input.initialStock ?? 0,
     variant_id: null,
+    discount_percent: Number((product as { discount_percent?: number | string | null }).discount_percent ?? 0),
     is_featured: Boolean(product.is_featured),
     is_best_seller: Boolean(product.is_best_seller),
     is_active: Boolean(product.is_active),
@@ -1709,6 +1723,7 @@ export async function updateAdminProduct(
   if (input.sku !== undefined) updatePayload.sku = input.sku
   if (input.description !== undefined) updatePayload.description = input.description
   if (input.longDescription !== undefined) updatePayload.long_description = input.longDescription
+  if (input.searchSynonyms !== undefined) updatePayload.search_synonyms = input.searchSynonyms
   if (input.basePrice !== undefined) updatePayload.base_price = input.basePrice
   if (input.costPrice !== undefined) updatePayload.cost_price = input.costPrice
   if (input.wholesalePrice !== undefined) updatePayload.wholesale_price = input.wholesalePrice
@@ -1772,6 +1787,7 @@ export async function updateAdminProduct(
       sku,
       description,
       long_description,
+      search_synonyms,
       base_price,
       cost_price,
       wholesale_price,
@@ -1782,6 +1798,7 @@ export async function updateAdminProduct(
       subcategory,
       abrasivity,
       min_stock,
+      discount_percent,
       is_featured,
       is_best_seller,
       is_active,
@@ -1833,6 +1850,7 @@ export async function updateAdminProduct(
     sku: (data.sku as string | null) ?? null,
     description: (data.description as string) ?? null,
     long_description: (data.long_description as string | null) ?? null,
+    search_synonyms: (data.search_synonyms as string | null) ?? null,
     base_price: Number(data.base_price),
     cost_price: data.cost_price !== null ? Number(data.cost_price) : null,
     wholesale_price: data.wholesale_price !== null ? Number(data.wholesale_price) : null,
@@ -1847,6 +1865,7 @@ export async function updateAdminProduct(
     min_stock: Number(data.min_stock ?? 0),
     stock: updatedActiveVariant ? Number(updatedActiveVariant.stock) : (input.stock ?? 0),
     variant_id: updatedActiveVariant?.id ?? null,
+    discount_percent: Number((data as { discount_percent?: number | string | null }).discount_percent ?? 0),
     is_featured: Boolean(data.is_featured),
     is_best_seller: Boolean(data.is_best_seller),
     is_active: Boolean(data.is_active),
@@ -1856,6 +1875,62 @@ export async function updateAdminProduct(
   }
 
   return { data: updated, error: null }
+}
+
+export async function bulkUpdateProductsDiscount(
+  productIds: string[],
+  discountPercent: number
+): Promise<Result<{ updated: number }>> {
+  if (!Array.isArray(productIds) || productIds.length === 0) {
+    return {
+      data: null,
+      error: { message: "Selecciona al menos un producto", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  if (productIds.length > 500) {
+    return {
+      data: null,
+      error: { message: "Máximo 500 productos por operación", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  if (!Number.isFinite(discountPercent)) {
+    return {
+      data: null,
+      error: { message: "Porcentaje inválido", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  const clamped = Math.round(discountPercent)
+  if (clamped < 0 || clamped > 95) {
+    return {
+      data: null,
+      error: {
+        message: "El descuento debe estar entre 0 y 95",
+        code: "VALIDATION_ERROR",
+      },
+    }
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("products")
+    .update({
+      discount_percent: clamped,
+      updated_at: new Date().toISOString(),
+    })
+    .in("id", productIds)
+    .is("deleted_at", null)
+    .select("id")
+
+  if (error) {
+    return {
+      data: null,
+      error: { message: error.message, code: error.code },
+    }
+  }
+
+  return { data: { updated: data?.length ?? 0 }, error: null }
 }
 
 export async function softDeleteAdminProduct(id: string): Promise<Result<null>> {

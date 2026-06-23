@@ -57,3 +57,8 @@ INSERT INTO announcements (label, href, position) VALUES
   ('Capacítate con nosotros', '/academia', 1),
   ('Conoce nuestros servicios', '/servicios', 2)
 ON CONFLICT DO NOTHING;
+
+-- Toggle global de la barra negra (desactivada por defecto).
+INSERT INTO app_settings (key, value)
+VALUES ('announcement_bar_enabled', 'false')
+ON CONFLICT (key) DO NOTHING;

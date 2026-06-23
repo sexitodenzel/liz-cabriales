@@ -106,6 +106,7 @@ export default async function ProductPage({ params }: PageProps) {
                 brand={product.brand ?? null}
                 image={image}
                 basePrice={product.base_price}
+                discountPercent={product.discount_percent}
                 variants={product.variants}
                 enableSelector
                 enableQuantitySelector

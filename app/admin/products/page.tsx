@@ -39,6 +39,7 @@ type CreateFormState = {
   sku: string
   description: string
   longDescription: string
+  searchSynonyms: string
   basePrice: string
   costPrice: string
   wholesalePrice: string
@@ -251,6 +252,7 @@ export default function AdminProductsPage() {
     sku: "",
     description: "",
     longDescription: "",
+    searchSynonyms: "",
     basePrice: "",
     costPrice: "",
     wholesalePrice: "",
@@ -291,6 +293,11 @@ export default function AdminProductsPage() {
   const [filterBrands, setFilterBrands] = useState<string[]>([])
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all")
   const [filterLowStock, setFilterLowStock] = useState(false)
+  const [filterOnSale, setFilterOnSale] = useState(false)
+
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set())
+  const [discountPercentInput, setDiscountPercentInput] = useState<string>("")
+  const [applyingDiscount, setApplyingDiscount] = useState(false)
 
   const [productsFullscreen, setProductsFullscreen] = useState(false)
   const [categoriesFullscreen, setCategoriesFullscreen] = useState(false)
@@ -595,10 +602,13 @@ export default function AdminProductsPage() {
     if (filterLowStock) {
       result = result.filter((p) => p.stock <= p.min_stock)
     }
+    if (filterOnSale) {
+      result = result.filter((p) => (p.discount_percent ?? 0) > 0)
+    }
     return result
-  }, [activeProducts, searchQuery, filterCategories, filterBrands, filterStatus, filterLowStock])
+  }, [activeProducts, searchQuery, filterCategories, filterBrands, filterStatus, filterLowStock, filterOnSale])
 
-  const hasActiveFilters = searchQuery.trim() !== "" || filterCategories.length > 0 || filterBrands.length > 0 || filterStatus !== "all" || filterLowStock
+  const hasActiveFilters = searchQuery.trim() !== "" || filterCategories.length > 0 || filterBrands.length > 0 || filterStatus !== "all" || filterLowStock || filterOnSale
 
   function clearFilters() {
     setSearchQuery("")
@@ -606,6 +616,126 @@ export default function AdminProductsPage() {
     setFilterBrands([])
     setFilterStatus("all")
     setFilterLowStock(false)
+    setFilterOnSale(false)
+  }
+
+  const filteredProductIds = useMemo(
+    () => filteredProducts.map((p) => p.id),
+    [filteredProducts]
+  )
+
+  const filteredSelectedCount = useMemo(
+    () =>
+      filteredProductIds.reduce(
+        (acc, id) => acc + (selectedProductIds.has(id) ? 1 : 0),
+        0
+      ),
+    [filteredProductIds, selectedProductIds]
+  )
+
+  const allFilteredSelected =
+    filteredProductIds.length > 0 &&
+    filteredSelectedCount === filteredProductIds.length
+
+  const someFilteredSelected =
+    filteredSelectedCount > 0 && !allFilteredSelected
+
+  function toggleProductSelected(productId: string) {
+    setSelectedProductIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(productId)) {
+        next.delete(productId)
+      } else {
+        next.add(productId)
+      }
+      return next
+    })
+  }
+
+  function toggleSelectAllFiltered() {
+    setSelectedProductIds((prev) => {
+      const next = new Set(prev)
+      if (allFilteredSelected) {
+        for (const id of filteredProductIds) next.delete(id)
+      } else {
+        for (const id of filteredProductIds) next.add(id)
+      }
+      return next
+    })
+  }
+
+  function clearSelection() {
+    setSelectedProductIds(new Set())
+  }
+
+  async function submitBulkDiscount(percent: number) {
+    if (selectedProductIds.size === 0) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Selecciona al menos un producto.",
+      })
+      return
+    }
+    if (!Number.isFinite(percent) || percent < 0 || percent > 95) {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "El descuento debe estar entre 0 y 95%.",
+      })
+      return
+    }
+
+    setApplyingDiscount(true)
+    try {
+      const res = await fetch("/api/admin/products/bulk-discount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productIds: Array.from(selectedProductIds),
+          discountPercent: percent,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        setToast({
+          id: Date.now(),
+          type: "error",
+          message:
+            json?.error?.message ?? "No se pudo aplicar el descuento.",
+        })
+        return
+      }
+      const updated = (json?.data?.updated as number | undefined) ?? 0
+      setToast({
+        id: Date.now(),
+        type: "success",
+        message:
+          percent === 0
+            ? `Descuento removido de ${updated} producto${updated === 1 ? "" : "s"}.`
+            : `Descuento ${percent}% aplicado a ${updated} producto${updated === 1 ? "" : "s"}.`,
+      })
+      setDiscountPercentInput("")
+      clearSelection()
+      await fetchProducts()
+    } catch {
+      setToast({
+        id: Date.now(),
+        type: "error",
+        message: "Error de red al aplicar el descuento.",
+      })
+    } finally {
+      setApplyingDiscount(false)
+    }
+  }
+
+  async function handleApplyDiscount() {
+    const value = Number(discountPercentInput)
+    await submitBulkDiscount(value)
+  }
+
+  async function handleClearDiscount() {
+    await submitBulkDiscount(0)
   }
 
   const handleFormChange = (
@@ -1275,6 +1405,7 @@ export default function AdminProductsPage() {
           sku: form.sku || null,
           description: form.description || null,
           longDescription: form.longDescription || null,
+          searchSynonyms: form.searchSynonyms || null,
           basePrice: basePriceNumber,
           costPrice: form.costPrice ? Number(form.costPrice) : null,
           wholesalePrice: form.wholesalePrice ? Number(form.wholesalePrice) : null,
@@ -1325,6 +1456,7 @@ export default function AdminProductsPage() {
         sku: "",
         description: "",
         longDescription: "",
+        searchSynonyms: "",
         basePrice: "",
         costPrice: "",
         wholesalePrice: "",
@@ -1370,6 +1502,7 @@ export default function AdminProductsPage() {
       sku: product.sku ?? "",
       description: product.description ?? "",
       longDescription: product.long_description ?? "",
+      searchSynonyms: product.search_synonyms ?? "",
       basePrice: String(product.base_price),
       costPrice: product.cost_price !== null ? String(product.cost_price) : "",
       wholesalePrice: product.wholesale_price !== null ? String(product.wholesale_price) : "",
@@ -1506,6 +1639,7 @@ export default function AdminProductsPage() {
           sku: editForm.sku || null,
           description: editForm.description || null,
           longDescription: editForm.longDescription || null,
+          searchSynonyms: editForm.searchSynonyms || null,
           basePrice: basePriceNumber,
           costPrice: editForm.costPrice ? Number(editForm.costPrice) : null,
           wholesalePrice: editForm.wholesalePrice ? Number(editForm.wholesalePrice) : null,
@@ -1848,6 +1982,25 @@ export default function AdminProductsPage() {
                   style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                   placeholder="Descripción completa del producto, características, modo de uso…"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  SINÓNIMOS DE BÚSQUEDA
+                </label>
+                <textarea
+                  value={form.searchSynonyms}
+                  onChange={(event) =>
+                    handleFormChange("searchSynonyms", event.target.value)
+                  }
+                  rows={2}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  placeholder="barniz, pintauñas, polish — separa con comas"
+                />
+                <p className="text-[11px] text-neutral-500">
+                  Palabras alternativas que las clientas podrían usar al buscar este producto. Aparece como match en el buscador pero no se muestra en la tienda.
+                </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
@@ -2426,6 +2579,16 @@ export default function AdminProductsPage() {
                   <span className="text-[11px] text-neutral-600">Stock bajo</span>
                 </label>
 
+                <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filterOnSale}
+                    onChange={(e) => setFilterOnSale(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-neutral-300 accent-[#c9a84c]"
+                  />
+                  <span className="text-[11px] text-neutral-600">En oferta</span>
+                </label>
+
                 {hasActiveFilters && (
                   <button
                     type="button"
@@ -2438,10 +2601,99 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
+            {selectedProductIds.size > 0 && (
+              <div className="border-b border-neutral-200 bg-[#fff8e7] px-4 py-3 shrink-0">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-xs font-semibold text-neutral-800">
+                    {selectedProductIds.size} seleccionado
+                    {selectedProductIds.size === 1 ? "" : "s"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={clearSelection}
+                    className="text-[11px] font-medium text-neutral-500 hover:text-neutral-800 hover:underline"
+                  >
+                    Limpiar selección
+                  </button>
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <label
+                        htmlFor="bulk-discount-input"
+                        className="text-[11px] font-medium uppercase tracking-wide text-neutral-600"
+                      >
+                        Descuento
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="bulk-discount-input"
+                          type="number"
+                          min={1}
+                          max={95}
+                          step={1}
+                          value={discountPercentInput}
+                          onChange={(e) => setDiscountPercentInput(e.target.value)}
+                          placeholder="0"
+                          className="w-20 rounded-lg border border-neutral-300 bg-white px-2 py-1.5 pr-7 text-xs outline-none focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c]"
+                        />
+                        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-neutral-500">
+                          %
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[10, 20, 30, 50].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setDiscountPercentInput(String(preset))}
+                            className="rounded-full border border-neutral-300 bg-white px-2 py-0.5 text-[10px] font-medium text-neutral-600 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]"
+                          >
+                            {preset}%
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleApplyDiscount}
+                      disabled={applyingDiscount || !discountPercentInput}
+                      className="inline-flex items-center rounded-full bg-[#c9a84c] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[#a8893a] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {applyingDiscount ? "APLICANDO…" : "APLICAR DESCUENTO"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearDiscount}
+                      disabled={applyingDiscount}
+                      className="inline-flex items-center rounded-full border border-neutral-300 bg-white px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-700 transition-colors hover:border-neutral-500 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      QUITAR DESCUENTO
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className={productsFullscreen ? "overflow-x-auto overflow-y-auto flex-1" : "overflow-x-auto overflow-y-auto max-h-[760px]"}>
               <table className="min-w-full border-collapse text-left text-sm">
                 <thead className="sticky top-0 z-10 bg-neutral-100 text-xs uppercase tracking-[0.16em]">
                   <tr className="border-b border-neutral-200">
+                    <th className={`${PRODUCTS_TABLE_HEAD_CELL} px-4 w-10`}>
+                      <input
+                        type="checkbox"
+                        aria-label={
+                          allFilteredSelected
+                            ? "Deseleccionar todos los productos visibles"
+                            : "Seleccionar todos los productos visibles"
+                        }
+                        checked={allFilteredSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = someFilteredSelected
+                        }}
+                        onChange={toggleSelectAllFiltered}
+                        disabled={filteredProductIds.length === 0}
+                        className="h-4 w-4 rounded border-neutral-300 accent-[#c9a84c]"
+                      />
+                    </th>
                     <th className={`${PRODUCTS_TABLE_HEAD_CELL} px-6`}>PRODUCTO</th>
                     <th className={PRODUCTS_TABLE_HEAD_CELL}>CÓDIGO</th>
                     <th className={PRODUCTS_TABLE_HEAD_CELL}>MARCA</th>
@@ -2461,7 +2713,7 @@ export default function AdminProductsPage() {
                   {filteredProducts.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={10}
+                        colSpan={12}
                         className="px-6 py-8 text-center text-sm text-neutral-500"
                       >
                         {hasActiveFilters ? "Sin resultados para esta búsqueda." : "Aún no hay productos creados."}
@@ -2470,8 +2722,18 @@ export default function AdminProductsPage() {
                   ) : (
                     filteredProducts.map((product) => {
                       const isEditing = editingId === product.id
+                      const isSelected = selectedProductIds.has(product.id)
                       return (
-                        <tr key={product.id}>
+                        <tr key={product.id} className={isSelected ? "bg-[#fff8e7]" : undefined}>
+                          <td className={`${PRODUCTS_TABLE_BODY_CELL} px-4`}>
+                            <input
+                              type="checkbox"
+                              aria-label={`Seleccionar ${product.name}`}
+                              checked={isSelected}
+                              onChange={() => toggleProductSelected(product.id)}
+                              className="h-4 w-4 rounded border-neutral-300 accent-[#c9a84c]"
+                            />
+                          </td>
                           <td className={`${PRODUCTS_TABLE_BODY_CELL} px-6`}>
                             <div className="space-y-1">
                               <p className="text-sm font-semibold text-neutral-900">
@@ -2523,7 +2785,24 @@ export default function AdminProductsPage() {
                             {product.cost_price !== null ? `$${product.cost_price.toFixed(2)}` : "—"}
                           </td>
                           <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-right font-medium text-neutral-900`}>
-                            ${product.base_price.toFixed(2)}
+                            {(product.discount_percent ?? 0) > 0 ? (
+                              <div className="flex flex-col items-end gap-0.5">
+                                <span className="text-[11px] text-neutral-400 line-through">
+                                  ${product.base_price.toFixed(2)}
+                                </span>
+                                <span className="font-semibold text-[#c9a84c]">
+                                  ${(
+                                    product.base_price *
+                                    (1 - product.discount_percent / 100)
+                                  ).toFixed(2)}
+                                </span>
+                                <span className="rounded-full bg-[#c9a84c]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#7a6320]">
+                                  -{product.discount_percent}%
+                                </span>
+                              </div>
+                            ) : (
+                              <>${product.base_price.toFixed(2)}</>
+                            )}
                           </td>
                           <td className={`${PRODUCTS_TABLE_BODY_CELL} text-sm text-right text-neutral-600`}>
                             {product.wholesale_price !== null ? `$${product.wholesale_price.toFixed(2)}` : "—"}
@@ -2755,6 +3034,21 @@ export default function AdminProductsPage() {
                                     style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
                                     placeholder="Descripción completa del producto…"
                                   />
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label className="block text-[11px] font-medium tracking-wide text-neutral-600">SINÓNIMOS DE BÚSQUEDA</label>
+                                  <textarea
+                                    value={editForm.searchSynonyms}
+                                    onChange={(e) => handleEditFormChange("searchSynonyms", e.target.value)}
+                                    rows={2}
+                                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                    placeholder="barniz, pintauñas, polish — separa con comas"
+                                  />
+                                  <p className="text-[10px] text-neutral-500">
+                                    Palabras alternativas para el buscador. No se muestra en la tienda.
+                                  </p>
                                 </div>
 
                                 <div className="grid gap-3 sm:grid-cols-3">

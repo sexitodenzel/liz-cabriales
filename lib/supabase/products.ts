@@ -29,6 +29,7 @@ export type Product = {
   slug: string
   description: string | null
   base_price: number
+  discount_percent: number
   images: string[] | null
   desktop_image_mode: ProductDesktopImageMode
   brand: string | null
@@ -86,6 +87,7 @@ type ProductRow = {
   slug: string
   description: string | null
   base_price: number | string
+  discount_percent?: number | string | null
   images: string[] | null
   desktop_image_mode?: string | null
   brand: string | null
@@ -142,6 +144,7 @@ function mapProductWithCategoryRow(
     slug: productRow.slug,
     description: productRow.description ?? null,
     base_price: Number(productRow.base_price),
+    discount_percent: Number(productRow.discount_percent ?? 0),
     images: productRow.images ?? null,
     desktop_image_mode: normalizeDesktopImageMode(
       productRow.desktop_image_mode
@@ -235,6 +238,7 @@ export async function getProducts(
       slug,
       description,
       base_price,
+      discount_percent,
       images,
       desktop_image_mode,
       brand,
@@ -309,6 +313,7 @@ export async function getProducts(
         slug: productRow.slug,
         description: productRow.description ?? null,
         base_price: Number(productRow.base_price),
+        discount_percent: Number(productRow.discount_percent ?? 0),
         images: productRow.images ?? null,
         desktop_image_mode: normalizeDesktopImageMode(
           productRow.desktop_image_mode
@@ -334,7 +339,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at")
+    .select("id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at")
     .eq("is_featured", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -356,6 +361,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
         slug: productRow.slug,
         description: productRow.description ?? null,
         base_price: Number(productRow.base_price),
+        discount_percent: Number(productRow.discount_percent ?? 0),
         images: productRow.images ?? null,
         desktop_image_mode: normalizeDesktopImageMode(
           productRow.desktop_image_mode
@@ -378,7 +384,7 @@ export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at")
+    .select("id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at")
     .eq("is_best_seller", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -400,6 +406,7 @@ export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
         slug: productRow.slug,
         description: productRow.description ?? null,
         base_price: Number(productRow.base_price),
+        discount_percent: Number(productRow.discount_percent ?? 0),
         images: productRow.images ?? null,
         desktop_image_mode: normalizeDesktopImageMode(
           productRow.desktop_image_mode
@@ -432,6 +439,7 @@ export async function getProductBySlug(
       slug,
       description,
       base_price,
+      discount_percent,
       images,
       desktop_image_mode,
       brand,
@@ -494,6 +502,7 @@ export async function getProductBySlug(
     slug: productRow.slug,
     description: productRow.description ?? null,
     base_price: Number(productRow.base_price),
+    discount_percent: Number(productRow.discount_percent ?? 0),
     images: productRow.images ?? null,
     desktop_image_mode: normalizeDesktopImageMode(
       productRow.desktop_image_mode

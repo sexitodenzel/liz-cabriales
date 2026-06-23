@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useCallback, useEffect, useState } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 
 type Props = {
   images: string[]
@@ -250,14 +250,14 @@ export default function ProductImageGallery({ images, alt }: Props) {
         >
           <button
             type="button"
-            className="fixed right-4 top-4 z-[120] flex h-11 w-11 items-center justify-center rounded-full border border-[#c9a84c]/65 bg-black/55 text-2xl leading-none text-[#d8ba62] shadow-[0_0_0_1px_rgba(201,168,76,0.35),0_0_18px_rgba(201,168,76,0.38)] backdrop-blur-sm transition-all hover:scale-[1.04] hover:bg-black/70 hover:text-[#f0d989] hover:shadow-[0_0_0_1px_rgba(201,168,76,0.55),0_0_24px_rgba(201,168,76,0.55)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+            className="fixed right-4 top-4 z-[120] flex h-10 w-10 items-center justify-center rounded-full text-white/80 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
             aria-label="Cerrar"
             onClick={(e) => {
               e.stopPropagation()
               closeLightbox()
             }}
           >
-            ×
+            <X className="h-6 w-6" strokeWidth={1.75} />
           </button>
 
           {hasMultiple ? (

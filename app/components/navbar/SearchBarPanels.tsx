@@ -24,6 +24,21 @@ export type TopSearchChip = {
   href: string
 }
 
+export type SearchSuggestionBrand = {
+  id: string
+  name: string
+  slug: string
+  logoUrl: string | null
+  href: string
+}
+
+export type SearchSuggestionCategory = {
+  id: string
+  label: string
+  href: string
+  isSubcategory: boolean
+}
+
 function formatPrice(value: number): string {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -99,6 +114,8 @@ export function DesktopCategoriesDropdown({
 type SearchSuggestionsContentProps = {
   query: string
   products: SearchSuggestionProduct[]
+  brands?: SearchSuggestionBrand[]
+  categories?: SearchSuggestionCategory[]
   loading: boolean
   onClose: () => void
   variant?: "desktop" | "mobile"
@@ -107,33 +124,83 @@ type SearchSuggestionsContentProps = {
 export function SearchSuggestionsContent({
   query,
   products,
+  brands = [],
+  categories = [],
   loading,
   onClose,
   variant = "desktop",
 }: SearchSuggestionsContentProps) {
   const trimmed = query.trim()
   const hasProducts = products.length > 0
+  const hasBrands = brands.length > 0
+  const hasCategories = categories.length > 0
+  const hasAny = hasProducts || hasBrands || hasCategories
   const searchHref = getSearchDestination(trimmed)
 
   const isMobile = variant === "mobile"
 
+  const sectionHeadingClass = isMobile
+    ? "mb-4 text-[20px] font-semibold tracking-tight text-neutral-900"
+    : "mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500"
+
+  const chipClass =
+    "inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[12px] text-neutral-800 transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
+
   return (
     <div className={isMobile ? "pb-8 pt-5" : "px-4 py-4"}>
-      {loading && !hasProducts ? (
+      {loading && !hasAny ? (
         <p className={isMobile ? "py-6 text-sm text-neutral-500" : "px-2 py-3 text-sm text-neutral-500"}>
           Buscando...
         </p>
-      ) : hasProducts ? (
+      ) : hasAny ? (
         <>
-          <h3
-            className={
-              isMobile
-                ? "mb-4 text-[20px] font-semibold tracking-tight text-neutral-900"
-                : "mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500"
-            }
-          >
-            Productos
-          </h3>
+          {hasCategories && (
+            <section className={isMobile ? "mb-7" : "mb-5"}>
+              <h3 className={sectionHeadingClass}>Categorías</h3>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={c.href}
+                    onClick={onClose}
+                    className={chipClass}
+                  >
+                    {c.label}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {hasBrands && (
+            <section className={isMobile ? "mb-7" : "mb-5"}>
+              <h3 className={sectionHeadingClass}>Marcas</h3>
+              <div className="flex flex-wrap gap-2">
+                {brands.map((b) => (
+                  <Link
+                    key={b.id}
+                    href={b.href}
+                    onClick={onClose}
+                    className={chipClass}
+                  >
+                    {b.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={b.logoUrl}
+                        alt=""
+                        className="h-4 w-4 rounded-full object-cover"
+                      />
+                    ) : null}
+                    {b.name}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {hasProducts ? (
+            <>
+              <h3 className={sectionHeadingClass}>Productos</h3>
           <div
             className={
               isMobile
@@ -201,6 +268,8 @@ export function SearchSuggestionsContent({
               </Link>
             ))}
           </div>
+            </>
+          ) : null}
 
           <div className={isMobile ? "mt-7 flex justify-center" : "mt-4 flex justify-center"}>
             <Link
@@ -214,7 +283,7 @@ export function SearchSuggestionsContent({
         </>
       ) : (
         <p className={isMobile ? "py-6 text-sm text-neutral-500" : "px-2 py-3 text-sm text-neutral-500"}>
-          Sin productos para &quot;{trimmed}&quot;
+          Sin resultados para &quot;{trimmed}&quot;
         </p>
       )}
     </div>
@@ -396,6 +465,8 @@ type DesktopSearchSuggestionsProps = {
   open: boolean
   query: string
   products: SearchSuggestionProduct[]
+  brands?: SearchSuggestionBrand[]
+  categories?: SearchSuggestionCategory[]
   loading: boolean
   onClose: () => void
   topSearches?: TopSearchChip[]
@@ -407,6 +478,8 @@ export function DesktopSearchSuggestions({
   open,
   query,
   products,
+  brands = [],
+  categories = [],
   loading,
   onClose,
   topSearches = [],
@@ -440,6 +513,8 @@ export function DesktopSearchSuggestions({
           <SearchSuggestionsContent
             query={query}
             products={products}
+            brands={brands}
+            categories={categories}
             loading={loading}
             onClose={onClose}
           />

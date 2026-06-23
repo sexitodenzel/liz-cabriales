@@ -55,6 +55,11 @@ export const createProductSchema = z.object({
     .max(20000, "La descripción larga es demasiado larga")
     .nullable()
     .optional(),
+  searchSynonyms: z
+    .string()
+    .max(1000, "Los sinónimos de búsqueda son demasiado largos")
+    .nullable()
+    .optional(),
   basePrice: z.coerce
     .number({ message: "El precio de venta debe ser un número" })
     .nonnegative("El precio de venta no puede ser negativo")

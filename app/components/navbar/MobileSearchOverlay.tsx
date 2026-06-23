@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation"
 import {
   EmptyStatePanel,
   SearchSuggestionsContent,
+  type SearchSuggestionBrand,
+  type SearchSuggestionCategory,
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
@@ -20,6 +22,8 @@ type Props = {
   query: string
   onQueryChange: (value: string) => void
   products: SearchSuggestionProduct[]
+  brands?: SearchSuggestionBrand[]
+  categories?: SearchSuggestionCategory[]
   suggestionsLoading: boolean
   topSearches: TopSearchChip[]
   bestSellers: SearchSuggestionProduct[]
@@ -32,6 +36,8 @@ export default function MobileSearchOverlay({
   query,
   onQueryChange,
   products,
+  brands = [],
+  categories = [],
   suggestionsLoading,
   topSearches,
   bestSellers,
@@ -119,6 +125,8 @@ export default function MobileSearchOverlay({
           <SearchSuggestionsContent
             query={query}
             products={products}
+            brands={brands}
+            categories={categories}
             loading={suggestionsLoading}
             onClose={onClose}
             variant="mobile"

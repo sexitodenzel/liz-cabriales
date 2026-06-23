@@ -30,6 +30,9 @@ type RawOrderRow = {
   shipping_address: string | null
   shipping_city: string | null
   shipping_state: string | null
+  shipping_cost: number | string | null
+  shipping_amount_final: number | string | null
+  created_at: string
   status: string
   users: RawUser | RawUser[] | null
   order_items: RawOrderItem[] | null
@@ -61,6 +64,9 @@ async function buildEmailPayload(
        shipping_address,
        shipping_city,
        shipping_state,
+       shipping_cost,
+       shipping_amount_final,
+       created_at,
        status,
        users ( first_name, last_name, email ),
        order_items (
@@ -106,8 +112,14 @@ async function buildEmailPayload(
     customerFirstName: user.first_name,
     customerLastName: user.last_name,
     orderShortId: raw.id.slice(0, 8).toUpperCase(),
+    createdAt: raw.created_at,
     items,
     total: Number(raw.total),
+    shippingCost: raw.shipping_cost != null ? Number(raw.shipping_cost) : 0,
+    shippingAmountFinal:
+      raw.shipping_amount_final != null
+        ? Number(raw.shipping_amount_final)
+        : null,
     deliveryType: raw.delivery_type as "shipping" | "pickup",
     shippingAddress: raw.shipping_address,
     shippingCity: raw.shipping_city,

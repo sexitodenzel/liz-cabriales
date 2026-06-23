@@ -18,6 +18,7 @@ import type {
 } from "@/lib/supabase/products"
 import { pickRelatedProductsForFilters } from "@/lib/tienda/related-products"
 import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
+import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 import BrandHeaderInfo from "./BrandHeaderInfo"
 import MobileFilterSheet from "./MobileFilterSheet"
 import ProductCard from "./ProductCard"
@@ -33,6 +34,7 @@ type FiltersState = {
   search: string
   priceMin: number | null
   priceMax: number | null
+  onSale: boolean
 }
 
 type SortOption =
@@ -90,6 +92,7 @@ export default function ProductGrid({
     initialFilters.search,
     initialFilters.priceMin,
     initialFilters.priceMax,
+    initialFilters.onSale,
   ])
 
   // Mantiene la URL sincronizada (enlaces compartibles / back-forward) sin
@@ -105,6 +108,7 @@ export default function ProductGrid({
       params.set("search", filters.search.trim())
     if (filters.priceMin !== null) params.set("precio_min", String(filters.priceMin))
     if (filters.priceMax !== null) params.set("precio_max", String(filters.priceMax))
+    if (filters.onSale) params.set("ofertas", "1")
 
     const query = params.toString()
     const nextUrl = query ? `${pathname}?${query}` : pathname
@@ -137,6 +141,10 @@ export default function ProductGrid({
     setFilters((prev) => ({ ...prev, priceMin, priceMax }))
   }
 
+  const handleOnSaleChange = (value: boolean) => {
+    setFilters((prev) => ({ ...prev, onSale: value }))
+  }
+
   const handleClearAll = () => {
     setFilters({
       categorySlugs: [],
@@ -145,8 +153,14 @@ export default function ProductGrid({
       search: "",
       priceMin: null,
       priceMax: null,
+      onSale: false,
     })
   }
+
+  const hasProductsOnSale = useMemo(
+    () => products.some((p) => hasDiscount(p.discount_percent)),
+    [products]
+  )
 
   const hasActiveFilters =
     filters.categorySlugs.length > 0 ||
@@ -154,14 +168,16 @@ export default function ProductGrid({
     filters.abrasivities.length > 0 ||
     filters.search.trim().length > 0 ||
     filters.priceMin !== null ||
-    filters.priceMax !== null
+    filters.priceMax !== null ||
+    filters.onSale
 
   const activeFilterCount =
     filters.categorySlugs.length +
     filters.brands.length +
     filters.abrasivities.length +
     (filters.search.trim().length > 0 ? 1 : 0) +
-    (filters.priceMin !== null || filters.priceMax !== null ? 1 : 0)
+    (filters.priceMin !== null || filters.priceMax !== null ? 1 : 0) +
+    (filters.onSale ? 1 : 0)
 
   const brandsForSidebar = useMemo(() => {
     const fromProducts = Array.from(
@@ -234,10 +250,17 @@ export default function ProductGrid({
       ) {
         return false
       }
-      if (filters.priceMin !== null && product.base_price < filters.priceMin) {
+      const effectivePrice = applyDiscount(
+        product.base_price,
+        product.discount_percent
+      )
+      if (filters.priceMin !== null && effectivePrice < filters.priceMin) {
         return false
       }
-      if (filters.priceMax !== null && product.base_price > filters.priceMax) {
+      if (filters.priceMax !== null && effectivePrice > filters.priceMax) {
+        return false
+      }
+      if (filters.onSale && !hasDiscount(product.discount_percent)) {
         return false
       }
       if (searchTokens.length > 0) {
@@ -260,9 +283,15 @@ export default function ProductGrid({
         case "nombre-desc":
           return b.name.localeCompare(a.name, "es")
         case "precio-asc":
-          return a.base_price - b.base_price
+          return (
+            applyDiscount(a.base_price, a.discount_percent) -
+            applyDiscount(b.base_price, b.discount_percent)
+          )
         case "precio-desc":
-          return b.base_price - a.base_price
+          return (
+            applyDiscount(b.base_price, b.discount_percent) -
+            applyDiscount(a.base_price, a.discount_percent)
+          )
         case "destacados":
         default:
           if (a.is_featured !== b.is_featured) return a.is_featured ? -1 : 1
@@ -365,6 +394,15 @@ export default function ProductGrid({
           },
         ]
       : []),
+    ...(filters.onSale
+      ? [
+          {
+            id: "on-sale",
+            label: "En oferta",
+            onRemove: () => handleOnSaleChange(false),
+          },
+        ]
+      : []),
   ]
 
   const singleSelectedBrand = useMemo(() => {
@@ -411,6 +449,9 @@ export default function ProductGrid({
           priceMin: filters.priceMin,
           priceMax: filters.priceMax,
           priceBounds,
+          onSale: filters.onSale,
+          showOnSale: hasProductsOnSale,
+          onOnSaleChange: handleOnSaleChange,
           onCategoriesChange: handleCategoriesChange,
           onBrandsChange: handleBrandsChange,
           onAbrasivitiesChange: handleAbrasivitiesChange,
@@ -480,6 +521,9 @@ export default function ProductGrid({
         priceMax={filters.priceMax}
         priceBounds={priceBounds}
         activeChips={activeChips}
+        onSale={filters.onSale}
+        showOnSale={hasProductsOnSale}
+        onOnSaleChange={handleOnSaleChange}
         onCategoriesChange={handleCategoriesChange}
         onBrandsChange={handleBrandsChange}
         onAbrasivitiesChange={handleAbrasivitiesChange}

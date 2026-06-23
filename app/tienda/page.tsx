@@ -30,6 +30,7 @@ type SearchParams = {
   search?: string | string[]
   precio_min?: string | string[]
   precio_max?: string | string[]
+  ofertas?: string | string[]
 }
 
 function parsePrice(value: string | undefined): number | null {
@@ -59,6 +60,7 @@ export default async function StorePage({
   const search = firstString(sp.search)
   const priceMinParam = firstString(sp.precio_min)
   const priceMaxParam = firstString(sp.precio_max)
+  const ofertasParam = firstString(sp.ofertas)
 
   // Cargamos el catálogo activo completo una sola vez; el filtrado y orden
   // se resuelven en el cliente para una experiencia instantánea.
@@ -114,6 +116,7 @@ export default async function StorePage({
     search: search ?? "",
     priceMin: parsePrice(priceMinParam),
     priceMax: parsePrice(priceMaxParam),
+    onSale: ofertasParam === "1" || ofertasParam === "true",
   }
 
   return (

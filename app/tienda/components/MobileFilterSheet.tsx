@@ -39,6 +39,9 @@ type MobileFilterSheetProps = {
   priceMax: number | null
   priceBounds: { min: number; max: number }
   activeChips: ActiveChip[]
+  onSale?: boolean
+  showOnSale?: boolean
+  onOnSaleChange?: (value: boolean) => void
   onCategoriesChange: (slugs: string[]) => void
   onBrandsChange: (brands: string[]) => void
   onAbrasivitiesChange: (values: AbrasivityValue[]) => void
@@ -159,6 +162,9 @@ export default function MobileFilterSheet({
   priceMax,
   priceBounds,
   activeChips,
+  onSale = false,
+  showOnSale = false,
+  onOnSaleChange,
   onCategoriesChange,
   onBrandsChange,
   onAbrasivitiesChange,
@@ -253,6 +259,24 @@ export default function MobileFilterSheet({
                   <FilterChip key={chip.id} label={chip.label} onRemove={chip.onRemove} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {showOnSale && onOnSaleChange && (
+            <div className="shrink-0 border-b border-neutral-100 py-3">
+              <button
+                type="button"
+                onClick={() => onOnSaleChange(!onSale)}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                  onSale
+                    ? "bg-[#C9A84C] text-white"
+                    : "border border-[#C9A84C] text-[#a8862f]"
+                }`}
+                aria-pressed={onSale}
+              >
+                <span aria-hidden>🏷</span>
+                Sólo productos en oferta
+              </button>
             </div>
           )}
 

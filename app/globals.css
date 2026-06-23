@@ -62,6 +62,17 @@ body {
   color: var(--foreground);
 }
 
+/* iOS Safari: evita el auto-zoom al hacer focus en inputs (cualquier input con
+   font-size < 16px en touch dispara el zoom). Solo aplica en touch devices
+   para no forzar 16px en desktop, donde el diseño usa tamaños más chicos. */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* =====================================
    SWIPER CUSTOM
 ===================================== */

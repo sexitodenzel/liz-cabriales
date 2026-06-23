@@ -11,6 +11,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import type { Product } from "@/lib/supabase/products"
+import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 
 const GAP = 24
 
@@ -142,12 +143,24 @@ function ProductCard({
           {product.name}
         </h3>
         <div className="mt-2.5 flex items-baseline justify-between gap-3 border-t border-[#ececec] pt-3">
-          <p className="text-[15px] font-semibold tracking-[-0.01em] text-black">
-            {formatPrice(product.base_price)}
-            <span className="ml-1 text-[10px] font-medium tracking-[0.15em] text-[#8a8a8a]">
-              MXN
-            </span>
-          </p>
+          {hasDiscount(product.discount_percent) ? (
+            <p className="flex flex-wrap items-baseline gap-1.5 text-[15px] font-semibold tracking-[-0.01em] text-black">
+              <span>{formatPrice(applyDiscount(product.base_price, product.discount_percent))}</span>
+              <span className="text-[11px] text-neutral-400 line-through">
+                {formatPrice(product.base_price)}
+              </span>
+              <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                -{product.discount_percent}%
+              </span>
+            </p>
+          ) : (
+            <p className="text-[15px] font-semibold tracking-[-0.01em] text-black">
+              {formatPrice(product.base_price)}
+              <span className="ml-1 text-[10px] font-medium tracking-[0.15em] text-[#8a8a8a]">
+                MXN
+              </span>
+            </p>
+          )}
           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f] transition-[gap] duration-[220ms] group-hover:gap-2.5">
             Ver
             <ArrowRight className="w-[11px] h-[11px]" />
@@ -158,11 +171,30 @@ function ProductCard({
   )
 }
 
+type CarouselTitleProps = {
+  /** Render personalizado del título (sobrescribe `titlePrefix` + `titleHighlight`). */
+  title?: React.ReactNode
+  titlePrefix?: string
+  titleHighlight?: string
+  description?: string
+  sectionId?: string
+  /** Enlace opcional al pie del carrusel, ej. "Ver todas las ofertas". */
+  ctaHref?: string
+  ctaLabel?: string
+}
+
 export default function NuevosLanzamientosCarousel({
   products,
+  title,
+  titlePrefix = "Nuevos",
+  titleHighlight = "Lanzamientos",
+  description = "Descubre los últimos productos de nuestras marcas aliadas — selección curada para elevar cada servicio en tu mesa de trabajo.",
+  sectionId = "nuevos-lanzamientos-title",
+  ctaHref,
+  ctaLabel,
 }: {
   products: Product[]
-}) {
+} & CarouselTitleProps) {
   const visible = useVisibleCount()
   const total = products.length
   const maxIndex = Math.max(0, total - visible)
@@ -245,29 +277,41 @@ export default function NuevosLanzamientosCarousel({
     <section
       ref={sectionRef}
       className="site-container pt-6 pb-16 max-[720px]:pt-6 max-[720px]:pb-12"
-      aria-labelledby="nuevos-lanzamientos-title"
+      aria-labelledby={sectionId}
     >
       <header className="mb-12">
         <div
           className={`max-w-[720px] transition-all duration-700 ease-out ${headerInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
         >
           <h2
-            id="nuevos-lanzamientos-title"
+            id={sectionId}
             className="mb-[18px] mt-3.5 font-[family-name:var(--font-playfair),serif] text-[clamp(36px,4.4vw,56px)] font-medium leading-[1.05] tracking-[-0.01em] text-black"
           >
-            Nuevos{" "}
-            <em className="font-medium italic text-[#a8862f]">
-              Lanzamientos
-            </em>
+            {title ?? (
+              <>
+                {titlePrefix}{" "}
+                <em className="font-medium italic text-[#a8862f]">
+                  {titleHighlight}
+                </em>
+              </>
+            )}
           </h2>
           <div
             className="mb-[18px] h-0.5 w-16 rounded-sm bg-[#c9a84c]"
             aria-hidden
           />
           <p className="max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">
-            Descubre los últimos productos de nuestras marcas aliadas —
-            selección curada para elevar cada servicio en tu mesa de trabajo.
+            {description}
           </p>
+          {ctaHref && ctaLabel ? (
+            <Link
+              href={ctaHref}
+              className="mt-5 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.2em] text-[#a8862f] transition-colors hover:text-[#8a6f1f]"
+            >
+              {ctaLabel}
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          ) : null}
         </div>
       </header>
 

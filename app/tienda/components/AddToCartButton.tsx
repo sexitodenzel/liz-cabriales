@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useState } from "react"
 import { useCart } from "@/app/components/cart/CartContext"
 import type { CartItem } from "@/lib/cart"
 import type { ProductVariant } from "@/lib/supabase/products"
+import { applyDiscount } from "@/lib/tienda/discount"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
   brand: string | null
   image: string | null
   basePrice: number
+  discountPercent?: number
   variants: ProductVariant[]
   enableSelector?: boolean
   className?: string
@@ -46,6 +48,7 @@ export default function AddToCartButton({
   brand,
   image,
   basePrice,
+  discountPercent = 0,
   variants,
   enableSelector = false,
   className,
@@ -78,7 +81,9 @@ export default function AddToCartButton({
   const outOfStock = selectedVariant ? selectedVariant.stock <= 0 : true
   const canAdd = Boolean(selectedVariant) && !outOfStock
   const maxQuantity = 99
-  const displayPrice = selectedVariant?.price ?? basePrice
+  const rawPrice = selectedVariant?.price ?? basePrice
+  const displayPrice = applyDiscount(rawPrice, discountPercent)
+  const hasActiveDiscount = displayPrice < rawPrice
 
   useEffect(() => {
     setQuantity((current) => {
@@ -96,7 +101,7 @@ export default function AddToCartButton({
       productSlug: productSlug ?? null,
       variantId: selectedVariant.id,
       quantity,
-      price: selectedVariant.price || basePrice,
+      price: applyDiscount(selectedVariant.price || basePrice, discountPercent),
       name: (() => {
         const variant = selectedVariant.variant_name?.trim() ?? ""
         if (!variant) return productName
@@ -196,11 +201,21 @@ export default function AddToCartButton({
         </div>
       ) : null}
 
-      <div className="flex items-baseline gap-2">
+      <div className="flex flex-wrap items-baseline gap-2">
         <span className="text-2xl font-bold text-[#0a0a0a]">
           {formatPrice(displayPrice)}
         </span>
         <span className="text-sm font-medium text-neutral-500">MXN</span>
+        {hasActiveDiscount && (
+          <>
+            <span className="text-sm text-neutral-400 line-through">
+              {formatPrice(rawPrice)}
+            </span>
+            <span className="rounded-full bg-[#C9A84C] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+              -{discountPercent}%
+            </span>
+          </>
+        )}
       </div>
 
       {!selectedVariant || !outOfStock ? (
