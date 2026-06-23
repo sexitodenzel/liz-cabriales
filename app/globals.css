@@ -226,28 +226,36 @@ body {
 }
 
 /* =====================================
-   BRAND MARQUEE
+   MARQUEE (beUI motion component)
 ===================================== */
 
-.brand-marquee {
-  position: relative;
+@theme {
+  --animate-marquee: marquee var(--duration, 20s) linear infinite;
+  --animate-marquee-vertical: marquee-vertical var(--duration, 20s) linear infinite;
 }
 
-.brand-marquee-track {
-  animation: brand-scroll-left 25s linear infinite;
-  will-change: transform;
-}
-
-.brand-marquee:hover .brand-marquee-track {
-  animation-play-state: paused;
-}
-
-@keyframes brand-scroll-left {
+@keyframes marquee {
   0% {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(calc(-100% - var(--gap, 1rem)));
+  }
+}
+
+@keyframes marquee-vertical {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(calc(-100% - var(--gap, 1rem)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-marquee-vertical {
+    animation: none;
   }
 }
 

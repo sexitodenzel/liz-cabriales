@@ -193,7 +193,14 @@ export default function ProductFilterSortBar({
 
   const hasPriceFilter =
     desktopFilters &&
-    (desktopFilters.priceMin !== null || desktopFilters.priceMax !== null)
+    (desktopFilters.priceMin !== null ||
+      desktopFilters.priceMax !== null ||
+      desktopFilters.onSale)
+
+  const showPricePanel =
+    desktopFilters &&
+    (desktopFilters.priceBounds.max > desktopFilters.priceBounds.min ||
+      (desktopFilters.showOnSale && desktopFilters.onOnSaleChange))
 
   const hasActiveChips = activeChips.length > 0
 
@@ -369,7 +376,7 @@ export default function ProductFilterSortBar({
               )}
 
               {/* Precio */}
-              {desktopFilters.priceBounds.max > desktopFilters.priceBounds.min && (
+              {showPricePanel && (
                 <div className="relative" data-store-dropdown-root="true">
                   <button
                     type="button"
@@ -394,90 +401,106 @@ export default function ProductFilterSortBar({
                       className="absolute left-0 top-full z-50 mt-3 w-[300px] rounded-xl border border-neutral-200 bg-white p-4 shadow-lg"
                       onPointerDown={(event) => event.stopPropagation()}
                     >
-                      <PriceRangeSlider
-                        bounds={desktopFilters.priceBounds}
-                        valueMin={desktopFilters.priceMin}
-                        valueMax={desktopFilters.priceMax}
-                        onChange={desktopFilters.onPriceChange}
-                      />
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="relative flex-1">
-                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
-                            $
-                          </span>
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            min={desktopFilters.priceBounds.min}
-                            max={desktopFilters.priceBounds.max}
-                            value={desktopFilters.priceMin ?? ""}
-                            onChange={(event) => {
-                              const parsed = parsePriceInput(event.target.value)
-                              const max = desktopFilters.priceMax
-                              if (
-                                parsed !== null &&
-                                max !== null &&
-                                parsed > max
-                              ) {
-                                desktopFilters.onPriceChange(parsed, parsed)
-                              } else {
-                                desktopFilters.onPriceChange(parsed, max)
-                              }
-                            }}
-                            placeholder={String(desktopFilters.priceBounds.min)}
-                            className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-6 pr-3 text-sm text-neutral-800 outline-none transition-colors focus:border-[#C9A84C]"
+                      {desktopFilters.priceBounds.max > desktopFilters.priceBounds.min && (
+                        <>
+                          <PriceRangeSlider
+                            bounds={desktopFilters.priceBounds}
+                            valueMin={desktopFilters.priceMin}
+                            valueMax={desktopFilters.priceMax}
+                            onChange={desktopFilters.onPriceChange}
                           />
-                        </div>
-                        <span className="text-neutral-500">–</span>
-                        <div className="relative flex-1">
-                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
-                            $
-                          </span>
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            min={desktopFilters.priceBounds.min}
-                            max={desktopFilters.priceBounds.max}
-                            value={desktopFilters.priceMax ?? ""}
-                            onChange={(event) => {
-                              const parsed = parsePriceInput(event.target.value)
-                              const min = desktopFilters.priceMin
-                              if (
-                                parsed !== null &&
-                                min !== null &&
-                                parsed < min
-                              ) {
-                                desktopFilters.onPriceChange(parsed, parsed)
-                              } else {
-                                desktopFilters.onPriceChange(min, parsed)
-                              }
-                            }}
-                            placeholder={String(desktopFilters.priceBounds.max)}
-                            className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-6 pr-3 text-sm text-neutral-800 outline-none transition-colors focus:border-[#C9A84C]"
-                          />
-                        </div>
-                      </div>
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
+                                $
+                              </span>
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                min={desktopFilters.priceBounds.min}
+                                max={desktopFilters.priceBounds.max}
+                                value={desktopFilters.priceMin ?? ""}
+                                onChange={(event) => {
+                                  const parsed = parsePriceInput(event.target.value)
+                                  const max = desktopFilters.priceMax
+                                  if (
+                                    parsed !== null &&
+                                    max !== null &&
+                                    parsed > max
+                                  ) {
+                                    desktopFilters.onPriceChange(parsed, parsed)
+                                  } else {
+                                    desktopFilters.onPriceChange(parsed, max)
+                                  }
+                                }}
+                                placeholder={String(desktopFilters.priceBounds.min)}
+                                className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-6 pr-3 text-sm text-neutral-800 outline-none transition-colors focus:border-neutral-400"
+                              />
+                            </div>
+                            <span className="text-neutral-500">–</span>
+                            <div className="relative flex-1">
+                              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
+                                $
+                              </span>
+                              <input
+                                type="number"
+                                inputMode="numeric"
+                                min={desktopFilters.priceBounds.min}
+                                max={desktopFilters.priceBounds.max}
+                                value={desktopFilters.priceMax ?? ""}
+                                onChange={(event) => {
+                                  const parsed = parsePriceInput(event.target.value)
+                                  const min = desktopFilters.priceMin
+                                  if (
+                                    parsed !== null &&
+                                    min !== null &&
+                                    parsed < min
+                                  ) {
+                                    desktopFilters.onPriceChange(parsed, parsed)
+                                  } else {
+                                    desktopFilters.onPriceChange(min, parsed)
+                                  }
+                                }}
+                                placeholder={String(desktopFilters.priceBounds.max)}
+                                className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-6 pr-3 text-sm text-neutral-800 outline-none transition-colors focus:border-neutral-400"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {desktopFilters.showOnSale && desktopFilters.onOnSaleChange && (
+                        <label
+                          className={`flex cursor-pointer items-center justify-between ${
+                            desktopFilters.priceBounds.max > desktopFilters.priceBounds.min
+                              ? "mt-4 border-t border-neutral-100 pt-4"
+                              : ""
+                          }`}
+                        >
+                          <span className="text-sm text-neutral-800">En oferta</span>
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={desktopFilters.onSale}
+                            onClick={() =>
+                              desktopFilters.onOnSaleChange?.(!desktopFilters.onSale)
+                            }
+                            className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+                              desktopFilters.onSale ? "bg-[#0a0a0a]" : "bg-neutral-300"
+                            }`}
+                          >
+                            <span
+                              aria-hidden
+                              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                desktopFilters.onSale ? "translate-x-4" : "translate-x-0.5"
+                              }`}
+                            />
+                          </button>
+                        </label>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-
-              {/* En oferta */}
-              {desktopFilters.showOnSale && desktopFilters.onOnSaleChange && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    desktopFilters.onOnSaleChange?.(!desktopFilters.onSale)
-                  }
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                    desktopFilters.onSale
-                      ? "bg-[#C9A84C] text-white"
-                      : "border border-[#C9A84C] text-[#a8862f] hover:bg-[#C9A84C]/10"
-                  }`}
-                  aria-pressed={desktopFilters.onSale}
-                >
-                  En oferta
-                </button>
               )}
             </div>
           )}

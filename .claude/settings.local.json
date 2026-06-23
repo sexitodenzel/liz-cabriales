@@ -47,7 +47,9 @@
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/products/search-suggestions?q=cardone\" -UseBasicParsing -ErrorAction Stop; Write-Output \"Status: $\\($r.StatusCode\\)\"; $r.Content | Out-String } catch { Write-Output \"ERR: $\\($_.Exception.Response.StatusCode\\)\"; $reader = New-Object System.IO.StreamReader\\($_.Exception.Response.GetResponseStream\\(\\)\\); $reader.ReadToEnd\\(\\) })",
       "PowerShell($ProgressPreference='SilentlyContinue'; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/products/search-suggestions?q=cardone\" -UseBasicParsing; Write-Output \"Status: $\\($r.StatusCode\\)\"; $r.Content } catch { Write-Output \"Caught: $\\($_.Exception.Message\\)\" })",
       "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 60)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:beui.dev)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

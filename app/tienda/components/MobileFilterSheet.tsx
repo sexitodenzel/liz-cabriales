@@ -178,7 +178,7 @@ export default function MobileFilterSheet({
     selectedAbrasivities.length > 0
   )
   const [priceOpen, setPriceOpen] = useState(
-    priceMin !== null || priceMax !== null
+    priceMin !== null || priceMax !== null || onSale
   )
   const [searchOpen, setSearchOpen] = useState(search.trim().length > 0)
 
@@ -259,24 +259,6 @@ export default function MobileFilterSheet({
                   <FilterChip key={chip.id} label={chip.label} onRemove={chip.onRemove} />
                 ))}
               </div>
-            </div>
-          )}
-
-          {showOnSale && onOnSaleChange && (
-            <div className="shrink-0 border-b border-neutral-100 py-3">
-              <button
-                type="button"
-                onClick={() => onOnSaleChange(!onSale)}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                  onSale
-                    ? "bg-[#C9A84C] text-white"
-                    : "border border-[#C9A84C] text-[#a8862f]"
-                }`}
-                aria-pressed={onSale}
-              >
-                <span aria-hidden>🏷</span>
-                Sólo productos en oferta
-              </button>
             </div>
           )}
 
@@ -366,65 +348,97 @@ export default function MobileFilterSheet({
             </AccordionSection>
           )}
 
-          {priceBounds.max > priceBounds.min && (
+          {(priceBounds.max > priceBounds.min || (showOnSale && onOnSaleChange)) && (
             <AccordionSection
               title="Precio"
               open={priceOpen}
               onToggle={() => setPriceOpen((value) => !value)}
             >
-              <PriceRangeSlider
-                bounds={priceBounds}
-                valueMin={priceMin}
-                valueMax={priceMax}
-                onChange={onPriceChange}
-              />
-              <div className="mt-4 flex items-center gap-2">
-                <div className="relative flex-1">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={priceBounds.min}
-                    max={priceBounds.max}
-                    value={priceMin ?? ""}
-                    onChange={(event) => {
-                      const parsed = parsePriceInput(event.target.value)
-                      if (parsed !== null && priceMax !== null && parsed > priceMax) {
-                        onPriceChange(parsed, parsed)
-                      } else {
-                        onPriceChange(parsed, priceMax)
-                      }
-                    }}
-                    placeholder={String(priceBounds.min)}
-                    className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-6 pr-3 text-sm text-neutral-800 outline-none focus:border-[#C9A84C]"
+              {priceBounds.max > priceBounds.min && (
+                <>
+                  <PriceRangeSlider
+                    bounds={priceBounds}
+                    valueMin={priceMin}
+                    valueMax={priceMax}
+                    onChange={onPriceChange}
                   />
-                </div>
-                <span className="text-neutral-500">–</span>
-                <div className="relative flex-1">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={priceBounds.min}
-                    max={priceBounds.max}
-                    value={priceMax ?? ""}
-                    onChange={(event) => {
-                      const parsed = parsePriceInput(event.target.value)
-                      if (parsed !== null && priceMin !== null && parsed < priceMin) {
-                        onPriceChange(parsed, parsed)
-                      } else {
-                        onPriceChange(priceMin, parsed)
-                      }
-                    }}
-                    placeholder={String(priceBounds.max)}
-                    className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-6 pr-3 text-sm text-neutral-800 outline-none focus:border-[#C9A84C]"
-                  />
-                </div>
-              </div>
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={priceBounds.min}
+                        max={priceBounds.max}
+                        value={priceMin ?? ""}
+                        onChange={(event) => {
+                          const parsed = parsePriceInput(event.target.value)
+                          if (parsed !== null && priceMax !== null && parsed > priceMax) {
+                            onPriceChange(parsed, parsed)
+                          } else {
+                            onPriceChange(parsed, priceMax)
+                          }
+                        }}
+                        placeholder={String(priceBounds.min)}
+                        className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-6 pr-3 text-sm text-neutral-800 outline-none focus:border-neutral-400"
+                      />
+                    </div>
+                    <span className="text-neutral-500">–</span>
+                    <div className="relative flex-1">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={priceBounds.min}
+                        max={priceBounds.max}
+                        value={priceMax ?? ""}
+                        onChange={(event) => {
+                          const parsed = parsePriceInput(event.target.value)
+                          if (parsed !== null && priceMin !== null && parsed < priceMin) {
+                            onPriceChange(parsed, parsed)
+                          } else {
+                            onPriceChange(priceMin, parsed)
+                          }
+                        }}
+                        placeholder={String(priceBounds.max)}
+                        className="w-full rounded-full border border-neutral-200 bg-white py-2 pl-6 pr-3 text-sm text-neutral-800 outline-none focus:border-neutral-400"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {showOnSale && onOnSaleChange && (
+                <label
+                  className={`flex cursor-pointer items-center justify-between ${
+                    priceBounds.max > priceBounds.min
+                      ? "mt-4 border-t border-neutral-100 pt-4"
+                      : "py-1"
+                  }`}
+                >
+                  <span className="text-sm text-neutral-800">En oferta</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={onSale}
+                    onClick={() => onOnSaleChange(!onSale)}
+                    className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+                      onSale ? "bg-[#0a0a0a]" : "bg-neutral-300"
+                    }`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                        onSale ? "translate-x-4" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </label>
+              )}
             </AccordionSection>
           )}
 

@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import type { HomeBrandItem } from "@/lib/supabase/cache"
+import { Marquee } from "@/app/components/ui/motion/marquee"
 
 type ShopByBrandsProps = {
   brands: HomeBrandItem[]
@@ -28,32 +29,35 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
           </p>
         </header>
 
-        <div className="overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex min-w-max items-center gap-2 border-y border-neutral-200 py-3">
-            {brands.map((brand) => (
-              <Link
-                key={brand.id}
-                href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
-                className="group flex h-[84px] w-[172px] shrink-0 items-center justify-center rounded-xl border border-transparent bg-transparent px-5 py-3 transition-colors duration-200 hover:border-neutral-200 hover:bg-neutral-50"
-                aria-label={`Ver productos de ${brand.name}`}
-              >
-                {brand.logo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={brand.logo_url}
-                    alt={brand.name}
-                    className="max-h-[44px] w-auto max-w-full object-contain opacity-90 transition-all duration-200 group-hover:opacity-100 group-hover:grayscale-0"
-                    loading="lazy"
-                  />
-                ) : (
-                  <span className="text-center text-sm font-medium text-neutral-700">
-                    {brand.name}
-                  </span>
-                )}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <Marquee
+          speed={32}
+          pauseOnHover
+          gap="0.5rem"
+          className="border-y border-neutral-200 py-3"
+        >
+          {brands.map((brand) => (
+            <Link
+              key={brand.id}
+              href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
+              className="group flex h-[84px] w-[172px] shrink-0 items-center justify-center rounded-xl border border-transparent bg-transparent px-5 py-3 transition-colors duration-200 hover:border-neutral-200 hover:bg-neutral-50"
+              aria-label={`Ver productos de ${brand.name}`}
+            >
+              {brand.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={brand.logo_url}
+                  alt={brand.name}
+                  className="max-h-[44px] w-auto max-w-full object-contain opacity-90 transition-all duration-200 group-hover:opacity-100 group-hover:grayscale-0"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-center text-sm font-medium text-neutral-700">
+                  {brand.name}
+                </span>
+              )}
+            </Link>
+          ))}
+        </Marquee>
       </div>
     </section>
   )

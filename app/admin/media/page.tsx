@@ -34,21 +34,9 @@ const SECTION_META: Record<string, { title: string; description: string }> = {
     title: "Quiénes somos",
     description: "Foto lateral de la sección de presentación. Formato recomendado: 500×750 px.",
   },
-  pillar_dist: {
-    title: "Tres pilares — Distribuidora",
-    description: "Tríptico de imágenes del pilar Distribuidora. Formato recomendado: 400×600 px.",
-  },
-  pillar_acad: {
-    title: "Tres pilares — Academia",
-    description: "Tríptico de imágenes del pilar Academia. Formato recomendado: 400×600 px.",
-  },
-  pillar_serv: {
-    title: "Tres pilares — Servicios",
-    description: "Tríptico de imágenes del pilar Servicios. Formato recomendado: 400×600 px.",
-  },
 }
 
-const SECTION_ORDER = ["hero", "brand", "pillar_dist", "pillar_acad", "pillar_serv"]
+const SECTION_ORDER = ["hero", "brand"]
 
 function UploadIcon() {
   return (

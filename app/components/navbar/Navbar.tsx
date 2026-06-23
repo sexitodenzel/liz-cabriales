@@ -38,6 +38,15 @@ type NavbarProps = {
 
 const COMPACT_DESKTOP_MAX_WIDTH = 1200
 
+const DESKTOP_NAV_ITEMS = [
+  { label: "Tienda" as const, href: "/tienda" },
+  { label: "Academia" as const, href: "/academia" },
+  { label: "Servicios" as const, href: "/servicios" },
+  { label: "Best Sellers" as const, href: "/tienda/mas-vendidos" },
+  { label: "Marcas" as const, href: "/tienda" },
+  { label: "Conócenos" as const, href: "/sobre-liz" },
+] as const
+
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [recentProducts, setRecentProducts] = useState<RecentProductMenuItem[]>([])
@@ -53,7 +62,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [isCompactDesktop, setIsCompactDesktop] = useState(false)
   const [activeMenu, setActiveMenu] = useState<DesktopMenu>(null)
+  const [navBarStyle, setNavBarStyle] = useState({ left: 0, width: 0, visible: false })
+  const [navBarAnimate, setNavBarAnimate] = useState<"grow" | "slide">("grow")
   const menuCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const navBarStyleRef = useRef({ left: 0, width: 0, visible: false })
+  const navRef = useRef<HTMLElement>(null)
+  const navLinkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
   const headerRef = useRef<HTMLElement>(null)
   const overlayGuardRef = useRef(false)
   const {
@@ -72,9 +86,44 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       menuCloseTimerRef.current = null
     }
   }
+  const getNavLinkRect = (menu: Exclude<DesktopMenu, null>) => {
+    const link = navLinkRefs.current.get(menu)
+    if (!link) return null
+    return { left: link.offsetLeft, width: link.offsetWidth }
+  }
+  const applyNavBarStyle = (style: { left: number; width: number; visible: boolean }) => {
+    navBarStyleRef.current = style
+    setNavBarStyle(style)
+  }
+  const hideNavBar = () => {
+    setNavBarAnimate("grow")
+    applyNavBarStyle({ ...navBarStyleRef.current, width: 0, visible: false })
+  }
+  const updateNavBar = (menu: Exclude<DesktopMenu, null>) => {
+    const target = getNavLinkRect(menu)
+    if (!target) return
+
+    const prev = navBarStyleRef.current
+    const wasVisible = prev.visible && prev.width > 0
+
+    if (!wasVisible) {
+      setNavBarAnimate("grow")
+      applyNavBarStyle({ left: target.left, width: 0, visible: true })
+      requestAnimationFrame(() => {
+        applyNavBarStyle({ ...target, visible: true })
+      })
+      return
+    }
+
+    setNavBarAnimate("slide")
+    applyNavBarStyle({ ...target, visible: true })
+  }
   const scheduleMenuClose = () => {
     clearMenuCloseTimer()
-    menuCloseTimerRef.current = setTimeout(() => setActiveMenu(null), 120)
+    menuCloseTimerRef.current = setTimeout(() => {
+      setActiveMenu(null)
+      hideNavBar()
+    }, 120)
   }
   const openDesktopMenu = (menu: Exclude<DesktopMenu, null>) => {
     clearMenuCloseTimer()
@@ -83,6 +132,25 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     setDrawerOpen(false)
     setActiveMenu(menu)
   }
+  const handleNavMouseEnter = (menu: Exclude<DesktopMenu, null>) => {
+    openDesktopMenu(menu)
+    updateNavBar(menu)
+  }
+
+  useEffect(() => {
+    if (!activeMenu) {
+      hideNavBar()
+    }
+  }, [activeMenu])
+
+  useEffect(() => {
+    if (!activeMenu) return
+    const handleResize = () => updateNavBar(activeMenu)
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [activeMenu])
+
+  useEffect(() => () => clearMenuCloseTimer(), [])
 
   useEffect(() => {
     if (!drawerOpen) return
@@ -119,8 +187,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       setActiveMenu(null)
     }
   }, [isCartOpen])
-
-  useEffect(() => () => clearMenuCloseTimer(), [])
 
   useEffect(() => {
     const updateCompactDesktop = () => {
@@ -275,7 +341,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   }
 
   const iconBtnBase =
-    "inline-flex h-10 w-10 shrink-0 items-center text-black transition-colors hover:text-[#C6A75E] sm:h-11 sm:w-11"
+    "inline-flex h-10 w-10 shrink-0 cursor-pointer items-center text-black transition-colors duration-200 hover:text-[#C6A75E] sm:h-11 sm:w-11"
   const showCompactToolbar = isCompactDesktop
 
   return (
@@ -331,7 +397,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             </Link>
           </div>
 
-          <div className="flex min-w-0 items-center justify-end gap-0.5 sm:gap-1">
+          <div className="relative z-20 flex min-w-0 items-center justify-end gap-0.5 sm:gap-1">
             <button
               type="button"
               onClick={toggleMobileSearch}
@@ -369,12 +435,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
         {/* ===== DESKTOP TOOLBAR (ancho completo) ===== */}
         <div
-          className={`navbar-toolbar relative z-10 h-[var(--navbar-h)] w-full items-center gap-8 ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
+          className={`navbar-toolbar relative z-10 grid h-[var(--navbar-h)] w-full grid-cols-[1fr_auto_1fr] items-center ${showCompactToolbar ? "hidden" : "hidden md:grid"}`}
           onMouseLeave={scheduleMenuClose}
         >
           <Link
             href="/"
-            className="shrink-0 no-underline transition-opacity hover:opacity-90"
+            className="shrink-0 justify-self-start no-underline transition-opacity hover:opacity-90"
             aria-label="Ir al inicio"
             onMouseEnter={scheduleMenuClose}
           >
@@ -390,36 +456,39 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             </span>
           </Link>
 
-          <nav className="flex flex-1 items-center justify-center gap-6 lg:gap-8">
-            {([
-              { label: "Tienda" as const,       href: "/tienda" },
-              { label: "Academia" as const,     href: "/academia" },
-              { label: "Servicios" as const,    href: "/servicios" },
-              { label: "Best Sellers" as const, href: "/tienda/mas-vendidos" },
-              { label: "Marcas" as const,       href: "/tienda" },
-              { label: "Conócenos" as const,    href: "/sobre-liz" },
-            ]).map(({ label, href }) => {
-              const isActive = activeMenu === label
-              return (
-                <Link
-                  key={label}
-                  href={href}
-                  onMouseEnter={() => openDesktopMenu(label)}
-                  onFocus={() => openDesktopMenu(label)}
-                  className="relative group whitespace-nowrap text-[13px] font-medium uppercase tracking-[0.14em] text-[#1a1a1a] transition-colors hover:text-[#C6A75E] lg:text-[14px] lg:tracking-[0.16em]"
-                >
-                  {label}
-                  <span
-                    className={`pointer-events-none absolute -bottom-1 left-0 h-[1.5px] bg-[#C6A75E] transition-all duration-200 ${
-                      isActive ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
-                  />
-                </Link>
-              )
-            })}
+          <nav ref={navRef} className="relative flex items-center justify-center justify-self-center gap-0">
+            <span
+              aria-hidden
+              className={`pointer-events-none absolute -bottom-1 h-[1.5px] bg-[#C6A75E] duration-150 ease-out ${
+                navBarAnimate === "grow"
+                  ? "transition-[width]"
+                  : "transition-[left,width]"
+              }`}
+              style={{
+                left: navBarStyle.left,
+                width: navBarStyle.visible ? navBarStyle.width : 0,
+              }}
+            />
+            {DESKTOP_NAV_ITEMS.map(({ label, href }) => (
+              <Link
+                key={label}
+                ref={(el) => {
+                  if (el) navLinkRefs.current.set(label, el)
+                  else navLinkRefs.current.delete(label)
+                }}
+                href={href}
+                onMouseEnter={() => handleNavMouseEnter(label)}
+                onFocus={() => handleNavMouseEnter(label)}
+                className={`relative inline-flex items-center justify-center px-2 whitespace-nowrap text-center text-[13px] font-medium uppercase tracking-[0.14em] transition-colors lg:px-3 lg:text-[14px] lg:tracking-[0.16em] ${
+                  activeMenu === label ? "text-[#C6A75E]" : "text-[#1a1a1a] hover:text-[#C6A75E]"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1" onMouseEnter={scheduleMenuClose}>
+          <div className="relative z-20 flex shrink-0 items-center justify-self-end gap-1" onMouseEnter={scheduleMenuClose}>
             <button
               type="button"
               onClick={() => { setActiveMenu(null); toggleMobileSearch() }}

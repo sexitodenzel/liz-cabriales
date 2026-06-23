@@ -1,3 +1,6 @@
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
 /**
  * Apartado mínimo requerido para reservar lugar en un curso según el precio.
  *
@@ -20,4 +23,8 @@ export function getMinDeposit(price: number): number {
   else deposit = 1000
 
   return Math.min(deposit, p)
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }

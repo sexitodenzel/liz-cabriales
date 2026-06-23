@@ -11,6 +11,7 @@ import NotifyWhenAvailable from "./NotifyWhenAvailable"
 import { storeCardButtonClassName } from "./store-button-styles"
 import { Heart, ChevronLeft, ChevronRight } from "lucide-react"
 import { useWishlist } from "@/app/components/wishlist/WishlistContext"
+import { TiltCard } from "@/app/components/ui/motion/tilt-card"
 
 type Props = {
   product: ProductWithCategory
@@ -117,6 +118,12 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
         className={cardButtonClassName}
       />
     )
+
+  useEffect(() => {
+    if (!leavingImage) return
+    const timeoutId = window.setTimeout(() => setLeavingImage(null), slideDurationMs)
+    return () => window.clearTimeout(timeoutId)
+  }, [leavingImage, slideDurationMs])
 
   if (layout === "list") {
     const listActionButton =
@@ -248,15 +255,9 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
     setImgIndex((i) => (i + 1) % images.length)
   }
 
-  useEffect(() => {
-    if (!leavingImage) return
-    const timeoutId = window.setTimeout(() => setLeavingImage(null), slideDurationMs)
-    return () => window.clearTimeout(timeoutId)
-  }, [leavingImage, slideDurationMs])
-
   return (
     <article className="group flex h-full flex-col overflow-hidden border border-neutral-200 bg-white shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="relative h-36 overflow-hidden bg-neutral-100 sm:h-64">
+      <TiltCard max={8} className="h-36 bg-neutral-100 rounded-none sm:h-64">
         <Link href={`/tienda/${product.slug}`} className="block h-full">
           {currentImage ? (
             desktopHoverSwapEnabled ? (
@@ -393,7 +394,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
             </button>
           </>
         ) : null}
-      </div>
+      </TiltCard>
 
       <div className="flex flex-1 flex-col gap-2 p-2.5 sm:gap-3 sm:p-4">
         <div className="flex items-start justify-between gap-2">
