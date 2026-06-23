@@ -39,6 +39,9 @@ export type SearchSuggestionCategory = {
   isSubcategory: boolean
 }
 
+const SEARCH_PRODUCT_PRICE_CLASS =
+  "text-[14px] font-semibold text-[#C6A75E] sm:text-[15px]"
+
 function formatPrice(value: number): string {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -255,13 +258,7 @@ export function SearchSuggestionsContent({
                       product.name
                     )}
                   </p>
-                  <p
-                    className={
-                      isMobile
-                        ? "mt-1 text-[12px] font-light text-[#C6A75E]"
-                        : "mt-0.5 text-[12px] text-[#C6A75E]"
-                    }
-                  >
+                  <p className={isMobile ? `mt-1 ${SEARCH_PRODUCT_PRICE_CLASS}` : `mt-0.5 ${SEARCH_PRODUCT_PRICE_CLASS}`}>
                     {formatPrice(product.price)}
                   </p>
                 </div>
@@ -354,13 +351,13 @@ export function EmptyStatePanel({
             <h3 className="mb-4 text-[20px] font-semibold tracking-tight text-neutral-900">
               Best Sellers
             </h3>
-            <div className="scrollbar-hide -mx-5 flex gap-3 overflow-x-auto overscroll-x-contain px-5 pb-2 snap-x snap-mandatory md:gap-5">
+            <div className="scrollbar-hide flex gap-3 overflow-x-auto overscroll-x-contain pb-2 pr-1 snap-x snap-mandatory md:gap-5">
               {visibleBest.map((product) => (
                 <Link
                   key={product.id}
                   href={`/producto/${product.slug}`}
                   onClick={onClose}
-                  className="flex shrink-0 snap-start flex-col basis-[46%] sm:basis-[31%] md:basis-[23%] lg:basis-[19%]"
+                  className="flex w-[46%] min-w-[140px] shrink-0 snap-start flex-col sm:w-[31%] md:w-[23%] lg:w-[19%]"
                 >
                   <div className="aspect-square w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50 sm:aspect-[4/5]">
                     {product.image ? (
@@ -376,13 +373,13 @@ export function EmptyStatePanel({
                       </div>
                     )}
                   </div>
-                  <div className="mt-2 flex flex-1 flex-col">
+                  <div className="mt-2 flex min-w-0 flex-1 flex-col px-0.5">
                     <p className="line-clamp-2 flex-1 text-[12px] font-light leading-snug text-[#1a1a1a]">
                       <span className="underline decoration-neutral-700 decoration-[1px] underline-offset-[4px]">
                         {product.name}
                       </span>
                     </p>
-                    <p className="mt-1 text-[12px] font-light text-[#C6A75E]">
+                    <p className={`mt-1 ${SEARCH_PRODUCT_PRICE_CLASS}`}>
                       {formatPrice(product.price)}
                     </p>
                   </div>
@@ -448,7 +445,7 @@ export function EmptyStatePanel({
                   <p className="line-clamp-2 text-[12px] font-medium text-neutral-900">
                     {product.name}
                   </p>
-                  <p className="mt-0.5 text-[12px] text-[#C6A75E]">
+                  <p className={`mt-1 ${SEARCH_PRODUCT_PRICE_CLASS}`}>
                     {formatPrice(product.price)}
                   </p>
                 </div>

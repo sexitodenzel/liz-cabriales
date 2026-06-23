@@ -1,7 +1,40 @@
+import type { User } from "@supabase/supabase-js"
+
 import type { OrderStatus, RegistrationStatus } from "@/types"
 import type { AuthUserProfile } from "@/lib/supabase/auth-server"
 import type { getUserProfile } from "@/lib/supabase/auth-server"
 import type { UserSavedAddress } from "@/lib/supabase/orders"
+
+/** Nombre para el saludo: perfil → metadata de auth → correo. */
+export function resolveWelcomeName(
+  profile: AuthUserProfile | null,
+  user: User
+): string {
+  const fromProfileFirst = profile?.first_name?.trim()
+  if (fromProfileFirst) return fromProfileFirst
+
+  const fromProfileFull = [profile?.first_name, profile?.last_name]
+    .filter(Boolean)
+    .join(" ")
+    .trim()
+  if (fromProfileFull) return fromProfileFull
+
+  const meta = user.user_metadata ?? {}
+  const metaFirst =
+    typeof meta.first_name === "string" ? meta.first_name.trim() : ""
+  if (metaFirst) return metaFirst
+
+  const metaFull = [meta.full_name, meta.name]
+    .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+    .map((v) => v.trim())[0]
+  if (metaFull) return metaFull
+
+  const email = (profile?.email ?? user.email ?? "").trim()
+  const localPart = email.split("@")[0]?.trim()
+  if (localPart) return localPart
+
+  return "Usuario"
+}
 
 export function formatMoney(value: number): string {
   return new Intl.NumberFormat("es-MX", {

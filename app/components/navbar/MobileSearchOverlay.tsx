@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { Search, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 
@@ -12,6 +12,7 @@ import {
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
+import { SearchTypewriter } from "./SearchTypewriter"
 import { getSearchDestination } from "@/lib/search-navigation"
 import { SITE_CONTAINER_CLASS } from "@/lib/site-shell"
 import { MOBILE_CHROME_PANEL_CLASS } from "@/lib/site-chrome"
@@ -45,15 +46,17 @@ export default function MobileSearchOverlay({
 }: Props) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+  const [inputFocused, setInputFocused] = useState(false)
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      setInputFocused(false)
+      return
+    }
     const previous = document.body.style.overflow
     document.body.style.overflow = "hidden"
-    const timer = setTimeout(() => inputRef.current?.focus(), 80)
     return () => {
       document.body.style.overflow = previous
-      clearTimeout(timer)
     }
   }, [open])
 
@@ -74,6 +77,7 @@ export default function MobileSearchOverlay({
   }
 
   const isEmpty = query.trim().length < 2
+  const showTypewriter = open && !inputFocused && query.length === 0
 
   const overlayContent = (
     <>
@@ -83,18 +87,28 @@ export default function MobileSearchOverlay({
           className="flex items-center gap-4 border-b border-neutral-900 pb-3 md:pb-4"
         >
           <Search className="h-6 w-6 shrink-0 text-neutral-900" strokeWidth={1.5} />
-          <input
-            ref={inputRef}
-            type="text"
-            inputMode="search"
-            enterKeyHint="search"
-            autoComplete="off"
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="¿Qué estás buscando?"
-            className="navbar-search-input min-w-0 flex-1 bg-transparent text-base tracking-wide text-neutral-900 placeholder:text-neutral-400 outline-none md:text-[17px]"
-            aria-label="Buscar productos"
-          />
+          <div className="relative min-w-0 flex-1">
+            <SearchTypewriter
+              active={showTypewriter}
+              className="pointer-events-none absolute inset-y-0 left-0 flex items-center text-base tracking-wide text-neutral-400 md:text-[17px]"
+            />
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="search"
+              enterKeyHint="search"
+              autoComplete="off"
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => {
+                if (query.length === 0) setInputFocused(false)
+              }}
+              placeholder=""
+              className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-base tracking-wide text-neutral-900 outline-none md:text-[17px]"
+              aria-label="Buscar productos"
+            />
+          </div>
           <button
             type="button"
             onClick={() => {

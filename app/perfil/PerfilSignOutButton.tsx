@@ -1,5 +1,6 @@
 "use client"
 
+import { LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -59,8 +60,9 @@ export default function PerfilSignOutButton({ variant = "header" }: PerfilSignOu
       type="button"
       onClick={() => void handleSignOut()}
       disabled={busy}
-      className={`shrink-0 ${signOutLinkClass}`}
+      className="inline-flex shrink-0 items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-800 transition-colors hover:border-[var(--gold)] hover:text-neutral-900 disabled:opacity-60"
     >
+      <LogOut className="h-3.5 w-3.5" aria-hidden />
       {busy ? "Cerrando sesión…" : "Cerrar sesión"}
     </button>
   )

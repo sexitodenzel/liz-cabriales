@@ -26,6 +26,7 @@ import {
   variantStockKey,
   type FieldErrors,
 } from "@/lib/validations/productForm"
+import { exportProductsToXls } from "@/lib/admin/export-products-xls"
 
 type ToastState = {
   id: number
@@ -2497,6 +2498,15 @@ export default function AdminProductsPage() {
                     ? `${filteredProducts.length} de ${activeProducts.length} productos`
                     : `${activeProducts.length} productos activos`}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => exportProductsToXls(activeProducts)}
+                  disabled={activeProducts.length === 0}
+                  title="Descargar inventario completo en Excel"
+                  className="inline-flex items-center rounded-full bg-[#c9a84c] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-black transition-colors hover:bg-[#b8953f] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Exportar a Excel
+                </button>
                 <button
                   type="button"
                   onClick={() => setProductsFullscreen((v) => !v)}

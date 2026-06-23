@@ -3,6 +3,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 
 import EventsGallery, { type EventGalleryItem } from "./components/EventsGallery"
+import SobreLizStats from "./components/SobreLizStats"
 import TestimonialsCarousel, { type Testimonial } from "./components/TestimonialsCarousel"
 import { getLandingPageDataCached } from "@/lib/supabase/landing-slots"
 import { getEventsGallery } from "@/lib/supabase/events-gallery"
@@ -21,12 +22,6 @@ const SOCIAL = {
   whatsapp: "https://wa.me/528332183399",
 } as const
 
-const STATS = [
-  { value: "7+", label: "Años de trayectoria" },
-  { value: "15+", label: "Marcas profesionales" },
-  { value: "20+", label: "Masters nacionales" },
-  { value: "500+", label: "Alumnas formadas" },
-] as const
 
 const EVENT_GALLERY: EventGalleryItem[] = [
   {
@@ -269,14 +264,20 @@ export default async function SobreLizPage() {
           </div>
 
           <div className="mx-auto w-full max-w-[420px]">
-            <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl shadow-[0_18px_50px_rgba(20,20,20,0.18)]">
-              <Image
-                src={heroPhoto}
-                alt="Liz Cabriales"
-                fill
-                priority
-                sizes="(max-width: 1024px) 80vw, 420px"
-                className="object-cover"
+            <div className="relative rounded-2xl bg-gradient-to-br from-[#f0dfa8] via-[#c6a75e] to-[#8f6f2f] p-[3px] shadow-[0_18px_50px_rgba(168,134,47,0.22)]">
+              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[13px] bg-neutral-100">
+                <Image
+                  src={heroPhoto}
+                  alt="Liz Cabriales"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 80vw, 420px"
+                  className="object-cover"
+                />
+              </div>
+              <div
+                className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/25"
+                aria-hidden
               />
             </div>
 
@@ -321,28 +322,7 @@ export default async function SobreLizPage() {
         </div>
       </section>
 
-      {/* ── STATS ── */}
-      <section className="site-container mt-20">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-y border-[#c9a84c]/30 py-12 lg:grid-cols-4">
-          {STATS.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center text-center">
-              <span
-                className="font-medium tabular-nums text-[#a8862f]"
-                style={{
-                  fontFamily: "var(--font-playfair), serif",
-                  fontSize: "clamp(38px, 4.6vw, 60px)",
-                  lineHeight: 1,
-                }}
-              >
-                {stat.value}
-              </span>
-              <span className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6b6b6b]">
-                {stat.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+      <SobreLizStats />
 
       {/* ── PILLARS / WHAT WE DO ── */}
       <section id="academia" className="site-container mt-24">
