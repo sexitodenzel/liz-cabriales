@@ -7,13 +7,17 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-white px-4 py-10">
-      <Link href="/" className="mb-6 transition-opacity hover:opacity-80" aria-label="Ir al inicio">
+    <main className="flex min-h-screen w-full flex-col items-center bg-white px-4 py-8 sm:py-12">
+      <Link
+        href="/"
+        className="mb-6 transition-opacity hover:opacity-80"
+        aria-label="Ir al inicio"
+      >
         <Image
           src="/images/logo.png"
           alt="Liz Cabriales"
-          width={140}
-          height={140}
+          width={120}
+          height={120}
           className="object-contain"
           priority
         />

@@ -9,9 +9,9 @@ export default function Footer() {
   return (
     <footer className="bg-[#0a0a0a] text-neutral-300">
       <div className="site-container pt-10 pb-10 md:pt-16 md:pb-12">
-        <div className="grid gap-6 md:grid-cols-4 md:gap-8">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
           {/* Logo */}
-          <div className="flex justify-center md:justify-start">
+          <div className="flex justify-center sm:justify-start lg:justify-start">
             <Link href="/" aria-label="Ir al inicio" className="inline-block transition-opacity hover:opacity-90">
               <Image
                 src="/images/logo.png"
@@ -88,11 +88,11 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-neutral-500">
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-4">
             <Link href="/aviso-de-privacidad" className="transition-colors hover:text-[#C6A75E]">
               Aviso de privacidad
             </Link>
-            <span className="text-white/20">·</span>
+            <span className="hidden text-white/20 sm:inline">·</span>
             <Link href="/terminos-y-condiciones" className="transition-colors hover:text-[#C6A75E]">
               Términos y condiciones
             </Link>

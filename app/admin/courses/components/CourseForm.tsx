@@ -11,6 +11,7 @@ import CourseGalleryEditor, {
 } from "./CourseGalleryEditor"
 import type { InstructorRow, CourseImage, CourseGalleryItem } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 export type CourseFormInitialValues = {
   title: string
@@ -70,7 +71,6 @@ export default function CourseForm({
   const router = useRouter()
   const [values, setValues] = useState<CourseFormInitialValues>(initialValues)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const [localGallery, setLocalGallery] = useState<LocalGalleryItem[]>(() =>
     initialGallery && initialGallery.length > 0
@@ -125,7 +125,6 @@ export default function CourseForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
     setSubmitting(true)
 
     const coverUrl =
@@ -171,7 +170,7 @@ export default function CourseForm({
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo guardar el curso")
+        toast.error(json?.error?.message ?? "No se pudo guardar el curso")
         return
       }
 
@@ -207,10 +206,11 @@ export default function CourseForm({
         ])
       }
 
+      toast.success(mode === "create" ? "Curso creado" : "Curso actualizado")
       router.push("/admin/courses")
       router.refresh()
     } catch {
-      setError("Error de red al guardar")
+      toast.error("Error de red al guardar")
     } finally {
       setSubmitting(false)
     }
@@ -433,7 +433,7 @@ export default function CourseForm({
                 folder="courses"
                 buttonLabel="Agregar imagen"
                 onUpload={addImage}
-                onError={(msg) => setError(msg)}
+                onError={(msg) => toast.error(msg)}
               />
               {localImages.length === 0 && (
                 <span className="text-xs text-[#9a9a9a]">
@@ -460,7 +460,7 @@ export default function CourseForm({
             <CourseGalleryEditor
               items={localGallery}
               onChange={setLocalGallery}
-              onError={(msg) => setError(msg)}
+              onError={(msg) => toast.error(msg)}
             />
           </div>
 
@@ -597,15 +597,6 @@ export default function CourseForm({
               </div>
             )}
           </section>
-
-          {error && (
-            <p
-              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-              role="alert"
-            >
-              {error}
-            </p>
-          )}
 
           <div className="flex items-center justify-end gap-3">
             <Link

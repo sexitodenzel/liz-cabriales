@@ -20,12 +20,11 @@ import { pickRelatedProductsForFilters } from "@/lib/tienda/related-products"
 import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
 import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 import BrandHeaderInfo from "./BrandHeaderInfo"
-import MobileFilterSheet from "./MobileFilterSheet"
 import ProductCard from "./ProductCard"
 import ProductFilterSortBar from "./ProductFilterSortBar"
 import StoreDiscoverySections from "./StoreDiscoverySections"
 import { useProductViewMode } from "./useProductViewMode"
-import { useCart } from "@/app/components/cart/CartContext"
+import type { BreadcrumbItem } from "@/components/shared/Breadcrumb"
 
 type FiltersState = {
   categorySlugs: string[]
@@ -60,6 +59,7 @@ type ProductGridProps = {
   initialFilters: FiltersState
   upcomingCourses: CourseWithStats[]
   activeServices: ServiceRow[]
+  breadcrumbItems?: BreadcrumbItem[]
 }
 
 export default function ProductGrid({
@@ -70,18 +70,13 @@ export default function ProductGrid({
   initialFilters,
   upcomingCourses,
   activeServices,
+  breadcrumbItems,
 }: ProductGridProps) {
   const pathname = usePathname()
 
   const [filters, setFilters] = useState<FiltersState>(initialFilters)
   const [sort, setSort] = useState<SortOption>("destacados")
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const { viewMode, setViewMode } = useProductViewMode()
-  const { isCartOpen } = useCart()
-
-  useEffect(() => {
-    if (isCartOpen) setMobileFiltersOpen(false)
-  }, [isCartOpen])
 
   useEffect(() => {
     setFilters(initialFilters)
@@ -429,14 +424,14 @@ export default function ProductGrid({
         sort={sort}
         sortOptions={SORT_OPTIONS}
         onSortChange={(value) => setSort(value as SortOption)}
-        onFilterClick={() => setMobileFiltersOpen(true)}
         onClearFilters={handleClearAll}
         showFilter
         activeFilterCount={activeFilterCount}
         activeChips={activeChips}
+        breadcrumbItems={breadcrumbItems}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        desktopFilters={{
+        filterPanel={{
           categories,
           brands: brandsForSidebar,
           abrasivityLevels: ABRASIVITY_LEVELS,
@@ -446,6 +441,7 @@ export default function ProductGrid({
           selectedCategories: filters.categorySlugs,
           selectedBrands: filters.brands,
           selectedAbrasivities: filters.abrasivities,
+          search: filters.search,
           priceMin: filters.priceMin,
           priceMax: filters.priceMax,
           priceBounds,
@@ -455,11 +451,12 @@ export default function ProductGrid({
           onCategoriesChange: handleCategoriesChange,
           onBrandsChange: handleBrandsChange,
           onAbrasivitiesChange: handleAbrasivitiesChange,
+          onSearchChange: handleSearchChange,
           onPriceChange: handlePriceChange,
         }}
       />
 
-      <div className="space-y-6">
+      <div className="pt-1 md:pt-2">
         {isEmpty ? (
           <div className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-10 text-center">
             <PackageOpen className="mb-4 h-10 w-10 text-neutral-300" />
@@ -483,7 +480,7 @@ export default function ProductGrid({
           <div
             className={
               viewMode === "grid"
-                ? "grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3"
+                ? "grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 md:gap-4"
                 : "flex flex-col"
             }
           >
@@ -506,31 +503,6 @@ export default function ProductGrid({
         />
       )}
 
-      <MobileFilterSheet
-        open={mobileFiltersOpen}
-        onClose={() => setMobileFiltersOpen(false)}
-        categories={categories}
-        brands={brandsForSidebar}
-        abrasivityLevels={ABRASIVITY_LEVELS}
-        abrasivityCounts={abrasivityCounts}
-        selectedCategories={filters.categorySlugs}
-        selectedBrands={filters.brands}
-        selectedAbrasivities={filters.abrasivities}
-        search={filters.search}
-        priceMin={filters.priceMin}
-        priceMax={filters.priceMax}
-        priceBounds={priceBounds}
-        activeChips={activeChips}
-        onSale={filters.onSale}
-        showOnSale={hasProductsOnSale}
-        onOnSaleChange={handleOnSaleChange}
-        onCategoriesChange={handleCategoriesChange}
-        onBrandsChange={handleBrandsChange}
-        onAbrasivitiesChange={handleAbrasivitiesChange}
-        onSearchChange={handleSearchChange}
-        onPriceChange={handlePriceChange}
-        onClearAll={handleClearAll}
-      />
     </div>
   )
 }

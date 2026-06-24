@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type UserSearchResult = {
   id: string
@@ -83,14 +84,13 @@ export default function ManualRegistrationModal({
       )
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(
-          json?.error?.message ?? "No se pudo registrar al alumno"
-        )
+        toast.error(json?.error?.message ?? "No se pudo registrar al alumno")
         return
       }
+      toast.success("Alumno registrado")
       onCreated()
     } catch {
-      setError("Error de red al registrar")
+      toast.error("Error de red al registrar")
     } finally {
       setSubmitting(false)
     }

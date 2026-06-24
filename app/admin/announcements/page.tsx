@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type AnnouncementRow = {
   id: string
@@ -20,10 +21,6 @@ type EditDraft = {
   isEnabled: boolean
 }
 
-type ToastState =
-  | { id: number; type: "success" | "error"; message: string }
-  | null
-
 export default function AdminAnnouncementsPage() {
   const router = useRouter()
   const [items, setItems] = useState<AnnouncementRow[]>([])
@@ -33,16 +30,9 @@ export default function AdminAnnouncementsPage() {
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [drafts, setDrafts] = useState<Record<string, EditDraft>>({})
-  const [toast, setToast] = useState<ToastState>(null)
   const [creating, setCreating] = useState(false)
   const [newLabel, setNewLabel] = useState("")
   const [newHref, setNewHref] = useState("")
-
-  useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(null), 2400)
-    return () => clearTimeout(t)
-  }, [toast])
 
   async function loadBarSettings() {
     try {
@@ -53,20 +43,12 @@ export default function AdminAnnouncementsPage() {
       }
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo cargar la configuración.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo cargar la configuración.")
         return
       }
       setBarEnabled(Boolean(json.data?.barEnabled))
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al cargar la configuración.",
-      })
+      toast.error("Error de red al cargar la configuración.")
     } finally {
       setBarSettingsLoading(false)
     }
@@ -82,21 +64,15 @@ export default function AdminAnnouncementsPage() {
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo guardar la configuración.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo guardar la configuración.")
         return
       }
       setBarEnabled(Boolean(json.data?.barEnabled))
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: next ? "Barra de anuncios activada." : "Barra de anuncios desactivada.",
-      })
+      toast.success(
+        next ? "Barra de anuncios activada." : "Barra de anuncios desactivada.",
+      )
     } catch {
-      setToast({ id: Date.now(), type: "error", message: "Error de red." })
+      toast.error("Error de red.")
     } finally {
       setBarSettingsSaving(false)
     }
@@ -111,11 +87,7 @@ export default function AdminAnnouncementsPage() {
       }
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudieron cargar los anuncios.",
-        })
+        toast.error(json?.error?.message ?? "No se pudieron cargar los anuncios.")
         return
       }
       setItems(json.data ?? [])
@@ -128,11 +100,7 @@ export default function AdminAnnouncementsPage() {
         )
       )
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al cargar los anuncios.",
-      })
+      toast.error("Error de red al cargar los anuncios.")
     } finally {
       setLoading(false)
     }
@@ -152,11 +120,7 @@ export default function AdminAnnouncementsPage() {
     if (!draft) return
     const trimmed = draft.label.trim()
     if (!trimmed) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El texto no puede quedar vacío.",
-      })
+      toast.error("El texto no puede quedar vacío.")
       return
     }
     setBusyId(id)
@@ -172,17 +136,13 @@ export default function AdminAnnouncementsPage() {
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo guardar.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo guardar.")
         return
       }
       setItems((prev) => prev.map((row) => (row.id === id ? json.data : row)))
-      setToast({ id: Date.now(), type: "success", message: "Cambios guardados." })
+      toast.success("Cambios guardados.")
     } catch {
-      setToast({ id: Date.now(), type: "error", message: "Error de red." })
+      toast.error("Error de red.")
     } finally {
       setBusyId(null)
     }
@@ -197,11 +157,7 @@ export default function AdminAnnouncementsPage() {
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo eliminar.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo eliminar.")
         return
       }
       setItems((prev) => prev.filter((row) => row.id !== id))
@@ -209,9 +165,9 @@ export default function AdminAnnouncementsPage() {
         const { [id]: _omit, ...rest } = prev
         return rest
       })
-      setToast({ id: Date.now(), type: "success", message: "Anuncio eliminado." })
+      toast.success("Anuncio eliminado.")
     } catch {
-      setToast({ id: Date.now(), type: "error", message: "Error de red." })
+      toast.error("Error de red.")
     } finally {
       setBusyId(null)
     }
@@ -239,11 +195,7 @@ export default function AdminAnnouncementsPage() {
         }),
       ])
       if (!ra.ok || !rb.ok) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: "No se pudo reordenar.",
-        })
+        toast.error("No se pudo reordenar.")
         return
       }
       await load()
@@ -256,11 +208,7 @@ export default function AdminAnnouncementsPage() {
     e.preventDefault()
     const label = newLabel.trim()
     if (!label) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El texto del anuncio es obligatorio.",
-      })
+      toast.error("El texto del anuncio es obligatorio.")
       return
     }
     setCreating(true)
@@ -275,11 +223,7 @@ export default function AdminAnnouncementsPage() {
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo crear.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo crear.")
         return
       }
       const created = json.data as AnnouncementRow
@@ -294,9 +238,9 @@ export default function AdminAnnouncementsPage() {
       }))
       setNewLabel("")
       setNewHref("")
-      setToast({ id: Date.now(), type: "success", message: "Anuncio creado." })
+      toast.success("Anuncio creado.")
     } catch {
-      setToast({ id: Date.now(), type: "error", message: "Error de red." })
+      toast.error("Error de red.")
     } finally {
       setCreating(false)
     }
@@ -486,18 +430,6 @@ export default function AdminAnnouncementsPage() {
         )}
       </section>
 
-      {toast && (
-        <div
-          className={`fixed bottom-6 right-6 z-50 rounded-lg px-4 py-2 text-sm shadow-lg ${
-            toast.type === "success"
-              ? "bg-emerald-600 text-white"
-              : "bg-red-600 text-white"
-          }`}
-          role="status"
-        >
-          {toast.message}
-        </div>
-      )}
     </div>
   )
 }

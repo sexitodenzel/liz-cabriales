@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState, useMemo } from "react"
-import { createPortal } from "react-dom"
 import Link from "next/link"
 import Image from "next/image"
 import {
@@ -15,12 +14,13 @@ import {
   MapPin,
   Calendar,
   Clock,
+  X,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
 import type { TiendaCategory } from "./menuData"
 import { formatFreeShippingThreshold } from "@/lib/constants/shipping"
-import { MOBILE_CHROME_INSET_CLASS } from "@/lib/site-chrome"
+import { Drawer } from "@/app/components/ui/motion/drawer"
 
 type SectionKey = "Tienda" | "Academia" | "Servicios"
 
@@ -101,15 +101,6 @@ export default function MobileDrawer({
   }, [pathname, onClose])
 
   useEffect(() => {
-    if (!isOpen) return
-    const prevBodyOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    return () => {
-      document.body.style.overflow = prevBodyOverflow
-    }
-  }, [isOpen])
-
-  useEffect(() => {
     if (isOpen) {
       setStack([{ kind: "root" }])
       setActiveIndex(0)
@@ -160,105 +151,103 @@ export default function MobileDrawer({
 
   if (!mounted) return null
 
-  return createPortal(
-    <div
-      className="pointer-events-none fixed inset-0 z-[200]"
-      aria-hidden={!isOpen}
+  return (
+    <Drawer
+      open={isOpen}
+      onOpenChange={(next) => {
+        if (!next) onClose()
+      }}
+      side="left"
+      ariaLabel="Menú"
+      className="w-full max-w-none overflow-hidden md:w-[380px]"
     >
-      <div className="absolute inset-0">
-        {/* Backdrop */}
-        <div
-          className={`absolute ${MOBILE_CHROME_INSET_CLASS} transition-opacity duration-700 ease-in-out ${
-            isOpen ? "pointer-events-auto bg-black/45 opacity-100" : "pointer-events-none bg-black/45 opacity-0"
-          }`}
+      {/* Close button */}
+      <div className="flex shrink-0 items-center justify-end px-3 py-2 lg:py-3">
+        <button
+          type="button"
           onClick={onClose}
-          aria-hidden
-        />
-
-        {/* Drawer */}
-        <div
-          className={`absolute left-0 ${MOBILE_CHROME_INSET_CLASS} z-10 flex w-2/3 max-w-sm flex-col overflow-hidden bg-white shadow-xl transition-opacity duration-700 ease-in-out ${
-            isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
-          }`}
+          aria-label="Cerrar menú"
+          className="flex items-center justify-center rounded-full p-1 text-neutral-400 transition-colors hover:text-[#1a1a1a]"
         >
-        {/* Sliding nav stack */}
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          {stack.map((view, i) => {
-            const isActive = i === activeIndex
-            const offset = (i - activeIndex) * 100
-            return (
-              <div
-                key={`${viewKey(view)}-${i}`}
-                className="scrollbar-hide absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-x-none bg-white transition-transform duration-300 ease-[cubic-bezier(.22,.61,.36,1)] will-change-transform"
-                style={{ transform: `translate3d(${offset}%, 0, 0)` }}
-                aria-hidden={!isActive}
-                inert={!isActive}
-              >
-                {view.kind === "root" && (
-                  <RootPanel
-                    onPushSection={(section) => push({ kind: "section", section })}
-                    onPushNailArt={() => push({ kind: "nail-art" })}
-                    onPushBestSellers={() => push({ kind: "best-sellers" })}
-                    onClose={onClose}
-                    isLoggedIn={isLoggedIn}
-                  />
-                )}
-                {view.kind === "section" && (
-                  <SectionPanel
-                    section={findSection(view.section)}
-                    onBack={pop}
-                    onClose={onClose}
-                    onPushCategory={(slug) =>
-                      push({ kind: "category", section: view.section, categorySlug: slug })
-                    }
-                  />
-                )}
-                {view.kind === "category" && (() => {
-                  const cat = findCategory(view.section, view.categorySlug)
-                  if (!cat) return null
-                  return (
-                    <CategoryPanel
-                      category={cat}
-                      onBack={pop}
-                      onClose={onClose}
-                    />
-                  )
-                })()}
-                {view.kind === "nail-art" && (
-                  <NailArtPanel
-                    posts={nailArtPosts}
-                    onBack={pop}
-                    onClose={onClose}
-                  />
-                )}
-                {view.kind === "best-sellers" && (
-                  <BestSellersPanel
-                    products={bestSellers}
-                    onBack={pop}
-                    onClose={onClose}
-                  />
-                )}
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Social row */}
-        <div className="shrink-0 flex items-center justify-around border-t border-neutral-200 px-6 py-5 lg:py-6">
-          <a href="https://instagram.com/liz_cabriales" target="_blank" rel="noopener noreferrer" aria-label="Instagram" onClick={onClose}>
-            <Instagram className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
-          </a>
-          <a href="https://www.facebook.com/profile.php?id=100008326095757" target="_blank" rel="noopener noreferrer" aria-label="Facebook" onClick={onClose}>
-            <Facebook className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
-          </a>
-          <a href="https://wa.me/528332183399" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" onClick={onClose}>
-            <MessageCircle className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
-          </a>
-        </div>
-        </div>
+          <X className="h-5 w-5" />
+        </button>
       </div>
-    </div>,
-    document.body
+
+      {/* Sliding nav stack */}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        {stack.map((view, i) => {
+          const isActive = i === activeIndex
+          const offset = (i - activeIndex) * 100
+          return (
+            <div
+              key={`${viewKey(view)}-${i}`}
+              className="scrollbar-hide absolute inset-0 overflow-x-hidden overflow-y-auto overscroll-x-none bg-white transition-transform duration-300 ease-[cubic-bezier(.22,.61,.36,1)] will-change-transform"
+              style={{ transform: `translate3d(${offset}%, 0, 0)` }}
+              aria-hidden={!isActive}
+              inert={!isActive}
+            >
+              {view.kind === "root" && (
+                <RootPanel
+                  onPushSection={(section) => push({ kind: "section", section })}
+                  onPushNailArt={() => push({ kind: "nail-art" })}
+                  onPushBestSellers={() => push({ kind: "best-sellers" })}
+                  onClose={onClose}
+                  isLoggedIn={isLoggedIn}
+                />
+              )}
+              {view.kind === "section" && (
+                <SectionPanel
+                  section={findSection(view.section)}
+                  onBack={pop}
+                  onClose={onClose}
+                  onPushCategory={(slug) =>
+                    push({ kind: "category", section: view.section, categorySlug: slug })
+                  }
+                />
+              )}
+              {view.kind === "category" && (() => {
+                const cat = findCategory(view.section, view.categorySlug)
+                if (!cat) return null
+                return (
+                  <CategoryPanel
+                    category={cat}
+                    onBack={pop}
+                    onClose={onClose}
+                  />
+                )
+              })()}
+              {view.kind === "nail-art" && (
+                <NailArtPanel
+                  posts={nailArtPosts}
+                  onBack={pop}
+                  onClose={onClose}
+                />
+              )}
+              {view.kind === "best-sellers" && (
+                <BestSellersPanel
+                  products={bestSellers}
+                  onBack={pop}
+                  onClose={onClose}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Social row */}
+      <div className="shrink-0 flex items-center justify-around border-t border-neutral-200 px-4 py-5 md:px-6 lg:py-6">
+        <a href="https://instagram.com/liz_cabriales" target="_blank" rel="noopener noreferrer" aria-label="Instagram" onClick={onClose}>
+          <Instagram className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
+        </a>
+        <a href="https://www.facebook.com/profile.php?id=100008326095757" target="_blank" rel="noopener noreferrer" aria-label="Facebook" onClick={onClose}>
+          <Facebook className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
+        </a>
+        <a href="https://wa.me/528332183399" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" onClick={onClose}>
+          <MessageCircle className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
+        </a>
+      </div>
+    </Drawer>
   )
 }
 
@@ -284,7 +273,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
             key={key}
             type="button"
             onClick={() => onPushSection(key)}
-            className="flex w-full items-center justify-between pl-4 pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+            className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
           >
             <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
               {key}
@@ -296,7 +285,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
         <button
           type="button"
           onClick={onPushNailArt}
-          className="flex w-full items-center justify-between pl-4 pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+          className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
         >
           <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
             Nail Art
@@ -307,7 +296,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
         <button
           type="button"
           onClick={onPushBestSellers}
-          className="flex w-full items-center justify-between pl-4 pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+          className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
         >
           <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
             Best Sellers
@@ -318,7 +307,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
         <Link
           href="/sobre-liz"
           onClick={onClose}
-          className="flex w-full items-center justify-between pl-4 pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+          className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
         >
           <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#a8862f] lg:text-[14px]">
             Conócenos
@@ -329,21 +318,21 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
 
       {/* Utility section */}
       <div className="flex min-h-0 flex-1 flex-col bg-[#f8f7f5]">
-        <Link href={isLoggedIn ? "/perfil" : "/login"} onClick={onClose} className="flex items-center gap-3 pl-4 pr-5 py-4 lg:py-[18px]">
+        <Link href={isLoggedIn ? "/perfil" : "/login"} onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
           <User className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
           <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
             {isLoggedIn ? "Mi cuenta" : "Iniciar sesión / Registrarse"}
           </span>
         </Link>
 
-        <Link href="/wishlist" onClick={onClose} className="flex items-center gap-3 pl-4 pr-5 py-4 lg:py-[18px]">
+        <Link href="/wishlist" onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
           <Heart className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
           <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
             Wish list
           </span>
         </Link>
 
-        <Link href="/citas" onClick={onClose} className="flex items-center gap-3 pl-4 pr-5 py-4 lg:py-[18px]">
+        <Link href="/citas" onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
           <Calendar className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
           <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
             Agenda tu cita
@@ -353,7 +342,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
         <a
           href="https://maps.google.com/?q=Liz+Cabriales+Studio+Nayarit+204+Cd+Madero+Tamaulipas"
           target="_blank" rel="noopener noreferrer" onClick={onClose}
-          className="flex items-center gap-3 pl-4 pr-5 py-4 lg:py-[18px]"
+          className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]"
         >
           <MapPin className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
           <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
@@ -361,19 +350,19 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
           </span>
         </a>
 
-        <a href="https://wa.me/528332183399" target="_blank" rel="noopener noreferrer" onClick={onClose} className="flex items-center gap-3 pl-4 pr-5 py-4 lg:py-[18px]">
+        <a href="https://wa.me/528332183399" target="_blank" rel="noopener noreferrer" onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
           <MessageCircle className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
           <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">833 218 3399</span>
         </a>
 
-        <div className="flex items-center gap-3 pl-4 pr-5 py-4 lg:py-[18px]">
+        <div className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
           <Clock className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
           <span className="min-w-0 break-words text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1a1a1a] lg:text-[12px]">
             Lun–Sáb, 9:00 a.m. – 7:00 p.m.
           </span>
         </div>
 
-        <div className="mt-auto pl-4 pr-5 py-4 lg:py-5">
+        <div className="mt-auto pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-5">
           <div className="mx-auto w-fit max-w-full overflow-hidden">
             <p className="text-center text-[10px] font-medium uppercase tracking-[0.1em] text-neutral-500 lg:text-[11px]">
               Envío gratis en compras mayores a {formatFreeShippingThreshold()}
@@ -417,7 +406,7 @@ function SectionPanel({ section, onBack, onClose, onPushCategory }: SectionPanel
         <Link
           href={section.href}
           onClick={onClose}
-          className="flex w-full items-center justify-between px-6 py-[16px] text-[12px] font-semibold uppercase tracking-[0.12em] text-[#C6A75E] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
+          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#C6A75E] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver {section.sectionLabel}</span>
         </Link>
@@ -429,7 +418,7 @@ function SectionPanel({ section, onBack, onClose, onPushCategory }: SectionPanel
                 key={cat.slug}
                 href={cat.href}
                 onClick={onClose}
-                className="flex w-full items-center justify-between px-6 py-[16px] transition-colors hover:bg-neutral-50 lg:py-[18px]"
+                className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 transition-colors hover:bg-neutral-50 lg:py-[18px]"
               >
                 <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-[#1a1a1a] lg:text-[14px]">
                   {cat.label}
@@ -442,7 +431,7 @@ function SectionPanel({ section, onBack, onClose, onPushCategory }: SectionPanel
               key={cat.slug}
               type="button"
               onClick={() => onPushCategory(cat.slug)}
-              className="flex w-full items-center justify-between px-6 py-[16px] text-left transition-colors hover:bg-neutral-50 lg:py-[18px]"
+              className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-left transition-colors hover:bg-neutral-50 lg:py-[18px]"
             >
               <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-[#1a1a1a] lg:text-[14px]">
                 {cat.label}
@@ -471,7 +460,7 @@ function CategoryPanel({ category, onBack, onClose }: CategoryPanelProps) {
         <Link
           href={category.href}
           onClick={onClose}
-          className="flex w-full items-center justify-between px-6 py-[16px] text-[12px] font-semibold uppercase tracking-[0.12em] text-[#C6A75E] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
+          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#C6A75E] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver todo en {category.label}</span>
         </Link>
@@ -481,7 +470,7 @@ function CategoryPanel({ category, onBack, onClose }: CategoryPanelProps) {
             key={sub.label}
             href={sub.href}
             onClick={onClose}
-            className="flex w-full items-center justify-between px-6 py-[16px] transition-colors hover:bg-neutral-50 lg:py-[18px]"
+            className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 transition-colors hover:bg-neutral-50 lg:py-[18px]"
           >
             <span className="text-[13px] text-neutral-700 lg:text-[14px]">{sub.label}</span>
           </Link>
@@ -496,7 +485,7 @@ function PanelHeader({ title, onBack }: { title: string; onBack: () => void }) {
     <button
       type="button"
       onClick={onBack}
-      className="sticky top-0 z-10 flex w-full items-center gap-2 bg-white px-6 py-[18px] text-left lg:py-[22px]"
+      className="sticky top-0 z-10 flex w-full items-center gap-2 bg-white px-4 py-[18px] text-left md:px-6 lg:py-[22px]"
       aria-label="Volver"
     >
       <ChevronLeft className="h-4 w-4 shrink-0 text-neutral-500" />
@@ -519,7 +508,7 @@ function NailArtPanel({ posts, onBack, onClose }: NailArtPanelProps) {
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       <PanelHeader title="Nail Art" onBack={onBack} />
-      <div className="grid grid-cols-2 gap-x-2 gap-y-4 px-4 py-5">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-4 px-3 py-5 md:px-4">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <TileSkeleton key={i} />)
           : items.slice(0, 5).map((post) => (
@@ -576,7 +565,7 @@ function BestSellersPanel({ products, onBack, onClose }: BestSellersPanelProps) 
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       <PanelHeader title="Best sellers" onBack={onBack} />
-      <div className="grid grid-cols-2 gap-x-2 gap-y-4 px-4 py-5">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-4 px-3 py-5 md:px-4">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <TileSkeleton key={i} />)
           : items.slice(0, 5).map((product) => (

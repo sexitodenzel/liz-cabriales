@@ -84,7 +84,7 @@ export default function ProductListingSection({
       <div
         className={
           viewMode === "grid"
-            ? "grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3"
+            ? "grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 md:gap-4"
             : "flex flex-col"
         }
       >

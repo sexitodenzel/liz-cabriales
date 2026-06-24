@@ -1,8 +1,9 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { createClient } from "@/lib/supabase/client"
+import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
 const SIZE_HINTS: Record<string, string> = {
   products: "1:1 · mín. 800×800 px",
@@ -27,8 +28,15 @@ export default function ImageUploader({
   buttonLabel = "Subir imagen",
 }: Props) {
   const [uploading, setUploading] = useState(false)
+  const [justUploaded, setJustUploaded] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!justUploaded) return
+    const t = window.setTimeout(() => setJustUploaded(false), 2200)
+    return () => window.clearTimeout(t)
+  }, [justUploaded])
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -59,6 +67,7 @@ export default function ImageUploader({
         throw new Error("No se pudo obtener la URL pública de la imagen.")
       }
       onUpload(data.publicUrl)
+      setJustUploaded(true)
     } catch (err: unknown) {
       console.error("[ImageUploader] upload error", err)
       const msg =
@@ -147,8 +156,18 @@ export default function ImageUploader({
           <path d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L11 6.414V13a1 1 0 11-2 0V6.414L7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3z" />
           <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
         </svg>
-        {uploading ? "Subiendo…" : buttonLabel}
+        {buttonLabel}
       </button>
+      {uploading && (
+        <AnimatedBadge status="loading" size={compact ? "sm" : "md"}>
+          Subiendo
+        </AnimatedBadge>
+      )}
+      {!uploading && justUploaded && (
+        <AnimatedBadge status="success" size={compact ? "sm" : "md"}>
+          Listo
+        </AnimatedBadge>
+      )}
       </div>
       {!compact && hint && (
         <p className="text-[11px] text-neutral-400">{hint}</p>

@@ -64,12 +64,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [activeMenu, setActiveMenu] = useState<DesktopMenu>(null)
   const [navBarStyle, setNavBarStyle] = useState({ left: 0, width: 0, visible: false })
   const [navBarAnimate, setNavBarAnimate] = useState<"grow" | "slide">("grow")
+  const [hideChrome, setHideChrome] = useState(false)
   const menuCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navBarStyleRef = useRef({ left: 0, width: 0, visible: false })
   const navRef = useRef<HTMLElement>(null)
   const navLinkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
   const headerRef = useRef<HTMLElement>(null)
   const overlayGuardRef = useRef(false)
+  const lastScrollYRef = useRef(0)
   const {
     itemCount,
     isCartOpen,
@@ -169,16 +171,18 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [drawerOpen])
 
+  // Aplica el valor target de --navbar-actual-h discreto. La animación es
+  // 100% CSS (@property transition en :root), perfectamente sincronizada
+  // con el header (que usa height: var(--navbar-actual-h)) y con los stickys
+  // que la consumen (filter bar, etc.). Sin JS por frame = sin jank.
   useEffect(() => {
-    const header = headerRef.current
-    if (!header) return
-    const update = () =>
-      document.documentElement.style.setProperty("--navbar-actual-h", `${header.offsetHeight}px`)
-    update()
-    const observer = new ResizeObserver(update)
-    observer.observe(header)
-    return () => observer.disconnect()
-  }, [])
+    document.documentElement.style.setProperty(
+      "--navbar-actual-h",
+      hideChrome
+        ? "var(--navbar-desktop-collapsed-h)"
+        : "var(--navbar-desktop-expanded-h)",
+    )
+  }, [hideChrome])
 
   useEffect(() => {
     if (isCartOpen) {
@@ -187,6 +191,82 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       setActiveMenu(null)
     }
   }, [isCartOpen])
+
+  // Hermès-style scroll behavior: hide logo + action icons when scrolling down,
+  // restore them when scrolling up. The center nav items always stay visible.
+  useEffect(() => {
+    const SCROLL_THRESHOLD = 100
+    const DELTA_THRESHOLD = 14
+    const COOLDOWN_MS = 120
+    // Distancia desde el bottom donde NO togglear (evita loops por scroll-adjust
+    // fantasma cuando el curtain footer revela su escena y el documento "rebota").
+    const BOTTOM_GUARD_PX = 240
+
+    lastScrollYRef.current = window.scrollY
+    let rafId: number | null = null
+    let cooldownUntil = 0
+
+    function evaluate() {
+      rafId = null
+      const now = performance.now()
+      if (now < cooldownUntil) {
+        lastScrollYRef.current = window.scrollY
+        return
+      }
+
+      const currentY = window.scrollY
+      const delta = currentY - lastScrollYRef.current
+      const docHeight = document.documentElement.scrollHeight
+      const viewportHeight = window.innerHeight
+      const distanceFromBottom = docHeight - (currentY + viewportHeight)
+
+      if (distanceFromBottom < BOTTOM_GUARD_PX) {
+        // Cerca del footer: mantén el estado actual; cualquier toggle aquí
+        // dispararía un loop al cambiar la altura del documento.
+        lastScrollYRef.current = currentY
+        return
+      }
+
+      if (Math.abs(delta) < DELTA_THRESHOLD && currentY >= SCROLL_THRESHOLD) {
+        return
+      }
+
+      setHideChrome((prev) => {
+        let next = prev
+        if (currentY < SCROLL_THRESHOLD) {
+          next = false
+        } else if (delta > 0) {
+          next = true
+        } else if (delta < 0) {
+          next = false
+        }
+        if (next !== prev) {
+          cooldownUntil = now + COOLDOWN_MS
+        }
+        return next
+      })
+
+      lastScrollYRef.current = window.scrollY
+    }
+
+    function onScroll() {
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(evaluate)
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    }
+  }, [])
+
+  // Force chrome visible whenever the user is interacting with any overlay.
+  useEffect(() => {
+    if (activeMenu || isCartOpen || drawerOpen || mobileSearchOpen) {
+      setHideChrome(false)
+    }
+  }, [activeMenu, isCartOpen, drawerOpen, mobileSearchOpen])
 
   useEffect(() => {
     const updateCompactDesktop = () => {
@@ -341,7 +421,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   }
 
   const iconBtnBase =
-    "inline-flex h-10 w-10 shrink-0 cursor-pointer items-center text-black transition-colors duration-200 hover:text-[#C6A75E] sm:h-11 sm:w-11"
+    "inline-flex h-10 w-10 shrink-0 cursor-pointer items-center text-black transition-all duration-200 ease-out hover:scale-110 hover:text-[#C6A75E] active:scale-90 active:duration-75 sm:h-11 sm:w-11"
   const showCompactToolbar = isCompactDesktop
 
   return (
@@ -434,115 +514,142 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         </div>
 
         {/* ===== DESKTOP TOOLBAR (ancho completo) ===== */}
+        {/* Altura controlada por --navbar-actual-h (animada vía @property CSS).
+            Top row es flex-1, nav row es 48px fijo. Así una sola variable mueve
+            navbar + filter bar sticky perfectamente sincronizados. */}
         <div
-          className={`navbar-toolbar relative z-10 grid h-[var(--navbar-h)] w-full grid-cols-[1fr_auto_1fr] items-center ${showCompactToolbar ? "hidden" : "hidden md:grid"}`}
+          className={`navbar-toolbar relative z-10 flex w-full flex-col ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
+          style={{ height: "var(--navbar-actual-h)" }}
           onMouseLeave={scheduleMenuClose}
         >
-          <Link
-            href="/"
-            className="shrink-0 justify-self-start no-underline transition-opacity hover:opacity-90"
-            aria-label="Ir al inicio"
-            onMouseEnter={scheduleMenuClose}
+          {/* Fila superior: logo centrado + iconos a la derecha. Su altura cae a 0
+              cuando --navbar-actual-h se reduce a la altura de la fila nav. */}
+          <div
+            className="min-h-0 flex-1 overflow-hidden transition-opacity duration-150 ease-out"
+            style={{ opacity: hideChrome ? 0 : 1 }}
+            aria-hidden={hideChrome}
           >
-            <span className="inline-flex h-12 w-12 items-center justify-center lg:h-14 lg:w-14">
-              <Image
-                src="/images/logo.png"
-                alt="Liz Cabriales"
-                width={64}
-                height={64}
-                className="h-full w-full object-contain"
-                priority
-              />
-            </span>
-          </Link>
+            <div className="grid h-full w-full grid-cols-[1fr_auto_1fr] items-center pt-4">
+                <div aria-hidden />
 
-          <nav ref={navRef} className="relative flex items-center justify-center justify-self-center gap-0">
-            <span
-              aria-hidden
-              className={`pointer-events-none absolute -bottom-1 h-[1.5px] bg-[#C6A75E] duration-150 ease-out ${
-                navBarAnimate === "grow"
-                  ? "transition-[width]"
-                  : "transition-[left,width]"
-              }`}
-              style={{
-                left: navBarStyle.left,
-                width: navBarStyle.visible ? navBarStyle.width : 0,
-              }}
-            />
-            {DESKTOP_NAV_ITEMS.map(({ label, href }) => (
-              <Link
-                key={label}
-                ref={(el) => {
-                  if (el) navLinkRefs.current.set(label, el)
-                  else navLinkRefs.current.delete(label)
-                }}
-                href={href}
-                onMouseEnter={() => handleNavMouseEnter(label)}
-                onFocus={() => handleNavMouseEnter(label)}
-                className={`relative inline-flex items-center justify-center px-2 whitespace-nowrap text-center text-[13px] font-medium uppercase tracking-[0.14em] transition-colors lg:px-3 lg:text-[14px] lg:tracking-[0.16em] ${
-                  activeMenu === label ? "text-[#C6A75E]" : "text-[#1a1a1a] hover:text-[#C6A75E]"
-                }`}
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="relative z-20 flex shrink-0 items-center justify-self-end gap-1" onMouseEnter={scheduleMenuClose}>
-            <button
-              type="button"
-              onClick={() => { setActiveMenu(null); toggleMobileSearch() }}
-              className={`${iconBtnBase} justify-center`}
-              aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Buscar"}
-            >
-              <Search className="h-5 w-5" strokeWidth={1.75} />
-            </button>
-
-            <Link
-              href="/wishlist"
-              onClick={() => setActiveMenu(null)}
-              className={`relative ${iconBtnBase} justify-center`}
-              aria-label="Favoritos"
-            >
-              <span className="relative shrink-0">
-                <Heart className="h-5 w-5" strokeWidth={1.75} />
-                <WishlistCountBadge count={wishlistCount} />
-              </span>
-            </Link>
-
-            <Link
-              href={isLoggedIn ? "/perfil" : "/login"}
-              onClick={() => setActiveMenu(null)}
-              className={`${iconBtnBase} justify-center`}
-              aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
-            >
-              <User className="h-5 w-5" strokeWidth={1.75} />
-            </Link>
-
-            <button
-              type="button"
-              className={`relative ${iconBtnBase} justify-center`}
-              onClick={() => {
-                setActiveMenu(null)
-                if (isCartOpen) {
-                  closeCart()
-                } else {
-                  setMobileSearchOpen(false)
-                  setDrawerOpen(false)
-                  openCart()
-                }
-              }}
-              aria-label="Carrito"
-            >
-              <span className="relative shrink-0">
-                <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
-                {itemCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C6A75E] px-1 text-[10px] text-white">
-                    {itemCount}
+                <Link
+                  href="/"
+                  className="shrink-0 justify-self-center no-underline transition-opacity hover:opacity-90"
+                  tabIndex={hideChrome ? -1 : 0}
+                  aria-label="Ir al inicio"
+                  onMouseEnter={scheduleMenuClose}
+                >
+                  <span className="inline-flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10">
+                    <Image
+                      src="/images/logo.png"
+                      alt="Liz Cabriales"
+                      width={48}
+                      height={48}
+                      className="h-full w-full object-contain"
+                      priority
+                    />
                   </span>
-                )}
-              </span>
-            </button>
+                </Link>
+
+                <div
+                  className="relative z-20 flex shrink-0 items-center justify-self-end gap-0.5 pr-1"
+                  onMouseEnter={scheduleMenuClose}
+                >
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenu(null); toggleMobileSearch() }}
+                    className={`${iconBtnBase} h-9 w-9 justify-center`}
+                    tabIndex={hideChrome ? -1 : 0}
+                    aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Buscar"}
+                  >
+                    <Search className="h-5 w-5" strokeWidth={1.75} />
+                  </button>
+
+                  <Link
+                    href="/wishlist"
+                    onClick={() => setActiveMenu(null)}
+                    className={`relative ${iconBtnBase} h-9 w-9 justify-center`}
+                    tabIndex={hideChrome ? -1 : 0}
+                    aria-label="Favoritos"
+                  >
+                    <span className="relative shrink-0">
+                      <Heart className="h-5 w-5" strokeWidth={1.75} />
+                      <WishlistCountBadge count={wishlistCount} />
+                    </span>
+                  </Link>
+
+                  <Link
+                    href={isLoggedIn ? "/perfil" : "/login"}
+                    onClick={() => setActiveMenu(null)}
+                    className={`${iconBtnBase} h-9 w-9 justify-center`}
+                    tabIndex={hideChrome ? -1 : 0}
+                    aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
+                  >
+                    <User className="h-5 w-5" strokeWidth={1.75} />
+                  </Link>
+
+                  <button
+                    type="button"
+                    className={`relative ${iconBtnBase} h-9 w-9 justify-center`}
+                    tabIndex={hideChrome ? -1 : 0}
+                    onClick={() => {
+                      setActiveMenu(null)
+                      if (isCartOpen) {
+                        closeCart()
+                      } else {
+                        setMobileSearchOpen(false)
+                        setDrawerOpen(false)
+                        openCart()
+                      }
+                    }}
+                    aria-label="Carrito"
+                  >
+                    <span className="relative shrink-0">
+                      <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
+                      {itemCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C6A75E] px-1 text-[10px] text-white">
+                          {itemCount}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </div>
+            </div>
+          </div>
+
+          {/* Fila inferior: nav items centrados. Siempre visible. */}
+          <div className="flex h-12 w-full items-center justify-center">
+            <nav ref={navRef} className="relative flex items-center justify-center gap-0">
+              <span
+                aria-hidden
+                className={`pointer-events-none absolute -bottom-1 h-[1.5px] bg-[#C6A75E] duration-150 ease-out ${
+                  navBarAnimate === "grow"
+                    ? "transition-[width]"
+                    : "transition-[left,width]"
+                }`}
+                style={{
+                  left: navBarStyle.left,
+                  width: navBarStyle.visible ? navBarStyle.width : 0,
+                }}
+              />
+              {DESKTOP_NAV_ITEMS.map(({ label, href }) => (
+                <Link
+                  key={label}
+                  ref={(el) => {
+                    if (el) navLinkRefs.current.set(label, el)
+                    else navLinkRefs.current.delete(label)
+                  }}
+                  href={href}
+                  onMouseEnter={() => handleNavMouseEnter(label)}
+                  onFocus={() => handleNavMouseEnter(label)}
+                  className={`relative inline-flex items-center justify-center px-2 whitespace-nowrap text-center text-[13px] font-medium uppercase tracking-[0.14em] transition-colors lg:px-3 lg:text-[14px] lg:tracking-[0.16em] ${
+                    activeMenu === label ? "text-[#C6A75E]" : "text-[#1a1a1a] hover:text-[#C6A75E]"
+                  }`}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </div>
 

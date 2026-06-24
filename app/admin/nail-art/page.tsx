@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import NailArtForm, { type NailArtFormData } from "./NailArtForm"
 import type { NailArtPost } from "@/lib/supabase/nail-art"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Panel = { mode: "create" } | { mode: "edit"; post: NailArtPost }
 
@@ -64,13 +65,18 @@ export default function AdminNailArtPage() {
       })
       const resBody = await res.json()
       if (!res.ok || resBody.error) {
-        setSaveError(resBody.error?.message ?? "Error al guardar.")
+        const message = resBody.error?.message ?? "Error al guardar."
+        setSaveError(message)
+        toast.error(message)
         return
       }
+      toast.success(isEdit ? "Publicación actualizada" : "Publicación creada")
       setPanel(null)
       await loadPosts()
     } catch {
-      setSaveError("Error al guardar. Intenta de nuevo.")
+      const message = "Error al guardar. Intenta de nuevo."
+      setSaveError(message)
+      toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -85,10 +91,16 @@ export default function AdminNailArtPage() {
         body: JSON.stringify({ id: post.id, is_active: !post.is_active }),
       })
       if (res.ok) {
+        const next = !post.is_active
         setPosts((prev) =>
-          prev.map((p) => (p.id === post.id ? { ...p, is_active: !post.is_active } : p))
+          prev.map((p) => (p.id === post.id ? { ...p, is_active: next } : p))
         )
+        toast.success(next ? "Publicación activada" : "Publicación oculta")
+      } else {
+        toast.error("No se pudo cambiar el estado.")
       }
+    } catch {
+      toast.error("Error de red.")
     } finally {
       setTogglingId(null)
     }
@@ -101,7 +113,12 @@ export default function AdminNailArtPage() {
       const res = await fetch(`/api/admin/nail-art?id=${post.id}`, { method: "DELETE" })
       if (res.ok) {
         setPosts((prev) => prev.filter((p) => p.id !== post.id))
+        toast.success("Publicación eliminada")
+      } else {
+        toast.error("No se pudo eliminar.")
       }
+    } catch {
+      toast.error("Error de red.")
     } finally {
       setDeletingId(null)
     }

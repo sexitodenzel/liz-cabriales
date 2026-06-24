@@ -3,6 +3,7 @@
 import { useState } from "react"
 
 import type { ProfessionalRow } from "@/lib/supabase/appointments"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
   professionals: ProfessionalRow[]
@@ -51,12 +52,13 @@ export default function BlockSlotModal({
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo bloquear el horario")
+        toast.error(json?.error?.message ?? "No se pudo bloquear el horario")
         return
       }
+      toast.success("Horario bloqueado")
       onCreated()
     } catch {
-      setError("Error de red al bloquear horario")
+      toast.error("Error de red al bloquear horario")
     } finally {
       setSubmitting(false)
     }

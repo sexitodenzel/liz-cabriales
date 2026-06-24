@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import AdminReceptionistBar from "./components/AdminReceptionistBar"
 import AdminNav from "./components/AdminNav"
+import { ToastViewport } from "@/app/components/ui/motion/toast-provider"
 import { getAuthUser, getUserProfile } from "@/lib/supabase/auth-server"
 
 export default async function AdminLayout({
@@ -27,6 +28,7 @@ export default async function AdminLayout({
       <>
         <AdminReceptionistBar />
         {children}
+        <ToastViewport />
       </>
     )
   }
@@ -37,6 +39,7 @@ export default async function AdminLayout({
         <AdminNav />
       </header>
       {children}
+      <ToastViewport />
     </>
   )
 }

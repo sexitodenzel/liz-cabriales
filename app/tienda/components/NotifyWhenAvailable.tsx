@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/client"
 import { storeDetailButtonClassName } from "./store-button-styles"
+import { Bell, Check, Loader2 } from "lucide-react"
 
 const PENDING_STORAGE_KEY = "pendingStockAlert"
 
@@ -28,6 +29,7 @@ type Props = {
   outOfStock: boolean
   className?: string
   label?: string
+  iconOnly?: boolean
 }
 
 export default function NotifyWhenAvailable({
@@ -37,6 +39,7 @@ export default function NotifyWhenAvailable({
   outOfStock,
   className,
   label = "Notificar disponibilidad",
+  iconOnly = false,
 }: Props) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
@@ -228,6 +231,42 @@ export default function NotifyWhenAvailable({
   const subscribedLabel = whatsappEnabled
     ? "Te avisaremos por correo y WhatsApp"
     : "Te avisaremos por correo"
+
+  if (iconOnly) {
+    if (subscribed) {
+      return (
+        <button
+          type="button"
+          disabled
+          className={buttonClassName}
+          aria-label={subscribedLabel}
+          title={subscribedLabel}
+        >
+          <Check className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={1.75} />
+        </button>
+      )
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          void handleSubscribeClick()
+        }}
+        disabled={busy}
+        className={buttonClassName}
+        aria-label={label}
+        title={label}
+      >
+        {busy ? (
+          <Loader2 className="h-4 w-4 animate-spin sm:h-[18px] sm:w-[18px]" strokeWidth={1.75} />
+        ) : (
+          <Bell className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={1.75} />
+        )}
+      </button>
+    )
+  }
 
   if (subscribed) {
     return (

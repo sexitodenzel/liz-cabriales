@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation"
 
 import type { AdminOrderDetail } from "@/lib/supabase/adminOrders"
 import type { OrderStatus } from "@/types"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 const BRAND_GOLD = "#C9A84C"
 
@@ -106,13 +107,18 @@ function ShippingQuoteForm({ orderId, onSuccess }: ShippingQuoteFormProps) {
       const json = await res.json()
 
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "Error al registrar el cobro de envío.")
+        const message = json?.error?.message ?? "Error al registrar el cobro de envío."
+        setError(message)
+        toast.error(message)
         return
       }
 
+      toast.success("Cobro de envío registrado")
       onSuccess(json.data.payment_url)
     } catch {
-      setError("Error de red. Intenta de nuevo.")
+      const message = "Error de red. Intenta de nuevo."
+      setError(message)
+      toast.error(message)
     } finally {
       setSubmitting(false)
     }
@@ -204,11 +210,9 @@ export default function AdminOrderDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<ManualStatus>("shipped")
   const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
   const [quoteSuccess, setQuoteSuccess] = useState<string | null>(null)
   const [issuingInvoice, setIssuingInvoice] = useState(false)
   const [invoiceIssued, setInvoiceIssued] = useState(false)
-  const [invoiceError, setInvoiceError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -268,18 +272,18 @@ export default function AdminOrderDetailPage() {
   async function handleIssueInvoice() {
     if (!id || !order) return
     setIssuingInvoice(true)
-    setInvoiceError(null)
     try {
       const res = await fetch(`/api/admin/orders/${id}/invoice-issue`, { method: "POST" })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setInvoiceError(json?.error?.message ?? "No se pudo emitir la factura.")
+        toast.error(json?.error?.message ?? "No se pudo emitir la factura.")
         return
       }
       setInvoiceIssued(true)
       setOrder((prev) => prev ? { ...prev, invoice_status: "issued", invoice_issued_at: new Date().toISOString() } : prev)
+      toast.success("Factura emitida")
     } catch {
-      setInvoiceError("Error de red al emitir la factura.")
+      toast.error("Error de red al emitir la factura.")
     } finally {
       setIssuingInvoice(false)
     }
@@ -288,7 +292,6 @@ export default function AdminOrderDetailPage() {
   async function saveStatus() {
     if (!id || !order) return
     setSaving(true)
-    setToast(null)
     try {
       const res = await fetch(`/api/admin/orders/${id}/status`, {
         method: "PATCH",
@@ -299,16 +302,16 @@ export default function AdminOrderDetailPage() {
       const json = await res.json()
 
       if (!res.ok || json.error) {
-        setToast(json?.error?.message ?? "No se pudo actualizar el estado.")
+        toast.error(json?.error?.message ?? "No se pudo actualizar el estado.")
         return
       }
 
       setOrder((prev) =>
         prev ? { ...prev, status: selectedStatus } : prev
       )
-      setToast("Estado actualizado correctamente.")
+      toast.success("Estado actualizado correctamente.")
     } catch {
-      setToast("Error de red al guardar.")
+      toast.error("Error de red al guardar.")
     } finally {
       setSaving(false)
     }
@@ -600,9 +603,6 @@ export default function AdminOrderDetailPage() {
                   >
                     {issuingInvoice ? "Procesando…" : "Marcar factura como emitida"}
                   </button>
-                  {invoiceError && (
-                    <p className="mt-2 text-sm text-red-700">{invoiceError}</p>
-                  )}
                 </div>
               )}
 
@@ -697,17 +697,6 @@ export default function AdminOrderDetailPage() {
                 {saving ? "Guardando…" : "Guardar cambio de estado"}
               </button>
             </div>
-            {toast && (
-              <p
-                className={`mt-4 text-sm ${
-                  toast.includes("correctamente")
-                    ? "text-emerald-700"
-                    : "text-red-700"
-                }`}
-              >
-                {toast}
-              </p>
-            )}
           </section>
         </div>
       </div>

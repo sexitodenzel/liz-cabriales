@@ -8,7 +8,7 @@ import { CartProvider } from "./components/cart/CartContext";
 import { WishlistProvider } from "./components/wishlist/WishlistContext";
 import SiteNavbar from "./components/SiteNavbar";
 import SiteNavbarAuth from "./components/SiteNavbarAuth";
-import SiteFooter from "./components/SiteFooter";
+import SiteCurtainLayout from "./components/footer/SiteCurtainLayout";
 import AnnouncementBar from "./components/AnnouncementBar";
 import SiteChromeMetrics from "./components/SiteChromeMetrics";
 
@@ -89,8 +89,7 @@ export default function RootLayout({
             <Suspense fallback={<SiteNavbar />}>
               <SiteNavbarAuth />
             </Suspense>
-            <div className="flex-1">{children}</div>
-            <SiteFooter />
+            <SiteCurtainLayout>{children}</SiteCurtainLayout>
           </WishlistProvider>
         </CartProvider>
       </body>

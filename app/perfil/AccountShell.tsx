@@ -170,7 +170,7 @@ export default function AccountShell({
             </aside>
 
             <section className={`min-w-0 pt-6 pb-7 md:pl-8 ${contentClassName ?? ""}`}>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-3xl font-medium leading-tight tracking-tight text-neutral-900">{title}</h2>
                 {headerAction}
               </div>

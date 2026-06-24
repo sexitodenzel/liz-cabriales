@@ -9,12 +9,12 @@ type DireccionesAddressRowProps = {
 
 export default function DireccionesAddressRow({ addresses }: DireccionesAddressRowProps) {
   return (
-    <div className="min-w-0 w-full max-w-full overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="flex w-max gap-6">
+    <div className="min-w-0 w-full max-w-full sm:overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex flex-col gap-4 sm:w-max sm:flex-row sm:gap-6">
         {addresses.map((address) => (
           <article
             key={address.id}
-            className={`w-[220px] shrink-0 p-5 sm:w-[240px] ${
+            className={`w-full p-5 sm:w-[240px] sm:shrink-0 ${
               address.isPrimary
                 ? "bg-neutral-100 shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
                 : "bg-transparent"

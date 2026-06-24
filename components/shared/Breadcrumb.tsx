@@ -22,9 +22,17 @@ function ChevLeftIcon() {
   )
 }
 
-export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
+export default function Breadcrumb({
+  items,
+  className,
+}: {
+  items: BreadcrumbItem[]
+  className?: string
+}) {
   return (
-    <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#6b6b6b]">
+    <nav
+      className={`flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#6b6b6b] ${className ?? "mb-2"}`}
+    >
       {items.map((item, index) => {
         const isFirst = index === 0
         const isLast = index === items.length - 1

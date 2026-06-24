@@ -6,6 +6,7 @@ import type {
   AdminAppointmentRow,
   ProfessionalRow,
 } from "@/lib/supabase/appointments"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
   appointment: AdminAppointmentRow
@@ -139,12 +140,13 @@ export default function RescheduleAppointmentModal({
       )
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo reprogramar la cita")
+        toast.error(json?.error?.message ?? "No se pudo reprogramar la cita")
         return
       }
+      toast.success("Cita reprogramada")
       onRescheduled()
     } catch {
-      setError("Error de red al reprogramar")
+      toast.error("Error de red al reprogramar")
     } finally {
       setSubmitting(false)
     }

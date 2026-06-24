@@ -8,8 +8,8 @@ import { getAbrasivityLevel } from "@/lib/constants/abrasivity"
 import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 import AddToCartButton from "./AddToCartButton"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
-import { storeCardButtonClassName } from "./store-button-styles"
-import { Heart, ChevronLeft, ChevronRight } from "lucide-react"
+import { storeCardButtonClassName, storeIconButtonClassName } from "./store-button-styles"
+import { Heart, ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react"
 import { useWishlist } from "@/app/components/wishlist/WishlistContext"
 import { TiltCard } from "@/app/components/ui/motion/tilt-card"
 
@@ -67,6 +67,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
     "absolute top-1/2 z-10 flex -translate-y-1/2 cursor-pointer items-center justify-center text-black/70 transition-all duration-200 hover:text-black md:opacity-0 md:group-hover:opacity-100"
 
   const cardButtonClassName = storeCardButtonClassName
+  const imageSizes = "(max-width: 768px) 50vw, 33vw"
 
   const singleVariant = activeVariants.length === 1 ? activeVariants[0] : null
 
@@ -76,25 +77,32 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
     toggle(product.slug)
   }
 
+  const productActionIconClass = "h-4 w-4 sm:h-[18px] sm:w-[18px]"
+
   const heartButton = (
     <button
       type="button"
       onClick={handleWishlistToggle}
       aria-label={wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
-      className="shrink-0 p-0.5 text-neutral-900 transition-colors hover:text-neutral-600 active:scale-95"
+      className={storeIconButtonClassName}
     >
       <Heart
-        className={`h-3.5 w-3.5 transition-colors sm:h-4 sm:w-4${
+        className={`${productActionIconClass} transition-colors${
           wishlisted ? " fill-neutral-900 text-neutral-900" : ""
         }`}
       />
     </button>
   )
 
-  const actionButton =
+  const iconActionButton =
     hasMultipleVariants ? (
-      <Link href={`/tienda/${product.slug}`} className={cardButtonClassName}>
-        Elegir presentación
+      <Link
+        href={`/tienda/${product.slug}`}
+        className={storeIconButtonClassName}
+        onClick={(e) => e.stopPropagation()}
+        aria-label="Elegir presentación"
+      >
+        <ShoppingBag className={productActionIconClass} strokeWidth={1.75} />
       </Link>
     ) : isOutOfStock && singleVariant ? (
       <NotifyWhenAvailable
@@ -103,7 +111,8 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
         productName={product.name}
         variantId={singleVariant.id}
         outOfStock
-        className={cardButtonClassName}
+        className={storeIconButtonClassName}
+        iconOnly
         label="Avísame disponibilidad"
       />
     ) : (
@@ -114,10 +123,29 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
         brand={product.brand ?? null}
         image={currentImage}
         basePrice={product.base_price}
+        discountPercent={product.discount_percent}
         variants={product.variants ?? []}
-        className={cardButtonClassName}
+        variant="icon"
       />
     )
+
+  const priceBlock = productHasDiscount ? (
+    <div className="flex flex-wrap items-baseline gap-1.5">
+      <p className="text-sm font-semibold text-[#C9A84C] sm:text-base">
+        {formatPrice(discountedPrice)}
+      </p>
+      <p className="text-[11px] text-neutral-400 line-through sm:text-xs">
+        {formatPrice(product.base_price)}
+      </p>
+      <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
+        -{product.discount_percent}%
+      </span>
+    </div>
+  ) : (
+    <p className="text-sm font-semibold text-[#C9A84C] sm:text-base">
+      {formatPrice(product.base_price)}
+    </p>
+  )
 
   useEffect(() => {
     if (!leavingImage) return
@@ -205,7 +233,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
               type="button"
               onClick={handleWishlistToggle}
               aria-label={wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
-              className="shrink-0 p-1 text-neutral-900 transition-colors hover:text-neutral-600 active:scale-95"
+              className={`${storeIconButtonClassName} p-1`}
             >
               <Heart
                 className={`h-4 w-4 transition-colors sm:h-5 sm:w-5 ${
@@ -256,9 +284,13 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
   }
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden border border-neutral-200 bg-white shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-      <TiltCard max={8} glare={false} className="h-36 bg-neutral-100 rounded-none sm:h-64">
-        <Link href={`/tienda/${product.slug}`} className="block h-full">
+    <article className="group flex h-full flex-col">
+      <TiltCard
+        max={8}
+        glare={false}
+        className="relative aspect-square w-full rounded-none bg-neutral-50"
+      >
+        <Link href={`/tienda/${product.slug}`} className="relative block h-full w-full">
           {currentImage ? (
             desktopHoverSwapEnabled ? (
               <>
@@ -267,21 +299,21 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
                   alt={product.name}
                   fill
                   className="object-cover transition-opacity duration-200 md:hidden"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  sizes={imageSizes}
                 />
                 <Image
                   src={images[0]}
                   alt={product.name}
                   fill
-                  className="hidden object-cover transition-opacity duration-300 md:block md:opacity-100 md:group-hover:opacity-0"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="hidden object-cover transition-opacity duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)] md:block md:opacity-100 md:group-hover:opacity-0"
+                  sizes={imageSizes}
                 />
                 <Image
                   src={images[1]}
                   alt={`${product.name} alternativa`}
                   fill
-                  className="hidden object-cover transition-opacity duration-300 md:block md:opacity-0 md:group-hover:opacity-100"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="hidden object-cover transition-opacity duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)] md:block md:opacity-0 md:group-hover:opacity-100"
+                  sizes={imageSizes}
                 />
               </>
             ) : (
@@ -298,7 +330,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
                       alt={product.name}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      sizes={imageSizes}
                     />
                   </div>
                 ) : null}
@@ -318,7 +350,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
                     alt={product.name}
                     fill
                     className="object-cover transition-opacity duration-200"
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    sizes={imageSizes}
                   />
                 </div>
               </>
@@ -396,39 +428,21 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
         ) : null}
       </TiltCard>
 
-      <div className="flex flex-1 flex-col gap-2 p-2.5 sm:gap-3 sm:p-4">
-        <div className="flex items-start justify-between gap-2">
+      <div className="pt-2">
+        <div className="flex items-end justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p className="truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-900 sm:text-xs sm:tracking-[0.18em]">
               {brand}
             </p>
-            <h3 className="mt-0.5 line-clamp-2 text-xs font-medium leading-snug text-[#0a0a0a] [min-height:2lh] sm:mt-1 sm:text-sm">
+            <h3 className="mt-0.5 line-clamp-2 text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
               {product.name}
             </h3>
+            <div className="mt-1">{priceBlock}</div>
           </div>
-          {heartButton}
-        </div>
-
-        {productHasDiscount ? (
-          <div className="flex flex-wrap items-baseline gap-1.5">
-            <p className="text-sm font-semibold text-[#C9A84C] sm:text-lg">
-              {formatPrice(discountedPrice)}
-            </p>
-            <p className="text-[11px] text-neutral-400 line-through sm:text-xs">
-              {formatPrice(product.base_price)}
-            </p>
-            <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
-              -{product.discount_percent}%
-            </span>
+          <div className="flex shrink-0 flex-col items-center gap-1.5">
+            {heartButton}
+            {iconActionButton}
           </div>
-        ) : (
-          <p className="text-sm font-semibold text-[#C9A84C] sm:text-lg">
-            {formatPrice(product.base_price)}
-          </p>
-        )}
-
-        <div className="mt-auto flex flex-col gap-1.5 sm:gap-2">
-          {actionButton}
         </div>
       </div>
 

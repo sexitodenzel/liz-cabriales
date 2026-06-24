@@ -27,12 +27,7 @@ import {
   type FieldErrors,
 } from "@/lib/validations/productForm"
 import { exportProductsToXls } from "@/lib/admin/export-products-xls"
-
-type ToastState = {
-  id: number
-  type: "success" | "error"
-  message: string
-} | null
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type CreateFormState = {
   name: string
@@ -224,7 +219,6 @@ export default function AdminProductsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [toast, setToast] = useState<ToastState>(null)
   const [categories, setCategories] = useState<AdminCategory[]>([])
   const [managedCategories, setManagedCategories] = useState<ManagedCategory[]>([])
   const [brands, setBrands] = useState<ManagedBrand[]>([])
@@ -349,23 +343,14 @@ export default function AdminProductsPage() {
       const json = await res.json()
 
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudieron cargar los productos. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudieron cargar los productos. Intenta de nuevo.")
         return
       }
 
       setProducts(json.data.products ?? [])
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al cargar los productos.",
-      })
+      toast.error("Error de red al cargar los productos.")
     }
   }
 
@@ -385,23 +370,14 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudieron cargar las categorías. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudieron cargar las categorías. Intenta de nuevo.")
         return
       }
 
       syncCategories((json.data ?? []) as ManagedCategory[])
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al cargar las categorías.",
-      })
+      toast.error("Error de red al cargar las categorías.")
     }
   }
 
@@ -421,13 +397,8 @@ export default function AdminProductsPage() {
       if (!res.ok || json.error) {
         // No interrumpimos el flujo si la tabla no existe; solo avisamos.
         if (json?.error?.code !== "SUBCATEGORIES_TABLE_MISSING") {
-          setToast({
-            id: Date.now(),
-            type: "error",
-            message:
-              json?.error?.message ??
-              "No se pudieron cargar las subcategorías.",
-          })
+          toast.error(json?.error?.message ??
+              "No se pudieron cargar las subcategorías.")
         }
         setSubcategories([])
         return
@@ -455,37 +426,16 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudieron cargar las marcas. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudieron cargar las marcas. Intenta de nuevo.")
         return
       }
 
       syncBrands((json.data ?? []) as ManagedBrand[])
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al cargar las marcas.",
-      })
+      toast.error("Error de red al cargar las marcas.")
     }
   }
-
-  useEffect(() => {
-    let timeout: number | undefined
-    if (toast) {
-      timeout = window.setTimeout(() => setToast(null), 4000)
-    }
-    return () => {
-      if (timeout) {
-        window.clearTimeout(timeout)
-      }
-    }
-  }, [toast])
 
   useEffect(() => {
     const init = async () => {
@@ -671,19 +621,11 @@ export default function AdminProductsPage() {
 
   async function submitBulkDiscount(percent: number) {
     if (selectedProductIds.size === 0) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Selecciona al menos un producto.",
-      })
+      toast.error("Selecciona al menos un producto.")
       return
     }
     if (!Number.isFinite(percent) || percent < 0 || percent > 95) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El descuento debe estar entre 0 y 95%.",
-      })
+      toast.error("El descuento debe estar entre 0 y 95%.")
       return
     }
 
@@ -699,32 +641,18 @@ export default function AdminProductsPage() {
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ?? "No se pudo aplicar el descuento.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo aplicar el descuento.")
         return
       }
       const updated = (json?.data?.updated as number | undefined) ?? 0
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message:
-          percent === 0
+      toast.success(percent === 0
             ? `Descuento removido de ${updated} producto${updated === 1 ? "" : "s"}.`
-            : `Descuento ${percent}% aplicado a ${updated} producto${updated === 1 ? "" : "s"}.`,
-      })
+            : `Descuento ${percent}% aplicado a ${updated} producto${updated === 1 ? "" : "s"}.`)
       setDiscountPercentInput("")
       clearSelection()
       await fetchProducts()
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al aplicar el descuento.",
-      })
+      toast.error("Error de red al aplicar el descuento.")
     } finally {
       setApplyingDiscount(false)
     }
@@ -804,7 +732,7 @@ export default function AdminProductsPage() {
     if (!editingCategory) return
     const name = editCategoryName.trim()
     if (!name) {
-      setToast({ id: Date.now(), type: "error", message: "El nombre de la categoría es obligatorio." })
+      toast.error("El nombre de la categoría es obligatorio.")
       return
     }
 
@@ -818,20 +746,16 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo actualizar la categoría.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo actualizar la categoría.")
         return
       }
 
       setEditingCategory(null)
       setEditCategoryName("")
       await fetchCategories()
-      setToast({ id: Date.now(), type: "success", message: "Categoría actualizada correctamente." })
+      toast.success("Categoría actualizada correctamente.")
     } catch {
-      setToast({ id: Date.now(), type: "error", message: "Error de red al actualizar la categoría." })
+      toast.error("Error de red al actualizar la categoría.")
     } finally {
       setSavingCategory(false)
     }
@@ -851,19 +775,11 @@ export default function AdminProductsPage() {
     event.preventDefault()
     const name = subcategoryName.trim()
     if (!name) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El nombre de la subcategoría es obligatorio.",
-      })
+      toast.error("El nombre de la subcategoría es obligatorio.")
       return
     }
     if (!subcategoryCategoryId) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Selecciona una categoría padre.",
-      })
+      toast.error("Selecciona una categoría padre.")
       return
     }
 
@@ -877,27 +793,15 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo crear la subcategoría.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo crear la subcategoría.")
         return
       }
 
       setSubcategoryName("")
       await fetchSubcategories()
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Subcategoría creada correctamente.",
-      })
+      toast.success("Subcategoría creada correctamente.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al crear la subcategoría.",
-      })
+      toast.error("Error de red al crear la subcategoría.")
     } finally {
       setSubcategorySubmitting(false)
     }
@@ -907,11 +811,7 @@ export default function AdminProductsPage() {
     if (!editingSubcategory) return
     const name = editSubcategoryName.trim()
     if (!name) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El nombre de la subcategoría es obligatorio.",
-      })
+      toast.error("El nombre de la subcategoría es obligatorio.")
       return
     }
 
@@ -928,12 +828,7 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ?? "No se pudo actualizar la subcategoría.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo actualizar la subcategoría.")
         return
       }
 
@@ -941,17 +836,9 @@ export default function AdminProductsPage() {
       setEditSubcategoryName("")
       // El backend renombra la subcategoría también en products → refrescamos
       await Promise.all([fetchSubcategories(), fetchProducts()])
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Subcategoría actualizada correctamente.",
-      })
+      toast.success("Subcategoría actualizada correctamente.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al actualizar la subcategoría.",
-      })
+      toast.error("Error de red al actualizar la subcategoría.")
     } finally {
       setSavingSubcategory(false)
     }
@@ -959,11 +846,7 @@ export default function AdminProductsPage() {
 
   async function handleDeleteSubcategory(sub: ManagedSubcategory) {
     if (sub.productCount > 0) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "No puedes eliminar subcategorías con productos asociados.",
-      })
+      toast.error("No puedes eliminar subcategorías con productos asociados.")
       return
     }
 
@@ -980,27 +863,14 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ?? "No se pudo eliminar la subcategoría.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo eliminar la subcategoría.")
         return
       }
 
       await fetchSubcategories()
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Subcategoría eliminada correctamente.",
-      })
+      toast.success("Subcategoría eliminada correctamente.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al eliminar la subcategoría.",
-      })
+      toast.error("Error de red al eliminar la subcategoría.")
     } finally {
       setDeletingSubcategoryId(null)
     }
@@ -1026,7 +896,7 @@ export default function AdminProductsPage() {
     if (!editingBrand) return
     const name = editBrandName.trim()
     if (!name) {
-      setToast({ id: Date.now(), type: "error", message: "El nombre de la marca es obligatorio." })
+      toast.error("El nombre de la marca es obligatorio.")
       return
     }
 
@@ -1044,11 +914,7 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo actualizar la marca.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo actualizar la marca.")
         return
       }
 
@@ -1058,9 +924,9 @@ export default function AdminProductsPage() {
       setEditBrandShowOnHome(false)
       setEditBrandShowOnHomeTouched(false)
       await fetchBrands()
-      setToast({ id: Date.now(), type: "success", message: "Marca actualizada correctamente." })
+      toast.success("Marca actualizada correctamente.")
     } catch {
-      setToast({ id: Date.now(), type: "error", message: "Error de red al actualizar la marca." })
+      toast.error("Error de red al actualizar la marca.")
     } finally {
       setSavingBrand(false)
     }
@@ -1070,11 +936,7 @@ export default function AdminProductsPage() {
     event.preventDefault()
     const name = categoryName.trim()
     if (!name) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El nombre de la categoría es obligatorio.",
-      })
+      toast.error("El nombre de la categoría es obligatorio.")
       return
     }
 
@@ -1088,28 +950,15 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ?? "No se pudo crear la categoría. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo crear la categoría. Intenta de nuevo.")
         return
       }
 
       setCategoryName("")
       await fetchCategories()
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Categoría creada correctamente.",
-      })
+      toast.success("Categoría creada correctamente.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al crear la categoría.",
-      })
+      toast.error("Error de red al crear la categoría.")
     } finally {
       setCategorySubmitting(false)
     }
@@ -1117,11 +966,7 @@ export default function AdminProductsPage() {
 
   async function handleDeleteCategory(category: ManagedCategory) {
     if (category.productCount > 0) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "No puedes eliminar categorías con productos asociados.",
-      })
+      toast.error("No puedes eliminar categorías con productos asociados.")
       return
     }
 
@@ -1138,28 +983,15 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudo eliminar la categoría. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudo eliminar la categoría. Intenta de nuevo.")
         return
       }
 
       await fetchCategories()
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Categoría eliminada correctamente.",
-      })
+      toast.success("Categoría eliminada correctamente.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al eliminar la categoría.",
-      })
+      toast.error("Error de red al eliminar la categoría.")
     } finally {
       setDeletingCategoryId(null)
     }
@@ -1168,11 +1000,7 @@ export default function AdminProductsPage() {
   async function handleCreateBrand() {
     const name = brandName.trim()
     if (!name) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "El nombre de la marca es obligatorio.",
-      })
+      toast.error("El nombre de la marca es obligatorio.")
       return
     }
 
@@ -1190,11 +1018,7 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo crear la marca. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo crear la marca. Intenta de nuevo.")
         return
       }
 
@@ -1217,17 +1041,9 @@ export default function AdminProductsPage() {
       setBrandShowOnHome(false)
       setBrandShowOnHomeTouched(false)
       void fetchBrands()
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Marca creada correctamente.",
-      })
+      toast.success("Marca creada correctamente.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al crear la marca.",
-      })
+      toast.error("Error de red al crear la marca.")
     } finally {
       setBrandSubmitting(false)
     }
@@ -1235,11 +1051,7 @@ export default function AdminProductsPage() {
 
   async function handleDeleteBrand(brand: ManagedBrand) {
     if (brand.productCount > 0) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "No puedes eliminar marcas con productos asociados.",
-      })
+      toast.error("No puedes eliminar marcas con productos asociados.")
       return
     }
 
@@ -1256,27 +1068,14 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ?? "No se pudo eliminar la marca. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo eliminar la marca. Intenta de nuevo.")
         return
       }
 
       await fetchBrands()
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Marca eliminada correctamente.",
-      })
+      toast.success("Marca eliminada correctamente.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al eliminar la marca.",
-      })
+      toast.error("Error de red al eliminar la marca.")
     } finally {
       setDeletingBrandId(null)
     }
@@ -1296,30 +1095,17 @@ export default function AdminProductsPage() {
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudo actualizar la visibilidad de la marca.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudo actualizar la visibilidad de la marca.")
         return
       }
 
       await fetchBrands()
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: !brand.show_on_home
+      toast.success(!brand.show_on_home
           ? "Marca habilitada en home."
-          : "Marca ocultada de home.",
-      })
+          : "Marca ocultada de home.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al actualizar la visibilidad de la marca.",
-      })
+      toast.error("Error de red al actualizar la visibilidad de la marca.")
     }
   }
 
@@ -1348,11 +1134,7 @@ export default function AdminProductsPage() {
     setCreateErrors(errors)
 
     if (Object.keys(errors).length > 0) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: `Revisa los campos en rojo: ${summarizeErrors(errors).join(", ")}.`,
-      })
+      toast.error(`Revisa los campos en rojo: ${summarizeErrors(errors).join(", ")}.`)
       return
     }
 
@@ -1439,13 +1221,8 @@ export default function AdminProductsPage() {
       const json = await res.json()
 
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudo crear el producto. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudo crear el producto. Intenta de nuevo.")
         return
       }
 
@@ -1479,17 +1256,9 @@ export default function AdminProductsPage() {
       setCreateErrors({})
       setSlugTouched(false)
 
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Producto creado correctamente.",
-      })
+      toast.success("Producto creado correctamente.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al crear el producto.",
-      })
+      toast.error("Error de red al crear el producto.")
     } finally {
       setSubmitting(false)
     }
@@ -1579,11 +1348,7 @@ export default function AdminProductsPage() {
     setEditErrors(errors)
 
     if (Object.keys(errors).length > 0) {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: `Revisa los campos en rojo: ${summarizeErrors(errors).join(", ")}.`,
-      })
+      toast.error(`Revisa los campos en rojo: ${summarizeErrors(errors).join(", ")}.`)
       return
     }
 
@@ -1664,13 +1429,8 @@ export default function AdminProductsPage() {
       const json = await res.json()
 
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudo actualizar el producto. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudo actualizar el producto. Intenta de nuevo.")
         return
       }
 
@@ -1717,18 +1477,10 @@ export default function AdminProductsPage() {
         await Promise.all(variantOps)
       }
 
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Producto actualizado correctamente.",
-      })
+      toast.success("Producto actualizado correctamente.")
       cancelEditing()
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al actualizar el producto.",
-      })
+      toast.error("Error de red al actualizar el producto.")
     } finally {
       setSubmitting(false)
     }
@@ -1750,13 +1502,8 @@ export default function AdminProductsPage() {
       const json = await res.json()
 
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudo actualizar el estado del producto.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudo actualizar el estado del producto.")
         return
       }
 
@@ -1764,17 +1511,9 @@ export default function AdminProductsPage() {
         prev.map((p) => (p.id === product.id ? json.data : p))
       )
 
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Estado del producto actualizado.",
-      })
+      toast.success("Estado del producto actualizado.")
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al actualizar el estado del producto.",
-      })
+      toast.error("Error de red al actualizar el estado del producto.")
     } finally {
       setSubmitting(false)
     }
@@ -1791,31 +1530,18 @@ export default function AdminProductsPage() {
       const json = await res.json().catch(() => null)
 
       if (!res.ok || json?.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message:
-            json?.error?.message ??
-            "No se pudo eliminar el producto. Intenta de nuevo.",
-        })
+        toast.error(json?.error?.message ??
+            "No se pudo eliminar el producto. Intenta de nuevo.")
         return
       }
 
       setProducts((prev) => prev.filter((p) => p.id !== confirmDeleteId))
       await Promise.all([fetchCategories(), fetchBrands()])
 
-      setToast({
-        id: Date.now(),
-        type: "success",
-        message: "Producto eliminado correctamente.",
-      })
+      toast.success("Producto eliminado correctamente.")
       setConfirmDeleteId(null)
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al eliminar el producto.",
-      })
+      toast.error("Error de red al eliminar el producto.")
     } finally {
       setSubmitting(false)
     }
@@ -2374,7 +2100,7 @@ export default function AdminProductsPage() {
                     )
                   }}
                   onError={(msg) =>
-                    setToast({ id: Date.now(), type: "error", message: msg })
+                    toast.error(msg)
                   }
                 />
                 {(() => {
@@ -3308,7 +3034,7 @@ export default function AdminProductsPage() {
                                       const current = editForm.imagesInput.trim()
                                       handleEditFormChange("imagesInput", current ? `${current}, ${url}` : url)
                                     }}
-                                    onError={(msg) => setToast({ id: Date.now(), type: "error", message: msg })}
+                                    onError={(msg) => toast.error(msg)}
                                   />
                                   {(() => {
                                     const urls = editForm.imagesInput.split(",").map((u) => u.trim()).filter(Boolean)
@@ -3842,7 +3568,7 @@ export default function AdminProductsPage() {
                     }
                   }}
                   onError={(msg) =>
-                    setToast({ id: Date.now(), type: "error", message: msg })
+                    toast.error(msg)
                   }
                 />
                 <input
@@ -4013,20 +3739,6 @@ export default function AdminProductsPage() {
           </div>
         </section>
       </div>
-
-      {toast && (
-        <div className="pointer-events-none fixed inset-x-0 top-4 z-40 flex justify-center px-4">
-          <div
-            className={`pointer-events-auto max-w-md rounded-full border px-4 py-2.5 text-sm shadow-md ${
-              toast.type === "success"
-                ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                : "border-red-300 bg-red-50 text-red-900"
-            }`}
-          >
-            {toast.message}
-          </div>
-        </div>
-      )}
 
       {confirmState && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">

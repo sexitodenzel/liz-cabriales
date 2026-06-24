@@ -3,6 +3,7 @@
 import { useState } from "react"
 import ImageUploader from "@/app/admin/components/ImageUploader"
 import type { InstructorRow } from "@/lib/supabase/courses"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 function initials(name: string) {
   return name
@@ -30,12 +31,10 @@ export default function InstructorsClient({
   const [instructors, setInstructors] = useState<InstructorRow[]>(initial)
   const [editing, setEditing] = useState<EditState | null>(null)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   function openCreate() {
     setEditing({ ...EMPTY_EDIT })
-    setError(null)
   }
 
   function openEdit(inst: InstructorRow) {
@@ -45,22 +44,19 @@ export default function InstructorsClient({
       bio: inst.bio ?? "",
       photo_url: inst.photo_url ?? "",
     })
-    setError(null)
   }
 
   function closeEdit() {
     setEditing(null)
-    setError(null)
   }
 
   async function handleSave() {
     if (!editing) return
     if (!editing.name.trim()) {
-      setError("El nombre es obligatorio.")
+      toast.error("El nombre es obligatorio.")
       return
     }
     setSaving(true)
-    setError(null)
 
     try {
       const isNew = editing.id === null
@@ -80,7 +76,7 @@ export default function InstructorsClient({
 
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo guardar")
+        toast.error(json?.error?.message ?? "No se pudo guardar")
         return
       }
 
@@ -90,9 +86,10 @@ export default function InstructorsClient({
           ? [...prev, saved].sort((a, b) => a.name.localeCompare(b.name))
           : prev.map((i) => (i.id === saved.id ? saved : i))
       )
+      toast.success(isNew ? "Instructor creado" : "Instructor actualizado")
       closeEdit()
     } catch {
-      setError("Error de red al guardar")
+      toast.error("Error de red al guardar")
     } finally {
       setSaving(false)
     }
@@ -100,20 +97,20 @@ export default function InstructorsClient({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    setError(null)
     try {
       const res = await fetch(`/api/admin/instructors/${id}`, {
         method: "DELETE",
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo eliminar")
+        toast.error(json?.error?.message ?? "No se pudo eliminar")
         return
       }
       setInstructors((prev) => prev.filter((i) => i.id !== id))
       setConfirmDelete(null)
+      toast.success("Instructor eliminado")
     } catch {
-      setError("Error de red al eliminar")
+      toast.error("Error de red al eliminar")
     } finally {
       setSaving(false)
     }
@@ -141,13 +138,6 @@ export default function InstructorsClient({
           + Nuevo instructor
         </button>
       </div>
-
-      {/* Error global */}
-      {error && !editing && (
-        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </p>
-      )}
 
       {/* List */}
       {instructors.length === 0 ? (
@@ -264,7 +254,7 @@ export default function InstructorsClient({
                       onUpload={(url) =>
                         setEditing((e) => e && { ...e, photo_url: url })
                       }
-                      onError={(msg) => setError(msg)}
+                      onError={(msg) => toast.error(msg)}
                     />
                     {editing.photo_url && (
                       <button
@@ -313,11 +303,6 @@ export default function InstructorsClient({
                 />
               </div>
 
-              {error && (
-                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {error}
-                </p>
-              )}
             </div>
 
             <div className="mt-6 flex justify-end gap-3">

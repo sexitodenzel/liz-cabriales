@@ -7,6 +7,7 @@ import { useState } from "react"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import type { CourseWithStats } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
   initialCourses: CourseWithStats[]
@@ -41,11 +42,9 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
   const router = useRouter()
   const [courses, setCourses] = useState<CourseWithStats[]>(initialCourses)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   const togglePublish = async (course: CourseWithStats) => {
     setBusyId(course.id)
-    setError(null)
     try {
       const res = await fetch(`/api/admin/courses/${course.id}`, {
         method: "PATCH",
@@ -54,18 +53,18 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo actualizar el curso")
+        toast.error(json?.error?.message ?? "No se pudo actualizar el curso")
         return
       }
+      const next = !course.is_published
       setCourses((prev) =>
         prev.map((c) =>
-          c.id === course.id
-            ? { ...c, is_published: !course.is_published }
-            : c
+          c.id === course.id ? { ...c, is_published: next } : c
         )
       )
+      toast.success(next ? "Curso publicado" : "Curso despublicado")
     } catch {
-      setError("Error de red al actualizar")
+      toast.error("Error de red al actualizar")
     } finally {
       setBusyId(null)
     }
@@ -78,14 +77,13 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
     if (!confirmed) return
 
     setBusyId(course.id)
-    setError(null)
     try {
       const res = await fetch(`/api/admin/courses/${course.id}`, {
         method: "DELETE",
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo eliminar el curso")
+        toast.error(json?.error?.message ?? "No se pudo eliminar el curso")
         return
       }
       setCourses((prev) =>
@@ -93,9 +91,10 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
           c.id === course.id ? { ...c, is_published: false } : c
         )
       )
+      toast.success("Curso despublicado")
       router.refresh()
     } catch {
-      setError("Error de red al eliminar")
+      toast.error("Error de red al eliminar")
     } finally {
       setBusyId(null)
     }
@@ -134,12 +133,6 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
             </Link>
           </div>
         </div>
-
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-            {error}
-          </div>
-        )}
 
         {courses.length === 0 ? (
           <div className="rounded-xl border border-[#ececec] bg-[#fafafa] p-10 text-center text-sm text-[#6b6b6b]">

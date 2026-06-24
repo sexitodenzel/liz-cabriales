@@ -8,6 +8,8 @@ import type { ProductVariant } from "@/lib/supabase/products"
 import { applyDiscount } from "@/lib/tienda/discount"
 import { ActionSwapText } from "@/app/components/ui/motion/action-swap"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
+import { storeIconButtonClassName } from "./store-button-styles"
+import { Check, Loader2, ShoppingBag } from "lucide-react"
 
 type Props = {
   productId: string
@@ -22,6 +24,7 @@ type Props = {
   className?: string
   enableQuantitySelector?: boolean
   openCartOnAdd?: boolean
+  variant?: "default" | "icon"
 }
 
 function formatPrice(value: number): string {
@@ -55,6 +58,7 @@ export default function AddToCartButton({
   className,
   enableQuantitySelector = false,
   openCartOnAdd = true,
+  variant = "default",
 }: Props) {
   const { addItem, openCart } = useCart()
   const [isAdding, setIsAdding] = useState(false)
@@ -101,7 +105,8 @@ export default function AddToCartButton({
     })
   }, [maxQuantity])
 
-  const handleAdd = async () => {
+  const handleAdd = async (e?: React.MouseEvent) => {
+    e?.stopPropagation()
     if (!selectedVariant || !canAdd || isAdding) return
 
     const item: CartItem = {
@@ -154,10 +159,38 @@ export default function AddToCartButton({
             ? "Agregado"
             : "Agregar al carrito"
 
+  const iconButtonClassName = className ?? storeIconButtonClassName
+
+  const iconButton = (
+    <button
+      type="button"
+      onClick={(e) => void handleAdd(e)}
+      disabled={!canAdd || isAdding}
+      className={iconButtonClassName}
+      aria-disabled={!canAdd || isAdding}
+      aria-label={
+        justAdded
+          ? "Agregado al carrito"
+          : isAdding
+            ? "Agregando al carrito"
+            : "Agregar al carrito"
+      }
+      title={!canAdd ? "Presentación sin inventario disponible" : undefined}
+    >
+      {isAdding ? (
+        <Loader2 className="h-4 w-4 animate-spin sm:h-[18px] sm:w-[18px]" strokeWidth={1.75} />
+      ) : justAdded ? (
+        <Check className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={1.75} />
+      ) : (
+        <ShoppingBag className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={1.75} />
+      )}
+    </button>
+  )
+
   const button = (
     <button
       type="button"
-      onClick={handleAdd}
+      onClick={() => void handleAdd()}
       disabled={!canAdd || isAdding}
       className={className}
       aria-disabled={!canAdd || isAdding}
@@ -176,13 +209,32 @@ export default function AddToCartButton({
       productName={productName}
       variantId={selectedVariant.id}
       outOfStock={outOfStock}
-      className={className}
+      className={variant === "icon" ? iconButtonClassName : className}
+      iconOnly={variant === "icon"}
     />
   ) : (
     button
   )
 
   if (!enableSelector) {
+    if (variant === "icon") {
+      if (outOfStock && selectedVariant) {
+        return (
+          <NotifyWhenAvailable
+            productId={productId}
+            productSlug={productSlug ?? null}
+            productName={productName}
+            variantId={selectedVariant.id}
+            outOfStock={outOfStock}
+            className={iconButtonClassName}
+            iconOnly
+            label="Avísame disponibilidad"
+          />
+        )
+      }
+      return iconButton
+    }
+
     return (
       <div className="space-y-3">
         {outOfStock && selectedVariant ? (

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import type { LinkType, TextPosition } from "@/lib/supabase/landing-slots"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type LandingSlot = {
   key: string
@@ -195,8 +196,11 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
       onUpdate(slot.key, { url: data.publicUrl })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+      toast.success("Imagen actualizada")
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al subir la imagen.")
+      const message = err instanceof Error ? err.message : "Error al subir la imagen."
+      setError(message)
+      toast.error(message)
     } finally {
       setUploading(false)
     }
@@ -235,8 +239,11 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
         setLinkSaved(false)
         setLinkPanelOpen(false)
       }, 1200)
+      toast.success("Enlace guardado")
     } catch (err: unknown) {
-      setLinkError(err instanceof Error ? err.message : "Error al guardar el enlace.")
+      const message = err instanceof Error ? err.message : "Error al guardar el enlace."
+      setLinkError(message)
+      toast.error(message)
     } finally {
       setSavingLink(false)
     }
@@ -266,8 +273,11 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
       setLabel(nextLabel)
       setLabelSaved(true)
       setTimeout(() => setLabelSaved(false), 2500)
+      toast.success("Nombre guardado")
     } catch (err: unknown) {
-      setLabelError(err instanceof Error ? err.message : "Error al guardar nombre.")
+      const message = err instanceof Error ? err.message : "Error al guardar nombre."
+      setLabelError(message)
+      toast.error(message)
     } finally {
       setSavingLabel(false)
     }
@@ -644,8 +654,9 @@ export default function AdminMediaPage() {
       const body = await res.json()
       if (body.error) throw new Error(body.error.message)
       setSlots((prev) => [...prev, body.data])
+      toast.success("Slide agregado")
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Error al agregar slide")
+      toast.error(err instanceof Error ? err.message : "Error al agregar slide")
     } finally {
       setAddingSlide(false)
     }

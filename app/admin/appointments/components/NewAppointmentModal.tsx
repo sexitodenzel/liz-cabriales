@@ -6,6 +6,7 @@ import type {
   ProfessionalRow,
   ServiceRow,
 } from "@/lib/supabase/appointments"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
   professionals: ProfessionalRow[]
@@ -221,12 +222,13 @@ export default function NewAppointmentModal({
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo crear la cita")
+        toast.error(json?.error?.message ?? "No se pudo crear la cita")
         return
       }
+      toast.success("Cita creada")
       onCreated()
     } catch {
-      setError("Error de red al crear la cita")
+      toast.error("Error de red al crear la cita")
     } finally {
       setSubmitting(false)
     }

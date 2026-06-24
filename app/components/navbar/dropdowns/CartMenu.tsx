@@ -5,7 +5,6 @@
    ========================================= */
 
 import { useState, useEffect, useMemo, useRef } from "react"
-import { createPortal } from "react-dom"
 import Link from "next/link"
 import { X, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -18,6 +17,7 @@ import {
 import { createClient } from "@/lib/supabase/client"
 import { CartItem } from "@/lib/cart"
 import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
+import { Drawer } from "@/app/components/ui/motion/drawer"
 
 function formatMXN(value: number) {
   return new Intl.NumberFormat("es-MX", {
@@ -297,24 +297,10 @@ export default function CartMenu() {
 
   if (!mounted) return null
 
-  return createPortal(
+  const panelInner = (
     <>
-    {/* Backdrop — bloquea interacciones táctiles fuera del panel */}
-    <div
-      className={`fixed inset-x-0 bottom-0 top-[var(--navbar-actual-h)] z-[72] touch-none md:top-0 ${
-        isCartOpen ? "pointer-events-auto" : "pointer-events-none"
-      }`}
-      onClick={closeCart}
-      aria-hidden
-    />
-
-    <div
-      className={`fixed right-0 bottom-0 top-[var(--navbar-actual-h)] z-[73] flex w-2/3 min-h-0 flex-col overflow-hidden bg-white shadow-xl transition-opacity duration-700 ease-in-out md:top-0 md:h-screen md:w-[380px] ${
-        isCartOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-      }`}
-    >
       {/* Header — FIJO */}
-      <div className="flex flex-shrink-0 items-center justify-between p-4">
+      <div className="flex flex-shrink-0 items-center justify-between p-3 md:p-4">
         <h3 className="text-[15px] font-semibold text-[#1a1a1a]">
           Bolsa ({itemCount} {itemCount === 1 ? "artículo" : "artículos"})
         </h3>
@@ -331,7 +317,7 @@ export default function CartMenu() {
       {/* Items + sugerencias — SCROLLEABLE (sin scrollbar visible, igual que el drawer) */}
       <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
         {!mounted || isLoading ? (
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 p-3 md:p-4">
             {[1, 2].map((n) => (
               <div key={n} className="flex gap-3">
                 <div className="h-20 w-20 shrink-0 animate-pulse rounded-xl bg-neutral-100" />
@@ -363,7 +349,7 @@ export default function CartMenu() {
               {[...resolvedItems].reverse().map((item) => (
                 <li
                   key={item.id}
-                  className="relative flex gap-3 p-4 after:absolute after:bottom-0 after:left-4 after:right-4 after:h-px after:bg-neutral-200 after:content-[''] last:after:hidden"
+                  className="relative flex gap-3 p-3 after:absolute after:bottom-0 after:left-3 after:right-3 after:h-px after:bg-neutral-200 after:content-[''] last:after:hidden md:p-4 md:after:left-4 md:after:right-4"
                 >
                   <Link
                     href={item.productSlug ? `/tienda/${item.productSlug}` : "/tienda"}
@@ -447,7 +433,7 @@ export default function CartMenu() {
 
             {/* También te puede gustar */}
             {suggestions.length > 0 && (
-              <div className="p-4">
+              <div className="p-3 md:p-4">
                 <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#1a1a1a]">
                   También te puede gustar
                 </p>
@@ -497,7 +483,7 @@ export default function CartMenu() {
       </div>
 
       {/* Footer — FIJO */}
-      <div className="flex-shrink-0 bg-[#fafafa] p-4">
+      <div className="flex-shrink-0 bg-[#fafafa] p-3 md:p-4">
         {!isEmpty && <FreeShippingBar amount={subtotal} />}
         <div className="flex items-center justify-between">
           <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal:</p>
@@ -538,8 +524,21 @@ export default function CartMenu() {
           )}
         </div>
       </div>
-    </div>
-    </>,
-    document.body,
+    </>
+  )
+
+  return (
+    <Drawer
+      open={isCartOpen}
+      onOpenChange={(next) => {
+        if (!next) closeCart()
+      }}
+      side="right"
+      ariaLabel="Bolsa de compras"
+      backdropClassName="bg-transparent backdrop-blur-0 md:bg-black/40 md:backdrop-blur-sm"
+      className="w-full max-w-none overflow-hidden md:w-[380px]"
+    >
+      {panelInner}
+    </Drawer>
   )
 }

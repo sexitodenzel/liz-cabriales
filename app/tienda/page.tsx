@@ -15,7 +15,6 @@ import { getPublishedCourses } from "@/lib/supabase/courses"
 import type { ProductWithCategory, Category } from "@/lib/supabase/products"
 
 import ProductGrid from "./components/ProductGrid"
-import Breadcrumb from "@/components/shared/Breadcrumb"
 
 export const revalidate = 120
 
@@ -77,7 +76,7 @@ export default async function StorePage({
   if (categoriesResult.error || productsResult.error) {
     return (
       <main className="min-h-screen bg-white text-[#0a0a0a]">
-        <div className="site-container pt-5 pb-12">
+        <div className="site-container pb-12">
           <h1 className="text-2xl font-semibold">Tienda</h1>
           <p className="mt-4 text-sm text-red-600">
             Ocurrió un error al cargar la tienda. Intenta de nuevo más tarde.
@@ -121,9 +120,7 @@ export default async function StorePage({
 
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
-      <div className="site-container pt-5 pb-12">
-        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]} />
-
+      <div className="site-container pb-12">
         <ProductGrid
           products={products}
           categories={categories}
@@ -132,6 +129,7 @@ export default async function StorePage({
           initialFilters={initialFilters}
           upcomingCourses={upcomingCourses}
           activeServices={activeServices}
+          breadcrumbItems={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]}
         />
       </div>
     </main>

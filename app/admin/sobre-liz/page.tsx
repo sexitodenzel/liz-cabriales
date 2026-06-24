@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import ImageUploader from "@/app/admin/components/ImageUploader"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type LizEventRow = {
   id: string
@@ -14,10 +15,6 @@ type LizEventRow = {
   created_at: string
   updated_at: string
 }
-
-type ToastState =
-  | { id: number; type: "success" | "error"; message: string }
-  | null
 
 function formatDate(value: string | null): string {
   if (!value) return "Sin fecha"
@@ -31,19 +28,12 @@ export default function AdminSobreLizPage() {
   const [items, setItems] = useState<LizEventRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [toast, setToast] = useState<ToastState>(null)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [newImage, setNewImage] = useState("")
   const [newCaption, setNewCaption] = useState("")
   const [newDate, setNewDate] = useState("")
   const [creating, setCreating] = useState(false)
-
-  useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(null), 2400)
-    return () => clearTimeout(t)
-  }, [toast])
 
   async function load() {
     try {
@@ -54,20 +44,12 @@ export default function AdminSobreLizPage() {
       }
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudieron cargar los eventos.",
-        })
+        toast.error(json?.error?.message ?? "No se pudieron cargar los eventos.")
         return
       }
       setItems(json.data ?? [])
     } catch {
-      setToast({
-        id: Date.now(),
-        type: "error",
-        message: "Error de red al cargar los eventos.",
-      })
+      toast.error("Error de red al cargar los eventos.")
     } finally {
       setLoading(false)
     }
@@ -87,7 +69,7 @@ export default function AdminSobreLizPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     if (!newImage) {
-      setToast({ id: Date.now(), type: "error", message: "Sube una imagen primero." })
+      toast.error("Sube una imagen primero.")
       return
     }
     setCreating(true)
@@ -103,18 +85,14 @@ export default function AdminSobreLizPage() {
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo agregar el evento.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo agregar el evento.")
         return
       }
       setItems((prev) => [...prev, json.data as LizEventRow])
       setModalOpen(false)
-      setToast({ id: Date.now(), type: "success", message: "Evento agregado." })
+      toast.success("Evento agregado.")
     } catch {
-      setToast({ id: Date.now(), type: "error", message: "Error de red." })
+      toast.error("Error de red.")
     } finally {
       setCreating(false)
     }
@@ -127,17 +105,13 @@ export default function AdminSobreLizPage() {
       const res = await fetch(`/api/admin/events/${id}`, { method: "DELETE" })
       const json = await res.json().catch(() => ({}))
       if (!res.ok || json.error) {
-        setToast({
-          id: Date.now(),
-          type: "error",
-          message: json?.error?.message ?? "No se pudo eliminar.",
-        })
+        toast.error(json?.error?.message ?? "No se pudo eliminar.")
         return
       }
       setItems((prev) => prev.filter((row) => row.id !== id))
-      setToast({ id: Date.now(), type: "success", message: "Evento eliminado." })
+      toast.success("Evento eliminado.")
     } catch {
-      setToast({ id: Date.now(), type: "error", message: "Error de red." })
+      toast.error("Error de red.")
     } finally {
       setBusyId(null)
     }
@@ -261,9 +235,7 @@ export default function AdminSobreLizPage() {
                     folder="events"
                     buttonLabel="Subir foto del evento"
                     onUpload={(url) => setNewImage(url)}
-                    onError={(msg) =>
-                      setToast({ id: Date.now(), type: "error", message: msg })
-                    }
+                    onError={(msg) => toast.error(msg)}
                   />
                 )}
               </div>
@@ -316,18 +288,6 @@ export default function AdminSobreLizPage() {
         </div>
       )}
 
-      {toast && (
-        <div
-          className={`fixed bottom-6 right-6 z-[60] rounded-lg px-4 py-2 text-sm shadow-lg ${
-            toast.type === "success"
-              ? "bg-emerald-600 text-white"
-              : "bg-red-600 text-white"
-          }`}
-          role="status"
-        >
-          {toast.message}
-        </div>
-      )}
     </div>
   )
 }

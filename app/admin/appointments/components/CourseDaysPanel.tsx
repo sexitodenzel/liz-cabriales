@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type CourseInfo = {
   id: string
@@ -256,13 +257,14 @@ export default function CourseDaysPanel() {
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudo agregar")
+        toast.error(json?.error?.message ?? "No se pudo agregar")
         return
       }
+      toast.success("Día de curso agregado")
       setNewDate("")
       fetchData()
     } catch {
-      setError("Error de red")
+      toast.error("Error de red")
     } finally {
       setSaving(false)
     }

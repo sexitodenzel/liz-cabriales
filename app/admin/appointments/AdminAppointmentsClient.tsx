@@ -15,6 +15,7 @@ import NewAppointmentModal from "./components/NewAppointmentModal"
 import BlockSlotModal from "./components/BlockSlotModal"
 import RescheduleAppointmentModal from "./components/RescheduleAppointmentModal"
 import CourseDaysPanel from "./components/CourseDaysPanel"
+import { toast } from "@/app/components/ui/motion/toast-provider"
 
 const BRAND_GOLD = "#C9A84C"
 
@@ -80,7 +81,6 @@ export default function AdminAppointmentsClient({
   const [professionalId, setProfessionalId] = useState<string>("all")
   const [appointments, setAppointments] = useState<AdminAppointmentRow[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [showNewModal, setShowNewModal] = useState(false)
   const [showBlockModal, setShowBlockModal] = useState(false)
   const [rescheduleTarget, setRescheduleTarget] =
@@ -88,7 +88,6 @@ export default function AdminAppointmentsClient({
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    setError(null)
     try {
       const qs = new URLSearchParams({ date })
       if (professionalId !== "all") {
@@ -99,13 +98,13 @@ export default function AdminAppointmentsClient({
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setError(json?.error?.message ?? "No se pudieron cargar las citas")
+        toast.error(json?.error?.message ?? "No se pudieron cargar las citas")
         setAppointments([])
         return
       }
       setAppointments(json.data.appointments ?? [])
     } catch {
-      setError("Error de red al cargar citas")
+      toast.error("Error de red al cargar citas")
     } finally {
       setLoading(false)
     }
@@ -124,12 +123,13 @@ export default function AdminAppointmentsClient({
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        window.alert(json?.error?.message ?? "No se pudo cancelar la cita")
+        toast.error(json?.error?.message ?? "No se pudo cancelar la cita")
         return
       }
+      toast.success("Cita cancelada")
       fetchData()
     } catch {
-      window.alert("Error de red al cancelar")
+      toast.error("Error de red al cancelar")
     }
   }
 
@@ -235,12 +235,6 @@ export default function AdminAppointmentsClient({
             </span>
           </div>
         </div>
-
-        {error && (
-          <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
-        )}
 
         <div className="overflow-hidden rounded-2xl border border-[#ececec] bg-white">
           <div className="overflow-x-auto">
