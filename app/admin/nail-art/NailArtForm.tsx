@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { compressImage } from "@/lib/image-compress"
+import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
 type ProductOption = {
   id: string
@@ -420,8 +421,13 @@ export default function NailArtForm({ initialData, onSave, onCancel, saving }: P
           disabled={saving}
           className="inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {saving ? <><Spinner /> Guardando…</> : (isEdit ? "Guardar cambios" : "Crear publicación")}
+          {isEdit ? "Guardar cambios" : "Crear publicación"}
         </button>
+        {saving && (
+          <AnimatedBadge status="loading" size="md">
+            Guardando
+          </AnimatedBadge>
+        )}
         <button
           type="button"
           onClick={onCancel}

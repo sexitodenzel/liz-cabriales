@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation"
 import type { AdminOrderDetail } from "@/lib/supabase/adminOrders"
 import type { OrderStatus } from "@/types"
 import { toast } from "@/app/components/ui/motion/toast-provider"
+import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
 const BRAND_GOLD = "#C9A84C"
 
@@ -694,8 +695,13 @@ export default function AdminOrderDetailPage() {
                 disabled={saving}
                 className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
               >
-                {saving ? "Guardando…" : "Guardar cambio de estado"}
+                Guardar cambio de estado
               </button>
+              {saving && (
+                <AnimatedBadge status="loading" size="md">
+                  Guardando
+                </AnimatedBadge>
+              )}
             </div>
           </section>
         </div>

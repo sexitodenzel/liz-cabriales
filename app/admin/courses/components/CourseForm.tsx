@@ -12,6 +12,7 @@ import CourseGalleryEditor, {
 import type { InstructorRow, CourseImage, CourseGalleryItem } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 import { toast } from "@/app/components/ui/motion/toast-provider"
+import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
 export type CourseFormInitialValues = {
   title: string
@@ -599,6 +600,11 @@ export default function CourseForm({
           </section>
 
           <div className="flex items-center justify-end gap-3">
+            {submitting && (
+              <AnimatedBadge status="loading" size="md">
+                Guardando
+              </AnimatedBadge>
+            )}
             <Link
               href="/admin/courses"
               className="rounded-lg border border-[#ececec] bg-white px-4 py-2 text-sm font-medium text-[#3a3a3a] hover:border-[#c9a84c] hover:text-[#a8893a] transition-colors"
@@ -610,11 +616,7 @@ export default function CourseForm({
               disabled={submitting}
               className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting
-                ? "Guardando…"
-                : mode === "create"
-                  ? "Crear curso"
-                  : "Guardar cambios"}
+              {mode === "create" ? "Crear curso" : "Guardar cambios"}
             </button>
           </div>
         </form>

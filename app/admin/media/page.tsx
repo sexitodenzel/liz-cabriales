@@ -7,6 +7,7 @@ import { compressImage } from "@/lib/image-compress"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import type { LinkType, TextPosition } from "@/lib/supabase/landing-slots"
 import { toast } from "@/app/components/ui/motion/toast-provider"
+import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
 type LandingSlot = {
   key: string
@@ -350,8 +351,15 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
           onClick={saveLabel}
           className="mt-[22px] inline-flex shrink-0 items-center justify-center rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-[11px] font-medium text-neutral-700 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {savingLabel ? "Guardando…" : labelSaved ? "Guardado" : "Guardar nombre"}
+          Guardar nombre
         </button>
+        {(savingLabel || labelSaved) && (
+          <span className="mt-[22px]">
+            <AnimatedBadge status={savingLabel ? "loading" : "success"} size="sm">
+              {savingLabel ? "Guardando" : "Guardado"}
+            </AnimatedBadge>
+          </span>
+        )}
       </div>
 
       {error && <p className="text-[11px] text-red-500">{error}</p>}
@@ -592,6 +600,13 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
 
           {linkError && <p className="text-[11px] text-red-500">{linkError}</p>}
 
+          {(savingLink || linkSaved) && (
+            <div className="flex justify-center">
+              <AnimatedBadge status={savingLink ? "loading" : "success"} size="sm">
+                {savingLink ? "Guardando enlace" : "Enlace guardado"}
+              </AnimatedBadge>
+            </div>
+          )}
           <button
             type="button"
             disabled={savingLink}
@@ -599,13 +614,7 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
             className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#1a1a1a] px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {savingLink ? (
-              <>
-                <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
-                  <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="opacity-75" />
-                </svg>
-                Guardando…
-              </>
+              "Guardando…"
             ) : linkSaved ? (
               <>
                 <CheckIcon />
