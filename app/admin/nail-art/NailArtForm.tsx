@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { compressImage } from "@/lib/image-compress"
 
 type ProductOption = {
   id: string
@@ -157,12 +158,13 @@ export default function NailArtForm({ initialData, onSave, onCancel, saving }: P
     setCoverError(null)
     setUploadingCover(true)
     try {
+      const compressed = await compressImage(file)
       const supabase = createClient()
-      const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase()
+      const ext = (compressed.name.split(".").pop() ?? "jpg").toLowerCase()
       const path = `nail-art/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const { error: uploadError } = await supabase.storage
         .from("images")
-        .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type || undefined })
+        .upload(path, compressed, { cacheControl: "3600", upsert: false, contentType: compressed.type || undefined })
       if (uploadError) throw uploadError
       const { data } = supabase.storage.from("images").getPublicUrl(path)
       if (!data?.publicUrl) throw new Error("No se pudo obtener la URL.")

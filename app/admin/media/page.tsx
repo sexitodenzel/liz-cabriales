@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { compressImage } from "@/lib/image-compress"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import type { LinkType, TextPosition } from "@/lib/supabase/landing-slots"
 import { toast } from "@/app/components/ui/motion/toast-provider"
@@ -164,16 +165,17 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
     setSaved(false)
 
     try {
+      const compressed = await compressImage(file, { maxWidthOrHeight: 2400 })
       const supabase = createClient()
-      const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase()
+      const ext = (compressed.name.split(".").pop() ?? "jpg").toLowerCase()
       const path = `landing/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
       const { error: uploadError } = await supabase.storage
         .from("images")
-        .upload(path, file, {
+        .upload(path, compressed, {
           cacheControl: "3600",
           upsert: false,
-          contentType: file.type || undefined,
+          contentType: compressed.type || undefined,
         })
 
       if (uploadError) throw uploadError

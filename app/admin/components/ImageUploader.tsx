@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 
 import { createClient } from "@/lib/supabase/client"
+import { compressImage } from "@/lib/image-compress"
 import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
 const SIZE_HINTS: Record<string, string> = {
@@ -48,16 +49,17 @@ export default function ImageUploader({
     setUploading(true)
 
     try {
+      const compressed = await compressImage(file)
       const supabase = createClient()
-      const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase()
+      const ext = (compressed.name.split(".").pop() ?? "jpg").toLowerCase()
       const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
       const { error: uploadError } = await supabase.storage
         .from("images")
-        .upload(path, file, {
+        .upload(path, compressed, {
           cacheControl: "3600",
           upsert: false,
-          contentType: file.type || undefined,
+          contentType: compressed.type || undefined,
         })
 
       if (uploadError) throw uploadError
