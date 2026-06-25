@@ -87,6 +87,26 @@ Pendiente de definir con Liz (ver [`design-notes.md`](./ux/design-notes.md)). Po
 - Navbar height: `var(--navbar-h)` con valor dinámico `--navbar-actual-h` (ResizeObserver en `Navbar.tsx`)
 - Footer "telón": altura `--footer-stage-h`
 
+### Auth (login / registrar) — Hermès-style
+
+Ruta group `app/(auth)/` con layout dedicado (bg blanco, logo arriba). Componentes:
+
+- `app/components/auth/FloatingInput.tsx` y `FloatingSelect.tsx` — label flotante (gris que se achica al focus/fill), borde inferior, soporte de error en rojo "Información necesaria" + helper `Formato esperado: …`.
+- Card del login: `bg-neutral-100` (ver token de superficie sutil arriba).
+
+**Flujo email-first del login** (`app/(auth)/login/page.tsx`):
+
+1. Step 1: input email único + botón `CONTINUAR`. Vacío/inválido → marca rojo "Información necesaria".
+2. POST `/api/auth/check-email` (service role, consulta `public.users.email`).
+3. Si existe → email queda `readOnly` (label achicado), aparece campo password.
+4. Si no existe → redirect a `/registrar?email=…`.
+
+**Registro con OTP de email** (`app/(auth)/registrar/page.tsx`):
+
+- El correo lo dispara `supabase.auth.signInWithOtp(...)` — quien envía físicamente es Supabase Auth (con Custom SMTP Resend en prod, ver `docs/delivery/pendientes/resend.md` §2).
+- **Crítico:** el template **Magic Link** en Supabase Dashboard debe usar `{{ .Token }}` (no `{{ .ConfirmationURL }}`) para que llegue como código de 6 dígitos. Sin ese cambio el form queda roto en prod.
+- Al verificar (`verifyOtp({ type: "email" })`) se hace `updateUser({ password, data })` y luego `update users` con `first_name`, `last_name`, `phone`. Tratamiento, fecha de nacimiento y opt-in viven en `auth.users.user_metadata` (no requieren migración).
+
 ### Inputs admin
 
 ```tsx

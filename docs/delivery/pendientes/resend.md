@@ -33,7 +33,7 @@
 
 ## 2. Supabase Auth → SMTP con Resend (emails de auth con dominio propio)
 
-Por defecto Supabase envía los emails de auth (`confirmar cuenta`, `reset de contraseña`, `magic link`) desde `noreply@mail.supabase.io`. Para que salgan desde el dominio de Liz:
+Por defecto Supabase envía los emails de auth (`confirmar cuenta`, `reset de contraseña`, `magic link`) desde `noreply@mail.supabase.io` con **rate limit ~2 emails/hora** (no apto para prod). Para que salgan desde el dominio de Liz y sin rate limit:
 
 > **Requisito previo:** el dominio debe estar verificado en Resend (sección 1 completada).
 
@@ -50,11 +50,29 @@ Por defecto Supabase envía los emails de auth (`confirmar cuenta`, `reset de co
    ```
 2. Guardar y enviar un email de prueba desde el formulario de Supabase.
 3. Confirmar que el email llega y no cae en spam.
-4. Opcional: personalizar las plantillas en **Supabase → Auth → Email Templates**:
-   - Confirm signup
-   - Reset password
-   - Magic link
-   (Hoy usan los textos genéricos de Supabase en inglés)
+4. **Obligatorio para el registro `/registrar`:** personalizar el template **Magic Link** en **Supabase → Auth → Email Templates**.
+
+   El flujo de registro (`app/(auth)/registrar/page.tsx`) llama `supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })` y espera que el usuario tipee un **código de 6 dígitos** en el form. Supabase por default manda un **link**, no un código — hay que editar el template **Magic Link** para que use `{{ .Token }}`:
+
+   ```html
+   <h2>Tu código de verificación</h2>
+   <p>Hola,</p>
+   <p>Para completar tu registro en Liz Cabriales, ingresa este código en la página:</p>
+   <p style="font-size:24px;letter-spacing:0.3em;font-weight:600;">{{ .Token }}</p>
+   <p>El código expira en 1 hora.</p>
+   ```
+
+   Sin este cambio, `/registrar` queda roto (el usuario recibe un link inútil y nunca puede teclear el código).
+5. Opcional: personalizar también:
+   - **Confirm signup** — `{{ .ConfirmationURL }}` queda como link de confirmación tradicional.
+   - **Reset password** — idem.
+
+### Prueba de aceptación específica del registro
+
+- [ ] Custom SMTP guardado y verificado con el botón de Supabase.
+- [ ] Template **Magic Link** contiene literalmente la cadena `{{ .Token }}` (no `{{ .ConfirmationURL }}`).
+- [ ] Flujo end-to-end: ir a `/registrar`, meter email, click "ENVIAR EL CÓDIGO", recibir email con 6 dígitos visibles en el body, teclearlos en el form, completar registro → redirect a `/`.
+- [ ] El correo llega desde `noreply@[dominio-real]`, no `mail.supabase.io`.
 
 ---
 

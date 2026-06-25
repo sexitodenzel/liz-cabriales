@@ -171,17 +171,13 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [drawerOpen])
 
-  // Aplica el valor target de --navbar-actual-h discreto. La animación es
-  // 100% CSS (@property transition en :root), perfectamente sincronizada
-  // con el header (que usa height: var(--navbar-actual-h)) y con los stickys
-  // que la consumen (filter bar, etc.). Sin JS por frame = sin jank.
+  // Toggle de clase: el CSS hace toda la animación con transform (GPU).
+  // No tocamos --navbar-actual-h en runtime para evitar reflow de stickys.
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--navbar-actual-h",
-      hideChrome
-        ? "var(--navbar-desktop-collapsed-h)"
-        : "var(--navbar-desktop-expanded-h)",
-    )
+    document.documentElement.classList.toggle("navbar-collapsed", hideChrome)
+    return () => {
+      document.documentElement.classList.remove("navbar-collapsed")
+    }
   }, [hideChrome])
 
   useEffect(() => {
@@ -208,6 +204,17 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
     function evaluate() {
       rafId = null
+
+      // Hermès collapse aplica solo en desktop wide (>=1200px). En mobile/compact
+      // el navbar tiene altura fija y no debe togglear.
+      if (!window.matchMedia("(min-width: 1200px)").matches) {
+        if (lastScrollYRef.current !== window.scrollY) {
+          lastScrollYRef.current = window.scrollY
+        }
+        setHideChrome((prev) => (prev ? false : prev))
+        return
+      }
+
       const now = performance.now()
       if (now < cooldownUntil) {
         lastScrollYRef.current = window.scrollY
@@ -514,12 +521,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         </div>
 
         {/* ===== DESKTOP TOOLBAR (ancho completo) ===== */}
-        {/* Altura controlada por --navbar-actual-h (animada vía @property CSS).
-            Top row es flex-1, nav row es 48px fijo. Así una sola variable mueve
-            navbar + filter bar sticky perfectamente sincronizados. */}
+        {/* Altura del header (104px) controlada por CSS @media. Cuando colapsa,
+            el header se mueve con `transform` (GPU) — no animamos height. */}
         <div
-          className={`navbar-toolbar relative z-10 flex w-full flex-col ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
-          style={{ height: "var(--navbar-actual-h)" }}
+          className={`navbar-toolbar relative z-10 flex h-full w-full flex-col ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
           onMouseLeave={scheduleMenuClose}
         >
           {/* Fila superior: logo centrado + iconos a la derecha. Su altura cae a 0

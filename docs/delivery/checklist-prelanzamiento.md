@@ -19,7 +19,9 @@ Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **
 - [x] `EMAIL_FROM` actualizado a `notificaciones@lizcabriales.com` en `lib/email/templates/_shared.ts`
 - [ ] `RESEND_API_KEY` en Vercel
 - [ ] `ADMIN_EMAIL` en Vercel (dirección que recibe alertas de admin)
-- [ ] Supabase Auth → SMTP custom configurado con Resend (ver `docs/delivery/pendientes/resend.md` §SMTP)
+- [ ] Supabase Auth → SMTP custom configurado con Resend (ver `docs/delivery/pendientes/resend.md` §2)
+- [ ] **Template Magic Link de Supabase editado con `{{ .Token }}`** — obligatorio para `/registrar` (sin esto el OTP llega como link y el form queda roto). Ver `docs/delivery/pendientes/resend.md` §2 paso 4.
+- [ ] Smoke test registro: `/registrar` → email con código 6 dígitos → completar cuenta OK
 - [ ] Email templates de Supabase Auth revisados (no los genéricos del placeholder)
 - [ ] SQL ejecutado: `docs/delivery/sql-sprint5-supabase.sql` (recepcionista, CFDI, `handle_new_user`)
 - [ ] SQL ejecutado: `docs/delivery/sql-invoice-fields.sql` (columnas facturación CFDI en `orders`)
