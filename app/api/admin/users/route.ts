@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
       firstName: parseResult.data.first_name,
       lastName: parseResult.data.last_name,
       email: parseResult.data.email,
+      phone: parseResult.data.phone,
     })
 
     if (!result.data) {

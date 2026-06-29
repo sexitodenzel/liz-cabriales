@@ -4,6 +4,7 @@ import {
   appointmentAllowsClientCancel,
   CANCEL_MIN_HOURS,
 } from "@/lib/appointmentCancelPolicy"
+import { paymentDeadlineThresholdIso } from "@/lib/appointmentPaymentPolicy"
 import type { AppointmentStatus, AppointmentType } from "@/types"
 
 import { createClient } from "./server"
@@ -133,12 +134,14 @@ export type AppointmentWithDetails = AppointmentRecord & {
   client_first_name: string | null
   client_last_name: string | null
   client_email: string | null
+  client_phone: string | null
 }
 
 export type AdminAppointmentRow = AppointmentRecord & {
   client_first_name: string | null
   client_last_name: string | null
   client_email: string | null
+  client_phone: string | null
 }
 
 export type BlockedSlotRow = {
@@ -429,6 +432,22 @@ type CreateAppointmentArgs = CreateAppointmentInput & {
   appointment_type?: AppointmentType
   skip_user_active_check?: boolean
   force_status?: AppointmentStatus
+}
+
+export async function saveClientPhone(
+  userId: string,
+  phone: string
+): Promise<Result<null>> {
+  const { error } = await supabaseAdmin
+    .from("users")
+    .update({ phone })
+    .eq("id", userId)
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return { data: null, error: null }
 }
 
 export async function createAppointment(
@@ -779,7 +798,7 @@ export async function getAppointmentWithDetails(
       `id, user_id, professional_id, appointment_type, date, start_time, end_time,
        total, status, created_at,
        professionals ( name ),
-       users ( first_name, last_name, email ),
+       users ( first_name, last_name, email, phone ),
        appointment_services (
          service_id, unit_price,
          services ( name, duration_min )
@@ -808,6 +827,7 @@ export async function getAppointmentWithDetails(
       client_first_name: user?.first_name ?? null,
       client_last_name: user?.last_name ?? null,
       client_email: user?.email ?? null,
+      client_phone: user?.phone ?? null,
     },
     error: null,
   }
@@ -1171,9 +1191,34 @@ export async function rescheduleAppointment(
 
 type RawAdminApptRow = RawApptRow & {
   users:
-    | { first_name?: string; last_name?: string; email?: string }
-    | { first_name?: string; last_name?: string; email?: string }[]
+    | { first_name?: string; last_name?: string; email?: string; phone?: string }
+    | { first_name?: string; last_name?: string; email?: string; phone?: string }[]
     | null
+}
+
+function adminAppointmentSelect() {
+  return `id, user_id, professional_id, appointment_type, date, start_time, end_time,
+       total, status, created_at,
+       professionals ( name ),
+       users ( first_name, last_name, email, phone ),
+       appointment_services (
+         service_id, unit_price,
+         services ( name, duration_min )
+       )`
+}
+
+function mapAdminAppointmentRows(rows: RawAdminApptRow[]): AdminAppointmentRow[] {
+  return rows.map((row) => {
+    const base = mapApptRow(row)
+    const user = unwrap(row.users)
+    return {
+      ...base,
+      client_first_name: user?.first_name ?? null,
+      client_last_name: user?.last_name ?? null,
+      client_email: user?.email ?? null,
+      client_phone: user?.phone ?? null,
+    }
+  })
 }
 
 export async function getAdminAppointments(
@@ -1182,16 +1227,7 @@ export async function getAdminAppointments(
 ): Promise<Result<AdminAppointmentRow[]>> {
   let query = supabaseAdmin
     .from("appointments")
-    .select(
-      `id, user_id, professional_id, appointment_type, date, start_time, end_time,
-       total, status, created_at,
-       professionals ( name ),
-       users ( first_name, last_name, email ),
-       appointment_services (
-         service_id, unit_price,
-         services ( name, duration_min )
-       )`
-    )
+    .select(adminAppointmentSelect())
     .order("date", { ascending: true })
     .order("start_time", { ascending: true })
 
@@ -1205,18 +1241,213 @@ export async function getAdminAppointments(
   }
 
   const rows = (data ?? []) as unknown as RawAdminApptRow[]
-  const result: AdminAppointmentRow[] = rows.map((row) => {
-    const base = mapApptRow(row)
-    const user = unwrap(row.users)
-    return {
-      ...base,
-      client_first_name: user?.first_name ?? null,
-      client_last_name: user?.last_name ?? null,
-      client_email: user?.email ?? null,
-    }
-  })
+  return { data: mapAdminAppointmentRows(rows), error: null }
+}
 
-  return { data: result, error: null }
+export async function getUpcomingAdminAppointments(options: {
+  limit?: number
+  professionalId?: string
+  status?: AppointmentStatus
+}): Promise<Result<AdminAppointmentRow[]>> {
+  const limit = options.limit ?? 10
+  const status = options.status ?? "pending"
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, "0")
+  const dd = String(today.getDate()).padStart(2, "0")
+  const todayStr = `${yyyy}-${mm}-${dd}`
+
+  let query = supabaseAdmin
+    .from("appointments")
+    .select(adminAppointmentSelect())
+    .eq("status", status)
+    .gte("date", todayStr)
+    .order("date", { ascending: true })
+    .order("start_time", { ascending: true })
+    .limit(limit)
+
+  if (options.professionalId) {
+    query = query.eq("professional_id", options.professionalId)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  const rows = (data ?? []) as unknown as RawAdminApptRow[]
+  return { data: mapAdminAppointmentRows(rows), error: null }
+}
+
+export async function cancelExpiredPendingAppointments(options?: {
+  userId?: string
+}): Promise<Result<number>> {
+  const threshold = paymentDeadlineThresholdIso()
+
+  let query = supabaseAdmin
+    .from("appointments")
+    .update({ status: "cancelled" })
+    .eq("status", "pending")
+    .lt("created_at", threshold)
+
+  if (options?.userId) {
+    query = query.eq("user_id", options.userId)
+  }
+
+  const { data, error } = await query.select("id")
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return { data: data?.length ?? 0, error: null }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * Profesionales (admin)
+ * ────────────────────────────────────────────────────────────────────── */
+
+function mapProfessionalRows(
+  data: {
+    id: string
+    name: string
+    bio: string | null
+    photo_url: string | null
+    is_active: boolean
+  }[]
+): ProfessionalRow[] {
+  return data.map((r) => ({
+    id: r.id,
+    name: r.name,
+    bio: r.bio ?? null,
+    photo_url: r.photo_url ?? null,
+    is_active: Boolean(r.is_active),
+  }))
+}
+
+export async function getAdminProfessionals(): Promise<Result<ProfessionalRow[]>> {
+  const { data, error } = await supabaseAdmin
+    .from("professionals")
+    .select("id, name, bio, photo_url, is_active")
+    .order("name", { ascending: true })
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return { data: mapProfessionalRows(data ?? []), error: null }
+}
+
+export async function createProfessional(
+  name: string
+): Promise<Result<ProfessionalRow>> {
+  const trimmed = name.trim()
+  if (!trimmed) {
+    return {
+      data: null,
+      error: { message: "El nombre es obligatorio", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("professionals")
+    .insert({ name: trimmed, is_active: true })
+    .select("id, name, bio, photo_url, is_active")
+    .single()
+
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo crear el trabajador",
+        code: error?.code,
+      },
+    }
+  }
+
+  return { data: mapProfessionalRows([data])[0], error: null }
+}
+
+export async function updateProfessional(
+  id: string,
+  patch: { name?: string; is_active?: boolean }
+): Promise<Result<ProfessionalRow>> {
+  const updates: { name?: string; is_active?: boolean } = {}
+
+  if (patch.name !== undefined) {
+    const trimmed = patch.name.trim()
+    if (!trimmed) {
+      return {
+        data: null,
+        error: { message: "El nombre es obligatorio", code: "VALIDATION_ERROR" },
+      }
+    }
+    updates.name = trimmed
+  }
+
+  if (patch.is_active !== undefined) {
+    updates.is_active = patch.is_active
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return {
+      data: null,
+      error: { message: "Sin cambios", code: "VALIDATION_ERROR" },
+    }
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("professionals")
+    .update(updates)
+    .eq("id", id)
+    .select("id, name, bio, photo_url, is_active")
+    .single()
+
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo actualizar el trabajador",
+        code: error?.code,
+      },
+    }
+  }
+
+  return { data: mapProfessionalRows([data])[0], error: null }
+}
+
+export async function deleteProfessional(id: string): Promise<Result<null>> {
+  const { count, error: countError } = await supabaseAdmin
+    .from("appointments")
+    .select("id", { count: "exact", head: true })
+    .eq("professional_id", id)
+
+  if (countError) {
+    return {
+      data: null,
+      error: { message: countError.message, code: countError.code },
+    }
+  }
+
+  if ((count ?? 0) > 0) {
+    return {
+      data: null,
+      error: {
+        message:
+          "Este trabajador tiene citas registradas. Desactívalo en lugar de eliminarlo.",
+        code: "HAS_APPOINTMENTS",
+      },
+    }
+  }
+
+  const { error } = await supabaseAdmin.from("professionals").delete().eq("id", id)
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  return { data: null, error: null }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────

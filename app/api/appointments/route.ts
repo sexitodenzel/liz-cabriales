@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import {
   createAppointment,
   listAppointmentsForUser,
+  saveClientPhone,
   type AppointmentRecord,
 } from "@/lib/supabase/appointments"
 import { createAppointmentSchema } from "@/lib/validations/appointments"
@@ -78,8 +79,19 @@ export async function POST(
       )
     }
 
+    const { client_phone, ...appointmentInput } = parseResult.data
+
+    const phoneResult = await saveClientPhone(user.id, client_phone)
+    if (phoneResult.error) {
+      return errorResponse(
+        "No se pudo guardar tu número de celular",
+        500,
+        phoneResult.error.code
+      )
+    }
+
     const result = await createAppointment({
-      ...parseResult.data,
+      ...appointmentInput,
       user_id: user.id,
       appointment_type: "individual",
     })

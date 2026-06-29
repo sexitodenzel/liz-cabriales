@@ -246,10 +246,10 @@ export const serviciosCategories: TiendaCategory[] = [
   {
     label: "Agendar cita",
     slug: "agendar",
-    href: "/citas",
+    href: "/servicios",
     subcategories: [
-      { label: "Ver disponibilidad", href: "/citas" },
-      { label: "Agendar cita",       href: "/citas" },
+      { label: "Ver disponibilidad", href: "/servicios" },
+      { label: "Agendar cita",       href: "/servicios" },
     ],
   },
 ]

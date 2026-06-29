@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { CalendarX2, Pencil, X } from "lucide-react"
 
 import type {
   AdminAppointmentRow,
@@ -11,18 +12,21 @@ import type {
 import type { AppointmentStatus } from "@/types"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import DatePicker from "@/components/shared/DatePicker"
 import NewAppointmentModal from "./components/NewAppointmentModal"
 import BlockSlotModal from "./components/BlockSlotModal"
 import RescheduleAppointmentModal from "./components/RescheduleAppointmentModal"
 import CourseDaysPanel from "./components/CourseDaysPanel"
+import WorkersPanel from "./components/WorkersPanel"
+import PaymentCountdownCell from "./components/PaymentCountdownCell"
 import { toast } from "@/app/components/ui/motion/toast-provider"
-
-const BRAND_GOLD = "#C9A84C"
 
 type Props = {
   professionals: ProfessionalRow[]
   services: ServiceRow[]
 }
+
+type StatusFilter = "all" | AppointmentStatus
 
 function todayString(): string {
   const d = new Date()
@@ -48,10 +52,60 @@ function formatTimeLabel(hhmmss: string): string {
   return `${h12}:${String(mm).padStart(2, "0")} ${ampm}`
 }
 
+function formatPhoneDisplay(phone: string | null): string | null {
+  if (!phone) return null
+  const digits = phone.replace(/^\+52/, "").replace(/\D/g, "")
+  if (digits.length === 10) {
+    return `+52 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`
+  }
+  return phone
+}
+
+function phoneWhatsAppHref(phone: string | null): string | null {
+  if (!phone) return null
+  const digits = phone.replace(/\D/g, "")
+  if (digits.length === 10) return `https://wa.me/52${digits}`
+  if (digits.startsWith("52") && digits.length === 12) {
+    return `https://wa.me/${digits}`
+  }
+  if (digits.length >= 10) return `https://wa.me/${digits}`
+  return null
+}
+
+const TABLE_COL_COUNT = 9
+const UPCOMING_TABLE_COL_COUNT = 10
+
+function getClientInitials(
+  first: string | null,
+  last: string | null,
+  email: string | null
+): string {
+  const name = [first, last].filter(Boolean).join(" ")
+  if (name) {
+    return name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
+  }
+  if (email) return email.slice(0, 2).toUpperCase()
+  return "?"
+}
+
+function formatDateLabel(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString("es-MX", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  })
+}
+
 function statusLabel(status: AppointmentStatus): string {
   const map: Record<AppointmentStatus, string> = {
     pending: "Pendiente",
-    paid: "Pagada",
+    paid: "Confirmada",
     completed: "Completada",
     cancelled: "Cancelada",
   }
@@ -61,38 +115,59 @@ function statusLabel(status: AppointmentStatus): string {
 function statusClass(status: AppointmentStatus): string {
   switch (status) {
     case "pending":
-      return "bg-neutral-200 text-neutral-800 border-neutral-300"
+      return "bg-neutral-100 text-neutral-600 border-neutral-200"
     case "paid":
-      return "bg-blue-100 text-blue-900 border-blue-200"
+      return "bg-rose-50 text-rose-800 border-rose-200"
     case "completed":
-      return "bg-emerald-100 text-emerald-900 border-emerald-200"
+      return "bg-emerald-50 text-emerald-800 border-emerald-200"
     case "cancelled":
-      return "bg-red-100 text-red-900 border-red-200"
+      return "bg-neutral-50 text-neutral-400 border-neutral-200"
     default:
       return "bg-neutral-100 text-neutral-800 border-neutral-200"
   }
 }
 
 export default function AdminAppointmentsClient({
-  professionals,
+  professionals: initialWorkers,
   services,
 }: Props) {
-  const [date, setDate] = useState<string>(todayString())
+  const [date, setDate] = useState<string>("")
   const [professionalId, setProfessionalId] = useState<string>("all")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [appointments, setAppointments] = useState<AdminAppointmentRow[]>([])
+  const [workers, setWorkers] = useState<ProfessionalRow[]>(initialWorkers)
   const [loading, setLoading] = useState(false)
   const [showNewModal, setShowNewModal] = useState(false)
-  const [showBlockModal, setShowBlockModal] = useState(false)
+  const [blockTarget, setBlockTarget] = useState<ProfessionalRow | null>(null)
   const [rescheduleTarget, setRescheduleTarget] =
     useState<AdminAppointmentRow | null>(null)
+
+  const isUpcomingView = date === ""
+
+  const activeWorkers = useMemo(
+    () => workers.filter((w) => w.is_active),
+    [workers]
+  )
 
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const qs = new URLSearchParams({ date })
-      if (professionalId !== "all") {
-        qs.set("professional_id", professionalId)
+      const qs = new URLSearchParams()
+
+      if (date) {
+        qs.set("date", date)
+        if (professionalId !== "all") {
+          qs.set("professional_id", professionalId)
+        }
+      } else {
+        if (professionalId !== "all") {
+          qs.set("professional_id", professionalId)
+        }
+        if (statusFilter !== "all") {
+          qs.set("status", statusFilter)
+        }
       }
+
       const res = await fetch(`/api/admin/appointments?${qs.toString()}`, {
         headers: { "Content-Type": "application/json" },
       })
@@ -108,7 +183,7 @@ export default function AdminAppointmentsClient({
     } finally {
       setLoading(false)
     }
-  }, [date, professionalId])
+  }, [date, professionalId, statusFilter])
 
   useEffect(() => {
     fetchData()
@@ -133,24 +208,36 @@ export default function AdminAppointmentsClient({
     }
   }
 
-  const visibleAppointments = useMemo(
-    () =>
-      appointments.filter((a) =>
-        professionalId === "all" ? true : a.professional_id === professionalId
-      ),
-    [appointments, professionalId]
-  )
+  const visibleAppointments = useMemo(() => {
+    return appointments.filter((a) => {
+      if (isUpcomingView) return true
+      if (professionalId !== "all" && a.professional_id !== professionalId) {
+        return false
+      }
+      if (statusFilter !== "all" && a.status !== statusFilter) {
+        return false
+      }
+      return true
+    })
+  }, [appointments, professionalId, statusFilter, isUpcomingView])
 
-  const totalDay = useMemo(
-    () =>
-      visibleAppointments
-        .filter((a) => a.status !== "cancelled")
-        .reduce((sum, a) => sum + a.total, 0),
-    [visibleAppointments]
-  )
+  const stats = useMemo(() => {
+    const active = visibleAppointments.filter((a) => a.status !== "cancelled")
+    const confirmed = active.filter(
+      (a) => a.status === "paid" || a.status === "completed"
+    )
+    const pending = active.filter((a) => a.status === "pending")
+    const totalDay = active.reduce((sum, a) => sum + a.total, 0)
+    return {
+      totalCount: active.length,
+      confirmedCount: confirmed.length,
+      pendingCount: pending.length,
+      totalDay,
+    }
+  }, [visibleAppointments])
 
   return (
-    <div className="min-h-screen bg-white text-[#1a1a1a]">
+    <div className="min-h-screen bg-[#faf8f5] text-[#111]">
       <div className="mx-auto max-w-[1400px] px-6 pt-5 pb-10">
         <Breadcrumb
           items={[
@@ -160,103 +247,175 @@ export default function AdminAppointmentsClient({
             { label: "Agenda" },
           ]}
         />
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
-              PANEL ADMINISTRADOR
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c9a84c]">
+              Panel administrador
             </p>
-            <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">Agenda</h1>
+            <h1 className="mt-2 font-[family-name:var(--font-playfair),serif] text-3xl font-medium tracking-tight text-[#111] md:text-4xl">
+              Agenda
+            </h1>
+            {isUpcomingView && (
+              <p className="mt-2 text-sm text-neutral-500">
+                Mostrando las próximas 10 citas pendientes sin filtro de fecha.
+              </p>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowBlockModal(true)}
-              className="rounded-lg border border-[#ececec] bg-white px-4 py-2 text-sm font-medium text-[#3a3a3a] hover:border-[#c9a84c] hover:text-[#a8893a] transition-colors"
-            >
-              Bloquear horario
-            </button>
-            <button
-              type="button"
               onClick={() => setShowNewModal(true)}
-              className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors"
+              className="rounded-lg bg-[#111] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#c9a84c] hover:text-[#111]"
             >
               Nueva cita manual
             </button>
             <Link
               href="/admin"
-              className="text-sm font-medium text-[#6b6b6b] hover:text-[#1a1a1a] transition-colors"
+              className="px-2 text-sm text-neutral-500 transition-colors hover:text-[#111]"
             >
               ← Volver al panel
             </Link>
           </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap items-end gap-4 rounded-2xl border border-[#ececec] bg-white p-4">
-          <div>
-            <label
-              htmlFor="date"
-              className="block text-xs font-medium text-[#6b6b6b]"
-            >
-              Fecha
-            </label>
-            <input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="mt-1 rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
-            />
+        <div className="mb-6 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-lg border border-neutral-200/80 bg-white p-5 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+              {isUpcomingView ? "Próximas citas" : "Citas del día"}
+            </p>
+            <p className="mt-2 font-[family-name:var(--font-playfair),serif] text-4xl font-medium text-[#111]">
+              {stats.totalCount}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {isUpcomingView
+                ? "Hasta 10 citas · sin filtro de fecha"
+                : `${stats.confirmedCount} confirmada${stats.confirmedCount === 1 ? "" : "s"}`}
+            </p>
           </div>
-          <div>
-            <label
-              htmlFor="professional"
-              className="block text-xs font-medium text-[#6b6b6b]"
-            >
-              Profesional
-            </label>
-            <select
-              id="professional"
-              value={professionalId}
-              onChange={(e) => setProfessionalId(e.target.value)}
-              className="mt-1 rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
-            >
-              <option value="all">Todos</option>
-              {professionals.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="ml-auto text-sm text-[#6b6b6b]">
-            Total del día:{" "}
-            <span className="font-semibold text-[#1a1a1a]">
-              {formatPrice(totalDay)}
-            </span>
+          <div className="rounded-lg border border-neutral-200/80 bg-white p-5 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+              Pendientes de pago
+            </p>
+            <p className="mt-2 font-[family-name:var(--font-playfair),serif] text-4xl font-medium text-[#c9a84c]">
+              {stats.pendingCount}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">Por confirmar pago</p>
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-[#ececec] bg-white">
+        <WorkersPanel
+          workers={workers}
+          onWorkersChange={setWorkers}
+          onBlockSchedule={setBlockTarget}
+        />
+
+        <div className="overflow-hidden rounded-lg border border-neutral-200/80 bg-white shadow-sm">
+          <div className="flex flex-wrap items-end gap-4 border-b border-neutral-100 px-5 py-4">
+            <div>
+              <label
+                htmlFor="date"
+                className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500"
+              >
+                Fecha
+              </label>
+              <div className="mt-1.5 flex items-center gap-2">
+                <DatePicker
+                  id="date"
+                  value={date}
+                  onChange={setDate}
+                  className="min-w-[180px]"
+                />
+                {date && (
+                  <button
+                    type="button"
+                    onClick={() => setDate("")}
+                    className="text-[11px] font-medium text-[#c9a84c] hover:underline"
+                  >
+                    Quitar fecha
+                  </button>
+                )}
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="professional"
+                className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500"
+              >
+                Profesional
+              </label>
+              <select
+                id="professional"
+                value={professionalId}
+                onChange={(e) => setProfessionalId(e.target.value)}
+                className="mt-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-[#c9a84c]"
+              >
+                <option value="all">Todos</option>
+                {activeWorkers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="status"
+                className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500"
+              >
+                Estado
+              </label>
+              <select
+                id="status"
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value as StatusFilter)
+                }
+                className="mt-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-[#c9a84c]"
+              >
+                <option value="all">Cualquiera</option>
+                <option value="pending">Pendiente</option>
+                <option value="paid">Confirmada</option>
+                <option value="completed">Completada</option>
+                <option value="cancelled">Cancelada</option>
+              </select>
+            </div>
+            {!isUpcomingView && (
+              <div className="ml-auto text-right">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+                  Total del día
+                </p>
+                <p className="mt-1 font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
+                  {formatPrice(stats.totalDay)}
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-[#fafafa] text-xs uppercase tracking-[0.16em] text-[#6b6b6b]">
+              <thead className="border-b border-neutral-100 bg-neutral-50/80 text-[11px] uppercase tracking-[0.14em] text-neutral-500">
                 <tr>
-                  <th className="px-4 py-3 font-semibold">Hora</th>
-                  <th className="px-4 py-3 font-semibold">Profesional</th>
-                  <th className="px-4 py-3 font-semibold">Cliente</th>
-                  <th className="px-4 py-3 font-semibold">Servicios</th>
-                  <th className="px-4 py-3 font-semibold">Duración</th>
-                  <th className="px-4 py-3 font-semibold">Total</th>
-                  <th className="px-4 py-3 font-semibold">Estado</th>
-                  <th className="px-4 py-3 font-semibold">Acciones</th>
+                  {isUpcomingView && (
+                    <th className="px-5 py-3 font-semibold">Fecha</th>
+                  )}
+                  <th className="px-5 py-3 font-semibold">Hora</th>
+                  <th className="px-5 py-3 font-semibold">Profesional</th>
+                  <th className="px-5 py-3 font-semibold">Cliente</th>
+                  <th className="px-5 py-3 font-semibold">Celular</th>
+                  <th className="px-5 py-3 font-semibold">Servicios</th>
+                  <th className="px-5 py-3 font-semibold">Duración</th>
+                  <th className="px-5 py-3 font-semibold">Estado</th>
+                  <th className="px-5 py-3 font-semibold">Expira en:</th>
+                  <th className="px-5 py-3 font-semibold">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#ececec]">
+              <tbody className="divide-y divide-neutral-100">
                 {loading ? (
                   <tr>
                     <td
-                      colSpan={8}
-                      className="px-6 py-10 text-center text-[#6b6b6b]"
+                      colSpan={isUpcomingView ? UPCOMING_TABLE_COL_COUNT : TABLE_COL_COUNT}
+                      className="px-6 py-12 text-center text-neutral-500"
                     >
                       Cargando…
                     </td>
@@ -264,10 +423,17 @@ export default function AdminAppointmentsClient({
                 ) : visibleAppointments.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
-                      className="px-6 py-10 text-center text-[#6b6b6b]"
+                      colSpan={isUpcomingView ? UPCOMING_TABLE_COL_COUNT : TABLE_COL_COUNT}
+                      className="px-6 py-12 text-center"
                     >
-                      No hay citas para este día.
+                      <div className="flex flex-col items-center gap-2 text-neutral-500">
+                        <CalendarX2 className="h-5 w-5 text-neutral-400" />
+                        <p className="text-sm">
+                          {isUpcomingView
+                            ? "No hay citas pendientes próximas con los filtros seleccionados."
+                            : "No hay citas para este día con los filtros seleccionados."}
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -281,52 +447,96 @@ export default function AdminAppointmentsClient({
                         .filter(Boolean)
                         .join(" ") ||
                       a.client_email ||
-                      "—"
+                      "Sin nombre"
+                    const phoneDisplay = formatPhoneDisplay(a.client_phone)
+                    const phoneHref = phoneWhatsAppHref(a.client_phone)
+                    const initials = getClientInitials(
+                      a.client_first_name,
+                      a.client_last_name,
+                      a.client_email
+                    )
+
                     return (
-                      <tr key={a.id} className="hover:bg-[#fafafa]">
-                        <td className="px-4 py-3 font-medium text-[#1a1a1a]">
+                      <tr key={a.id} className="transition-colors hover:bg-neutral-50/60">
+                        {isUpcomingView && (
+                          <td className="px-5 py-4 text-neutral-700 capitalize">
+                            {formatDateLabel(a.date)}
+                          </td>
+                        )}
+                        <td className="px-5 py-4 font-medium text-[#111]">
                           {formatTimeLabel(a.start_time)}
-                          <span className="block text-[10px] text-[#6b6b6b]">
-                            hasta {formatTimeLabel(a.end_time)}
-                          </span>
                         </td>
-                        <td className="px-4 py-3 text-[#3a3a3a]">
+                        <td className="px-5 py-4 text-neutral-700">
                           {a.professional_name ?? "—"}
                         </td>
-                        <td className="px-4 py-3 text-[#3a3a3a]">
-                          <div>{clientName}</div>
-                          {a.client_email && (
-                            <div className="text-[11px] text-[#6b6b6b]">
-                              {a.client_email}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-semibold text-neutral-600">
+                              {initials}
                             </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-[#111]">
+                                {clientName}
+                              </p>
+                              {a.client_email ? (
+                                <p className="truncate text-xs text-neutral-500">
+                                  {a.client_email}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-neutral-400">
+                                  Sin email
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 text-neutral-700">
+                          {phoneDisplay && phoneHref ? (
+                            <a
+                              href={phoneHref}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="whitespace-nowrap text-sm text-[#111] transition-colors hover:text-[#c9a84c]"
+                            >
+                              {phoneDisplay}
+                            </a>
+                          ) : (
+                            <span className="text-sm text-neutral-400">
+                              Sin registrar
+                            </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-[#3a3a3a]">
+                        <td className="px-5 py-4 text-neutral-700">
                           {a.services.map((s) => s.service_name).join(", ")}
                         </td>
-                        <td className="px-4 py-3 text-[#3a3a3a]">
+                        <td className="px-5 py-4 text-neutral-700">
                           {duration} min
                         </td>
-                        <td className="px-4 py-3 font-medium text-[#1a1a1a]">
-                          {formatPrice(a.total)}
-                        </td>
-                        <td className="px-4 py-3">
+                        <td className="px-5 py-4">
                           <span
-                            className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${statusClass(a.status)}`}
+                            className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClass(a.status)}`}
                           >
                             {statusLabel(a.status)}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap items-center gap-2">
+                        <td className="px-5 py-4">
+                          <PaymentCountdownCell
+                            createdAt={a.created_at}
+                            status={a.status}
+                          />
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-1">
                             {(a.status === "paid" ||
                               a.status === "pending") && (
                               <button
                                 type="button"
                                 onClick={() => setRescheduleTarget(a)}
-                                className="rounded-md border border-[#e8dcb0] bg-[#f5efdc] px-3 py-1 text-xs font-semibold text-[#a8893a] hover:bg-[#e8dcb0] transition-colors"
+                                className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-[#111]"
+                                aria-label="Reprogramar cita"
+                                title="Reprogramar"
                               >
-                                Reprogramar
+                                <Pencil className="h-4 w-4" />
                               </button>
                             )}
                             {a.status !== "cancelled" &&
@@ -334,9 +544,11 @@ export default function AdminAppointmentsClient({
                                 <button
                                   type="button"
                                   onClick={() => handleCancel(a.id)}
-                                  className="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                                  aria-label="Cancelar cita"
+                                  title="Cancelar"
                                 >
-                                  Cancelar
+                                  <X className="h-4 w-4" />
                                 </button>
                               )}
                           </div>
@@ -355,9 +567,9 @@ export default function AdminAppointmentsClient({
 
       {showNewModal && (
         <NewAppointmentModal
-          professionals={professionals}
+          professionals={activeWorkers}
           services={services}
-          defaultDate={date}
+          defaultDate={date || todayString()}
           onClose={() => setShowNewModal(false)}
           onCreated={() => {
             setShowNewModal(false)
@@ -366,13 +578,14 @@ export default function AdminAppointmentsClient({
         />
       )}
 
-      {showBlockModal && (
+      {blockTarget && (
         <BlockSlotModal
-          professionals={professionals}
-          defaultDate={date}
-          onClose={() => setShowBlockModal(false)}
+          professionals={activeWorkers}
+          defaultDate={date || todayString()}
+          defaultProfessionalId={blockTarget.id}
+          onClose={() => setBlockTarget(null)}
           onCreated={() => {
-            setShowBlockModal(false)
+            setBlockTarget(null)
             fetchData()
           }}
         />
@@ -381,7 +594,7 @@ export default function AdminAppointmentsClient({
       {rescheduleTarget && (
         <RescheduleAppointmentModal
           appointment={rescheduleTarget}
-          professionals={professionals}
+          professionals={activeWorkers}
           onClose={() => setRescheduleTarget(null)}
           onRescheduled={() => {
             setRescheduleTarget(null)

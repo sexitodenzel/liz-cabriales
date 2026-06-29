@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import DatePicker from "@/components/shared/DatePicker"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type CourseInfo = {
@@ -336,12 +337,14 @@ export default function CourseDaysPanel() {
                 <label className="block text-[10px] font-medium text-[#6b6b6b]">
                   Fecha
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={newDate}
                   min={todayStr()}
-                  onChange={(e) => { setNewDate(e.target.value); setError(null) }}
-                  className="mt-1 rounded-lg border border-[#ececec] px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
+                  onChange={(next) => {
+                    setNewDate(next)
+                    setError(null)
+                  }}
+                  className="mt-1"
                 />
               </div>
               <div>

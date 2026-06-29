@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getUserActiveAppointment } from "@/lib/supabase/appointments"
+import { getUserActiveAppointment, cancelExpiredPendingAppointments } from "@/lib/supabase/appointments"
 import {
   getProfessionalsCached as getProfessionals,
   getServicesCached as getServices,
@@ -22,13 +22,7 @@ export default async function ServiciosPage() {
 
   let activeAppointmentId: string | null = null
   if (user) {
-    // Auto-cancel any abandoned pending appointments before checking active ones.
-    // Pending appointments don't reserve resources after this — only paid ones block.
-    await supabase
-      .from("appointments")
-      .update({ status: "cancelled" })
-      .eq("user_id", user.id)
-      .eq("status", "pending")
+    await cancelExpiredPendingAppointments({ userId: user.id })
 
     const active = await getUserActiveAppointment(user.id)
     if (active.data) activeAppointmentId = active.data.id

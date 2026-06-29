@@ -8,6 +8,7 @@ import type { AppointmentStatus } from "@/types"
 import CancelAppointmentButton from "./CancelAppointmentButton"
 import RetryAppointmentPaymentButton from "./error/RetryAppointmentPaymentButton"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AppointmentPaymentDeadlineAlert from "@/app/components/appointments/AppointmentPaymentDeadlineAlert"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -97,7 +98,7 @@ export default async function CitaPage({ params, searchParams }: Props) {
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/citas"
+              href="/servicios"
               className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
             >
               Agendar una cita
@@ -151,7 +152,11 @@ export default async function CitaPage({ params, searchParams }: Props) {
           </div>
         )}
 
-        {!isSuccess && !isPending && (
+        {appointment.status === "pending" && (
+          <AppointmentPaymentDeadlineAlert createdAt={appointment.created_at} />
+        )}
+
+        {!isSuccess && !isPending && appointment.status !== "pending" && (
           <div className="mb-8">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9b8b65]">
               Detalle de cita
@@ -250,7 +255,7 @@ export default async function CitaPage({ params, searchParams }: Props) {
                 />
               )}
               <Link
-                href="/citas"
+                href="/servicios"
                 className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
               >
                 Volver a citas

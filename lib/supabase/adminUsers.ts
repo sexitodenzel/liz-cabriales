@@ -17,6 +17,7 @@ export type CreateClientFromAdminInput = {
   firstName: string
   lastName: string
   email: string
+  phone: string
 }
 
 export type CreateClientFromAdminResult = {
@@ -40,12 +41,13 @@ export async function createClientFromAdmin(
   const firstName = input.firstName.trim()
   const lastName = input.lastName.trim()
   const email = input.email.trim().toLowerCase()
+  const phone = input.phone.replace(/\D/g, "").slice(0, 10)
 
-  if (!firstName || !lastName || !email) {
+  if (!firstName || !lastName || !email || phone.length !== 10) {
     return {
       data: null,
       error: {
-        message: "Nombre, apellido y email son obligatorios",
+        message: "Nombre, apellido, email y celular son obligatorios",
         code: "VALIDATION_ERROR",
       },
     }
@@ -84,6 +86,7 @@ export async function createClientFromAdmin(
     .update({
       first_name: firstName,
       last_name: lastName,
+      phone,
     })
     .eq("id", userId)
 

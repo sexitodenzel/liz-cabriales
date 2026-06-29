@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import DatePicker from "@/components/shared/DatePicker"
 import ImageUploader from "@/app/admin/components/ImageUploader"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
@@ -258,11 +259,9 @@ export default function AdminSobreLizPage() {
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
                   Fecha
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#c9a84c] focus:ring-1 focus:ring-[#c9a84c]"
+                  onChange={setNewDate}
                 />
               </div>
 

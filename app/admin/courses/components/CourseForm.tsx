@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import ImageUploader from "@/app/admin/components/ImageUploader"
+import DatePicker from "@/components/shared/DatePicker"
 import CourseGalleryEditor, {
   type LocalGalleryItem,
   toLocalGalleryItems,
@@ -342,21 +343,18 @@ export default function CourseForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={labelCls}>Fecha de inicio</label>
-              <input
-                type="date"
-                required
+              <DatePicker
                 value={values.start_date}
-                onChange={(e) => update("start_date", e.target.value)}
-                className={inputCls}
+                onChange={(next) => update("start_date", next)}
+                className="mt-1"
               />
             </div>
             <div>
               <label className={labelCls}>Fecha de fin (opcional)</label>
-              <input
-                type="date"
+              <DatePicker
                 value={values.end_date}
-                onChange={(e) => update("end_date", e.target.value)}
-                className={inputCls}
+                onChange={(next) => update("end_date", next)}
+                className="mt-1"
               />
             </div>
           </div>

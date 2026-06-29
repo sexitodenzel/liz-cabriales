@@ -332,7 +332,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
           </span>
         </Link>
 
-        <Link href="/citas" onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
+        <Link href="/servicios" onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
           <Calendar className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
           <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
             Agenda tu cita

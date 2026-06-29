@@ -105,7 +105,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       nextUserId: string,
       mergeGuest: boolean
     ) => {
-      if (loadInFlightRef.current) return
+      if (loadInFlightRef.current || !isMounted) return
       loadInFlightRef.current = true
 
       userIdRef.current = nextUserId
@@ -144,6 +144,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     const init = async () => {
+      if (!isMounted) return
       setIsLoading(true)
 
       const {
@@ -169,25 +170,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    void init()
+    const initFrame = requestAnimationFrame(() => {
+      void init()
+    })
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        void loadAuthenticatedCart(session.user.id, true)
-        return
-      }
+      if (event === "INITIAL_SESSION") return
 
-      if (event === "SIGNED_OUT") {
-        userIdRef.current = null
-        setUserId(null)
-        setItems(readGuestCart().items)
-      }
+      queueMicrotask(() => {
+        if (!isMounted) return
+
+        if (event === "SIGNED_IN" && session?.user) {
+          void loadAuthenticatedCart(session.user.id, true)
+          return
+        }
+
+        if (event === "SIGNED_OUT") {
+          userIdRef.current = null
+          setUserId(null)
+          setItems(readGuestCart().items)
+        }
+      })
     })
 
     return () => {
       isMounted = false
+      cancelAnimationFrame(initFrame)
       subscription.unsubscribe()
     }
   }, [applySnapshot])

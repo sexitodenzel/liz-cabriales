@@ -29,7 +29,7 @@ export default function Footer() {
             <nav className="mt-4 flex flex-col gap-2 text-sm">
               <Link href="/tienda" className={linkClass}>Tienda</Link>
               <Link href="/academia" className={linkClass}>Academia</Link>
-              <Link href="/citas" className={linkClass}>Servicios</Link>
+              <Link href="/servicios" className={linkClass}>Servicios</Link>
             </nav>
           </div>
 

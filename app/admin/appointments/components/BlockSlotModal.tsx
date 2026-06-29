@@ -3,11 +3,13 @@
 import { useState } from "react"
 
 import type { ProfessionalRow } from "@/lib/supabase/appointments"
+import DatePicker from "@/components/shared/DatePicker"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
   professionals: ProfessionalRow[]
   defaultDate: string
+  defaultProfessionalId?: string
   onClose: () => void
   onCreated: () => void
 }
@@ -15,16 +17,23 @@ type Props = {
 export default function BlockSlotModal({
   professionals,
   defaultDate,
+  defaultProfessionalId,
   onClose,
   onCreated,
 }: Props) {
-  const [professionalId, setProfessionalId] = useState<string>("")
+  const [professionalId, setProfessionalId] = useState<string>(
+    defaultProfessionalId ?? ""
+  )
   const [date, setDate] = useState<string>(defaultDate)
   const [startTime, setStartTime] = useState<string>("09:00")
   const [endTime, setEndTime] = useState<string>("19:00")
   const [reason, setReason] = useState<string>("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const lockedProfessional = defaultProfessionalId
+    ? professionals.find((p) => p.id === defaultProfessionalId)
+    : null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -83,30 +92,31 @@ export default function BlockSlotModal({
             <label className="block text-xs font-medium text-neutral-600">
               Profesional
             </label>
-            <select
-              value={professionalId}
-              onChange={(e) => setProfessionalId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
-            >
-              <option value="">Selecciona…</option>
-              {professionals.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            {lockedProfessional ? (
+              <p className="mt-1 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-[#111]">
+                {lockedProfessional.name}
+              </p>
+            ) : (
+              <select
+                value={professionalId}
+                onChange={(e) => setProfessionalId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
+              >
+                <option value="">Selecciona…</option>
+                {professionals.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>
             <label className="block text-xs font-medium text-neutral-600">
               Fecha
             </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
-            />
+            <DatePicker value={date} onChange={setDate} className="mt-1" />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

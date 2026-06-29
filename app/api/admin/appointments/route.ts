@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server"
 import { requireAdminOrReceptionist } from "@/lib/supabase/admin"
 import {
   adminCreateManualAppointment,
+  cancelExpiredPendingAppointments,
   getAdminAppointments,
+  getUpcomingAdminAppointments,
 } from "@/lib/supabase/appointments"
 import {
   adminAppointmentsQuerySchema,
@@ -23,13 +25,6 @@ function errorResponse<T>(
   return NextResponse.json({ data: null, error: { message, code } }, { status })
 }
 
-function todayString(): string {
-  const d = new Date()
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, "0")
-  const dd = String(d.getDate()).padStart(2, "0")
-  return `${yyyy}-${mm}-${dd}`
-}
 
 async function assertAdminOrReceptionist() {
   const supabase = await createClient()
@@ -59,8 +54,10 @@ export async function GET(request: NextRequest) {
 
     const sp = request.nextUrl.searchParams
     const parseResult = adminAppointmentsQuerySchema.safeParse({
-      date: sp.get("date") ?? undefined,
-      professional_id: sp.get("professional_id") ?? undefined,
+      date: sp.get("date") || undefined,
+      professional_id: sp.get("professional_id") || undefined,
+      status: sp.get("status") || undefined,
+      limit: sp.get("limit") || undefined,
     })
 
     if (!parseResult.success) {
@@ -71,18 +68,33 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const date = parseResult.data.date ?? todayString()
+    const { date, professional_id, status, limit } = parseResult.data
 
-    const result = await getAdminAppointments(
-      date,
-      parseResult.data.professional_id
-    )
+    await cancelExpiredPendingAppointments()
+
+    if (!date) {
+      const result = await getUpcomingAdminAppointments({
+        limit: limit ?? 10,
+        professionalId: professional_id,
+        status: status ?? "pending",
+      })
+      if (!result.data) {
+        return errorResponse(result.error.message, 500, result.error.code)
+      }
+
+      return NextResponse.json({
+        data: { appointments: result.data, mode: "upcoming" as const },
+        error: null,
+      })
+    }
+
+    const result = await getAdminAppointments(date, professional_id)
     if (!result.data) {
       return errorResponse(result.error.message, 500, result.error.code)
     }
 
     return NextResponse.json({
-      data: { appointments: result.data, date },
+      data: { appointments: result.data, mode: "day" as const, date },
       error: null,
     })
   } catch (err) {

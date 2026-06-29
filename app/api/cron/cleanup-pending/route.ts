@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
+import { PENDING_PAYMENT_HOURS, paymentDeadlineThresholdIso } from "@/lib/appointmentPaymentPolicy"
+
 /**
  * Cron de limpieza: cancela órdenes, citas e inscripciones que llevan
  * demasiado tiempo en estado `pending` (usuario abandonó sin pagar).
@@ -17,7 +19,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js"
  * Configuración vía env vars (opcional):
  *   CRON_SECRET                   — token requerido (obligatorio en prod)
  *   CLEANUP_ORDERS_HOURS          — default 2
- *   CLEANUP_APPOINTMENTS_HOURS    — default 1 (libera slots de citas rápido)
+ *   CLEANUP_APPOINTMENTS_HOURS    — default 4
  *   CLEANUP_REGISTRATIONS_HOURS   — default 2
  */
 
@@ -27,7 +29,7 @@ const supabaseAdmin = createServiceClient(
 )
 
 function hoursAgo(hours: number): string {
-  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
+  return paymentDeadlineThresholdIso(hours)
 }
 
 function isAuthorized(request: NextRequest): boolean {
@@ -55,7 +57,9 @@ export async function GET(
   }
 
   const ordersHours = Number(process.env.CLEANUP_ORDERS_HOURS ?? 2)
-  const appointmentsHours = Number(process.env.CLEANUP_APPOINTMENTS_HOURS ?? 1)
+  const appointmentsHours = Number(
+    process.env.CLEANUP_APPOINTMENTS_HOURS ?? PENDING_PAYMENT_HOURS
+  )
   const registrationsHours = Number(
     process.env.CLEANUP_REGISTRATIONS_HOURS ?? 2
   )
@@ -90,7 +94,7 @@ export async function GET(
       .from("appointments")
       .update({ status: "cancelled" })
       .eq("status", "pending")
-      .lt("created_at", hoursAgo(appointmentsHours))
+      .lt("created_at", paymentDeadlineThresholdIso(appointmentsHours))
       .select("id")
     if (error) {
       results.errors.push(`appointments: ${error.message}`)

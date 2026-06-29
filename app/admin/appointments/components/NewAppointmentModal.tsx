@@ -6,6 +6,7 @@ import type {
   ProfessionalRow,
   ServiceRow,
 } from "@/lib/supabase/appointments"
+import DatePicker from "@/components/shared/DatePicker"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
@@ -62,6 +63,7 @@ export default function NewAppointmentModal({
   const [newClientFirstName, setNewClientFirstName] = useState("")
   const [newClientLastName, setNewClientLastName] = useState("")
   const [newClientEmail, setNewClientEmail] = useState("")
+  const [newClientPhone, setNewClientPhone] = useState("")
   const [creatingClient, setCreatingClient] = useState(false)
   const [createClientError, setCreateClientError] = useState<string | null>(
     null
@@ -139,9 +141,10 @@ export default function NewAppointmentModal({
     if (
       !newClientFirstName.trim() ||
       !newClientLastName.trim() ||
-      !newClientEmail.trim()
+      !newClientEmail.trim() ||
+      newClientPhone.replace(/\D/g, "").length !== 10
     ) {
-      setCreateClientError("Completa nombre, apellido y email")
+      setCreateClientError("Completa nombre, apellido, email y celular (10 dígitos)")
       return
     }
     setCreatingClient(true)
@@ -153,6 +156,7 @@ export default function NewAppointmentModal({
           first_name: newClientFirstName.trim(),
           last_name: newClientLastName.trim(),
           email: newClientEmail.trim(),
+          phone: newClientPhone.replace(/\D/g, "").slice(0, 10),
         }),
       })
       const json = await res.json()
@@ -179,6 +183,7 @@ export default function NewAppointmentModal({
       setNewClientFirstName("")
       setNewClientLastName("")
       setNewClientEmail("")
+      setNewClientPhone("")
     } catch {
       setCreateClientError("Error de red al crear el cliente")
     } finally {
@@ -340,6 +345,19 @@ export default function NewAppointmentModal({
                     placeholder="Email"
                     className="w-full rounded-md border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
                   />
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    value={newClientPhone}
+                    onChange={(e) =>
+                      setNewClientPhone(
+                        e.target.value.replace(/\D/g, "").slice(0, 10)
+                      )
+                    }
+                    placeholder="Número de celular (10 dígitos)"
+                    className="w-full rounded-md border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
+                  />
                   {createClientError && (
                     <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
                       {createClientError}
@@ -413,11 +431,9 @@ export default function NewAppointmentModal({
               <label className="block text-xs font-medium text-neutral-600">
                 Fecha
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
+                onChange={setDate}
               />
             </div>
           </div>

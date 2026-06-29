@@ -4,7 +4,10 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
+import { createClient } from "@/lib/supabase/client"
 import type { ProfessionalRow, ServiceRow } from "@/lib/supabase/appointments"
+
+import BookingSummary from "./components/BookingSummary"
 
 type Slot = {
   start_time: string
@@ -24,8 +27,8 @@ type Props = {
 const STEP_LABELS: Record<Step, string> = {
   1: "Servicios",
   2: "Profesional",
-  3: "Hora",
-  4: "Confirmar",
+  3: "Fecha y hora",
+  4: "Confirmación",
 }
 
 const CATEGORY_DEFS = [
@@ -51,6 +54,11 @@ const CATEGORY_DEFS = [
     keywords: ["depilac", "cera", "wax", "hilo"],
   },
 ]
+
+const SELECTED_CARD =
+  "border-2 border-[#c9a84c] bg-white shadow-[0_4px_12px_rgba(201,168,76,0.12)] ring-1 ring-[#c9a84c]/20"
+const DEFAULT_CARD =
+  "border border-neutral-200/80 bg-white hover:border-[#c9a84c]/40"
 
 function detectCategory(service: ServiceRow): string | null {
   const src = `${service.name} ${service.description ?? ""}`.toLowerCase()
@@ -110,6 +118,17 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
+function groupSlotsByPeriod(slots: Slot[]) {
+  const morning: Slot[] = []
+  const afternoon: Slot[] = []
+  for (const slot of slots) {
+    const hh = Number(slot.start_time.slice(0, 2))
+    if (hh < 12) morning.push(slot)
+    else afternoon.push(slot)
+  }
+  return { morning, afternoon }
+}
+
 const DAYS_MS = 1000 * 60 * 60 * 24
 
 function buildAvailableDates(): Date[] {
@@ -132,7 +151,7 @@ function IconArrowLeft() {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.5"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -149,7 +168,7 @@ function IconX() {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.5"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -176,21 +195,6 @@ function IconCheck() {
   )
 }
 
-function IconStar() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="#F59E0B"
-      stroke="#F59E0B"
-      strokeWidth="1"
-    >
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
-  )
-}
-
 function IconShuffle() {
   return (
     <svg
@@ -198,7 +202,7 @@ function IconShuffle() {
       height="20"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#737373"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -232,11 +236,11 @@ function IconCalendar() {
   )
 }
 
-function IconClock() {
+function IconSun({ morning }: { morning: boolean }) {
   return (
     <svg
-      width="15"
-      height="15"
+      width="14"
+      height="14"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -244,15 +248,79 @@ function IconClock() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
+      {morning ? (
+        <>
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </>
+      ) : (
+        <>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2" />
+          <circle cx="12" cy="12" r="4" />
+        </>
+      )}
     </svg>
   )
 }
 
 function Spinner() {
   return (
-    <div className="w-4 h-4 border-2 border-[#d0d0d0] border-t-[#0a0a0a] rounded-full animate-spin" />
+    <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-[#111]" />
+  )
+}
+
+function StepHeading({
+  title,
+  subtitle,
+}: {
+  title: string
+  subtitle: string
+}) {
+  return (
+    <header className="mb-6 md:mb-8">
+      <h1 className="font-[family-name:var(--font-playfair),serif] text-[clamp(28px,4vw,40px)] font-medium leading-tight tracking-[-0.02em] text-[#111]">
+        {title}
+      </h1>
+      <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-neutral-500">
+        {subtitle}
+      </p>
+    </header>
+  )
+}
+
+function SlotGrid({
+  slots,
+  selectedSlot,
+  onSelect,
+}: {
+  slots: Slot[]
+  selectedSlot: Slot | null
+  onSelect: (slot: Slot) => void
+}) {
+  if (slots.length === 0) return null
+
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+      {slots.map((slot) => {
+        const active =
+          selectedSlot?.start_time === slot.start_time &&
+          selectedSlot?.professional_id === slot.professional_id
+        return (
+          <button
+            key={`${slot.professional_id}-${slot.start_time}`}
+            type="button"
+            onClick={() => onSelect(slot)}
+            className={`rounded-lg border py-3 text-[13px] font-medium transition-all duration-200 ${
+              active
+                ? "border-[#c9a84c] bg-[#c9a84c] text-[#111] shadow-sm"
+                : "border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
+            }`}
+          >
+            {formatTimeLabel(slot.start_time)}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
@@ -263,6 +331,7 @@ export default function ServiciosClient({
   activeAppointmentId,
 }: Props) {
   const router = useRouter()
+
   const [step, setStep] = useState<Step>(1)
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([])
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<
@@ -281,6 +350,8 @@ export default function ServiciosClient({
   )
   const [notes, setNotes] = useState("")
   const [showNotesInput, setShowNotesInput] = useState(false)
+  const [phone, setPhone] = useState("")
+  const [phoneError, setPhoneError] = useState<string | null>(null)
 
   const selectedServices = useMemo(
     () => services.filter((s) => selectedServiceIds.includes(s.id)),
@@ -293,6 +364,10 @@ export default function ServiciosClient({
     0
   )
   const availableDates = useMemo(buildAvailableDates, [])
+  const { morning: morningSlots, afternoon: afternoonSlots } = useMemo(
+    () => groupSlotsByPeriod(slots),
+    [slots]
+  )
 
   const availableCategories = useMemo(() => {
     const found = new Set<string>()
@@ -311,6 +386,13 @@ export default function ServiciosClient({
   const selectedProfessional = professionals.find(
     (p) => p.id === selectedProfessionalId
   )
+
+  const profLabel =
+    selectedProfessionalId === "any"
+      ? "cualquier profesional"
+      : (selectedProfessional?.name ?? "cualquier profesional")
+
+  const progressPct = (step / 4) * 100
 
   const toggleService = (id: string) => {
     setSelectedServiceIds((prev) =>
@@ -352,11 +434,112 @@ export default function ServiciosClient({
     if (step === 3) fetchSlots()
   }, [step, fetchSlots])
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadProfilePhone() {
+      if (!isAuthenticated) return
+
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (cancelled || !user) return
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("phone")
+        .eq("id", user.id)
+        .single()
+
+      if (cancelled || !profile?.phone) return
+
+      const digits = String(profile.phone)
+        .replace(/^\+52/, "")
+        .replace(/\D/g, "")
+      if (digits.length >= 10) {
+        setPhone(digits.slice(0, 10))
+      }
+    }
+
+    void loadProfilePhone()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const restorePendingAppointment = () => {
+      if (cancelled) return
+
+      try {
+        const raw = sessionStorage.getItem("pendingAppointment")
+        if (!raw) return
+
+        const data = JSON.parse(raw) as {
+          service_ids?: string[]
+          professional_id?: string | "any"
+          date?: string
+          start_time?: string
+          client_phone?: string
+        }
+
+        if (data.service_ids?.length) {
+          setSelectedServiceIds(data.service_ids)
+        }
+        if (data.professional_id) {
+          setSelectedProfessionalId(data.professional_id)
+        }
+        if (data.date) setSelectedDate(data.date)
+        if (data.start_time && data.professional_id) {
+          setSelectedSlot({
+            start_time: data.start_time,
+            end_time: "",
+            professional_id:
+              data.professional_id === "any" ? "" : data.professional_id,
+          })
+        }
+        if (data.client_phone) {
+          setPhone(data.client_phone.replace(/\D/g, "").slice(0, 10))
+        }
+
+        let targetStep: Step = 1
+        if (data.service_ids?.length) {
+          if (data.date && data.start_time && data.professional_id) {
+            targetStep = 4
+          } else if (data.date && data.professional_id) {
+            targetStep = 3
+          } else if (data.professional_id) {
+            targetStep = 2
+          }
+        }
+        setStep(targetStep)
+
+        sessionStorage.removeItem("pendingAppointment")
+      } catch {
+        // noop
+      }
+    }
+
+    const frameId = requestAnimationFrame(restorePendingAppointment)
+
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frameId)
+    }
+  }, [])
+
+  const phoneDigits = phone.replace(/\D/g, "")
+  const hasValidPhone = phoneDigits.length === 10
+
   const canContinue =
     (step === 1 && selectedServiceIds.length > 0) ||
     (step === 2 && selectedProfessionalId !== null) ||
     (step === 3 && selectedSlot !== null) ||
-    step === 4
+    (step === 4 && hasValidPhone)
 
   const handleContinue = () => {
     if (canContinue && step < 4) setStep((s) => (s + 1) as Step)
@@ -367,6 +550,12 @@ export default function ServiciosClient({
   }
 
   const handleConfirm = async () => {
+    if (!hasValidPhone) {
+      setPhoneError("Ingresa tu número de celular (10 dígitos)")
+      return
+    }
+    setPhoneError(null)
+
     if (!isAuthenticated) {
       try {
         sessionStorage.setItem(
@@ -376,9 +565,12 @@ export default function ServiciosClient({
             professional_id: selectedProfessionalId,
             date: selectedDate,
             start_time: selectedSlot?.start_time,
+            client_phone: phoneDigits,
           })
         )
-      } catch {}
+      } catch {
+        // noop
+      }
       router.push("/login?redirect=/servicios")
       return
     }
@@ -401,6 +593,7 @@ export default function ServiciosClient({
           professional_id: profToSend,
           date: selectedDate,
           start_time: selectedSlot.start_time,
+          client_phone: phoneDigits,
         }),
       })
       const json = await res.json()
@@ -418,24 +611,17 @@ export default function ServiciosClient({
       })
       const payJson = await payRes.json()
       if (!payRes.ok || payJson.error) {
-        setSubmitError(
-          payJson?.error?.message ??
-            "Cita creada, pero no se pudo iniciar el pago"
-        )
+        router.push(`/cita/${appointmentId}`)
         return
       }
 
       if (payJson.data.payment_url) {
-        // Open MercadoPago in a new tab so the user can come back to the
-        // appointment detail page without losing context (Shopify-style).
         const newTab = window.open(payJson.data.payment_url, "_blank")
         if (!newTab) {
           setSubmitError(
             "Tu navegador bloqueó la ventana de pago. Ve a tu cita y usa el botón de pago."
           )
         }
-        // Navigate the original tab to the appointment detail page where the
-        // user can re-open the payment if needed or cancel.
         router.push(`/cita/${appointmentId}`)
       } else {
         setSubmitError("No se pudo generar el enlace de pago")
@@ -449,28 +635,28 @@ export default function ServiciosClient({
 
   if (activeAppointmentId) {
     return (
-      <main className="min-h-screen bg-[#f5f5f3] site-container flex items-center justify-center py-16">
-        <div className="max-w-md w-full rounded-3xl border border-[#e5e5e5] bg-white p-8 text-center shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C9A84C]">
+      <main className="flex min-h-[60vh] items-center justify-center bg-[var(--background)] py-16 site-container">
+        <div className="w-full max-w-md rounded-lg border border-neutral-200/80 bg-white p-8 text-center shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c9a84c]">
             Cita activa
           </p>
-          <h1 className="mt-3 text-2xl font-bold text-[#0a0a0a]">
+          <h1 className="mt-3 font-[family-name:var(--font-playfair),serif] text-2xl font-medium text-[#111]">
             Ya tienes una cita reservada
           </h1>
-          <p className="mt-3 text-sm text-[#737373]">
-            Solo puedes tener una cita activa a la vez. Revisa o cancela tu
-            cita actual antes de reservar una nueva.
+          <p className="mt-3 text-sm text-neutral-500">
+            Solo puedes tener una cita activa a la vez. Revisa o cancela tu cita
+            actual antes de reservar una nueva.
           </p>
-          <div className="mt-6 flex gap-3 justify-center">
+          <div className="mt-6 flex justify-center gap-3">
             <Link
               href={`/cita/${activeAppointmentId}`}
-              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+              className="inline-flex items-center justify-center rounded-lg bg-[#111] px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#c9a84c] hover:text-[#111]"
             >
               Ver mi cita
             </Link>
             <Link
               href="/"
-              className="inline-flex items-center justify-center rounded-full border border-[#e5e5e5] px-6 py-3 text-sm font-medium text-[#0a0a0a] transition-colors hover:border-[#0a0a0a]"
+              className="inline-flex items-center justify-center rounded-lg border border-neutral-200 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#111] transition-colors hover:border-[#111]"
             >
               Inicio
             </Link>
@@ -480,176 +666,99 @@ export default function ServiciosClient({
     )
   }
 
-  const profLabel =
-    selectedProfessionalId === "any"
-      ? "cualquier profesional"
-      : (selectedProfessional?.name ?? "cualquier profesional")
-
-  const sidebar = (
-    <div className="rounded-2xl border border-[#e5e5e5] bg-white overflow-hidden shadow-sm">
-      <div className="p-5 border-b border-[#f0f0ee]">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-[#fdf8ea] flex items-center justify-center shrink-0 border border-[#efe8c8]">
-            <span className="text-[13px] font-black tracking-tight text-[#C9A84C]">
-              LC
-            </span>
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-[14px] text-[#0a0a0a] leading-tight">
-              Liz Cabriales Studio
-            </p>
-            <div className="flex items-center gap-0.5 mt-1">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <IconStar key={i} />
-              ))}
-              <span className="text-[11px] text-[#737373] ml-1">5.0</span>
-            </div>
-            <p className="text-[11px] text-[#737373] mt-0.5 truncate">
-              Monterrey, NL
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {selectedServices.length > 0 && (
-        <div className="px-5 py-4 border-b border-[#f0f0ee] space-y-3">
-          {selectedServices.map((s) => (
-            <div key={s.id}>
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-[13px] font-medium text-[#0a0a0a] leading-snug">
-                  {s.name}
-                </p>
-                <p className="text-[13px] font-semibold text-[#0a0a0a] shrink-0">
-                  {formatPrice(s.price)}
-                </p>
-              </div>
-              <p className="text-[11px] text-[#737373] mt-0.5">
-                {formatDuration(s.duration_min)} con {profLabel}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {selectedDate && selectedSlot && (
-        <div className="px-5 py-4 border-b border-[#f0f0ee] space-y-2">
-          <div className="flex items-center gap-2 text-[13px] text-[#0a0a0a]">
-            <IconCalendar />
-            <span className="capitalize">{prettyDate(selectedDate)}</span>
-          </div>
-          <div className="flex items-center gap-2 text-[13px] text-[#0a0a0a]">
-            <IconClock />
-            <span>
-              {formatTimeLabel(selectedSlot.start_time)}
-              {selectedSlot.end_time
-                ? `–${formatTimeLabel(selectedSlot.end_time)}`
-                : ""}{" "}
-              ({formatDuration(totalDuration)})
-            </span>
-          </div>
-        </div>
-      )}
-
-      <div className="px-5 py-4">
-        {selectedServices.length > 0 && (
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[13px] font-medium text-[#0a0a0a]">Total</p>
-            <p className="text-base font-bold text-[#0a0a0a]">
-              {formatPrice(totalPrice)}
-            </p>
-          </div>
-        )}
-
-        {step < 4 ? (
-          <button
-            onClick={handleContinue}
-            disabled={!canContinue}
-            className="w-full rounded-full bg-[#0a0a0a] py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#1f1f1f] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-          >
-            Continuar <span aria-hidden>→</span>
-          </button>
-        ) : (
-          <button
-            onClick={handleConfirm}
-            disabled={submitting}
-            className="w-full rounded-full bg-[#0a0a0a] py-3.5 text-sm font-semibold text-white transition-all hover:bg-[#C9A84C] hover:text-[#0a0a0a] disabled:opacity-35 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-          >
-            {submitting ? (
-              <>
-                <Spinner /> Procesando…
-              </>
-            ) : (
-              "Confirmar"
-            )}
-          </button>
-        )}
-      </div>
-    </div>
-  )
+  const summaryProps = {
+    selectedServices,
+    profLabel,
+    selectedProfessional:
+      selectedProfessionalId !== "any" ? selectedProfessional : undefined,
+    selectedDate,
+    selectedSlot,
+    totalPrice,
+    totalDuration,
+    step,
+    formatPrice,
+    formatDuration,
+    formatTimeLabel,
+    prettyDate,
+    getInitials,
+    onContinue: handleContinue,
+    onConfirm: handleConfirm,
+    canContinue,
+    submitting,
+    clientPhone: phone,
+  }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f3]">
-      <div className="sticky top-0 z-20 bg-[#f5f5f3]/95 backdrop-blur-sm border-b border-[#e8e8e5]">
-        <div className="site-container flex items-center justify-between h-14">
-          <button
-            onClick={handleBack}
-            disabled={step === 1}
-            aria-label="Volver"
-            className="flex items-center justify-center w-9 h-9 rounded-full border border-[#e5e5e5] bg-white text-[#0a0a0a] transition-all hover:border-[#0a0a0a] hover:shadow-sm disabled:opacity-30 disabled:cursor-default"
-          >
-            <IconArrowLeft />
-          </button>
+    <div className="min-h-screen bg-[var(--background)]">
+      {/* Wizard toolbar + progress */}
+      <header className="sticky top-[var(--site-chrome-bottom)] z-30 border-b border-neutral-200/60 bg-[var(--background)]/95 backdrop-blur-md">
+        <div className="site-container">
+          <div className="flex items-center justify-between py-2.5">
+            <button
+              type="button"
+              onClick={handleBack}
+              disabled={step === 1}
+              aria-label="Volver"
+              className="flex h-9 w-9 items-center justify-center text-[#c9a84c] transition-opacity hover:opacity-70 disabled:opacity-30"
+            >
+              <IconArrowLeft />
+            </button>
 
-          <nav className="flex items-center gap-1 text-[13px]" aria-label="Pasos">
-            {([1, 2, 3, 4] as Step[]).map((s, i) => (
-              <span key={s} className="flex items-center gap-1">
-                {i > 0 && (
-                  <span className="text-[#d0d0d0] select-none">›</span>
-                )}
-                <button
-                  onClick={() => s < step && setStep(s)}
-                  disabled={s >= step}
-                  className={`transition-colors rounded px-1 py-0.5 ${
-                    s === step
-                      ? "font-bold text-[#0a0a0a]"
-                      : s < step
-                      ? "text-[#0a0a0a] hover:text-[#C9A84C] cursor-pointer underline-offset-2 hover:underline"
-                      : "text-[#c0c0bc] cursor-default"
-                  }`}
-                >
-                  {STEP_LABELS[s]}
-                </button>
+            <Link
+              href="/"
+              aria-label="Cerrar"
+              className="flex h-9 w-9 items-center justify-center text-[#c9a84c] transition-colors hover:text-red-600 active:text-red-600"
+            >
+              <IconX />
+            </Link>
+          </div>
+
+          <div className="pb-3">
+            <div className="mb-2 flex items-end justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c]">
+                Paso {String(step).padStart(2, "0")} / 04
               </span>
-            ))}
-          </nav>
-
-          <Link
-            href="/"
-            aria-label="Cerrar"
-            className="flex items-center justify-center w-9 h-9 rounded-full border border-[#e5e5e5] bg-white text-[#0a0a0a] transition-all hover:border-[#0a0a0a] hover:shadow-sm"
-          >
-            <IconX />
-          </Link>
+              <span className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
+                {STEP_LABELS[step]}
+              </span>
+            </div>
+            <div className="h-[2px] w-full overflow-hidden bg-neutral-200/60">
+              <div
+                className="h-full bg-[#c9a84c] transition-all duration-700 ease-out"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="site-container py-8 pb-32 lg:pb-12">
-        <div className="flex gap-8 items-start">
-          <div className="flex-1 min-w-0">
+      <div className="site-container py-5 md:py-6">
+        <div
+          className={
+            step === 4
+              ? "flex flex-col gap-10 lg:grid lg:grid-cols-12 lg:items-start"
+              : "flex items-start gap-10"
+          }
+        >
+          <div
+            className={`min-w-0 flex-1 ${step === 4 ? "lg:col-span-8" : ""}`}
+          >
             {step === 1 && (
               <div>
-                <h1 className="text-[2rem] font-bold text-[#0a0a0a] mb-6 leading-tight">
-                  Seleccionar servicios
-                </h1>
+                <StepHeading
+                  title="Seleccionar servicios"
+                  subtitle="Elige uno o varios servicios para tu visita al estudio."
+                />
 
                 {availableCategories.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto pb-2 mb-6 [&::-webkit-scrollbar]:hidden">
+                  <div className="mb-8 flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden">
                     <button
+                      type="button"
                       onClick={() => setActiveCategory("all")}
-                      className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                      className={`shrink-0 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all ${
                         activeCategory === "all"
-                          ? "bg-[#0a0a0a] text-white shadow-sm"
-                          : "bg-white border border-[#e5e5e5] text-[#0a0a0a] hover:border-[#a0a0a0]"
+                          ? "bg-[#111] text-white"
+                          : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
                       }`}
                     >
                       Todos
@@ -657,11 +766,12 @@ export default function ServiciosClient({
                     {availableCategories.map((cat) => (
                       <button
                         key={cat.id}
+                        type="button"
                         onClick={() => setActiveCategory(cat.id)}
-                        className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                        className={`shrink-0 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all ${
                           activeCategory === cat.id
-                            ? "bg-[#0a0a0a] text-white shadow-sm"
-                            : "bg-white border border-[#e5e5e5] text-[#0a0a0a] hover:border-[#a0a0a0]"
+                            ? "bg-[#111] text-white"
+                            : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
                         }`}
                       >
                         {cat.label}
@@ -678,26 +788,35 @@ export default function ServiciosClient({
                       s.description && s.description.length > 120
 
                     return (
-                      <div
+                      <button
                         key={s.id}
-                        className={`rounded-2xl border bg-white p-5 transition-all duration-150 ${
-                          selected
-                            ? "border-[#7c6af7] bg-[#faf8ff] shadow-sm"
-                            : "border-[#e5e5e5] hover:border-[#b0b0b0]"
+                        type="button"
+                        onClick={() => toggleService(s.id)}
+                        className={`group w-full rounded-lg p-6 text-left transition-all duration-200 md:p-8 ${
+                          selected ? SELECTED_CARD : DEFAULT_CARD
                         }`}
                       >
-                        <div className="flex items-start gap-4">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-[15px] text-[#0a0a0a] leading-snug">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <h3
+                              className={`font-[family-name:var(--font-playfair),serif] text-lg md:text-xl ${
+                                selected
+                                  ? "text-[#c9a84c]"
+                                  : "text-[#111] group-hover:text-[#c9a84c]"
+                              }`}
+                            >
                               {s.name}
-                            </p>
-                            <p className="text-[12px] text-[#737373] mt-1">
+                            </h3>
+                            <p className="mt-1 text-[11px] uppercase tracking-[0.1em] text-neutral-500">
                               {formatDuration(s.duration_min)}
                             </p>
                             {s.description && (
-                              <>
+                              <div
+                                className="mt-3"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <p
-                                  className={`text-[13px] text-[#555] mt-2 leading-relaxed ${
+                                  className={`text-sm leading-relaxed text-neutral-600 ${
                                     expanded ? "" : "line-clamp-2"
                                   }`}
                                 >
@@ -705,51 +824,44 @@ export default function ServiciosClient({
                                 </p>
                                 {longDesc && (
                                   <button
+                                    type="button"
                                     onClick={() =>
                                       setExpandedServiceId(
                                         expanded ? null : s.id
                                       )
                                     }
-                                    className="text-[12px] font-medium text-[#0a0a0a] mt-1 hover:text-[#C9A84C] transition-colors"
+                                    className="mt-1 text-xs font-medium text-[#111] transition-colors hover:text-[#c9a84c]"
                                   >
                                     {expanded ? "Ver menos" : "Ver más"}
                                   </button>
                                 )}
-                              </>
+                              </div>
                             )}
-                            <p className="font-bold text-[15px] text-[#0a0a0a] mt-3">
+                            <p className="mt-4 font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
                               {formatPrice(s.price)}
                             </p>
                           </div>
 
-                          <button
-                            onClick={() => toggleService(s.id)}
-                            aria-label={
+                          <div
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all ${
                               selected
-                                ? `Quitar ${s.name}`
-                                : `Agregar ${s.name}`
-                            }
-                            className={`shrink-0 mt-0.5 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all duration-150 ${
-                              selected
-                                ? "bg-[#0a0a0a] border-[#0a0a0a] text-white shadow-sm"
-                                : "border-[#c8c8c8] text-[#0a0a0a] hover:border-[#0a0a0a] bg-white"
+                                ? "border-[#111] bg-[#111] text-white"
+                                : "border-neutral-300 text-neutral-500 group-hover:border-[#c9a84c]"
                             }`}
                           >
                             {selected ? (
                               <IconCheck />
                             ) : (
-                              <span className="text-xl leading-none translate-y-[-1px]">
-                                +
-                              </span>
+                              <span className="text-xl leading-none">+</span>
                             )}
-                          </button>
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     )
                   })}
 
                   {filteredServices.length === 0 && (
-                    <p className="text-sm text-[#737373] text-center py-8">
+                    <p className="py-8 text-center text-sm text-neutral-500">
                       No hay servicios en esta categoría.
                     </p>
                   )}
@@ -759,35 +871,37 @@ export default function ServiciosClient({
 
             {step === 2 && (
               <div>
-                <h1 className="text-[2rem] font-bold text-[#0a0a0a] mb-6 leading-tight">
-                  Seleccionar profesional
-                </h1>
+                <StepHeading
+                  title="Seleccionar profesional"
+                  subtitle="Nuestro equipo está listo para atenderte. Elige a quien prefieras o déjanos asignar según disponibilidad."
+                />
 
-                <div className="space-y-3">
+                <div className="mx-auto max-w-3xl space-y-3">
                   <div
-                    className={`rounded-2xl border bg-white p-5 flex items-center gap-4 transition-all duration-150 ${
+                    className={`flex cursor-pointer items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
                       selectedProfessionalId === "any"
-                        ? "border-[#7c6af7] bg-[#faf8ff] shadow-sm"
-                        : "border-[#e5e5e5] hover:border-[#b0b0b0]"
+                        ? SELECTED_CARD
+                        : DEFAULT_CARD
                     }`}
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#f0f0ee] flex items-center justify-center shrink-0">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[#c9a84c]">
                       <IconShuffle />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-[15px] text-[#0a0a0a]">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-[family-name:var(--font-playfair),serif] text-lg text-[#111]">
                         Sin preferencia
                       </p>
-                      <p className="text-[13px] text-[#737373] mt-0.5">
+                      <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-neutral-500">
                         Máxima disponibilidad
                       </p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setSelectedProfessionalId("any")}
-                      className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
+                      className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
                         selectedProfessionalId === "any"
-                          ? "bg-[#0a0a0a] border-[#0a0a0a] text-white"
-                          : "border-[#c8c8c8] text-[#0a0a0a] hover:border-[#0a0a0a] bg-white"
+                          ? "border-[#c9a84c] bg-[#c9a84c] text-[#111]"
+                          : "border-neutral-300 text-neutral-600 hover:border-[#c9a84c]"
                       }`}
                     >
                       {selectedProfessionalId === "any"
@@ -796,269 +910,330 @@ export default function ServiciosClient({
                     </button>
                   </div>
 
-                  {professionals.map((p) => (
-                    <div
-                      key={p.id}
-                      className={`rounded-2xl border bg-white p-5 flex items-center gap-4 transition-all duration-150 ${
-                        selectedProfessionalId === p.id
-                          ? "border-[#7c6af7] bg-[#faf8ff] shadow-sm"
-                          : "border-[#e5e5e5] hover:border-[#b0b0b0]"
-                      }`}
-                    >
-                      <div className="w-12 h-12 rounded-full bg-[#f0f0ee] overflow-hidden shrink-0">
-                        {p.photo_url ? (
-                          <img
-                            src={p.photo_url}
-                            alt={p.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[13px] font-bold text-[#737373]">
-                            {getInitials(p.name)}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-[15px] text-[#0a0a0a]">
-                          {p.name}
-                        </p>
-                        {p.bio && (
-                          <p className="text-[13px] text-[#737373] mt-0.5 line-clamp-1">
-                            {p.bio}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-0.5 mt-1">
-                          {[1, 2, 3, 4, 5].map((i) => (
-                            <IconStar key={i} />
-                          ))}
-                          <span className="text-[11px] text-[#737373] ml-1">
-                            5.0
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setSelectedProfessionalId(p.id)}
-                        className={`shrink-0 rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
-                          selectedProfessionalId === p.id
-                            ? "bg-[#0a0a0a] border-[#0a0a0a] text-white"
-                            : "border-[#c8c8c8] text-[#0a0a0a] hover:border-[#0a0a0a] bg-white"
+                  {professionals.map((p) => {
+                    const selected = selectedProfessionalId === p.id
+                    return (
+                      <div
+                        key={p.id}
+                        className={`flex items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
+                          selected ? SELECTED_CARD : DEFAULT_CARD
                         }`}
                       >
-                        {selectedProfessionalId === p.id
-                          ? "Seleccionado"
-                          : "Seleccionar"}
-                      </button>
-                    </div>
-                  ))}
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-neutral-100">
+                          {p.photo_url ? (
+                            <img
+                              src={p.photo_url}
+                              alt={p.name}
+                              className="h-full w-full object-cover grayscale"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-neutral-500">
+                              {getInitials(p.name)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-[family-name:var(--font-playfair),serif] text-lg text-[#111]">
+                            {p.name}
+                          </p>
+                          {p.bio && (
+                            <p className="mt-1 line-clamp-2 text-sm text-neutral-500">
+                              {p.bio}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedProfessionalId(p.id)}
+                          className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                            selected
+                              ? "border-[#c9a84c] bg-[#c9a84c] text-[#111]"
+                              : "border-neutral-300 text-neutral-600 hover:border-[#c9a84c]"
+                          }`}
+                        >
+                          {selected ? "Seleccionado" : "Seleccionar"}
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
 
             {step === 3 && (
               <div>
-                <h1 className="text-[2rem] font-bold text-[#0a0a0a] mb-6 leading-tight">
-                  Seleccionar fecha y hora
-                </h1>
+                <StepHeading
+                  title="Seleccionar fecha y hora"
+                  subtitle="Elige el día y horario que mejor se adapte a tu agenda."
+                />
 
-                <div className="mb-7">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#737373] mb-3">
+                <div className="mb-10">
+                  <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                     Fecha
                   </p>
-                  <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden">
+                  <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-color:#a3a3a3_#e5e5e5] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-neutral-400 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-neutral-200/80">
                     {availableDates.map((d) => {
                       const dateStr = toDateString(d)
                       const active = selectedDate === dateStr
                       return (
                         <button
                           key={dateStr}
+                          type="button"
                           onClick={() => {
                             setSelectedDate(dateStr)
                             setSelectedSlot(null)
                           }}
-                          className={`shrink-0 rounded-xl px-4 py-3 text-center transition-all duration-150 min-w-[56px] ${
+                          className={`flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-xl border transition-all duration-200 ${
                             active
-                              ? "bg-[#0a0a0a] text-white shadow-sm"
-                              : "bg-white border border-[#e5e5e5] text-[#0a0a0a] hover:border-[#a0a0a0]"
+                              ? "border-[#111] bg-[#111] text-white shadow-md"
+                              : "border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
                           }`}
                         >
-                          <p
-                            className={`text-[10px] uppercase tracking-wider leading-none ${active ? "opacity-70" : "text-[#737373]"}`}
+                          <span
+                            className={`text-[10px] uppercase tracking-wider ${active ? "opacity-70" : "text-neutral-500"}`}
                           >
                             {d.toLocaleDateString("es-MX", {
                               weekday: "short",
                             })}
-                          </p>
-                          <p className="text-[18px] font-bold leading-tight mt-1">
+                          </span>
+                          <span className="text-lg font-bold leading-tight">
                             {d.getDate()}
-                          </p>
-                          <p
-                            className={`text-[10px] leading-none mt-0.5 ${active ? "opacity-70" : "text-[#737373]"}`}
+                          </span>
+                          <span
+                            className={`text-[10px] lowercase ${active ? "opacity-70" : "text-neutral-500"}`}
                           >
                             {d.toLocaleDateString("es-MX", { month: "short" })}
-                          </p>
+                          </span>
                         </button>
                       )
                     })}
                   </div>
                 </div>
 
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#737373] mb-3">
+                <div className="mb-10">
+                  <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                     Hora
                   </p>
                   {!selectedDate ? (
-                    <p className="text-sm text-[#737373]">
+                    <p className="text-sm text-neutral-500">
                       Selecciona una fecha para ver los horarios disponibles.
                     </p>
                   ) : loadingSlots ? (
-                    <div className="flex items-center gap-2 text-sm text-[#737373]">
+                    <div className="flex items-center gap-2 text-sm text-neutral-500">
                       <Spinner />
                       Cargando horarios…
                     </div>
                   ) : slotsError ? (
                     <p className="text-sm text-red-600">{slotsError}</p>
                   ) : slots.length === 0 ? (
-                    <div className="rounded-2xl border border-[#e5e5e5] bg-white px-6 py-10 text-center">
-                      <div className="w-12 h-12 rounded-2xl bg-[#f5f5f3] flex items-center justify-center mx-auto mb-3">
+                    <div className="rounded-lg border border-neutral-200/80 bg-white px-6 py-10 text-center">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-50">
                         <IconCalendar />
                       </div>
-                      <p className="font-medium text-[#0a0a0a] text-sm">
+                      <p className="text-sm font-medium text-[#111]">
                         Sin disponibilidad este día
                       </p>
-                      <p className="text-[12px] text-[#737373] mt-1">
+                      <p className="mt-1 text-xs text-neutral-500">
                         Prueba con otra fecha
                       </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {slots.map((slot) => {
-                        const active =
-                          selectedSlot?.start_time === slot.start_time &&
-                          selectedSlot?.professional_id ===
-                            slot.professional_id
-                        return (
-                          <button
-                            key={`${slot.professional_id}-${slot.start_time}`}
-                            onClick={() => setSelectedSlot(slot)}
-                            className={`rounded-xl border py-3 text-[13px] font-medium transition-all duration-150 ${
-                              active
-                                ? "bg-[#C9A84C] border-[#C9A84C] text-[#0a0a0a] shadow-sm"
-                                : "bg-white border-[#e5e5e5] text-[#0a0a0a] hover:border-[#a0a0a0]"
-                            }`}
-                          >
-                            {formatTimeLabel(slot.start_time)}
-                          </button>
-                        )
-                      })}
+                    <div className="space-y-8">
+                      {morningSlots.length > 0 && (
+                        <div>
+                          <div className="mb-4 flex items-center gap-2 text-neutral-500">
+                            <IconSun morning />
+                            <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
+                              Mañana
+                            </span>
+                          </div>
+                          <SlotGrid
+                            slots={morningSlots}
+                            selectedSlot={selectedSlot}
+                            onSelect={setSelectedSlot}
+                          />
+                        </div>
+                      )}
+                      {afternoonSlots.length > 0 && (
+                        <div>
+                          <div className="mb-4 flex items-center gap-2 text-neutral-500">
+                            <IconSun morning={false} />
+                            <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
+                              Tarde
+                            </span>
+                          </div>
+                          <SlotGrid
+                            slots={afternoonSlots}
+                            selectedSlot={selectedSlot}
+                            onSelect={setSelectedSlot}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
+
+                {selectedServices.length > 0 && (
+                  <div className="flex flex-col items-center justify-between gap-4 rounded-lg border border-neutral-200/80 bg-white p-6 shadow-sm md:flex-row">
+                    <div>
+                      <p className="font-medium text-[#111]">
+                        {selectedServices.map((s) => s.name).join(" · ")}
+                      </p>
+                      <p className="mt-1 text-sm text-neutral-500">
+                        {formatDuration(totalDuration)} con {profLabel}
+                      </p>
+                    </div>
+                    <div className="text-left md:text-right">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
+                        Total
+                      </p>
+                      <p className="font-[family-name:var(--font-playfair),serif] text-2xl text-[#c9a84c]">
+                        {formatPrice(totalPrice)}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {step === 4 && (
               <div>
-                <h1 className="text-[2rem] font-bold text-[#0a0a0a] mb-6 leading-tight">
-                  Revisar y confirmar
-                </h1>
+                <StepHeading
+                  title="Revisar y confirmar"
+                  subtitle="Verifica los detalles de tu cita antes de proceder al pago."
+                />
 
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-[13px] font-semibold text-[#0a0a0a] mb-3">
-                      Más detalles
-                    </p>
-                    <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5">
-                      <p className="font-semibold text-[14px] text-[#0a0a0a]">
-                        Política de cancelación
-                      </p>
-                      <p className="text-[13px] text-[#737373] mt-1 leading-relaxed">
-                        Cancela con al menos 24 horas de anticipación. Los
-                        pagos no son reembolsables.
-                      </p>
+                <div className="space-y-8">
+                  <section>
+                    <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                      Políticas
+                    </h3>
+                    <div className="rounded-lg border border-neutral-200/60 bg-white p-6 md:p-8">
+                      <div className="flex items-start gap-4">
+                        <span className="text-[#c9a84c]">ℹ</span>
+                        <div>
+                          <p className="text-sm font-semibold text-[#111]">
+                            Política de cancelación
+                          </p>
+                          <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+                            Cancela con al menos 24 horas de anticipación. Los
+                            pagos no son reembolsables una vez procesados.
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </section>
 
-                  <div>
-                    <p className="text-[13px] font-semibold text-[#0a0a0a] mb-3">
-                      Comentarios o solicitudes
-                    </p>
-                    <div className="rounded-2xl border border-[#e5e5e5] bg-white p-5">
+                  <section>
+                    <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                      Número de celular
+                    </h3>
+                    <div className="rounded-lg border border-neutral-200/60 bg-white p-6 md:p-8">
+                      <label
+                        htmlFor="booking-phone"
+                        className="mb-3 block text-sm font-semibold text-[#111]"
+                      >
+                        Tu celular
+                      </label>
+                      <p className="mb-4 text-sm text-neutral-500">
+                        Lo usaremos para confirmar tu cita y enviarte
+                        recordatorios.
+                      </p>
+                      <input
+                        id="booking-phone"
+                        type="tel"
+                        inputMode="numeric"
+                        autoComplete="tel"
+                        value={phone}
+                        onChange={(e) => {
+                          setPhone(
+                            e.target.value.replace(/\D/g, "").slice(0, 10)
+                          )
+                          if (phoneError) setPhoneError(null)
+                        }}
+                        placeholder="10 dígitos"
+                        className={`w-full max-w-sm border-0 border-b bg-transparent py-3 text-sm text-[#111] outline-none placeholder:text-neutral-400 focus:border-[#c9a84c] ${
+                          phoneError
+                            ? "border-red-400"
+                            : "border-neutral-200"
+                        }`}
+                      />
+                      {phoneError && (
+                        <p className="mt-2 text-xs text-red-600">
+                          {phoneError}
+                        </p>
+                      )}
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                      Personalización
+                    </h3>
+                    <div className="rounded-lg border border-neutral-200/60 bg-white p-6 md:p-8">
+                      <label
+                        htmlFor="booking-notes"
+                        className="mb-4 block text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500"
+                      >
+                        ¿Algo más que debamos saber?
+                      </label>
                       {showNotesInput ? (
                         <textarea
+                          id="booking-notes"
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
-                          placeholder="Escribe aquí cualquier comentario o solicitud especial…"
+                          placeholder="Alergias, preferencias o solicitudes especiales…"
                           rows={3}
-                          className="w-full text-[13px] text-[#0a0a0a] resize-none outline-none placeholder:text-[#c0c0bc] leading-relaxed"
+                          className="w-full resize-none border-0 border-b border-neutral-200 bg-transparent py-3 text-sm text-[#111] outline-none placeholder:text-neutral-400 focus:border-[#c9a84c]"
                         />
                       ) : (
-                        <div className="flex items-center justify-between">
-                          <p className="text-[13px] text-[#737373]">
-                            ¿Algo que quieras que sepamos?
+                        <div className="flex items-center justify-between gap-4">
+                          <p className="text-sm text-neutral-500">
+                            Comentarios o solicitudes especiales
                           </p>
                           <button
+                            type="button"
                             onClick={() => setShowNotesInput(true)}
-                            className="text-[13px] font-medium text-[#0a0a0a] border border-[#e5e5e5] rounded-full px-4 py-1.5 hover:border-[#0a0a0a] transition-colors bg-white"
+                            className="shrink-0 rounded-full border border-neutral-200 px-4 py-1.5 text-xs font-medium text-[#111] transition-colors hover:border-[#111]"
                           >
                             Añadir
                           </button>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </section>
 
                   {submitError && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-                      <p className="text-[13px] text-red-700">{submitError}</p>
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                      <p className="text-sm text-red-700">{submitError}</p>
                     </div>
                   )}
                 </div>
               </div>
             )}
+
+            {selectedServiceIds.length > 0 && (
+              <div className="mt-8 lg:hidden">
+                <BookingSummary {...summaryProps} />
+              </div>
+            )}
           </div>
 
-          <div className="hidden lg:block w-72 xl:w-80 shrink-0 sticky top-[5.5rem]">
-            {sidebar}
-          </div>
-        </div>
-      </div>
-
-      {selectedServiceIds.length > 0 && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e5e5] px-6 py-4 flex items-center justify-between z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
-          <div>
-            <p className="text-[11px] text-[#737373]">
-              {selectedServiceIds.length} servicio
-              {selectedServiceIds.length > 1 ? "s" : ""}
-            </p>
-            <p className="font-bold text-[#0a0a0a] text-[15px]">
-              {formatPrice(totalPrice)}
-            </p>
-          </div>
           {step < 4 ? (
-            <button
-              onClick={handleContinue}
-              disabled={!canContinue}
-              className="rounded-full bg-[#0a0a0a] px-6 py-3 text-sm font-semibold text-white disabled:opacity-35 flex items-center gap-1.5"
-            >
-              Continuar <span aria-hidden>→</span>
-            </button>
+            <div className="hidden w-72 shrink-0 lg:block xl:w-80">
+              <div className="sticky top-[calc(var(--site-chrome-bottom)+5.5rem)]">
+                <BookingSummary {...summaryProps} />
+              </div>
+            </div>
           ) : (
-            <button
-              onClick={handleConfirm}
-              disabled={submitting}
-              className="rounded-full bg-[#0a0a0a] px-6 py-3 text-sm font-semibold text-white disabled:opacity-35 flex items-center gap-1.5"
-            >
-              {submitting ? (
-                <>
-                  <Spinner /> Procesando…
-                </>
-              ) : (
-                "Confirmar"
-              )}
-            </button>
+            <aside className="hidden lg:col-span-4 lg:block">
+              <div className="sticky top-[calc(var(--site-chrome-bottom)+5.5rem)]">
+                <BookingSummary {...summaryProps} />
+              </div>
+            </aside>
           )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

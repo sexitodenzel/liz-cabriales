@@ -6,6 +6,7 @@ import type {
   AdminAppointmentRow,
   ProfessionalRow,
 } from "@/lib/supabase/appointments"
+import DatePicker from "@/components/shared/DatePicker"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
@@ -195,14 +196,13 @@ export default function RescheduleAppointmentModal({
               <label className="block text-xs font-medium text-neutral-600">
                 Nueva fecha
               </label>
-              <input
-                type="date"
+              <DatePicker
                 value={date}
-                onChange={(e) => {
-                  setDate(e.target.value)
+                onChange={(next) => {
+                  setDate(next)
                   setStartTime("")
                 }}
-                className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-400"
+                className="mt-1"
               />
             </div>
             <div>

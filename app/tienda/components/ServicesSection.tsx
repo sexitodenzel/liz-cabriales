@@ -33,7 +33,7 @@ export default function ServicesSection({ services }: Props) {
           </p>
         </div>
         <Link
-          href="/citas"
+          href="/servicios"
           className="hidden text-sm font-medium text-[#a8862f] hover:underline sm:block"
         >
           Agendar cita →
@@ -64,7 +64,7 @@ export default function ServicesSection({ services }: Props) {
                 </span>
               </div>
               <Link
-                href="/citas"
+                href="/servicios"
                 className={storeInlineButtonClassName}
               >
                 Agendar
@@ -75,7 +75,7 @@ export default function ServicesSection({ services }: Props) {
       </div>
 
       <div className="mt-4 sm:hidden">
-        <Link href="/citas" className="text-sm font-medium text-[#a8862f] hover:underline">
+        <Link href="/servicios" className="text-sm font-medium text-[#a8862f] hover:underline">
           Agendar cita →
         </Link>
       </div>

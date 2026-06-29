@@ -11,7 +11,7 @@ const timeString = z
 
 export const professionalAnySchema = z.union([uuid, z.literal("any")])
 
-export const createAppointmentSchema = z.object({
+const appointmentCoreSchema = z.object({
   service_ids: z
     .array(uuid)
     .min(1, "Debes seleccionar al menos un servicio")
@@ -21,7 +21,21 @@ export const createAppointmentSchema = z.object({
   start_time: timeString,
 })
 
-export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>
+export const createAppointmentSchema = appointmentCoreSchema.extend({
+  client_phone: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(
+      z
+        .string()
+        .min(10, "Ingresa tu número de celular (10 dígitos)")
+        .max(10, "El celular debe tener 10 dígitos")
+        .regex(/^\d{10}$/, "El celular debe tener 10 dígitos")
+    ),
+})
+
+export type CreateAppointmentInput = z.infer<typeof appointmentCoreSchema>
 
 export const cancelAppointmentSchema = z.object({
   appointment_id: uuid,
@@ -64,6 +78,10 @@ export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>
 export const adminAppointmentsQuerySchema = z.object({
   date: dateString.optional(),
   professional_id: uuid.optional(),
+  status: z
+    .enum(["pending", "paid", "completed", "cancelled"])
+    .optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
 })
 
 export type AdminAppointmentsQuery = z.infer<typeof adminAppointmentsQuerySchema>
@@ -110,3 +128,16 @@ export const rescheduleAppointmentSchema = z.object({
 export type RescheduleAppointmentRequest = z.infer<
   typeof rescheduleAppointmentSchema
 >
+
+export const adminProfessionalCreateSchema = z.object({
+  name: z.string().trim().min(1, "El nombre es obligatorio").max(120),
+})
+
+export const adminProfessionalUpdateSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120).optional(),
+    is_active: z.boolean().optional(),
+  })
+  .refine((value) => value.name !== undefined || value.is_active !== undefined, {
+    message: "Debes indicar al menos un campo a actualizar",
+  })

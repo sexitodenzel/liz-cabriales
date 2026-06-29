@@ -81,7 +81,7 @@ export default function PerfilCitasClient({ initialAppointments }: Props) {
     return (
       <p className="text-sm text-neutral-600">
         No tienes citas registradas. Reserva en{" "}
-        <a href="/citas" className="font-medium text-[#9b7a1f] underline">
+        <a href="/servicios" className="font-medium text-[#9b7a1f] underline">
           Servicios
         </a>
         .
