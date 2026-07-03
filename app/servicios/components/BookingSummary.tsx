@@ -2,7 +2,11 @@
 
 import Image from "next/image"
 
-import type { ProfessionalRow, ServiceRow } from "@/lib/supabase/appointments"
+import type {
+  ProfessionalRow,
+  ServiceWithOptions,
+} from "@/lib/supabase/appointments"
+import { resolveServiceOptions } from "@/components/shared/ServiceOptionsPicker"
 
 type Slot = {
   start_time: string
@@ -11,7 +15,8 @@ type Slot = {
 }
 
 type Props = {
-  selectedServices: ServiceRow[]
+  selectedServices: ServiceWithOptions[]
+  selectedOptionsByService: Record<string, string[]>
   profLabel: string
   selectedProfessional?: ProfessionalRow
   selectedDate: string | null
@@ -78,6 +83,7 @@ function Spinner() {
 
 export default function BookingSummary({
   selectedServices,
+  selectedOptionsByService,
   profLabel,
   selectedProfessional,
   selectedDate,
@@ -113,7 +119,7 @@ export default function BookingSummary({
               <img
                 src={selectedProfessional.photo_url}
                 alt={selectedProfessional.name}
-                className="h-full w-full object-cover grayscale"
+                className="h-full w-full object-cover"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-neutral-500">
@@ -161,21 +167,34 @@ export default function BookingSummary({
               Resumen de tu cita
             </p>
           )}
-          {selectedServices.map((s) => (
-            <div key={s.id}>
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-medium leading-snug text-[#111]">
-                  {s.name}
-                </p>
-                <p className="shrink-0 font-[family-name:var(--font-playfair),serif] text-sm text-[#111]">
-                  {formatPrice(s.price)}
+          {selectedServices.map((s) => {
+            const opts = resolveServiceOptions(s, selectedOptionsByService)
+            const linePrice =
+              s.price + opts.reduce((sum, o) => sum + o.price_delta, 0)
+            const lineDuration =
+              s.duration_min + opts.reduce((sum, o) => sum + o.duration_delta, 0)
+
+            return (
+              <div key={s.id}>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-medium leading-snug text-[#111]">
+                    {s.name}
+                  </p>
+                  <p className="shrink-0 font-[family-name:var(--font-playfair),serif] text-sm text-[#111]">
+                    {formatPrice(linePrice)}
+                  </p>
+                </div>
+                {opts.length > 0 && (
+                  <p className="mt-1 text-xs text-[#c9a84c]">
+                    {opts.map((o) => o.label).join(" · ")}
+                  </p>
+                )}
+                <p className="mt-0.5 text-[11px] text-neutral-500">
+                  {formatDuration(lineDuration)} con {profLabel}
                 </p>
               </div>
-              <p className="mt-0.5 text-[11px] text-neutral-500">
-                {formatDuration(s.duration_min)} con {profLabel}
-              </p>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

@@ -4,10 +4,10 @@ import { revalidateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdminOrReceptionist } from "@/lib/supabase/admin"
 import {
-  createProfessional,
-  getAdminProfessionals,
-} from "@/lib/supabase/appointments"
-import { adminProfessionalCreateSchema } from "@/lib/validations/appointments"
+  createServiceFilter,
+  getServiceFilters,
+} from "@/lib/supabase/servicesAdmin"
+import { adminServiceFilterCreateSchema } from "@/lib/validations/services"
 
 type ApiError = { message: string; code?: string }
 type ApiResponse<T> = { data: T; error: null } | { data: null; error: ApiError }
@@ -38,24 +38,17 @@ export async function GET() {
           : authResult.error.code === "FORBIDDEN"
             ? 403
             : 400
-      return errorResponse(
-        authResult.error.message,
-        status,
-        authResult.error.code
-      )
+      return errorResponse(authResult.error.message, status, authResult.error.code)
     }
 
-    const result = await getAdminProfessionals()
+    const result = await getServiceFilters(false)
     if (!result.data) {
       return errorResponse(result.error.message, 500, result.error.code)
     }
 
-    return NextResponse.json({
-      data: { professionals: result.data },
-      error: null,
-    })
+    return NextResponse.json({ data: { filters: result.data }, error: null })
   } catch (err) {
-    console.error("[api/admin/professionals GET]", err)
+    console.error("[api/admin/service-filters GET]", err)
     return errorResponse("Error interno del servidor", 500)
   }
 }
@@ -70,11 +63,7 @@ export async function POST(request: NextRequest) {
           : authResult.error.code === "FORBIDDEN"
             ? 403
             : 400
-      return errorResponse(
-        authResult.error.message,
-        status,
-        authResult.error.code
-      )
+      return errorResponse(authResult.error.message, status, authResult.error.code)
     }
 
     let json: unknown
@@ -84,7 +73,7 @@ export async function POST(request: NextRequest) {
       return errorResponse("Cuerpo inválido", 400, "VALIDATION_ERROR")
     }
 
-    const parseResult = adminProfessionalCreateSchema.safeParse(json)
+    const parseResult = adminServiceFilterCreateSchema.safeParse(json)
     if (!parseResult.success) {
       return errorResponse(
         parseResult.error.issues[0]?.message ?? "Datos inválidos",
@@ -93,19 +82,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await createProfessional(parseResult.data)
+    const result = await createServiceFilter(parseResult.data.name)
     if (!result.data) {
       return errorResponse(result.error.message, 500, result.error.code)
     }
 
-    revalidateTag("professionals", "max")
+    revalidateTag("services", "max")
 
     return NextResponse.json(
-      { data: { professional: result.data }, error: null },
+      { data: { filter: result.data }, error: null },
       { status: 201 }
     )
   } catch (err) {
-    console.error("[api/admin/professionals POST]", err)
+    console.error("[api/admin/service-filters POST]", err)
     return errorResponse("Error interno del servidor", 500)
   }
 }

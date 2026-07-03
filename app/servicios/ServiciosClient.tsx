@@ -2,12 +2,23 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { createClient } from "@/lib/supabase/client"
-import type { ProfessionalRow, ServiceRow } from "@/lib/supabase/appointments"
+import type {
+  ProfessionalRow,
+  ServiceFilterRow,
+  ServiceWithOptions,
+} from "@/lib/supabase/appointments"
+import { professionalMatchesServiceFilters } from "@/lib/professionalFilters"
+import ServiceOptionsPicker, {
+  buildServiceSelections,
+  resolveServiceOptions,
+  sumSelectedOptions,
+} from "@/components/shared/ServiceOptionsPicker"
 
 import BookingSummary from "./components/BookingSummary"
+import FullCalendarModal from "./components/FullCalendarModal"
 
 type Slot = {
   start_time: string
@@ -18,7 +29,8 @@ type Slot = {
 type Step = 1 | 2 | 3 | 4
 
 type Props = {
-  services: ServiceRow[]
+  services: ServiceWithOptions[]
+  filters: ServiceFilterRow[]
   professionals: ProfessionalRow[]
   isAuthenticated: boolean
   activeAppointmentId: string | null
@@ -31,42 +43,15 @@ const STEP_LABELS: Record<Step, string> = {
   4: "Confirmación",
 }
 
-const CATEGORY_DEFS = [
-  {
-    id: "podologia",
-    label: "Podología",
-    keywords: ["podol", "pie", "pedicur"],
-  },
-  {
-    id: "unas",
-    label: "Uñas",
-    keywords: ["uña", "manicur", "nail", "gelish"],
-  },
-  { id: "aplicacion", label: "Aplicación", keywords: ["aplicac"] },
-  {
-    id: "facial",
-    label: "Facial",
-    keywords: ["facial", "piel", "limpiez"],
-  },
-  {
-    id: "depilacion",
-    label: "Depilación",
-    keywords: ["depilac", "cera", "wax", "hilo"],
-  },
+const DEFAULT_FILTERS: ServiceFilterRow[] = [
+  { id: "manos", name: "Manos", slug: "manos", sort_order: 1, is_active: true },
+  { id: "pies", name: "Pies", slug: "pies", sort_order: 2, is_active: true },
 ]
 
 const SELECTED_CARD =
   "border-2 border-[#c9a84c] bg-white shadow-[0_4px_12px_rgba(201,168,76,0.12)] ring-1 ring-[#c9a84c]/20"
 const DEFAULT_CARD =
   "border border-neutral-200/80 bg-white hover:border-[#c9a84c]/40"
-
-function detectCategory(service: ServiceRow): string | null {
-  const src = `${service.name} ${service.description ?? ""}`.toLowerCase()
-  for (const cat of CATEGORY_DEFS) {
-    if (cat.keywords.some((kw) => src.includes(kw))) return cat.id
-  }
-  return null
-}
 
 function formatPrice(v: number): string {
   return new Intl.NumberFormat("es-MX", {
@@ -130,17 +115,23 @@ function groupSlotsByPeriod(slots: Slot[]) {
 }
 
 const DAYS_MS = 1000 * 60 * 60 * 24
+const QUICK_PICK_DAYS = 30
+const CALENDAR_HORIZON_DAYS = 90
 
-function buildAvailableDates(): Date[] {
+function buildBookableDates(daysAhead: number): Date[] {
   const out: Date[] = []
   const now = new Date()
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < daysAhead; i++) {
     const d = new Date(start.getTime() + i * DAYS_MS)
     if (d.getDay() === 0) continue
     out.push(d)
   }
   return out
+}
+
+function buildAvailableDates(): Date[] {
+  return buildBookableDates(QUICK_PICK_DAYS)
 }
 
 function IconArrowLeft() {
@@ -326,6 +317,7 @@ function SlotGrid({
 
 export default function ServiciosClient({
   services,
+  filters: initialFilters,
   professionals,
   isAuthenticated,
   activeAppointmentId,
@@ -334,6 +326,9 @@ export default function ServiciosClient({
 
   const [step, setStep] = useState<Step>(1)
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([])
+  const [selectedOptionsByService, setSelectedOptionsByService] = useState<
+    Record<string, string[]>
+  >({})
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<
     string | "any" | null
   >(null)
@@ -345,42 +340,83 @@ export default function ServiciosClient({
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState("all")
-  const [expandedServiceId, setExpandedServiceId] = useState<string | null>(
+  const [descExpandedId, setDescExpandedId] = useState<string | null>(null)
+  const [optionsExpandedId, setOptionsExpandedId] = useState<string | null>(
     null
   )
   const [notes, setNotes] = useState("")
   const [showNotesInput, setShowNotesInput] = useState(false)
   const [phone, setPhone] = useState("")
   const [phoneError, setPhoneError] = useState<string | null>(null)
+  const [fullCalendarOpen, setFullCalendarOpen] = useState(false)
 
   const selectedServices = useMemo(
     () => services.filter((s) => selectedServiceIds.includes(s.id)),
     [services, selectedServiceIds]
   )
 
-  const totalPrice = selectedServices.reduce((a, s) => a + s.price, 0)
-  const totalDuration = selectedServices.reduce(
-    (a, s) => a + s.duration_min,
-    0
+  const requiredFilterIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const service of selectedServices) {
+      if (service.filter_id) ids.add(service.filter_id)
+    }
+    return ids
+  }, [selectedServices])
+
+  const eligibleProfessionals = useMemo(
+    () =>
+      professionals.filter((professional) =>
+        professionalMatchesServiceFilters(professional, requiredFilterIds)
+      ),
+    [professionals, requiredFilterIds]
   )
+
+  const optionTotals = useMemo(
+    () => sumSelectedOptions(selectedServices, selectedOptionsByService),
+    [selectedServices, selectedOptionsByService]
+  )
+
+  const totalPrice = selectedServices.reduce((a, s) => a + s.price, 0) + optionTotals.price
+  const totalDuration =
+    selectedServices.reduce((a, s) => a + s.duration_min, 0) +
+    optionTotals.duration
   const availableDates = useMemo(buildAvailableDates, [])
+  const bookableDateSet = useMemo(
+    () =>
+      new Set(
+        buildBookableDates(CALENDAR_HORIZON_DAYS).map((d) => toDateString(d))
+      ),
+    []
+  )
+  const bookableRange = useMemo(() => {
+    const dates = buildBookableDates(CALENDAR_HORIZON_DAYS)
+    return {
+      min: dates[0] ? toDateString(dates[0]) : toDateString(new Date()),
+      max: dates[dates.length - 1]
+        ? toDateString(dates[dates.length - 1])
+        : toDateString(new Date()),
+    }
+  }, [])
   const { morning: morningSlots, afternoon: afternoonSlots } = useMemo(
     () => groupSlotsByPeriod(slots),
     [slots]
   )
 
+  const filters =
+    initialFilters.length > 0 ? initialFilters : DEFAULT_FILTERS
+
   const availableCategories = useMemo(() => {
-    const found = new Set<string>()
-    for (const s of services) {
-      const cat = detectCategory(s)
-      if (cat) found.add(cat)
-    }
-    return CATEGORY_DEFS.filter((c) => found.has(c.id))
-  }, [services])
+    const slugsInUse = new Set(
+      services
+        .map((s) => s.filter_slug)
+        .filter((slug): slug is string => Boolean(slug))
+    )
+    return filters.filter((f) => slugsInUse.has(f.slug))
+  }, [services, filters])
 
   const filteredServices = useMemo(() => {
     if (activeCategory === "all") return services
-    return services.filter((s) => detectCategory(s) === activeCategory)
+    return services.filter((s) => s.filter_slug === activeCategory)
   }, [services, activeCategory])
 
   const selectedProfessional = professionals.find(
@@ -395,10 +431,49 @@ export default function ServiciosClient({
   const progressPct = (step / 4) * 100
 
   const toggleService = (id: string) => {
-    setSelectedServiceIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    )
+    setSelectedServiceIds((prev) => {
+      if (prev.includes(id)) {
+        setSelectedOptionsByService((opts) => {
+          const next = { ...opts }
+          delete next[id]
+          return next
+        })
+        if (optionsExpandedId === id) setOptionsExpandedId(null)
+        return prev.filter((x) => x !== id)
+      }
+      const svc = services.find((s) => s.id === id)
+      if (svc && svc.options.length > 0) {
+        setOptionsExpandedId(id)
+      }
+      return [...prev, id]
+    })
   }
+
+  const handleServiceOptionsChange = (serviceId: string, optionIds: string[]) => {
+    setSelectedOptionsByService((prev) => ({
+      ...prev,
+      [serviceId]: optionIds,
+    }))
+    if (optionIds.length > 0 && !selectedServiceIds.includes(serviceId)) {
+      setSelectedServiceIds((prev) => [...prev, serviceId])
+      setOptionsExpandedId(serviceId)
+    }
+  }
+
+  const handleServiceCardClick = (service: ServiceWithOptions) => {
+    if (service.options.length > 0) {
+      setOptionsExpandedId((prev) =>
+        prev === service.id ? null : service.id
+      )
+      return
+    }
+    toggleService(service.id)
+  }
+
+  const serviceSelections = useMemo(
+    () => buildServiceSelections(selectedServiceIds, selectedOptionsByService),
+    [selectedServiceIds, selectedOptionsByService]
+  )
 
   const fetchSlots = useCallback(async () => {
     if (!selectedDate || !selectedProfessionalId || totalDuration === 0) {
@@ -481,6 +556,10 @@ export default function ServiciosClient({
 
         const data = JSON.parse(raw) as {
           service_ids?: string[]
+          service_selections?: Array<{
+            service_id: string
+            option_ids: string[]
+          }>
           professional_id?: string | "any"
           date?: string
           start_time?: string
@@ -489,6 +568,13 @@ export default function ServiciosClient({
 
         if (data.service_ids?.length) {
           setSelectedServiceIds(data.service_ids)
+        }
+        if (data.service_selections?.length) {
+          const map: Record<string, string[]> = {}
+          for (const row of data.service_selections) {
+            map[row.service_id] = row.option_ids
+          }
+          setSelectedOptionsByService(map)
         }
         if (data.professional_id) {
           setSelectedProfessionalId(data.professional_id)
@@ -549,6 +635,23 @@ export default function ServiciosClient({
     if (step > 1) setStep((s) => (s - 1) as Step)
   }
 
+  const skipStepScrollRef = useRef(true)
+  useEffect(() => {
+    if (skipStepScrollRef.current) {
+      skipStepScrollRef.current = false
+      return
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [step])
+
+  useEffect(() => {
+    if (selectedProfessionalId === "any" || !selectedProfessionalId) return
+    const stillEligible = eligibleProfessionals.some(
+      (professional) => professional.id === selectedProfessionalId
+    )
+    if (!stillEligible) setSelectedProfessionalId(null)
+  }, [eligibleProfessionals, selectedProfessionalId])
+
   const handleConfirm = async () => {
     if (!hasValidPhone) {
       setPhoneError("Ingresa tu número de celular (10 dígitos)")
@@ -562,6 +665,7 @@ export default function ServiciosClient({
           "pendingAppointment",
           JSON.stringify({
             service_ids: selectedServiceIds,
+            service_selections: serviceSelections,
             professional_id: selectedProfessionalId,
             date: selectedDate,
             start_time: selectedSlot?.start_time,
@@ -590,6 +694,7 @@ export default function ServiciosClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           service_ids: selectedServiceIds,
+          service_selections: serviceSelections,
           professional_id: profToSend,
           date: selectedDate,
           start_time: selectedSlot.start_time,
@@ -668,6 +773,7 @@ export default function ServiciosClient({
 
   const summaryProps = {
     selectedServices,
+    selectedOptionsByService,
     profLabel,
     selectedProfessional:
       selectedProfessionalId !== "any" ? selectedProfessional : undefined,
@@ -767,14 +873,14 @@ export default function ServiciosClient({
                       <button
                         key={cat.id}
                         type="button"
-                        onClick={() => setActiveCategory(cat.id)}
+                        onClick={() => setActiveCategory(cat.slug)}
                         className={`shrink-0 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all ${
-                          activeCategory === cat.id
+                          activeCategory === cat.slug
                             ? "bg-[#111] text-white"
                             : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
                         }`}
                       >
-                        {cat.label}
+                        {cat.name}
                       </button>
                     ))}
                   </div>
@@ -783,21 +889,26 @@ export default function ServiciosClient({
                 <div className="space-y-3">
                   {filteredServices.map((s) => {
                     const selected = selectedServiceIds.includes(s.id)
-                    const expanded = expandedServiceId === s.id
+                    const descExpanded = descExpandedId === s.id
+                    const optionsExpanded = optionsExpandedId === s.id
                     const longDesc =
                       s.description && s.description.length > 120
+                    const hasSubOptions = s.options.length > 0
+                    const showSubindex = hasSubOptions && optionsExpanded
 
                     return (
-                      <button
+                      <div
                         key={s.id}
-                        type="button"
-                        onClick={() => toggleService(s.id)}
                         className={`group w-full rounded-lg p-6 text-left transition-all duration-200 md:p-8 ${
                           selected ? SELECTED_CARD : DEFAULT_CARD
                         }`}
                       >
                         <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0 flex-1">
+                          <button
+                            type="button"
+                            onClick={() => handleServiceCardClick(s)}
+                            className="min-w-0 flex-1 text-left"
+                          >
                             <h3
                               className={`font-[family-name:var(--font-playfair),serif] text-lg md:text-xl ${
                                 selected
@@ -809,6 +920,11 @@ export default function ServiciosClient({
                             </h3>
                             <p className="mt-1 text-[11px] uppercase tracking-[0.1em] text-neutral-500">
                               {formatDuration(s.duration_min)}
+                              {hasSubOptions && (
+                                <span className="ml-2 normal-case tracking-normal text-[#c9a84c]">
+                                  · Toca para ver opciones
+                                </span>
+                              )}
                             </p>
                             {s.description && (
                               <div
@@ -817,7 +933,7 @@ export default function ServiciosClient({
                               >
                                 <p
                                   className={`text-sm leading-relaxed text-neutral-600 ${
-                                    expanded ? "" : "line-clamp-2"
+                                    descExpanded ? "" : "line-clamp-2"
                                   }`}
                                 >
                                   {s.description}
@@ -826,13 +942,13 @@ export default function ServiciosClient({
                                   <button
                                     type="button"
                                     onClick={() =>
-                                      setExpandedServiceId(
-                                        expanded ? null : s.id
+                                      setDescExpandedId(
+                                        descExpanded ? null : s.id
                                       )
                                     }
                                     className="mt-1 text-xs font-medium text-[#111] transition-colors hover:text-[#c9a84c]"
                                   >
-                                    {expanded ? "Ver menos" : "Ver más"}
+                                    {descExpanded ? "Ver menos" : "Ver más"}
                                   </button>
                                 )}
                               </div>
@@ -840,23 +956,43 @@ export default function ServiciosClient({
                             <p className="mt-4 font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
                               {formatPrice(s.price)}
                             </p>
-                          </div>
+                          </button>
 
-                          <div
+                          <button
+                            type="button"
+                            onClick={() => toggleService(s.id)}
                             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all ${
                               selected
                                 ? "border-[#111] bg-[#111] text-white"
                                 : "border-neutral-300 text-neutral-500 group-hover:border-[#c9a84c]"
                             }`}
+                            aria-label={
+                              selected
+                                ? `Quitar ${s.name}`
+                                : `Agregar ${s.name}`
+                            }
                           >
                             {selected ? (
                               <IconCheck />
                             ) : (
                               <span className="text-xl leading-none">+</span>
                             )}
-                          </div>
+                          </button>
                         </div>
-                      </button>
+
+                        {showSubindex && (
+                          <ServiceOptionsPicker
+                            serviceId={s.id}
+                            serviceName={s.name}
+                            options={s.options}
+                            selectedOptionIds={
+                              selectedOptionsByService[s.id] ?? []
+                            }
+                            onChange={handleServiceOptionsChange}
+                            variant="subindex"
+                          />
+                        )}
+                      </div>
                     )
                   })}
 
@@ -910,7 +1046,14 @@ export default function ServiciosClient({
                     </button>
                   </div>
 
-                  {professionals.map((p) => {
+                  {eligibleProfessionals.length === 0 ? (
+                    <p className="rounded-lg border border-neutral-200/80 bg-white p-6 text-center text-sm text-neutral-500">
+                      No hay trabajadoras disponibles para los servicios
+                      seleccionados. Puedes elegir &quot;Sin preferencia&quot; o
+                      volver a ajustar tus servicios.
+                    </p>
+                  ) : (
+                    eligibleProfessionals.map((p) => {
                     const selected = selectedProfessionalId === p.id
                     return (
                       <div
@@ -924,7 +1067,7 @@ export default function ServiciosClient({
                             <img
                               src={p.photo_url}
                               alt={p.name}
-                              className="h-full w-full object-cover grayscale"
+                              className="h-full w-full object-cover"
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-neutral-500">
@@ -955,7 +1098,8 @@ export default function ServiciosClient({
                         </button>
                       </div>
                     )
-                  })}
+                  })
+                  )}
                 </div>
               </div>
             )}
@@ -1008,6 +1152,27 @@ export default function ServiciosClient({
                       )
                     })}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setFullCalendarOpen(true)}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#111] transition-all hover:border-[#c9a84c] hover:bg-[#fdfaf3] hover:text-[#c9a84c]"
+                  >
+                    <IconCalendar />
+                    Ver calendario completo
+                  </button>
+                  <FullCalendarModal
+                    open={fullCalendarOpen}
+                    onClose={() => setFullCalendarOpen(false)}
+                    value={selectedDate}
+                    onChange={(dateStr) => {
+                      setSelectedDate(dateStr)
+                      setSelectedSlot(null)
+                      setFullCalendarOpen(false)
+                    }}
+                    availableDates={bookableDateSet}
+                    minBookableDate={bookableRange.min}
+                    maxBookableDate={bookableRange.max}
+                  />
                 </div>
 
                 <div className="mb-10">
@@ -1076,9 +1241,24 @@ export default function ServiciosClient({
                 {selectedServices.length > 0 && (
                   <div className="flex flex-col items-center justify-between gap-4 rounded-lg border border-neutral-200/80 bg-white p-6 shadow-sm md:flex-row">
                     <div>
-                      <p className="font-medium text-[#111]">
-                        {selectedServices.map((s) => s.name).join(" · ")}
-                      </p>
+                      <div className="space-y-1">
+                        {selectedServices.map((s) => {
+                          const opts = resolveServiceOptions(
+                            s,
+                            selectedOptionsByService
+                          )
+                          return (
+                            <p key={s.id} className="font-medium text-[#111]">
+                              {s.name}
+                              {opts.length > 0 && (
+                                <span className="ml-1 text-sm font-normal text-[#c9a84c]">
+                                  · {opts.map((o) => o.label).join(" · ")}
+                                </span>
+                              )}
+                            </p>
+                          )
+                        })}
+                      </div>
                       <p className="mt-1 text-sm text-neutral-500">
                         {formatDuration(totalDuration)} con {profLabel}
                       </p>

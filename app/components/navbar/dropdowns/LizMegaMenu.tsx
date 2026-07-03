@@ -5,15 +5,17 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
+import {
+  resolveSobreLizBrandPhoto,
+  SOBRE_LIZ_BRAND_PHOTO_FALLBACK,
+} from "@/lib/sobre-liz/brand-photo"
+
 type LizMegaMenuProps = {
   isOpen: boolean
   onClose: () => void
   onMouseEnter?: () => void
   onMouseLeave?: () => void
 }
-
-const FEATURE_IMAGE =
-  "https://images.unsplash.com/photo-1620331311520-246422fd82f9?auto=format&fit=crop&w=720&q=80"
 
 const SECTIONS = [
   {
@@ -50,6 +52,21 @@ export default function LizMegaMenu({
   onMouseLeave,
 }: LizMegaMenuProps) {
   const [contentVisible, setContentVisible] = useState(false)
+  const [featureImage, setFeatureImage] = useState(SOBRE_LIZ_BRAND_PHOTO_FALLBACK)
+
+  useEffect(() => {
+    let isMounted = true
+    void fetch("/api/landing/brand-photo")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { url?: string } | null) => {
+        if (!isMounted || !json?.url) return
+        setFeatureImage(resolveSobreLizBrandPhoto(json.url))
+      })
+      .catch(() => {})
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -104,7 +121,7 @@ export default function LizMegaMenu({
           >
             <div className="relative aspect-[4/5] w-full">
               <Image
-                src={FEATURE_IMAGE}
+                src={featureImage}
                 alt="Liz Cabriales"
                 fill
                 sizes="320px"

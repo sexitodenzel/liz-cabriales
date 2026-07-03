@@ -14,7 +14,50 @@ import type {
   ProductVariant,
   ProductWithVariants,
 } from "./products"
-import type { ProfessionalRow, ServiceRow } from "./appointments"
+import type {
+  ProfessionalRow,
+  ServiceRow,
+  ServiceWithOptions,
+} from "./appointments"
+import { getPublicServicesWithOptions, queryServiceRows } from "./servicesAdmin"
+
+function adminDb() {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) return db()
+
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    serviceKey
+  )
+}
+
+async function loadProfessionalFilterIdsMap(
+  professionalIds: string[]
+): Promise<Map<string, string[]>> {
+  const map = new Map<string, string[]>()
+  if (professionalIds.length === 0) return map
+
+  try {
+    const { data, error } = await adminDb()
+      .from("professional_filter_links")
+      .select("professional_id, filter_id")
+      .in("professional_id", professionalIds)
+
+    if (error) return map
+
+    for (const row of data ?? []) {
+      const professionalId = row.professional_id as string
+      const filterId = row.filter_id as string
+      const current = map.get(professionalId) ?? []
+      current.push(filterId)
+      map.set(professionalId, current)
+    }
+  } catch {
+    return map
+  }
+
+  return map
+}
 
 function db() {
   return createClient(
@@ -708,23 +751,33 @@ export const getRelatedProductsCached = unstable_cache(
 
 export const getServicesCached = unstable_cache(
   async (): Promise<Result<ServiceRow[]>> => {
-    const { data, error } = await db()
-      .from("services")
-      .select("id, name, description, price, duration_min, is_active")
-      .eq("is_active", true)
-      .order("name", { ascending: true })
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    const rows = (data ?? []).map((r) => ({
+    const result = await queryServiceRows(db(), { activeOnly: true })
+    if (!result.data) {
+      return { data: null, error: result.error }
+    }
+    const rows = result.data.map((r) => ({
       id: r.id as string,
       name: r.name as string,
       description: (r.description as string | null) ?? null,
       price: Number(r.price),
       duration_min: Number(r.duration_min),
       is_active: Boolean(r.is_active),
+      show_options: Boolean(r.show_options ?? false),
+      filter_id: (r.filter_id as string | null) ?? null,
+      filter_slug: (r.filter_slug as string | null) ?? null,
+      filter_name: (r.filter_name as string | null) ?? null,
     }))
     return { data: rows, error: null }
   },
   ["services"],
+  { revalidate: 300, tags: ["services"] }
+)
+
+export const getServicesWithOptionsCached = unstable_cache(
+  async (): Promise<Result<ServiceWithOptions[]>> => {
+    return getPublicServicesWithOptions()
+  },
+  ["services-with-options"],
   { revalidate: 300, tags: ["services"] }
 )
 
@@ -737,13 +790,21 @@ export const getProfessionalsCached = unstable_cache(
       .select("id, name, bio, photo_url, is_active")
       .eq("is_active", true)
       .order("name", { ascending: true })
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
+    if (error) {
+      return { data: null, error: { message: error.message, code: error.code } }
+    }
+
+    const professionalIds = (data ?? []).map((row) => row.id as string)
+    const filterIdsByProfessional =
+      await loadProfessionalFilterIdsMap(professionalIds)
+
     const rows = (data ?? []).map((r) => ({
       id: r.id as string,
       name: r.name as string,
       bio: (r.bio as string | null) ?? null,
       photo_url: (r.photo_url as string | null) ?? null,
       is_active: Boolean(r.is_active),
+      filter_ids: filterIdsByProfessional.get(r.id as string) ?? [],
     }))
     return { data: rows, error: null }
   },

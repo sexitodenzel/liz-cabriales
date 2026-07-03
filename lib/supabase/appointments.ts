@@ -13,6 +13,12 @@ import type {
   BlockedSlotInput,
   CreateAppointmentInput,
 } from "@/lib/validations/appointments"
+import type { ServiceSelectionInput } from "@/lib/validations/services"
+import {
+  insertAppointmentServiceOptions,
+  queryServiceRows,
+  resolveSelectedServiceOptions,
+} from "@/lib/supabase/servicesAdmin"
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Cliente admin (bypass RLS) — usado para escrituras y agendas cruzadas.
@@ -85,6 +91,16 @@ function overlaps(
  * Tipos públicos
  * ────────────────────────────────────────────────────────────────────── */
 
+export type ServiceOptionType = "extra" | "nail_type"
+
+export type ServiceFilterRow = {
+  id: string
+  name: string
+  slug: string
+  sort_order: number
+  is_active: boolean
+}
+
 export type ServiceRow = {
   id: string
   name: string
@@ -92,6 +108,32 @@ export type ServiceRow = {
   price: number
   duration_min: number
   is_active: boolean
+  show_options: boolean
+  filter_id: string | null
+  filter_slug: string | null
+  filter_name: string | null
+}
+
+export type ServiceOptionRow = {
+  id: string
+  label: string
+  option_type: ServiceOptionType
+  price_delta: number
+  duration_delta: number
+  is_active: boolean
+  sort_order: number
+}
+
+export type EnabledServiceOption = {
+  id: string
+  label: string
+  option_type: ServiceOptionType
+  price_delta: number
+  duration_delta: number
+}
+
+export type ServiceWithOptions = ServiceRow & {
+  options: EnabledServiceOption[]
 }
 
 export type ProfessionalRow = {
@@ -100,6 +142,7 @@ export type ProfessionalRow = {
   bio: string | null
   photo_url: string | null
   is_active: boolean
+  filter_ids: string[]
 }
 
 export type AvailabilitySlot = {
@@ -160,23 +203,20 @@ export type BlockedSlotRow = {
 
 export async function getServices(): Promise<Result<ServiceRow[]>> {
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("services")
-    .select("id, name, description, price, duration_min, is_active")
-    .eq("is_active", true)
-    .order("name", { ascending: true })
+  const result = await queryServiceRows(supabase, { activeOnly: true })
+  if (!result.data) return result
 
-  if (error) {
-    return { data: null, error: { message: error.message, code: error.code } }
-  }
-
-  const rows = (data ?? []).map((r) => ({
+  const rows = result.data.map((r) => ({
     id: r.id as string,
     name: r.name as string,
     description: (r.description as string | null) ?? null,
     price: Number(r.price),
     duration_min: Number(r.duration_min),
     is_active: Boolean(r.is_active),
+    show_options: Boolean(r.show_options ?? false),
+    filter_id: (r.filter_id as string | null) ?? null,
+    filter_slug: (r.filter_slug as string | null) ?? null,
+    filter_name: (r.filter_name as string | null) ?? null,
   }))
 
   return { data: rows, error: null }
@@ -200,9 +240,11 @@ export async function getProfessionals(): Promise<Result<ProfessionalRow[]>> {
     bio: (r.bio as string | null) ?? null,
     photo_url: (r.photo_url as string | null) ?? null,
     is_active: Boolean(r.is_active),
+    filter_ids: [] as string[],
   }))
 
-  return { data: rows, error: null }
+  const withFilters = await attachProfessionalFilterIds(rows)
+  return { data: withFilters, error: null }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -395,23 +437,26 @@ async function loadServicesForIds(
     }
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("services")
-    .select("id, name, description, price, duration_min, is_active")
-    .in("id", serviceIds)
-    .eq("is_active", true)
+  const result = await queryServiceRows(supabaseAdmin, {
+    ids: serviceIds,
+    activeOnly: true,
+  })
 
-  if (error) {
-    return { data: null, error: { message: error.message, code: error.code } }
+  if (!result.data) {
+    return { data: null, error: result.error }
   }
 
-  const rows = (data ?? []).map((r) => ({
+  const rows = result.data.map((r) => ({
     id: r.id as string,
     name: r.name as string,
     description: (r.description as string | null) ?? null,
     price: Number(r.price),
     duration_min: Number(r.duration_min),
     is_active: Boolean(r.is_active),
+    show_options: Boolean(r.show_options ?? false),
+    filter_id: (r.filter_id as string | null) ?? null,
+    filter_slug: (r.filter_slug as string | null) ?? null,
+    filter_name: (r.filter_name as string | null) ?? null,
   }))
 
   if (rows.length !== serviceIds.length) {
@@ -432,6 +477,7 @@ type CreateAppointmentArgs = CreateAppointmentInput & {
   appointment_type?: AppointmentType
   skip_user_active_check?: boolean
   force_status?: AppointmentStatus
+  service_selections?: ServiceSelectionInput[]
 }
 
 export async function saveClientPhone(
@@ -458,8 +504,20 @@ export async function createAppointment(
   if (!servicesResult.data) return servicesResult
   const services = servicesResult.data
 
-  const totalDuration = services.reduce((a, s) => a + s.duration_min, 0)
-  const total = services.reduce((a, s) => a + s.price, 0)
+  const selections = input.service_selections ?? []
+  const optionsResult = await resolveSelectedServiceOptions(selections)
+  if (!optionsResult.data) return optionsResult
+  const selectedOptions = optionsResult.data
+
+  const optionsPrice = selectedOptions.reduce((a, o) => a + o.price_delta, 0)
+  const optionsDuration = selectedOptions.reduce(
+    (a, o) => a + o.duration_delta,
+    0
+  )
+
+  const totalDuration =
+    services.reduce((a, s) => a + s.duration_min, 0) + optionsDuration
+  const total = services.reduce((a, s) => a + s.price, 0) + optionsPrice
   const startMin = hhmmToMinutes(input.start_time)
   const endMin = startMin + totalDuration
   const closeMin = hhmmToMinutes(BUSINESS_CLOSE_HHMM)
@@ -614,6 +672,15 @@ export async function createAppointment(
         code: linesError.code,
       },
     }
+  }
+
+  const optionsInsert = await insertAppointmentServiceOptions(
+    apptId,
+    selectedOptions
+  )
+  if (optionsInsert.error) {
+    await supabaseAdmin.from("appointments").delete().eq("id", apptId)
+    return optionsInsert
   }
 
   return {
@@ -1315,7 +1382,8 @@ function mapProfessionalRows(
     bio: string | null
     photo_url: string | null
     is_active: boolean
-  }[]
+  }[],
+  filterIdsByProfessional: Map<string, string[]> = new Map()
 ): ProfessionalRow[] {
   return data.map((r) => ({
     id: r.id,
@@ -1323,7 +1391,93 @@ function mapProfessionalRows(
     bio: r.bio ?? null,
     photo_url: r.photo_url ?? null,
     is_active: Boolean(r.is_active),
+    filter_ids: filterIdsByProfessional.get(r.id) ?? [],
   }))
+}
+
+function isMissingProfessionalFiltersTable(error: { code?: string; message?: string } | null) {
+  if (!error) return false
+  const msg = (error.message ?? "").toLowerCase()
+  return (
+    error.code === "42P01" ||
+    error.code === "PGRST205" ||
+    msg.includes("professional_filter_links")
+  )
+}
+
+async function loadProfessionalFilterIds(
+  professionalIds: string[]
+): Promise<Map<string, string[]>> {
+  const map = new Map<string, string[]>()
+  if (professionalIds.length === 0) return map
+
+  const { data, error } = await supabaseAdmin
+    .from("professional_filter_links")
+    .select("professional_id, filter_id")
+    .in("professional_id", professionalIds)
+
+  if (error) {
+    if (!isMissingProfessionalFiltersTable(error)) {
+      console.error("[loadProfessionalFilterIds]", error.message)
+    }
+    return map
+  }
+
+  for (const row of data ?? []) {
+    const professionalId = row.professional_id as string
+    const filterId = row.filter_id as string
+    const current = map.get(professionalId) ?? []
+    current.push(filterId)
+    map.set(professionalId, current)
+  }
+
+  return map
+}
+
+async function attachProfessionalFilterIds(
+  rows: ProfessionalRow[]
+): Promise<ProfessionalRow[]> {
+  const filterIdsByProfessional = await loadProfessionalFilterIds(
+    rows.map((row) => row.id)
+  )
+  return rows.map((row) => ({
+    ...row,
+    filter_ids: filterIdsByProfessional.get(row.id) ?? [],
+  }))
+}
+
+async function replaceProfessionalFilterIds(
+  professionalId: string,
+  filterIds: string[]
+): Promise<{ error: { message: string; code?: string } | null }> {
+  const { error: deleteError } = await supabaseAdmin
+    .from("professional_filter_links")
+    .delete()
+    .eq("professional_id", professionalId)
+
+  if (deleteError) {
+    if (isMissingProfessionalFiltersTable(deleteError)) {
+      return { error: null }
+    }
+    return { error: { message: deleteError.message, code: deleteError.code } }
+  }
+
+  if (filterIds.length === 0) return { error: null }
+
+  const { error: insertError } = await supabaseAdmin
+    .from("professional_filter_links")
+    .insert(
+      filterIds.map((filter_id) => ({
+        professional_id: professionalId,
+        filter_id,
+      }))
+    )
+
+  if (insertError) {
+    return { error: { message: insertError.message, code: insertError.code } }
+  }
+
+  return { error: null }
 }
 
 export async function getAdminProfessionals(): Promise<Result<ProfessionalRow[]>> {
@@ -1336,13 +1490,32 @@ export async function getAdminProfessionals(): Promise<Result<ProfessionalRow[]>
     return { data: null, error: { message: error.message, code: error.code } }
   }
 
-  return { data: mapProfessionalRows(data ?? []), error: null }
+  const filterIdsByProfessional = await loadProfessionalFilterIds(
+    (data ?? []).map((row) => row.id as string)
+  )
+
+  return {
+    data: mapProfessionalRows(data ?? [], filterIdsByProfessional),
+    error: null,
+  }
+}
+
+export type CreateProfessionalInput = {
+  name: string
+  bio?: string | null
+  photo_url?: string | null
+  filter_ids?: string[]
 }
 
 export async function createProfessional(
-  name: string
+  input: CreateProfessionalInput | string
 ): Promise<Result<ProfessionalRow>> {
-  const trimmed = name.trim()
+  const payload =
+    typeof input === "string"
+      ? { name: input }
+      : input
+
+  const trimmed = payload.name.trim()
   if (!trimmed) {
     return {
       data: null,
@@ -1352,7 +1525,12 @@ export async function createProfessional(
 
   const { data, error } = await supabaseAdmin
     .from("professionals")
-    .insert({ name: trimmed, is_active: true })
+    .insert({
+      name: trimmed,
+      bio: payload.bio?.trim() || null,
+      photo_url: payload.photo_url?.trim() || null,
+      is_active: true,
+    })
     .select("id, name, bio, photo_url, is_active")
     .single()
 
@@ -1366,14 +1544,38 @@ export async function createProfessional(
     }
   }
 
-  return { data: mapProfessionalRows([data])[0], error: null }
+  const filterIds = payload.filter_ids ?? []
+  if (filterIds.length > 0) {
+    const linksResult = await replaceProfessionalFilterIds(data.id as string, filterIds)
+    if (linksResult.error) {
+      return { data: null, error: linksResult.error }
+    }
+  }
+
+  return {
+    data: mapProfessionalRows([data], new Map([[data.id as string, filterIds]]))[0],
+    error: null,
+  }
+}
+
+export type UpdateProfessionalInput = {
+  name?: string
+  is_active?: boolean
+  bio?: string | null
+  photo_url?: string | null
+  filter_ids?: string[]
 }
 
 export async function updateProfessional(
   id: string,
-  patch: { name?: string; is_active?: boolean }
+  patch: UpdateProfessionalInput
 ): Promise<Result<ProfessionalRow>> {
-  const updates: { name?: string; is_active?: boolean } = {}
+  const updates: {
+    name?: string
+    is_active?: boolean
+    bio?: string | null
+    photo_url?: string | null
+  } = {}
 
   if (patch.name !== undefined) {
     const trimmed = patch.name.trim()
@@ -1390,31 +1592,84 @@ export async function updateProfessional(
     updates.is_active = patch.is_active
   }
 
-  if (Object.keys(updates).length === 0) {
+  if (patch.bio !== undefined) {
+    updates.bio = patch.bio?.trim() || null
+  }
+
+  if (patch.photo_url !== undefined) {
+    updates.photo_url = patch.photo_url?.trim() || null
+  }
+
+  const hasScalarUpdates = Object.keys(updates).length > 0
+  const hasFilterUpdates = patch.filter_ids !== undefined
+
+  if (!hasScalarUpdates && !hasFilterUpdates) {
     return {
       data: null,
       error: { message: "Sin cambios", code: "VALIDATION_ERROR" },
     }
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("professionals")
-    .update(updates)
-    .eq("id", id)
-    .select("id, name, bio, photo_url, is_active")
-    .single()
+  let data: {
+    id: string
+    name: string
+    bio: string | null
+    photo_url: string | null
+    is_active: boolean
+  } | null = null
 
-  if (error || !data) {
-    return {
-      data: null,
-      error: {
-        message: error?.message ?? "No se pudo actualizar el trabajador",
-        code: error?.code,
-      },
+  if (hasScalarUpdates) {
+    const result = await supabaseAdmin
+      .from("professionals")
+      .update(updates)
+      .eq("id", id)
+      .select("id, name, bio, photo_url, is_active")
+      .single()
+
+    if (result.error || !result.data) {
+      return {
+        data: null,
+        error: {
+          message: result.error?.message ?? "No se pudo actualizar el trabajador",
+          code: result.error?.code,
+        },
+      }
     }
+    data = result.data
+  } else {
+    const result = await supabaseAdmin
+      .from("professionals")
+      .select("id, name, bio, photo_url, is_active")
+      .eq("id", id)
+      .single()
+
+    if (result.error || !result.data) {
+      return {
+        data: null,
+        error: {
+          message: result.error?.message ?? "Trabajador no encontrado",
+          code: result.error?.code,
+        },
+      }
+    }
+    data = result.data
   }
 
-  return { data: mapProfessionalRows([data])[0], error: null }
+  let filterIds = patch.filter_ids
+  if (hasFilterUpdates) {
+    const linksResult = await replaceProfessionalFilterIds(id, patch.filter_ids ?? [])
+    if (linksResult.error) {
+      return { data: null, error: linksResult.error }
+    }
+  } else {
+    const filterIdsByProfessional = await loadProfessionalFilterIds([id])
+    filterIds = filterIdsByProfessional.get(id) ?? []
+  }
+
+  return {
+    data: mapProfessionalRows([data], new Map([[id, filterIds ?? []]]))[0],
+    error: null,
+  }
 }
 
 export async function deleteProfessional(id: string): Promise<Result<null>> {
@@ -1729,6 +1984,7 @@ export async function adminCreateManualAppointment(
   const result = await createAppointment({
     user_id: input.user_id,
     service_ids: input.service_ids,
+    service_selections: input.service_selections,
     professional_id: input.professional_id,
     date: input.date,
     start_time: input.start_time,

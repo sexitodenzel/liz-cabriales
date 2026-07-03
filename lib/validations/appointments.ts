@@ -16,6 +16,14 @@ const appointmentCoreSchema = z.object({
     .array(uuid)
     .min(1, "Debes seleccionar al menos un servicio")
     .max(10, "Demasiados servicios seleccionados"),
+  service_selections: z
+    .array(
+      z.object({
+        service_id: uuid,
+        option_ids: z.array(uuid).max(20),
+      })
+    )
+    .optional(),
   professional_id: professionalAnySchema,
   date: dateString,
   start_time: timeString,
@@ -97,6 +105,14 @@ export type CreateAppointmentPaymentInput = z.infer<
 export const adminCreateAppointmentSchema = z
   .object({
     service_ids: z.array(uuid).min(1).max(10),
+    service_selections: z
+      .array(
+        z.object({
+          service_id: uuid,
+          option_ids: z.array(uuid).max(20),
+        })
+      )
+      .optional(),
     professional_id: uuid,
     date: dateString,
     start_time: timeString,
@@ -131,13 +147,39 @@ export type RescheduleAppointmentRequest = z.infer<
 
 export const adminProfessionalCreateSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio").max(120),
+  bio: z.string().trim().max(500).optional().nullable(),
+  photo_url: z
+    .string()
+    .trim()
+    .url("URL de foto inválida")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  filter_ids: z.array(z.string().uuid()).optional(),
 })
 
 export const adminProfessionalUpdateSchema = z
   .object({
     name: z.string().trim().min(1).max(120).optional(),
     is_active: z.boolean().optional(),
+    bio: z.string().trim().max(500).optional().nullable(),
+    photo_url: z
+      .string()
+      .trim()
+      .url("URL de foto inválida")
+      .optional()
+      .nullable()
+      .or(z.literal("")),
+    filter_ids: z.array(z.string().uuid()).optional(),
   })
-  .refine((value) => value.name !== undefined || value.is_active !== undefined, {
-    message: "Debes indicar al menos un campo a actualizar",
-  })
+  .refine(
+    (value) =>
+      value.name !== undefined ||
+      value.is_active !== undefined ||
+      value.bio !== undefined ||
+      value.photo_url !== undefined ||
+      value.filter_ids !== undefined,
+    {
+      message: "Debes indicar al menos un campo a actualizar",
+    }
+  )

@@ -5,6 +5,7 @@ import type { Metadata } from "next"
 import EventsGallery, { type EventGalleryItem } from "./components/EventsGallery"
 import SobreLizStats from "./components/SobreLizStats"
 import TestimonialsCarousel, { type Testimonial } from "./components/TestimonialsCarousel"
+import { resolveSobreLizBrandPhoto } from "@/lib/sobre-liz/brand-photo"
 import { getLandingPageDataCached } from "@/lib/supabase/landing-slots"
 import { getEventsGallery } from "@/lib/supabase/events-gallery"
 
@@ -206,7 +207,7 @@ export default async function SobreLizPage() {
     getLandingPageDataCached(),
     getEventsGallery(),
   ])
-  const heroPhoto = slots["brand_photo"] || "https://picsum.photos/seed/liz/720/900"
+  const heroPhoto = resolveSobreLizBrandPhoto(slots.brand_photo)
   const galleryItems = eventRows.length > 0 ? mapEventRows(eventRows) : EVENT_GALLERY
 
   return (

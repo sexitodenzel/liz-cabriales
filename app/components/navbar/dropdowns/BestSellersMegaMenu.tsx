@@ -56,18 +56,19 @@ export default function BestSellersMegaMenu({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      style={{ maxHeight: "calc(100vh - var(--navbar-actual-h) - 80px)" }}
+      style={{ top: "var(--navbar-actual-h)" }}
       className={`
-        absolute left-0 right-0 top-full z-40 hidden md:block
-        overflow-y-auto bg-white border-t border-neutral-200
+        fixed left-0 right-0 z-40 hidden md:block
+        overflow-hidden bg-white border-t border-neutral-200
+        shadow-[0_16px_40px_rgba(0,0,0,0.06)]
         transition-opacity ease-out
         ${isOpen
-          ? "opacity-100 pointer-events-auto duration-300"
-          : "opacity-0 pointer-events-none duration-200"
+          ? "visible opacity-100 pointer-events-auto duration-300"
+          : "invisible opacity-0 pointer-events-none duration-200"
         }
       `}
     >
-      <div className="site-container py-10">
+      <div className="site-container py-8">
         <div className="mb-6 flex items-baseline justify-between">
           <Link
             href="/tienda/mas-vendidos"
@@ -78,7 +79,7 @@ export default function BestSellersMegaMenu({
           </Link>
         </div>
 
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-8">
+        <div className="grid grid-cols-6 gap-x-4 lg:gap-x-6 [contain:paint]">
           {loading && tiles.length === 0
             ? Array.from({ length: 6 }).map((_, i) => (
                 <div
@@ -107,8 +108,8 @@ export default function BestSellersMegaMenu({
                         src={product.image}
                         alt={product.name}
                         fill
-                        sizes="(max-width: 1024px) 18vw, 200px"
-                        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        sizes="(max-width: 1024px) 14vw, 200px"
+                        className="object-cover transition-[filter] duration-300 ease-out group-hover:brightness-[0.97]"
                       />
                     ) : null}
                   </div>
@@ -134,7 +135,7 @@ export default function BestSellersMegaMenu({
             `}
             style={{ transitionDelay: `${tiles.length * 40}ms` }}
           >
-            <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-sm bg-[#f1ece4] transition-colors group-hover:bg-[#ece5d6]">
+            <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-sm bg-[#f1ece4] transition-colors duration-300 group-hover:bg-[#ece5d6]">
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C6A75E]">
                 Ver todo
               </span>

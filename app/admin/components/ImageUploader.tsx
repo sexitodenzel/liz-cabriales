@@ -10,6 +10,7 @@ const SIZE_HINTS: Record<string, string> = {
   products: "1:1 · mín. 800×800 px",
   courses: "16:9 · mín. 1280×720 px",
   instructors: "1:1 · mín. 400×400 px",
+  professionals: "1:1 · mín. 400×400 px",
   hero: "16:9 · mín. 1920×1080 px",
 }
 

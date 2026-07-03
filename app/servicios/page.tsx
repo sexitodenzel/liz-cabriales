@@ -2,8 +2,10 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserActiveAppointment, cancelExpiredPendingAppointments } from "@/lib/supabase/appointments"
 import {
   getProfessionalsCached as getProfessionals,
-  getServicesCached as getServices,
+  getServicesCached,
+  getServicesWithOptionsCached as getServices,
 } from "@/lib/supabase/cache"
+import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
 
 import ServiciosClient from "./ServiciosClient"
 
@@ -15,10 +17,22 @@ export default async function ServiciosPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [servicesRes, profsRes] = await Promise.all([
+  const [servicesWithOptionsRes, profsRes, filtersRes] = await Promise.all([
     getServices(),
     getProfessionals(),
+    getPublicServiceFilters(),
   ])
+
+  let servicesRes = servicesWithOptionsRes
+  if (!servicesRes.data) {
+    const fallback = await getServicesCached()
+    if (fallback.data) {
+      servicesRes = {
+        data: fallback.data.map((service) => ({ ...service, options: [] })),
+        error: null,
+      }
+    }
+  }
 
   let activeAppointmentId: string | null = null
   if (user) {
@@ -46,6 +60,7 @@ export default async function ServiciosPage() {
   return (
     <ServiciosClient
       services={servicesRes.data}
+      filters={filtersRes.data ?? []}
       professionals={profsRes.data}
       isAuthenticated={Boolean(user)}
       activeAppointmentId={activeAppointmentId}

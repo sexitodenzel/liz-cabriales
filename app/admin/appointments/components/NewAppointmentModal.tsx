@@ -4,14 +4,18 @@ import { useEffect, useMemo, useState } from "react"
 
 import type {
   ProfessionalRow,
-  ServiceRow,
+  ServiceWithOptions,
 } from "@/lib/supabase/appointments"
 import DatePicker from "@/components/shared/DatePicker"
+import ServiceOptionsPicker, {
+  buildServiceSelections,
+  sumSelectedOptions,
+} from "@/components/shared/ServiceOptionsPicker"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
   professionals: ProfessionalRow[]
-  services: ServiceRow[]
+  services: ServiceWithOptions[]
   defaultDate: string
   onClose: () => void
   onCreated: () => void
@@ -45,6 +49,9 @@ export default function NewAppointmentModal({
   onCreated,
 }: Props) {
   const [serviceIds, setServiceIds] = useState<string[]>([])
+  const [selectedOptionsByService, setSelectedOptionsByService] = useState<
+    Record<string, string[]>
+  >({})
   const [professionalId, setProfessionalId] = useState<string>("")
   const [date, setDate] = useState<string>(defaultDate)
   const [startTime, setStartTime] = useState<string>("")
@@ -69,12 +76,26 @@ export default function NewAppointmentModal({
     null
   )
 
+  const selectedServices = useMemo(
+    () => services.filter((s) => serviceIds.includes(s.id)),
+    [services, serviceIds]
+  )
+
+  const optionTotals = useMemo(
+    () => sumSelectedOptions(selectedServices, selectedOptionsByService),
+    [selectedServices, selectedOptionsByService]
+  )
+
   const duration = useMemo(
     () =>
-      services
-        .filter((s) => serviceIds.includes(s.id))
-        .reduce((sum, s) => sum + s.duration_min, 0),
-    [services, serviceIds]
+      selectedServices.reduce((sum, s) => sum + s.duration_min, 0) +
+      optionTotals.duration,
+    [selectedServices, optionTotals.duration]
+  )
+
+  const serviceSelections = useMemo(
+    () => buildServiceSelections(serviceIds, selectedOptionsByService),
+    [serviceIds, selectedOptionsByService]
   )
 
   useEffect(() => {
@@ -131,9 +152,24 @@ export default function NewAppointmentModal({
   }, [date, professionalId, duration])
 
   const toggleService = (id: string) => {
-    setServiceIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    )
+    setServiceIds((prev) => {
+      if (prev.includes(id)) {
+        setSelectedOptionsByService((opts) => {
+          const next = { ...opts }
+          delete next[id]
+          return next
+        })
+        return prev.filter((x) => x !== id)
+      }
+      return [...prev, id]
+    })
+  }
+
+  const handleServiceOptionsChange = (serviceId: string, optionIds: string[]) => {
+    setSelectedOptionsByService((prev) => ({
+      ...prev,
+      [serviceId]: optionIds,
+    }))
   }
 
   const handleCreateClient = async () => {
@@ -219,6 +255,7 @@ export default function NewAppointmentModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           service_ids: serviceIds,
+          service_selections: serviceSelections,
           professional_id: professionalId,
           date,
           start_time: startTime,
@@ -384,28 +421,49 @@ export default function NewAppointmentModal({
             <label className="block text-xs font-medium text-neutral-600">
               Servicios
             </label>
-            <div className="mt-1 grid max-h-52 grid-cols-1 gap-1 overflow-y-auto rounded-lg border border-neutral-200 p-2 sm:grid-cols-2">
-              {services.map((s) => (
-                <label
-                  key={s.id}
-                  className="flex items-center justify-between rounded-md px-2 py-1 text-sm hover:bg-neutral-50"
-                >
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={serviceIds.includes(s.id)}
-                      onChange={() => toggleService(s.id)}
-                    />
-                    <span>
-                      {s.name}{" "}
-                      <span className="text-xs text-neutral-500">
-                        ({s.duration_min} min)
+            <div className="mt-1 max-h-72 space-y-2 overflow-y-auto rounded-lg border border-neutral-200 p-2">
+              {services.map((s) => {
+                const checked = serviceIds.includes(s.id)
+                const showOptions =
+                  checked && s.show_options && s.options.length > 0
+
+                return (
+                  <div
+                    key={s.id}
+                    className="rounded-md px-2 py-1 hover:bg-neutral-50"
+                  >
+                    <label className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleService(s.id)}
+                        />
+                        <span>
+                          {s.name}{" "}
+                          <span className="text-xs text-neutral-500">
+                            ({s.duration_min} min)
+                          </span>
+                        </span>
                       </span>
-                    </span>
-                  </span>
-                  <span className="text-xs font-semibold">${s.price}</span>
-                </label>
-              ))}
+                      <span className="text-xs font-semibold">${s.price}</span>
+                    </label>
+                    {showOptions && (
+                      <div className="mt-2 pl-6">
+                        <ServiceOptionsPicker
+                          serviceId={s.id}
+                          options={s.options}
+                          selectedOptionIds={
+                            selectedOptionsByService[s.id] ?? []
+                          }
+                          onChange={handleServiceOptionsChange}
+                          compact
+                        />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
 

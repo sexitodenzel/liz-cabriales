@@ -7,7 +7,9 @@ import { CalendarX2, Pencil, X } from "lucide-react"
 import type {
   AdminAppointmentRow,
   ProfessionalRow,
+  ServiceFilterRow,
   ServiceRow,
+  ServiceWithOptions,
 } from "@/lib/supabase/appointments"
 import type { AppointmentStatus } from "@/types"
 
@@ -18,12 +20,15 @@ import BlockSlotModal from "./components/BlockSlotModal"
 import RescheduleAppointmentModal from "./components/RescheduleAppointmentModal"
 import CourseDaysPanel from "./components/CourseDaysPanel"
 import WorkersPanel from "./components/WorkersPanel"
+import ServicesPanel from "./components/ServicesPanel"
 import PaymentCountdownCell from "./components/PaymentCountdownCell"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
   professionals: ProfessionalRow[]
   services: ServiceRow[]
+  bookingServices: ServiceWithOptions[]
+  filters: ServiceFilterRow[]
 }
 
 type StatusFilter = "all" | AppointmentStatus
@@ -129,13 +134,53 @@ function statusClass(status: AppointmentStatus): string {
 
 export default function AdminAppointmentsClient({
   professionals: initialWorkers,
-  services,
+  services: initialServices,
+  bookingServices: initialBookingServices,
+  filters: initialFilters,
 }: Props) {
   const [date, setDate] = useState<string>("")
   const [professionalId, setProfessionalId] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [appointments, setAppointments] = useState<AdminAppointmentRow[]>([])
   const [workers, setWorkers] = useState<ProfessionalRow[]>(initialWorkers)
+  const [managedServices, setManagedServices] =
+    useState<ServiceRow[]>(initialServices)
+  const [bookingServices, setBookingServices] = useState<ServiceWithOptions[]>(
+    initialBookingServices
+  )
+  const [managedFilters, setManagedFilters] =
+    useState<ServiceFilterRow[]>(initialFilters)
+
+  const refreshBookingServices = useCallback(async () => {
+    try {
+      const [bookingRes, filtersRes] = await Promise.all([
+        fetch("/api/services/booking"),
+        fetch("/api/admin/service-filters"),
+      ])
+      const bookingJson = await bookingRes.json()
+      const filtersJson = await filtersRes.json()
+      if (bookingRes.ok && bookingJson.data?.services) {
+        setBookingServices(bookingJson.data.services)
+      }
+      if (filtersRes.ok && filtersJson.data?.filters) {
+        setManagedFilters(filtersJson.data.filters)
+      }
+    } catch {
+      // noop
+    }
+  }, [])
+
+  const handleServicesChange = useCallback(
+    (next: ServiceRow[]) => {
+      setManagedServices(next)
+      void refreshBookingServices()
+    },
+    [refreshBookingServices]
+  )
+
+  const handleFiltersChange = useCallback((next: ServiceFilterRow[]) => {
+    setManagedFilters(next)
+  }, [])
   const [loading, setLoading] = useState(false)
   const [showNewModal, setShowNewModal] = useState(false)
   const [blockTarget, setBlockTarget] = useState<ProfessionalRow | null>(null)
@@ -304,8 +349,17 @@ export default function AdminAppointmentsClient({
           </div>
         </div>
 
+        <ServicesPanel
+          services={managedServices}
+          filters={managedFilters}
+          onServicesChange={handleServicesChange}
+          onFiltersChange={handleFiltersChange}
+          onBookingRefresh={refreshBookingServices}
+        />
+
         <WorkersPanel
           workers={workers}
+          filters={managedFilters}
           onWorkersChange={setWorkers}
           onBlockSchedule={setBlockTarget}
         />
@@ -568,7 +622,7 @@ export default function AdminAppointmentsClient({
       {showNewModal && (
         <NewAppointmentModal
           professionals={activeWorkers}
-          services={services}
+          services={bookingServices}
           defaultDate={date || todayString()}
           onClose={() => setShowNewModal(false)}
           onCreated={() => {

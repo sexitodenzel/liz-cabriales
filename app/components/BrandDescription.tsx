@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
-const FALLBACK_IMAGE = "https://picsum.photos/seed/liz/720/900"
+import { resolveSobreLizBrandPhoto } from "@/lib/sobre-liz/brand-photo"
 
 const COLLAGE_PHOTOS = [
   {
@@ -50,7 +50,7 @@ type Props = {
 }
 
 export default function BrandDescription({ photoUrl }: Props) {
-  const MAIN_PHOTO = photoUrl || FALLBACK_IMAGE
+  const MAIN_PHOTO = resolveSobreLizBrandPhoto(photoUrl)
   const { ref, inView } = useInView()
 
   return (
@@ -65,34 +65,59 @@ export default function BrandDescription({ photoUrl }: Props) {
             </p>
 
             <h2
-              className="font-medium leading-[1.02] tracking-[-0.01em] text-black"
+              className="max-w-[560px] font-medium leading-[1.08] tracking-[-0.01em]"
               style={{
                 fontFamily: "var(--font-playfair), serif",
-                fontSize: "clamp(36px, 5vw, 64px)",
+                fontSize: "clamp(30px, 4.2vw, 52px)",
               }}
             >
-              Liz Cabriales
-              <br />
-              <em className="font-medium italic text-[#a8862f]">El arte de las uñas</em>
+              <span className="text-black">¡Te damos la bienvenida a </span>
+              <span className="text-[#c9a84c]">Liz Cabriales!</span>
             </h2>
             <div className="mb-6 mt-5 h-0.5 w-16 rounded-sm bg-[#c9a84c]" aria-hidden />
 
-            <p className="mb-3 max-w-[520px] text-[15px] font-semibold leading-[1.55] text-black">
-              ¡Te damos la bienvenida a Liz Cabriales!
-            </p>
-            <p className="mb-5 max-w-[520px] text-[15px] leading-[1.7] text-[#2c2c2c]">
-              Academia y Distribuidora Profesional de Uñas y Servicio Podal. Más de 7 años formando
-              profesionales en Tampico, respaldando a las mejores marcas y construyendo una comunidad
-              que cree en el arte y el cuidado de las manos.
-            </p>
-            <p
-              className="mb-7 max-w-[520px] text-[16px] italic leading-[1.55] text-[#a8862f]"
-              style={{ fontFamily: "var(--font-playfair), serif" }}
-            >
-              &ldquo;Piensa, cree, sueña y atrévete.&rdquo;
-            </p>
+            <div className="max-w-[560px] space-y-4">
+              <p className="text-[15px] font-semibold leading-[1.55] text-black">
+                Academia y Distribuidora Profesional de Uñas y Servicio Podal.
+              </p>
+              <p
+                className="text-[17px] italic leading-[1.5] text-[#c9a84c]"
+                style={{ fontFamily: "var(--font-playfair), serif" }}
+              >
+                &ldquo;Piensa, cree, sueña y atrévete.&rdquo;
+              </p>
 
-            <div className="flex flex-wrap items-center gap-3">
+              <div className="space-y-4 pt-1 text-[14px] leading-[1.75] text-[#2c2c2c] sm:text-[15px]">
+                <p>
+                  Con más de 7 años de trayectoria formando profesionales de éxito en Tampico y
+                  llevando el respaldo de las mejores marcas a todo México, en Liz Cabriales somos
+                  expertas en el cuidado, salud y arte de las manos y los pies.
+                </p>
+                <p>
+                  Nuestra misión es elevar el estándar de la industria. Por ello, nos encargamos de
+                  formar onicotécnicas, pedicuristas y quiropodistas profesionales, brindándoles una
+                  educación continua, vanguardista e innovadora. Preparamos a cada uno de nuestros
+                  alumnos para dominar las técnicas más exigentes y ofrecer un servicio estético y
+                  clínico de la más alta calidad.
+                </p>
+                <p>
+                  Como distribuidora oficial, respaldamos tu trabajo clínico y creativo con el
+                  catálogo de las marcas líderes del mercado. Si estás lista para transformar tu
+                  pasión en una carrera profesional o abastecer tu negocio con lo mejor del sector,
+                  estás en el lugar correcto. Explora nuestros cursos, descubre nuestra tienda en
+                  línea y da el siguiente paso.
+                </p>
+                <p
+                  className="pt-1 text-[15px] font-medium leading-[1.65] text-black sm:text-[16px]"
+                  style={{ fontFamily: "var(--font-playfair), serif" }}
+                >
+                  Piensa en grande, cree en tu talento, sueña con el éxito y{" "}
+                  <span className="text-[#c9a84c]">¡atrévete a lograrlo con nosotros!</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/sobre-liz"
                 className="inline-flex items-center gap-2 rounded-full bg-black px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#a8862f]"
