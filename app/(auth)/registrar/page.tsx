@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
@@ -80,8 +80,17 @@ export default function RegistrarPage() {
   const [errors, setErrors] = useState<FieldErrors>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [sendingCode, setSendingCode] = useState(false)
-  const [codeSentAt, setCodeSentAt] = useState<number | null>(null)
+  const [codeSentCount, setCodeSentCount] = useState(0)
+  const [resendCooldown, setResendCooldown] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const t = setInterval(() => {
+      setResendCooldown((s) => (s <= 1 ? 0 : s - 1))
+    }, 1000)
+    return () => clearInterval(t)
+  }, [resendCooldown])
 
   const yearOptions = useMemo(() => {
     const current = new Date().getFullYear()
@@ -114,11 +123,21 @@ export default function RegistrarPage() {
         options: { shouldCreateUser: true },
       })
       if (error) {
-        setServerError(error.message)
+        const rateMatch = /after (\d+) seconds?/i.exec(error.message)
+        if (rateMatch) {
+          const waitSec = Number(rateMatch[1])
+          setResendCooldown(waitSec)
+          setServerError(
+            `Espera ${waitSec} segundos antes de pedir otro código.`
+          )
+        } else {
+          setServerError(error.message)
+        }
         return
       }
       setEmail(parsed.data)
-      setCodeSentAt(Date.now())
+      setCodeSentCount((n) => n + 1)
+      setResendCooldown(120)
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error al enviar el código."
       setServerError(message)
@@ -127,17 +146,80 @@ export default function RegistrarPage() {
     }
   }
 
+  function validateBirthDate(
+    d: string,
+    m: string,
+    y: string
+  ): { ok: true } | { ok: false; reason: "incomplete" | "invalid" | "underage" } {
+    if (!d || !m || !y) return { ok: false, reason: "incomplete" }
+    const dayNum = Number(d)
+    const monthNum = Number(m)
+    const yearNum = Number(y)
+    if (
+      !Number.isFinite(dayNum) ||
+      !Number.isFinite(monthNum) ||
+      !Number.isFinite(yearNum)
+    ) {
+      return { ok: false, reason: "invalid" }
+    }
+    const dt = new Date(yearNum, monthNum - 1, dayNum)
+    if (
+      dt.getFullYear() !== yearNum ||
+      dt.getMonth() !== monthNum - 1 ||
+      dt.getDate() !== dayNum
+    ) {
+      return { ok: false, reason: "invalid" }
+    }
+    const now = new Date()
+    const eighteenthBirthday = new Date(
+      yearNum + 18,
+      monthNum - 1,
+      dayNum
+    )
+    if (now < eighteenthBirthday) return { ok: false, reason: "underage" }
+    return { ok: true }
+  }
+
   function validate(): FieldErrors {
     const errs: FieldErrors = {}
-    if (!authEmailSchema.safeParse(email).success) errs.email = "Información necesaria"
-    if (!/^\d{6}$/.test(code)) errs.code = "Información necesaria"
-    const passwordOk = PASSWORD_RULES.every((rule) => rule.test(password))
-    if (!passwordOk) errs.password = "Información necesaria"
+
+    if (!email.trim()) {
+      errs.email = "Información necesaria"
+    } else if (!authEmailSchema.safeParse(email).success) {
+      errs.email =
+        "Indique un correo electrónico válido. Ejemplo: nombreapellidos@dominio.com"
+    }
+
+    if (!code) {
+      errs.code = "Información necesaria"
+    } else if (!/^\d{6,10}$/.test(code)) {
+      errs.code = "El código debe tener 6 dígitos. Ejemplo: 123456"
+    }
+
+    if (!password) {
+      errs.password = "Información necesaria"
+    } else if (!PASSWORD_RULES.every((rule) => rule.test(password))) {
+      errs.password = "La contraseña no cumple los criterios indicados arriba."
+    }
+
     if (!treatment) errs.treatment = "Información necesaria"
     if (!firstName.trim()) errs.firstName = "Información necesaria"
     if (!lastName.trim()) errs.lastName = "Información necesaria"
-    if (!phone || phone.replace(/\D/g, "").length < 8)
+
+    if (!phone) {
       errs.phone = "Información necesaria"
+    } else if (phone.replace(/\D/g, "").length < 8) {
+      errs.phone = "Indique un número con al menos 8 dígitos. Ejemplo: 5512345678"
+    }
+
+    const birth = validateBirthDate(birthDay, birthMonth, birthYear)
+    if (!birth.ok) {
+      errs.birthDate =
+        birth.reason === "underage"
+          ? "Debe ser mayor de 18 años para crear una cuenta."
+          : "¡Vaya! Indique un día (DD), un mes y un año (AAAA) válidos. Ejemplo: 22 de marzo de 1999"
+    }
+
     return errs
   }
 
@@ -156,10 +238,12 @@ export default function RegistrarPage() {
         type: "email",
       })
       if (verifyError || !verifyData.user) {
-        setServerError(
-          verifyError?.message ?? "Código incorrecto o expirado. Intenta de nuevo."
-        )
-        setErrors((prev) => ({ ...prev, code: "Código no válido" }))
+        const raw = verifyError?.message ?? ""
+        const friendly = /expired|invalid|token/i.test(raw)
+          ? "Código incorrecto o expirado. Intenta de nuevo."
+          : raw || "Código incorrecto o expirado. Intenta de nuevo."
+        setServerError(friendly)
+        setErrors((prev) => ({ ...prev, code: "Código incorrecto o expirado" }))
         return
       }
 
@@ -209,13 +293,9 @@ export default function RegistrarPage() {
     }
   }
 
-  const codeSentLabel = codeSentAt
-    ? "Código reenviado. Revisa tu correo."
-    : null
-
   return (
     <div className="w-full max-w-5xl">
-      <div className="bg-white px-6 py-10 sm:px-14 sm:py-14">
+      <div className="bg-neutral-100 px-6 py-10 sm:px-14 sm:py-14">
         <h1 className="mb-3 font-[family-name:var(--font-cormorant-garamond)] text-xl tracking-[0.25em] text-neutral-900 sm:text-2xl">
           CREAR UNA CUENTA
         </h1>
@@ -256,40 +336,53 @@ export default function RegistrarPage() {
                     clearError("email")
                   }}
                   error={errors.email}
-                  helper={
-                    !errors.email
-                      ? "Formato esperado: nombreapellidos@dominio.com"
-                      : null
-                  }
                   containerClassName="flex-1"
                 />
                 <button
                   type="button"
                   onClick={handleSendCode}
-                  disabled={sendingCode}
+                  disabled={sendingCode || resendCooldown > 0}
                   className="mb-3 inline-flex h-11 items-center justify-center whitespace-nowrap bg-neutral-900 px-4 text-[11px] tracking-[0.15em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {sendingCode ? "ENVIANDO…" : "ENVIAR EL CÓDIGO"}
+                  {sendingCode
+                    ? "ENVIANDO…"
+                    : resendCooldown > 0
+                    ? `VOLVER A ENVIAR (${resendCooldown})`
+                    : codeSentCount > 0
+                    ? "VOLVER A ENVIAR"
+                    : "ENVIAR EL CÓDIGO"}
                 </button>
               </div>
+
+              {codeSentCount > 0 ? (
+                <p
+                  role="status"
+                  className="text-[13px] text-neutral-700"
+                >
+                  Código de verificación enviado
+                </p>
+              ) : null}
 
               <div>
                 <FloatingInput
                   label="Código de verificación"
                   type={showCode ? "text" : "password"}
                   inputMode="numeric"
-                  maxLength={6}
+                  maxLength={10}
                   required
                   value={code}
                   onChange={(e) => {
-                    setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    setCode(e.target.value.replace(/\D/g, "").slice(0, 10))
                     clearError("code")
                   }}
                   error={errors.code}
-                  helper={!errors.code ? "Formato esperado: 123456" : null}
+                  helper={
+                    !errors.code
+                      ? "Ingresa el código que recibiste por correo"
+                      : null
+                  }
                 />
-                <div className="mt-2 flex items-center justify-between text-[12px]">
-                  <span className="text-neutral-600">{codeSentLabel}</span>
+                <div className="mt-2 flex items-center justify-end text-[12px]">
                   <button
                     type="button"
                     onClick={() => setShowCode((v) => !v)}
@@ -415,14 +508,22 @@ export default function RegistrarPage() {
               </div>
 
               <div>
-                <p className="mb-3 text-[13px] text-neutral-700">
+                <p
+                  className={`mb-3 text-[13px] ${
+                    errors.birthDate ? "text-red-600" : "text-neutral-700"
+                  }`}
+                >
                   Fecha de nacimiento
                 </p>
                 <div className="grid grid-cols-3 gap-3">
                   <FloatingSelect
                     label="Día"
                     value={birthDay}
-                    onChange={(e) => setBirthDay(e.target.value)}
+                    invalid={Boolean(errors.birthDate)}
+                    onChange={(e) => {
+                      setBirthDay(e.target.value)
+                      clearError("birthDate")
+                    }}
                   >
                     <option value="" disabled hidden />
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
@@ -434,7 +535,11 @@ export default function RegistrarPage() {
                   <FloatingSelect
                     label="Mes"
                     value={birthMonth}
-                    onChange={(e) => setBirthMonth(e.target.value)}
+                    invalid={Boolean(errors.birthDate)}
+                    onChange={(e) => {
+                      setBirthMonth(e.target.value)
+                      clearError("birthDate")
+                    }}
                   >
                     <option value="" disabled hidden />
                     {MONTHS.map((m, idx) => (
@@ -446,7 +551,11 @@ export default function RegistrarPage() {
                   <FloatingSelect
                     label="Año"
                     value={birthYear}
-                    onChange={(e) => setBirthYear(e.target.value)}
+                    invalid={Boolean(errors.birthDate)}
+                    onChange={(e) => {
+                      setBirthYear(e.target.value)
+                      clearError("birthDate")
+                    }}
                   >
                     <option value="" disabled hidden />
                     {yearOptions.map((y) => (
@@ -456,10 +565,16 @@ export default function RegistrarPage() {
                     ))}
                   </FloatingSelect>
                 </div>
-                <p className="mt-2 text-[12px] text-neutral-600">
-                  Introduzca una fecha de nacimiento válida que confirme que
-                  tenga 18 años como mínimo.
-                </p>
+                {errors.birthDate ? (
+                  <p className="mt-2 text-[12px] text-red-600" role="alert">
+                    {errors.birthDate}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-[12px] text-neutral-600">
+                    Introduzca una fecha de nacimiento válida que confirme que
+                    tenga 18 años como mínimo.
+                  </p>
+                )}
               </div>
             </section>
           </div>

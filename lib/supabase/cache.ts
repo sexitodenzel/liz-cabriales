@@ -97,6 +97,10 @@ type VariantRow = {
   price: number | string
   stock: number | string
   is_active: boolean
+  color_hex?: string | null
+  color_name?: string | null
+  size_label?: string | null
+  is_limited_edition?: boolean | null
 }
 
 type ProductRow = {
@@ -105,6 +109,8 @@ type ProductRow = {
   name: string
   slug: string
   description: string | null
+  long_description?: string | null
+  application_text?: string | null
   base_price: number | string
   discount_percent?: number | string | null
   images: string[] | null
@@ -133,10 +139,10 @@ function normalizeAbrasivity(
 }
 
 const PRODUCT_SELECT = `
-  id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity,
+  id, category_id, name, slug, description, long_description, application_text, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity,
   is_featured, is_best_seller, is_active, updated_at, created_at, deleted_at,
   categories ( id, name, slug ),
-  product_variants ( id, product_id, sku, variant_name, price, stock, is_active )
+  product_variants ( id, product_id, sku, variant_name, price, stock, is_active, color_hex, color_name, size_label, is_limited_edition )
 `
 
 function mapVariant(v: VariantRow): ProductVariant {
@@ -148,6 +154,10 @@ function mapVariant(v: VariantRow): ProductVariant {
     price: Number(v.price),
     stock: Number(v.stock),
     is_active: Boolean(v.is_active),
+    color_hex: v.color_hex ?? null,
+    color_name: v.color_name ?? null,
+    size_label: v.size_label ?? null,
+    is_limited_edition: Boolean(v.is_limited_edition ?? false),
   }
 }
 
@@ -162,6 +172,8 @@ function mapProduct(row: ProductRow): ProductWithCategory | null {
     name: row.name,
     slug: row.slug,
     description: row.description ?? null,
+    long_description: row.long_description ?? null,
+    application_text: row.application_text ?? null,
     base_price: Number(row.base_price),
     discount_percent: Number(row.discount_percent ?? 0),
     images: row.images ?? null,
@@ -464,7 +476,7 @@ export const getFeaturedProductsCached = unstable_cache(
     const { data, error } = await db()
       .from("products")
       .select(
-        "id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at"
+        "id, category_id, name, slug, description, long_description, application_text, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at"
       )
       .eq("is_featured", true)
       .eq("is_active", true)
@@ -479,6 +491,10 @@ export const getFeaturedProductsCached = unstable_cache(
       name: row.name as string,
       slug: row.slug as string,
       description: (row.description as string | null) ?? null,
+      long_description:
+        ((row as { long_description?: string | null }).long_description as string | null) ?? null,
+      application_text:
+        ((row as { application_text?: string | null }).application_text as string | null) ?? null,
       base_price: Number(row.base_price),
       discount_percent: Number((row as { discount_percent?: number | string | null }).discount_percent ?? 0),
       images: (row.images as string[] | null) ?? null,
@@ -666,6 +682,8 @@ export const getProductBySlugCached = unstable_cache(
       name: row.name,
       slug: row.slug,
       description: row.description ?? null,
+      long_description: row.long_description ?? null,
+      application_text: row.application_text ?? null,
       base_price: Number(row.base_price),
       discount_percent: Number(row.discount_percent ?? 0),
       images: row.images ?? null,

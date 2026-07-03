@@ -2,8 +2,10 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Search, ShoppingBag, X, Heart, User } from "lucide-react"
 import { useState, useEffect, useRef, useMemo } from "react"
+import { getSearchDestination } from "@/lib/search-navigation"
 import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
 import CartMenu from "./dropdowns/CartMenu"
 import DesktopMegaMenu from "./dropdowns/DesktopMegaMenu"
@@ -48,6 +50,7 @@ const DESKTOP_NAV_ITEMS = [
 ] as const
 
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [recentProducts, setRecentProducts] = useState<RecentProductMenuItem[]>([])
   const [brandMenuItems, setBrandMenuItems] = useState<BrandMenuItem[]>([])
@@ -70,8 +73,8 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const navRef = useRef<HTMLElement>(null)
   const navLinkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
   const headerRef = useRef<HTMLElement>(null)
+  const desktopSearchInputRef = useRef<HTMLInputElement>(null)
   const overlayGuardRef = useRef(false)
-  const lastScrollYRef = useRef(0)
   const {
     itemCount,
     isCartOpen,
@@ -171,14 +174,48 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [drawerOpen])
 
-  // Toggle de clase: el CSS hace toda la animación con transform (GPU).
-  // No tocamos --navbar-actual-h en runtime para evitar reflow de stickys.
+  // Scroll-linked navbar collapse (solo desktop ≥1200px): se traslada suavemente
+  // con el scroll (0-56px) en lugar de togglear. No cambia el flow.
+  // El colapso arranca cuando el navbar ya está pegado en top:0 — restamos la
+  // altura del announcement bar (contenido previo al header); si no, el
+  // transform duplica la velocidad de scroll y abre un hueco bajo el navbar.
+  // OJO: no usar header.offsetTop para esto — en un sticky ya pegado incluye
+  // el desplazamiento del sticky (crece con el scroll) y el colapso muere.
+  // hideChrome (aria/tabIndex de la fila superior) sigue este mismo estado.
   useEffect(() => {
-    document.documentElement.classList.toggle("navbar-collapsed", hideChrome)
-    return () => {
-      document.documentElement.classList.remove("navbar-collapsed")
+    const mq = window.matchMedia("(min-width: 1200px)")
+    const MAX_OFFSET = 56
+    // Sin rAF a propósito: los scroll events ya llegan alineados a frame y el
+    // rAF solo añadía un frame extra de lag al fallback JS (en browsers con
+    // scroll-driven animations el visual lo lleva el compositor, ver CSS).
+    const update = () => {
+      if (!mq.matches) {
+        document.documentElement.style.removeProperty("--navbar-scroll-y")
+        setHideChrome(false)
+        return
+      }
+      const pinOffset =
+        document.getElementById("site-announcement-bar")?.offsetHeight ?? 0
+      document.documentElement.style.setProperty(
+        "--navbar-pin-offset",
+        `${pinOffset}px`
+      )
+      const y = Math.min(MAX_OFFSET, Math.max(0, window.scrollY - pinOffset))
+      document.documentElement.style.setProperty("--navbar-scroll-y", `${y}px`)
+      setHideChrome(y >= MAX_OFFSET)
     }
-  }, [hideChrome])
+    window.addEventListener("scroll", update, { passive: true })
+    window.addEventListener("resize", update)
+    mq.addEventListener("change", update)
+    update()
+    return () => {
+      window.removeEventListener("scroll", update)
+      window.removeEventListener("resize", update)
+      mq.removeEventListener("change", update)
+      document.documentElement.style.removeProperty("--navbar-scroll-y")
+      document.documentElement.style.removeProperty("--navbar-pin-offset")
+    }
+  }, [])
 
   useEffect(() => {
     if (isCartOpen) {
@@ -187,93 +224,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       setActiveMenu(null)
     }
   }, [isCartOpen])
-
-  // Hermès-style scroll behavior: hide logo + action icons when scrolling down,
-  // restore them when scrolling up. The center nav items always stay visible.
-  useEffect(() => {
-    const SCROLL_THRESHOLD = 100
-    const DELTA_THRESHOLD = 14
-    const COOLDOWN_MS = 120
-    // Distancia desde el bottom donde NO togglear (evita loops por scroll-adjust
-    // fantasma cuando el curtain footer revela su escena y el documento "rebota").
-    const BOTTOM_GUARD_PX = 240
-
-    lastScrollYRef.current = window.scrollY
-    let rafId: number | null = null
-    let cooldownUntil = 0
-
-    function evaluate() {
-      rafId = null
-
-      // Hermès collapse aplica solo en desktop wide (>=1200px). En mobile/compact
-      // el navbar tiene altura fija y no debe togglear.
-      if (!window.matchMedia("(min-width: 1200px)").matches) {
-        if (lastScrollYRef.current !== window.scrollY) {
-          lastScrollYRef.current = window.scrollY
-        }
-        setHideChrome((prev) => (prev ? false : prev))
-        return
-      }
-
-      const now = performance.now()
-      if (now < cooldownUntil) {
-        lastScrollYRef.current = window.scrollY
-        return
-      }
-
-      const currentY = window.scrollY
-      const delta = currentY - lastScrollYRef.current
-      const docHeight = document.documentElement.scrollHeight
-      const viewportHeight = window.innerHeight
-      const distanceFromBottom = docHeight - (currentY + viewportHeight)
-
-      if (distanceFromBottom < BOTTOM_GUARD_PX) {
-        // Cerca del footer: mantén el estado actual; cualquier toggle aquí
-        // dispararía un loop al cambiar la altura del documento.
-        lastScrollYRef.current = currentY
-        return
-      }
-
-      if (Math.abs(delta) < DELTA_THRESHOLD && currentY >= SCROLL_THRESHOLD) {
-        return
-      }
-
-      setHideChrome((prev) => {
-        let next = prev
-        if (currentY < SCROLL_THRESHOLD) {
-          next = false
-        } else if (delta > 0) {
-          next = true
-        } else if (delta < 0) {
-          next = false
-        }
-        if (next !== prev) {
-          cooldownUntil = now + COOLDOWN_MS
-        }
-        return next
-      })
-
-      lastScrollYRef.current = window.scrollY
-    }
-
-    function onScroll() {
-      if (rafId !== null) return
-      rafId = requestAnimationFrame(evaluate)
-    }
-
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => {
-      window.removeEventListener("scroll", onScroll)
-      if (rafId !== null) cancelAnimationFrame(rafId)
-    }
-  }, [])
-
-  // Force chrome visible whenever the user is interacting with any overlay.
-  useEffect(() => {
-    if (activeMenu || isCartOpen || drawerOpen || mobileSearchOpen) {
-      setHideChrome(false)
-    }
-  }, [activeMenu, isCartOpen, drawerOpen, mobileSearchOpen])
 
   useEffect(() => {
     const updateCompactDesktop = () => {
@@ -290,6 +240,16 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       setActiveMenu(null)
     }
   }, [isCompactDesktop])
+
+  // Autofocus del input integrado en desktop cuando se abre la búsqueda.
+  useEffect(() => {
+    if (!mobileSearchOpen) return
+    if (isCompactDesktop) return
+    const timer = window.setTimeout(() => {
+      desktopSearchInputRef.current?.focus()
+    }, 320)
+    return () => window.clearTimeout(timer)
+  }, [mobileSearchOpen, isCompactDesktop])
 
   // Mobile drawer: incluye marcas como categoría dentro de Tienda (comportamiento existente).
   const tiendaMenuCategories = useMemo(
@@ -527,15 +487,84 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           className={`navbar-toolbar relative z-10 flex h-full w-full flex-col ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
           onMouseLeave={scheduleMenuClose}
         >
-          {/* Fila superior: logo centrado + iconos a la derecha. Su altura cae a 0
-              cuando --navbar-actual-h se reduce a la altura de la fila nav. */}
+          {/* Fila superior: logo centrado + iconos a la derecha. Al colapsar, el
+              header entero se traslada -56px (GPU) y esta fila queda fuera del
+              viewport; hideChrome solo apaga su aria/tabIndex. */}
           <div
-            className="min-h-0 flex-1 overflow-hidden transition-opacity duration-150 ease-out"
-            style={{ opacity: hideChrome ? 0 : 1 }}
+            className="min-h-0 flex-1 overflow-hidden"
             aria-hidden={hideChrome}
           >
             <div className="grid h-full w-full grid-cols-[1fr_auto_1fr] items-center pt-4">
-                <div aria-hidden />
+                <div
+                  className="relative z-20 flex min-w-0 shrink-0 items-center justify-self-start gap-3 pl-1"
+                  onMouseEnter={scheduleMenuClose}
+                >
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenu(null); toggleMobileSearch() }}
+                    className={`${iconBtnBase} h-9 w-9 shrink-0 justify-center`}
+                    tabIndex={hideChrome ? -1 : 0}
+                    aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Buscar"}
+                  >
+                    <Search className="h-5 w-5" strokeWidth={1.75} />
+                  </button>
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      router.push(getSearchDestination(searchQuery))
+                      setSearchQuery("")
+                      setMobileSearchOpen(false)
+                    }}
+                    className="flex items-center gap-2 border-b border-neutral-900 pb-1 will-change-[width]"
+                    style={{
+                      width: mobileSearchOpen ? "300px" : "150px",
+                      transition: "width 420ms cubic-bezier(0.22, 1, 0.36, 1)",
+                    }}
+                  >
+                    <input
+                      ref={desktopSearchInputRef}
+                      type="text"
+                      inputMode="search"
+                      enterKeyHint="search"
+                      autoComplete="off"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => {
+                        if (!mobileSearchOpen) {
+                          setActiveMenu(null)
+                          closeCart()
+                          setDrawerOpen(false)
+                          setMobileSearchOpen(true)
+                        }
+                      }}
+                      placeholder="Buscar"
+                      tabIndex={hideChrome ? -1 : 0}
+                      className="navbar-search-input min-w-0 flex-1 bg-transparent text-[13px] tracking-wide text-neutral-900 outline-none placeholder:text-neutral-400"
+                      aria-label="Buscar productos"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (searchQuery.length > 0) {
+                          setSearchQuery("")
+                        } else if (mobileSearchOpen) {
+                          setMobileSearchOpen(false)
+                        }
+                      }}
+                      tabIndex={mobileSearchOpen || searchQuery.length > 0 ? 0 : -1}
+                      className={`inline-flex shrink-0 items-center justify-center text-neutral-900 transition-opacity duration-150 ease-out hover:text-[#C6A75E] ${
+                        mobileSearchOpen || searchQuery.length > 0
+                          ? "opacity-100 pointer-events-auto"
+                          : "opacity-0 pointer-events-none"
+                      }`}
+                      aria-label={searchQuery.length > 0 ? "Limpiar búsqueda" : "Cerrar búsqueda"}
+                      aria-hidden={!(mobileSearchOpen || searchQuery.length > 0)}
+                    >
+                      <X className="h-4 w-4" strokeWidth={1.5} />
+                    </button>
+                  </form>
+                </div>
 
                 <Link
                   href="/"
@@ -560,16 +589,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   className="relative z-20 flex shrink-0 items-center justify-self-end gap-0.5 pr-1"
                   onMouseEnter={scheduleMenuClose}
                 >
-                  <button
-                    type="button"
-                    onClick={() => { setActiveMenu(null); toggleMobileSearch() }}
-                    className={`${iconBtnBase} h-9 w-9 justify-center`}
-                    tabIndex={hideChrome ? -1 : 0}
-                    aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Buscar"}
-                  >
-                    <Search className="h-5 w-5" strokeWidth={1.75} />
-                  </button>
-
                   <Link
                     href="/wishlist"
                     onClick={() => setActiveMenu(null)}
@@ -730,18 +749,20 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         topSearches={topSearches}
         bestSellers={bestSellers}
         emptyLoading={emptyStateLoading}
+        hideForm={!showCompactToolbar}
       />
 
-      {/* Overlay de blur global (carrito + megamenu desktop) */}
+      {/* Overlay de blur global (carrito + megamenu desktop + búsqueda) */}
       <div
         className={`fixed inset-0 top-[var(--site-chrome-bottom,var(--navbar-actual-h))] backdrop-blur-md bg-black/10 z-[45] transition-opacity duration-300 md:top-0 ${
-          isCartOpen || activeMenu ? "opacity-100" : "opacity-0 pointer-events-none"
+          isCartOpen || activeMenu || (mobileSearchOpen && !showCompactToolbar) ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onMouseEnter={() => {
           if (isProgrammatic()) { clearProgrammatic(); return }
           closeCart()
           setDrawerOpen(false)
           setActiveMenu(null)
+          setMobileSearchOpen(false)
         }}
         onClick={() => {
           if (isProgrammatic()) { clearProgrammatic(); return }
@@ -749,6 +770,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           closeCart()
           setDrawerOpen(false)
           setActiveMenu(null)
+          setMobileSearchOpen(false)
         }}
       />
     </>

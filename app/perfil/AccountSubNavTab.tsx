@@ -3,9 +3,9 @@
 import Link from "next/link"
 
 const baseClass =
-  "shrink-0 whitespace-nowrap text-xs font-medium uppercase tracking-[0.18em] underline underline-offset-4 decoration-1 transition-colors"
+  "shrink-0 whitespace-nowrap text-xs font-medium uppercase tracking-[0.18em] transition-colors"
 
-const activeClass = `${baseClass} text-black`
+const activeClass = `${baseClass} text-black underline underline-offset-4 decoration-1`
 const inactiveClass = `${baseClass} text-neutral-600 hover:text-black`
 
 type LinkTabProps = {

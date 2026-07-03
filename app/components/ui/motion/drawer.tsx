@@ -1,7 +1,8 @@
 "use client"
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
-import { useEffect, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
+import { createPortal } from "react-dom"
 import { EASE_OUT, SPRING_PANEL } from "@/lib/ease"
 import { cn } from "@/lib/utils"
 
@@ -27,6 +28,11 @@ export function Drawer({
   dismissable = true,
 }: DrawerProps) {
   const reduce = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -44,7 +50,9 @@ export function Drawer({
 
   const offscreen = side === "right" ? "100%" : "-100%"
 
-  return (
+  if (!mounted) return null
+
+  const content = (
     <AnimatePresence>
       {open ? (
         <div className="fixed inset-0 z-50">
@@ -84,4 +92,6 @@ export function Drawer({
       ) : null}
     </AnimatePresence>
   )
+
+  return createPortal(content, document.body)
 }

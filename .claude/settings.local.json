@@ -49,7 +49,26 @@
       "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 60)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:beui.dev)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(git status --short app/components/navbar/ app/api/navbar/ lib/site-chrome.ts lib/site-shell.ts; \\(Get-ChildItem app/components/navbar/dropdowns/\\).Name)",
+      "WebFetch(domain:www.dior.com)",
+      "WebFetch(domain:www.anthropic.com)",
+      "PowerShell(npx tsc --noEmit 2>$null | Select-Object -First 20)",
+      "PowerShell(npx tsc --noEmit 2>$null | Select-Object -First 10; npx eslint app/components/home/HomeHeroTriCards.tsx 2>$null | Select-Object -First 10)",
+      "PowerShell(npx tsc --noEmit 2>$null | Select-Object -First 10; npx eslint app/components/home/HomeHeroTriCards.tsx app/components/navbar/Navbar.tsx 2>$null | Select-Object -First 10)",
+      "PowerShell(npx tsc --noEmit 2>$null | Select-Object -First 10; npx eslint app/components/home/HomeHeroTriCards.tsx app/components/navbar/Navbar.tsx 2>$null | Select-Object -First 15)",
+      "PowerShell(if \\(Test-Path node_modules/playwright\\) { 'playwright' } elseif \\(Test-Path node_modules/puppeteer\\) { 'puppeteer' } else { 'none' }; \\(Get-Content package.json | ConvertFrom-Json\\).scripts.dev)",
+      "PowerShell(npm i *)",
+      "PowerShell(node \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\scratchpad\\\\test-collapse.js\")",
+      "PowerShell(node \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\scratchpad\\\\test-css.js\")",
+      "PowerShell(taskkill *)",
+      "PowerShell($deadline=\\(Get-Date\\).AddSeconds\\(60\\); do { Start-Sleep -Milliseconds 1500; $log = Get-Content \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\tasks\\\\bc52j8j9s.output\" -Raw -ErrorAction SilentlyContinue } until \\($log -match 'Ready' -or \\(Get-Date\\) -gt $deadline\\); $log -match 'Ready')",
+      "PowerShell($deadline=\\(Get-Date\\).AddSeconds\\(90\\); do { Start-Sleep -Milliseconds 2000; $log = Get-Content \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\tasks\\\\b10kiybnn.output\" -Raw -ErrorAction SilentlyContinue } until \\($log -match 'Ready' -or \\(Get-Date\\) -gt $deadline\\); $log -match 'Ready'; node \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\scratchpad\\\\test-collapse.js\")",
+      "PowerShell(npm rm *)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c | Select-Object LocalAddress,LocalPort,OwningProcess; Get-Process -Id \\($c.OwningProcess | Select-Object -Unique\\) | Select-Object Id,ProcessName } else { \"Nada escuchando en :3000\" })",
+      "PowerShell(foreach \\($p in 3000,3001,3002\\) { $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { taskkill /PID $_ /F 2>$null } } }; Start-Sleep -Seconds 1; foreach \\($p in 3000,3001,3002\\) { $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { \"$p ocupado\" } else { \"$p libre\" } })",
+      "PowerShell(node \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\scratchpad\\\\test-sda.js\")"
     ]
   }
 }

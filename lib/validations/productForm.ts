@@ -17,6 +17,7 @@ export type VariantSnapshot = {
   variantName: string
   price: string
   stock: string
+  colorHex?: string
   _toDelete?: boolean
 }
 
@@ -36,6 +37,15 @@ export function variantPriceKey(index: number): string {
 }
 export function variantStockKey(index: number): string {
   return `variant_${index}_stock`
+}
+export function variantColorHexKey(index: number): string {
+  return `variant_${index}_color_hex`
+}
+
+const COLOR_HEX_RE = /^#[0-9A-Fa-f]{6}$/
+export function isValidColorHex(value: string | null | undefined): boolean {
+  if (!value) return true
+  return COLOR_HEX_RE.test(value)
 }
 
 function formatMoney(value: number): string {
@@ -115,6 +125,10 @@ export function validateProductCritical(
       stock < 0
     ) {
       errors[variantStockKey(index)] = "Stock inválido."
+    }
+
+    if (variant.colorHex && !isValidColorHex(variant.colorHex)) {
+      errors[variantColorHexKey(index)] = "Color inválido (#RRGGBB)."
     }
   })
 

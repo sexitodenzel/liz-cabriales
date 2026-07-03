@@ -28,6 +28,8 @@ export type Product = {
   name: string
   slug: string
   description: string | null
+  long_description: string | null
+  application_text: string | null
   base_price: number
   discount_percent: number
   images: string[] | null
@@ -54,6 +56,10 @@ export type ProductVariant = {
   price: number
   stock: number
   is_active: boolean
+  color_hex: string | null
+  color_name: string | null
+  size_label: string | null
+  is_limited_edition: boolean
 }
 
 export type ProductWithVariants = ProductWithCategory & {
@@ -78,6 +84,10 @@ type ProductVariantRow = {
   price: number | string
   stock: number | string
   is_active: boolean
+  color_hex?: string | null
+  color_name?: string | null
+  size_label?: string | null
+  is_limited_edition?: boolean | null
 }
 
 type ProductRow = {
@@ -86,6 +96,8 @@ type ProductRow = {
   name: string
   slug: string
   description: string | null
+  long_description?: string | null
+  application_text?: string | null
   base_price: number | string
   discount_percent?: number | string | null
   images: string[] | null
@@ -122,6 +134,10 @@ function mapVariantRow(variant: ProductVariantRow): ProductVariant {
     price: Number(variant.price),
     stock: Number(variant.stock),
     is_active: Boolean(variant.is_active),
+    color_hex: variant.color_hex ?? null,
+    color_name: variant.color_name ?? null,
+    size_label: variant.size_label ?? null,
+    is_limited_edition: Boolean(variant.is_limited_edition ?? false),
   }
 }
 
@@ -143,6 +159,8 @@ function mapProductWithCategoryRow(
     name: productRow.name,
     slug: productRow.slug,
     description: productRow.description ?? null,
+    long_description: productRow.long_description ?? null,
+    application_text: productRow.application_text ?? null,
     base_price: Number(productRow.base_price),
     discount_percent: Number(productRow.discount_percent ?? 0),
     images: productRow.images ?? null,
@@ -237,6 +255,8 @@ export async function getProducts(
       name,
       slug,
       description,
+      long_description,
+      application_text,
       base_price,
       discount_percent,
       images,
@@ -260,7 +280,11 @@ export async function getProducts(
         variant_name,
         price,
         stock,
-        is_active
+        is_active,
+        color_hex,
+        color_name,
+        size_label,
+        is_limited_edition
       )
     `
     )
@@ -312,6 +336,8 @@ export async function getProducts(
         name: productRow.name,
         slug: productRow.slug,
         description: productRow.description ?? null,
+        long_description: productRow.long_description ?? null,
+        application_text: productRow.application_text ?? null,
         base_price: Number(productRow.base_price),
         discount_percent: Number(productRow.discount_percent ?? 0),
         images: productRow.images ?? null,
@@ -339,7 +365,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at")
+    .select("id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at, long_description, application_text")
     .eq("is_featured", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -360,6 +386,8 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
         name: productRow.name,
         slug: productRow.slug,
         description: productRow.description ?? null,
+        long_description: productRow.long_description ?? null,
+        application_text: productRow.application_text ?? null,
         base_price: Number(productRow.base_price),
         discount_percent: Number(productRow.discount_percent ?? 0),
         images: productRow.images ?? null,
@@ -384,7 +412,7 @@ export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at")
+    .select("id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at, long_description, application_text")
     .eq("is_best_seller", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -405,6 +433,8 @@ export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
         name: productRow.name,
         slug: productRow.slug,
         description: productRow.description ?? null,
+        long_description: productRow.long_description ?? null,
+        application_text: productRow.application_text ?? null,
         base_price: Number(productRow.base_price),
         discount_percent: Number(productRow.discount_percent ?? 0),
         images: productRow.images ?? null,
@@ -438,6 +468,8 @@ export async function getProductBySlug(
       name,
       slug,
       description,
+      long_description,
+      application_text,
       base_price,
       discount_percent,
       images,
@@ -461,7 +493,11 @@ export async function getProductBySlug(
         variant_name,
         price,
         stock,
-        is_active
+        is_active,
+        color_hex,
+        color_name,
+        size_label,
+        is_limited_edition
       )
     `
     )
@@ -501,6 +537,8 @@ export async function getProductBySlug(
     name: productRow.name,
     slug: productRow.slug,
     description: productRow.description ?? null,
+    long_description: productRow.long_description ?? null,
+    application_text: productRow.application_text ?? null,
     base_price: Number(productRow.base_price),
     discount_percent: Number(productRow.discount_percent ?? 0),
     images: productRow.images ?? null,
@@ -549,7 +587,11 @@ const RELATED_SELECT = `
     variant_name,
     price,
     stock,
-    is_active
+    is_active,
+    color_hex,
+    color_name,
+    size_label,
+    is_limited_edition
   )
 `
 

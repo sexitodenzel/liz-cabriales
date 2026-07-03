@@ -68,6 +68,28 @@ const DUR_SIDES_REVERSE = 700
 // Con 0.85 antes, el reverse arrancaba muy temprano y peleaba con el scroll.
 const FORWARD_TRIGGER_PX = 5
 const REVERSE_TRIGGER_VH = 0.25
+const MIN_INTENT_DELTA = 5
+
+// computeTarget devuelve el estado deseado dada la (y actual, y previa).
+// - Si no hubo movimiento real (delta < MIN_INTENT_DELTA), mantiene el estado
+//   actual: evita que un re-eval post-lock dispare animación cuando el
+//   usuario está quieto en una posición no exactamente 0.
+// - Forward requiere scroll DOWN activo (no sólo y > threshold).
+// - Reverse requiere scroll UP activo Y posición debajo del threshold.
+function computeTarget(y: number, prevY: number, expanded: boolean): boolean {
+  const delta = y - prevY
+  if (Math.abs(delta) < MIN_INTENT_DELTA) return expanded
+  const goingUp = delta < 0
+  const reverseThreshold = window.innerHeight * REVERSE_TRIGGER_VH
+  if (expanded) {
+    // Expanded: solo cambia a reverse si va UP y está debajo del threshold.
+    if (goingUp && y < reverseThreshold) return false
+    return true
+  }
+  // Not expanded: solo cambia a forward si va DOWN y pasa FORWARD_TRIGGER_PX.
+  if (!goingUp && y > FORWARD_TRIGGER_PX) return true
+  return false
+}
 
 export default function HomeHeroTriCards() {
   const [expanded, setExpanded] = useState(false)
@@ -95,29 +117,6 @@ export default function HomeHeroTriCards() {
   const lockStartYRef = useRef(0)
   const expandedRef = useRef(expanded)
 
-  // computeTarget devuelve el estado deseado dada la (y actual, y previa).
-  // - Si no hubo movimiento real (delta < MIN_INTENT_DELTA), mantiene el estado
-  //   actual: evita que un re-eval post-lock dispare animación cuando el
-  //   usuario está quieto en una posición no exactamente 0.
-  // - Forward requiere scroll DOWN activo (no sólo y > threshold).
-  // - Reverse requiere scroll UP activo Y posición debajo del threshold.
-  const MIN_INTENT_DELTA = 5
-  const computeTargetRef = useRef((_y: number, _prevY: number): boolean => false)
-  computeTargetRef.current = (y, prevY) => {
-    const delta = y - prevY
-    if (Math.abs(delta) < MIN_INTENT_DELTA) return expandedRef.current
-    const goingUp = delta < 0
-    const reverseThreshold = window.innerHeight * REVERSE_TRIGGER_VH
-    if (expandedRef.current) {
-      // Expanded: solo cambia a reverse si va UP y está debajo del threshold.
-      if (goingUp && y < reverseThreshold) return false
-      return true
-    }
-    // Not expanded: solo cambia a forward si va DOWN y pasa FORWARD_TRIGGER_PX.
-    if (!goingUp && y > FORWARD_TRIGGER_PX) return true
-    return false
-  }
-
   useEffect(() => {
     expandedRef.current = expanded
     const dur = expanded ? DUR_CENTER : DUR_CENTER_REVERSE
@@ -130,7 +129,7 @@ export default function HomeHeroTriCards() {
       // lo suficiente como para cambiar de estado, disparamos la siguiente.
       const y = window.scrollY
       const startY = lockStartYRef.current
-      const target = computeTargetRef.current(y, startY)
+      const target = computeTarget(y, startY, expandedRef.current)
       if (target !== expandedRef.current) {
         setExpanded(target)
       }
@@ -151,7 +150,7 @@ export default function HomeHeroTriCards() {
         return
       }
 
-      const target = computeTargetRef.current(y, prevY)
+      const target = computeTarget(y, prevY, expandedRef.current)
       if (target !== expandedRef.current) {
         setExpanded(target)
       }
@@ -163,23 +162,29 @@ export default function HomeHeroTriCards() {
       window.requestAnimationFrame(evaluate)
     }
 
-    if (window.scrollY > FORWARD_TRIGGER_PX) {
-      setExpanded(true)
-    }
     lastYRef.current = window.scrollY
+    // Si la página carga ya scrolleada (reload a media página), arranca
+    // expandida. Vía rAF para no hacer setState síncrono dentro del effect.
+    let initRaf: number | null = null
+    if (window.scrollY > FORWARD_TRIGGER_PX) {
+      initRaf = requestAnimationFrame(() => setExpanded(true))
+    }
 
     window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      if (initRaf !== null) cancelAnimationFrame(initRaf)
+    }
   }, [])
 
   // Atrasa el cambio de sidesExpanded para crear el staging sin
   // transition-delay. Forward: espera DELAY_SIDES. Reverse: instantáneo.
   useEffect(() => {
-    if (expanded) {
-      const timer = window.setTimeout(() => setSidesExpanded(true), DELAY_SIDES)
-      return () => window.clearTimeout(timer)
-    }
-    setSidesExpanded(false)
+    const timer = window.setTimeout(
+      () => setSidesExpanded(expanded),
+      expanded ? DELAY_SIDES : 0
+    )
+    return () => window.clearTimeout(timer)
   }, [expanded])
 
   // IntersectionObserver: si la sección sale del viewport, desactivamos las
@@ -200,27 +205,49 @@ export default function HomeHeroTriCards() {
   const durCenter = expanded ? DUR_CENTER : DUR_CENTER_REVERSE
   const durSides = expanded ? DUR_SIDES : DUR_SIDES_REVERSE
 
-  // Memoizamos los style objects para que NO se recreen en cada render. Sin
-  // memo, React pasa nuevos referencial-distintos objects al DOM y eso puede
-  // causar que el browser haga style recalc completo (micro-tirón).
+  // La card central NUNCA cambia de tamaño ni posición — siempre cubre el
+  // 100% en la capa base (z-0). El "compactado" lo hacen dos CORTINAS blancas
+  // que entran por los costados con `transform: translateX` (compositor real).
+  // El approach anterior (transition de clip-path) NO se composita en Chrome
+  // (CompositeClipPathAnimation sigue detrás de flag): re-rasterizaba una
+  // imagen de ~viewport en main thread cada frame → intro a pocos fps.
+  // Las cortinas además absorben clicks/hover en los gutters, igual que lo
+  // hacía el área recortada del clip.
   const centerStyle = useMemo<React.CSSProperties>(
+    () => ({ position: "absolute", inset: 0, zIndex: 0 }),
+    []
+  )
+
+  // translateX(±102%) en reposo (no ±100%) evita un hairline del borde de la
+  // cortina por redondeo subpixel en el edge del contenedor.
+  const curtainLeftStyle = useMemo<React.CSSProperties>(
     () => ({
       position: "absolute",
       top: 0,
+      left: 0,
       height: "100%",
-      width: expanded ? "32%" : "100%",
-      left: expanded ? "34%" : "0%",
-      transition: animEnabled
-        ? `width ${durCenter}ms ${EASE}, left ${durCenter}ms ${EASE}`
-        : "none",
-      // translateZ pequeño no-cero + preserve-3d: fuerza al browser a usar
-      // sub-pixel positioning continuo durante toda la transition, sin snap
-      // al pixel entero al final (que es el "detalle" visible al terminar).
-      transform: "translate3d(0,0,0.0001px)",
-      transformStyle: "preserve-3d",
-      backfaceVisibility: "hidden",
-      willChange: "width, left",
-      isolation: "isolate",
+      width: "34%",
+      background: "#fff",
+      zIndex: 10,
+      transform: expanded ? "translate3d(0,0,0)" : "translate3d(-102%,0,0)",
+      transition: animEnabled ? `transform ${durCenter}ms ${EASE}` : "none",
+      willChange: "transform",
+    }),
+    [expanded, durCenter, animEnabled]
+  )
+
+  const curtainRightStyle = useMemo<React.CSSProperties>(
+    () => ({
+      position: "absolute",
+      top: 0,
+      right: 0,
+      height: "100%",
+      width: "34%",
+      background: "#fff",
+      zIndex: 10,
+      transform: expanded ? "translate3d(0,0,0)" : "translate3d(102%,0,0)",
+      transition: animEnabled ? `transform ${durCenter}ms ${EASE}` : "none",
+      willChange: "transform",
     }),
     [expanded, durCenter, animEnabled]
   )
@@ -235,6 +262,7 @@ export default function HomeHeroTriCards() {
       height: "100%",
       width: "32%",
       left: 0,
+      zIndex: 20,
       transform: sidesExpanded ? "translate3d(0,0,0)" : "translate3d(0,110%,0)",
       opacity: sidesExpanded ? 1 : 0,
       transition: animEnabled
@@ -252,6 +280,7 @@ export default function HomeHeroTriCards() {
       height: "100%",
       width: "32%",
       right: 0,
+      zIndex: 20,
       transform: sidesExpanded ? "translate3d(0,0,0)" : "translate3d(0,110%,0)",
       opacity: sidesExpanded ? 1 : 0,
       transition: animEnabled
@@ -261,18 +290,6 @@ export default function HomeHeroTriCards() {
     }),
     [sidesExpanded, durSides, animEnabled]
   )
-
-  // Cross-fade entre dos versiones del texto (grande y chica), secuencial sin
-  // superposición visible. Cada versión está rendereada a su tamaño final
-  // (sin scale), así no hay vibración. Una fadea en la primera mitad de la
-  // animación; la otra aparece en la segunda mitad.
-  // Cross-fade SIMULTÁNEO en lugar de secuencial — eliminamos el delay del
-  // medio que generaba un "setup point" perceptible. La superposición visual
-  // breve (~150ms) es imperceptible porque ambas versiones tienen el mismo
-  // texto centered. Pre-activamos GPU layer con translate3d.
-  // Texto SIN animación: tamaño chico fijo, siempre visible. Eliminar la
-  // opacity transition + el cross-fade reduce a cero el trabajo de render del
-  // texto durante la animación del centro.
 
   return (
     <>
@@ -284,22 +301,18 @@ export default function HomeHeroTriCards() {
         style={{ height: `${SECTION_HEIGHT_VH}vh` }}
       >
         <div
-          className="sticky w-full overflow-hidden bg-white px-6"
+          className="navbar-follow-collapse sticky w-full overflow-hidden bg-white px-6"
           style={{
             top: "var(--navbar-actual-h, 64px)",
             // -24px abajo para dejar el mismo respiro blanco que el px-6
             // lateral; evita que la imagen abarrote el borde inferior.
             height: "calc(100vh - var(--navbar-actual-h, 64px) - 24px)",
-            contain: "layout paint",
-            transform: "translateZ(0)",
-            // perspective + preserve-3d en hijos = el browser usa el compositor
-            // 3D para todo el subárbol, lo cual evita el snap final de pixel.
-            perspective: "1000px",
           }}
         >
           <div className="relative h-full w-full">
-            <CardBlock card={LEFT} compact style={sideLeftStyle} />
-            <CardBlock card={RIGHT} compact style={sideRightStyle} />
+            {/* Orden de capas: centro (z-0) → cortinas (z-10) → laterales (z-20)
+                → textos (z-30). El centro ya no se recorta, así que DEBE quedar
+                debajo de las cortinas y de los laterales. */}
             <CardBlock
               card={CENTER}
               hero
@@ -318,11 +331,15 @@ export default function HomeHeroTriCards() {
                 setCenterHover(false)
               }}
             />
+            <div aria-hidden style={curtainLeftStyle} />
+            <div aria-hidden style={curtainRightStyle} />
+            <CardBlock card={LEFT} compact style={sideLeftStyle} priority />
+            <CardBlock card={RIGHT} compact style={sideRightStyle} priority />
 
             {/* Texto del hero: tamaño chico fijo, siempre visible. Sin
                 opacity ni scale animando = cero trabajo de render del texto
                 durante la animación del centro. */}
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
+            <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center px-6 text-center text-white">
               <span className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white/90">
                 {CENTER.eyebrow}
               </span>
@@ -346,7 +363,7 @@ export default function HomeHeroTriCards() {
             {/* Indicador scroll (visible solo al inicio) */}
             <div
               aria-hidden
-              className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-white/80"
+              className="pointer-events-none absolute bottom-6 left-1/2 z-30 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-white/80"
               style={{
                 opacity: expanded ? 0 : 1,
                 transition: `opacity 300ms ${EASE}`,
@@ -381,6 +398,7 @@ function CardBlock({
   className = "",
   titleStyle,
   hideHeroText = false,
+  priority = hero,
   onMouseEnter,
   onMouseLeave,
 }: {
@@ -391,6 +409,7 @@ function CardBlock({
   className?: string
   titleStyle?: React.CSSProperties
   hideHeroText?: boolean
+  priority?: boolean
   onMouseEnter?: () => void
   onMouseLeave?: () => void
 }) {
@@ -417,7 +436,7 @@ function CardBlock({
             ? "object-cover"
             : "object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
         }
-        priority={hero}
+        priority={priority}
         style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/55" />

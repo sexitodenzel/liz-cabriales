@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { Heart, ShoppingBag } from "lucide-react"
+import SectionCarousel from "./SectionCarousel"
+import { storeIconButtonClassName } from "./store-button-styles"
+import { TiltCard } from "@/app/components/ui/motion/tilt-card"
+import { useWishlist } from "@/app/components/wishlist/WishlistContext"
 
 const STORAGE_KEY = "lc:recently-viewed"
 const MAX_STORED = 12
@@ -49,6 +54,7 @@ function readStored(): RecentlyViewedItem[] {
 
 export default function RecentlyViewed({ current }: Props) {
   const [items, setItems] = useState<RecentlyViewedItem[]>([])
+  const { toggle, has, hydrated: wishlistHydrated } = useWishlist()
 
   useEffect(() => {
     const stored = readStored()
@@ -75,10 +81,8 @@ export default function RecentlyViewed({ current }: Props) {
   if (items.length === 0) return null
 
   return (
-    <section className="mt-16">
-      <h2 className="text-xl font-semibold">Vistos recientemente</h2>
-      <div className="mt-6 flex gap-4 overflow-x-auto pb-2">
-        {items.map((item) => {
+    <SectionCarousel title="Vistos recientemente">
+      {items.map((item) => {
           const brand = item.brand ?? "Sin marca"
           const initials = brand
             .split(" ")
@@ -87,41 +91,80 @@ export default function RecentlyViewed({ current }: Props) {
             .map((word) => word[0]?.toUpperCase())
             .join("")
 
+          const wishlisted = wishlistHydrated && has(item.slug)
+
           return (
-            <Link
+            <article
               key={item.slug}
-              href={`/tienda/${item.slug}`}
-              className="group w-44 flex-none overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-lg"
+              className="group flex h-full w-64 flex-none flex-col"
             >
-              <div className="relative bg-neutral-100">
-                {item.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="h-44 w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-44 w-full items-center justify-center bg-neutral-100 text-2xl font-semibold text-neutral-400">
-                    {initials || "LC"}
+              <TiltCard
+                max={8}
+                glare={false}
+                className="relative aspect-square w-full rounded-none bg-neutral-50"
+              >
+                <Link
+                  href={`/tienda/${item.slug}`}
+                  className="relative block h-full w-full"
+                >
+                  {item.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-neutral-400">
+                      {initials || "LC"}
+                    </div>
+                  )}
+                </Link>
+              </TiltCard>
+              <div className="pt-2">
+                <div className="flex items-end justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-900 sm:text-xs sm:tracking-[0.18em]">
+                      {brand}
+                    </p>
+                    <h3 className="mt-0.5 line-clamp-2 min-h-[2lh] text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
+                      <Link href={`/tienda/${item.slug}`}>{item.name}</Link>
+                    </h3>
+                    <p className="mt-1 text-sm font-semibold text-[#C9A84C] sm:text-base">
+                      {formatPrice(item.base_price)}
+                    </p>
                   </div>
-                )}
+                  <div className="flex shrink-0 flex-col items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggle(item.slug)}
+                      aria-label={
+                        wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"
+                      }
+                      className={storeIconButtonClassName}
+                    >
+                      <Heart
+                        className={`h-4 w-4 transition-colors sm:h-[18px] sm:w-[18px]${
+                          wishlisted ? " fill-neutral-900 text-neutral-900" : ""
+                        }`}
+                      />
+                    </button>
+                    <Link
+                      href={`/tienda/${item.slug}`}
+                      aria-label="Ver producto"
+                      className={storeIconButtonClassName}
+                    >
+                      <ShoppingBag
+                        className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
+                        strokeWidth={1.75}
+                      />
+                    </Link>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col gap-1 p-3">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-400">
-                  {brand}
-                </p>
-                <h3 className="line-clamp-2 text-sm font-medium text-[#0a0a0a]">
-                  {item.name}
-                </h3>
-                <p className="mt-1 text-base font-semibold text-[#C9A84C]">
-                  {formatPrice(item.base_price)}
-                </p>
-              </div>
-            </Link>
+            </article>
           )
         })}
-      </div>
-    </section>
+    </SectionCarousel>
   )
 }

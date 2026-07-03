@@ -5,10 +5,32 @@ import { Instagram, MessageCircle, Facebook, Mail, MapPin, Clock } from "lucide-
 const linkClass =
   "text-neutral-300 transition-colors hover:text-[#C6A75E]"
 
-export default function Footer() {
+export default function Footer({ expanded = false }: { expanded?: boolean }) {
   return (
-    <footer className="bg-[#0a0a0a] text-neutral-300">
-      <div className="site-container pt-10 pb-10 md:pt-16 md:pb-12">
+    <footer
+      className={`flex flex-col justify-between bg-[#0a0a0a] text-neutral-300 ${
+        expanded ? "min-h-[100dvh]" : ""
+      }`}
+    >
+      {/* Wordmark de marca que rellena el espacio superior de la cortina */}
+      {expanded && (
+        <div className="site-container flex flex-1 flex-col justify-center overflow-hidden pt-24 md:pt-32">
+          <span
+            aria-hidden="true"
+            className="block select-none font-[family-name:var(--font-playfair),serif] text-[clamp(3.5rem,15vw,13rem)] font-medium leading-[0.85] tracking-[-0.03em] text-white/[0.07]"
+          >
+            Liz Cabriales
+          </span>
+          <span
+            aria-hidden="true"
+            className="mt-3 select-none self-end pr-1 font-[family-name:var(--font-cormorant-garamond),serif] text-[clamp(0.85rem,2.2vw,1.6rem)] uppercase tracking-[0.5em] text-white/[0.12]"
+          >
+            Studio
+          </span>
+        </div>
+      )}
+
+      <div className={`site-container pb-10 md:pb-12 ${expanded ? "" : "pt-10 md:pt-16"}`}>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
           {/* Logo */}
           <div className="flex justify-center sm:justify-start lg:justify-start">

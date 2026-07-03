@@ -1,15 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import type { LucideIcon } from "lucide-react"
-import {
-  BookOpen,
-  Heart,
-  LayoutGrid,
-  MapPin,
-  Package,
-  Sparkles,
-} from "lucide-react"
 import type { ReactNode } from "react"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
@@ -29,14 +20,13 @@ const NAV_ITEMS: {
   id: AccountSection
   label: string
   href: string
-  icon: LucideIcon
 }[] = [
-  { id: "resumen", label: "Resumen de cuenta", href: "/perfil", icon: LayoutGrid },
-  { id: "pedidos", label: "Pedidos", href: "/perfil/pedidos", icon: Package },
-  { id: "direcciones", label: "Direcciones", href: "/perfil/direcciones", icon: MapPin },
-  { id: "cursos", label: "Cursos", href: "/perfil/cursos", icon: BookOpen },
-  { id: "servicios", label: "Servicios", href: "/perfil/servicios", icon: Sparkles },
-  { id: "wishlist", label: "Wishlist", href: "/wishlist", icon: Heart },
+  { id: "resumen", label: "Resumen de cuenta", href: "/perfil" },
+  { id: "pedidos", label: "Pedidos", href: "/perfil/pedidos" },
+  { id: "direcciones", label: "Direcciones", href: "/perfil/direcciones" },
+  { id: "cursos", label: "Cursos", href: "/perfil/cursos" },
+  { id: "servicios", label: "Servicios", href: "/perfil/servicios" },
+  { id: "wishlist", label: "Wishlist", href: "/wishlist" },
 ]
 
 function MobileNavLink({
@@ -128,10 +118,8 @@ export default function AccountShell({
             <aside className="hidden border-neutral-200 py-6 md:block md:border-r md:pr-8">
               <nav className="space-y-4 text-xs font-medium uppercase tracking-[0.18em] text-neutral-700">
                 {NAV_ITEMS.map((item) => {
-                  const Icon = item.icon
                   const isActive = item.id === active
-                  const baseClass =
-                    "flex items-center gap-2.5 underline underline-offset-4 transition-colors"
+                  const baseClass = "block underline underline-offset-4 transition-colors"
 
                   if (isActive) {
                     return (
@@ -140,7 +128,6 @@ export default function AccountShell({
                         className={`${baseClass} text-black`}
                         aria-current="page"
                       >
-                        <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
                         {item.label}
                       </span>
                     )
@@ -152,7 +139,6 @@ export default function AccountShell({
                       href={item.href}
                       className={`${baseClass} hover:text-black`}
                     >
-                      <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
                       {item.label}
                     </Link>
                   )

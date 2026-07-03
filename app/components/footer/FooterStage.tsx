@@ -26,9 +26,9 @@ export default function FooterStage({
     <div
       id="site-footer-stage"
       ref={stageRef}
-      className="fixed inset-x-0 bottom-0 z-0"
+      className="fixed inset-x-0 bottom-0 z-0 flex min-h-[100dvh] flex-col justify-end bg-[#0a0a0a]"
     >
-      <Footer />
+      <Footer expanded />
     </div>
   )
 }

@@ -8,7 +8,7 @@ import { getAbrasivityLevel } from "@/lib/constants/abrasivity"
 import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 import AddToCartButton from "./AddToCartButton"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
-import { storeCardButtonClassName, storeIconButtonClassName } from "./store-button-styles"
+import { storeIconButtonClassName } from "./store-button-styles"
 import { Heart, ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react"
 import { useWishlist } from "@/app/components/wishlist/WishlistContext"
 import { TiltCard } from "@/app/components/ui/motion/tilt-card"
@@ -66,7 +66,6 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
   const imageNavButtonClassName =
     "absolute top-1/2 z-10 flex -translate-y-1/2 cursor-pointer items-center justify-center text-black/70 transition-all duration-200 hover:text-black md:opacity-0 md:group-hover:opacity-100"
 
-  const cardButtonClassName = storeCardButtonClassName
   const imageSizes = "(max-width: 768px) 50vw, 33vw"
 
   const singleVariant = activeVariants.length === 1 ? activeVariants[0] : null
@@ -154,35 +153,6 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
   }, [leavingImage, slideDurationMs])
 
   if (layout === "list") {
-    const listActionButton =
-      hasMultipleVariants ? (
-        <Link href={`/tienda/${product.slug}`} className={cardButtonClassName}>
-          Elegir presentación
-        </Link>
-      ) : isOutOfStock && singleVariant ? (
-        <NotifyWhenAvailable
-          productId={product.id}
-          productSlug={product.slug}
-          productName={product.name}
-          variantId={singleVariant.id}
-          outOfStock
-          className={cardButtonClassName}
-          label="Avísame disponibilidad"
-        />
-      ) : (
-        <AddToCartButton
-          productId={product.id}
-          productSlug={product.slug}
-          productName={product.name}
-          brand={product.brand ?? null}
-          image={currentImage}
-          basePrice={product.base_price}
-          discountPercent={product.discount_percent}
-          variants={product.variants ?? []}
-          className={cardButtonClassName}
-        />
-      )
-
     return (
       <article className="flex gap-5 border-b border-neutral-200 py-5 sm:gap-8 sm:py-7 md:gap-10 md:py-8">
         <Link
@@ -229,18 +199,21 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
                 </Link>
               </h3>
             </div>
-            <button
-              type="button"
-              onClick={handleWishlistToggle}
-              aria-label={wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
-              className={`${storeIconButtonClassName} p-1`}
-            >
-              <Heart
-                className={`h-4 w-4 transition-colors sm:h-5 sm:w-5 ${
-                  wishlisted ? "fill-neutral-900 text-neutral-900" : ""
-                }`}
-              />
-            </button>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleWishlistToggle}
+                aria-label={wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
+                className={`${storeIconButtonClassName} p-1`}
+              >
+                <Heart
+                  className={`h-4 w-4 transition-colors sm:h-5 sm:w-5 ${
+                    wishlisted ? "fill-neutral-900 text-neutral-900" : ""
+                  }`}
+                />
+              </button>
+              {iconActionButton}
+            </div>
           </div>
 
           {productHasDiscount ? (
@@ -260,8 +233,6 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
               {formatPrice(product.base_price)}
             </p>
           )}
-
-          <div className="w-full max-w-sm">{listActionButton}</div>
         </div>
       </article>
     )
@@ -434,7 +405,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
             <p className="truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-900 sm:text-xs sm:tracking-[0.18em]">
               {brand}
             </p>
-            <h3 className="mt-0.5 line-clamp-2 text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
+            <h3 className="mt-0.5 line-clamp-2 min-h-[2lh] text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
               {product.name}
             </h3>
             <div className="mt-1">{priceBlock}</div>

@@ -7,6 +7,8 @@ type FloatingInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "placehold
   label: string
   required?: boolean
   error?: string | null
+  /** Pinta label + border en rojo sin mostrar mensaje. Útil para grupos con un mensaje compartido. */
+  invalid?: boolean
   helper?: ReactNode
   rightSlot?: ReactNode
   containerClassName?: string
@@ -23,6 +25,7 @@ const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
       label,
       required,
       error,
+      invalid,
       helper,
       rightSlot,
       containerClassName = "",
@@ -51,7 +54,8 @@ const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
     const currentValue = isControlled ? String(value ?? "") : internalValue
     const hasValue = currentValue.length > 0
     const float = focused || hasValue
-    const hasError = Boolean(error)
+    const hasError = Boolean(error) || Boolean(invalid)
+    const showErrorMessage = Boolean(error)
 
     const labelColor = hasError
       ? "text-red-600"
@@ -111,7 +115,7 @@ const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
           </div>
         </div>
 
-        {hasError ? (
+        {showErrorMessage ? (
           <p id={`${id}-error`} className="mt-2 text-[12px] text-red-600">
             {error}
           </p>

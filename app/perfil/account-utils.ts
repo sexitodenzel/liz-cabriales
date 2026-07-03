@@ -40,7 +40,7 @@ export function orderStatusClass(status: OrderStatus): string {
     case "delivered":
       return "text-emerald-700"
     case "cancelled":
-      return "text-red-600"
+      return "text-[var(--gold)]"
     default:
       return "text-neutral-600"
   }

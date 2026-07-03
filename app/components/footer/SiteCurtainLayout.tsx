@@ -46,12 +46,8 @@ export default function SiteCurtainLayout({
       <div
         id="site-curtain"
         className="relative z-[1] flex flex-1 flex-col"
-        style={{
-          background:
-            "linear-gradient(to bottom, #ffffff calc(100% - var(--footer-stage-h, 0px)), transparent calc(100% - var(--footer-stage-h, 0px)))",
-        }}
       >
-        <div className="flex flex-1 flex-col">{children}</div>
+        <div className="flex flex-1 flex-col bg-white">{children}</div>
         <CurtainFooterSpacer />
       </div>
       <FooterStage />

@@ -8,10 +8,9 @@ import {
 import { getServicesCached } from "@/lib/supabase/cache"
 import { getPublishedCourses } from "@/lib/supabase/courses"
 import { getBlockedSlotsForDate } from "@/lib/supabase/appointments"
-import AddToCartButton from "../components/AddToCartButton"
-import { storeDetailButtonClassName } from "../components/store-button-styles"
 import CoursesCarousel from "../components/CoursesCarousel"
-import ProductImageGallery from "../components/ProductImageGallery"
+import ProductAccordion from "../components/ProductAccordion"
+import ProductHero from "../components/ProductHero"
 import RelatedProductsCarousel from "../components/RelatedProductsCarousel"
 import RecentlyViewed from "../components/RecentlyViewed"
 import ServicesSection from "../components/ServicesSection"
@@ -68,88 +67,37 @@ export default async function ProductPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-white text-[#0a0a0a]">
       <div className="site-container pt-5 pb-12">
-        <Breadcrumb
+        <div className="mx-auto w-full max-w-[1200px]">
+        {/* <Breadcrumb
           items={[
             { label: "Inicio", href: "/" },
             { label: "Tienda", href: "/tienda" },
             { label: product.name },
           ]}
+        /> */}
+
+        <ProductHero product={product} />
+
+        <ProductAccordion
+          description={product.description}
+          longDescription={product.long_description}
+          applicationText={product.application_text}
+          sizeLabels={Array.from(
+            new Set(
+              product.variants
+                .filter((v) => v.is_active && v.size_label)
+                .map((v) => v.size_label as string)
+            )
+          )}
+          order={{
+            hasCourseToday,
+            courseSlot: courseSlot
+              ? { start_time: courseSlot.start_time, end_time: courseSlot.end_time }
+              : null,
+          }}
         />
 
-        <section className="mt-6 grid gap-8 md:grid-cols-2">
-          <ProductImageGallery images={images} alt={product.name} />
-
-          <div>
-            {product.brand ? (
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#a8862f]">
-                {product.brand}
-              </p>
-            ) : null}
-
-            <h1 className="mt-2 text-3xl font-semibold">{product.name}</h1>
-
-            {product.description ? (
-              <p className="mt-6 text-[15px] leading-7 text-neutral-700">
-                {product.description}
-              </p>
-            ) : (
-              <p className="mt-6 text-[15px] leading-7 text-neutral-500">
-                Este producto no tiene descripción disponible por ahora.
-              </p>
-            )}
-
-            <div className="mt-6">
-              <AddToCartButton
-                productId={product.id}
-                productSlug={product.slug}
-                productName={product.name}
-                brand={product.brand ?? null}
-                image={image}
-                basePrice={product.base_price}
-                discountPercent={product.discount_percent}
-                variants={product.variants}
-                enableSelector
-                enableQuantitySelector
-                className={storeDetailButtonClassName}
-              />
-            </div>
-
-            {/* Shipping info */}
-            <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-              <p className="text-sm font-semibold text-[#0a0a0a]">
-                Envío y recolección
-              </p>
-              <ul className="mt-3 space-y-2.5 text-[13px] text-neutral-600">
-                <li className="flex gap-2">
-                  <span className="mt-px shrink-0 text-[#a8862f]">•</span>
-                  <span>
-                    <span className="font-medium text-[#0a0a0a]">Recoger en tienda</span>{" "}
-                    {hasCourseToday && courseSlot
-                      ? `— Solo ${courseSlot.start_time.slice(0, 5)}–${courseSlot.end_time.slice(0, 5)} (día de curso)`
-                      : "— Lu–Vi 10:00–18:30 · Sá 11:00–15:30"}{" "}
-                    <span className="text-neutral-400">(Nayarit #204-B, Cd. Madero, Tam.)</span>
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-px shrink-0 text-[#a8862f]">•</span>
-                  <span>
-                    <span className="font-medium text-[#0a0a0a]">Envío con Estafeta o DHL</span>{" "}
-                    — Calculamos el costo según tu destino y te mandamos el link de pago por correo y WhatsApp
-                  </span>
-                </li>
-              </ul>
-              <p className="mt-3 text-[11px] text-neutral-400">
-                Una vez que cubras el envío, ¡salimos a dártelo!
-              </p>
-            </div>
-          </div>
-        </section>
-
         <RelatedProductsCarousel products={relatedProducts} />
-
-        <CoursesCarousel courses={upcomingCourses} />
-
-        <ServicesSection services={activeServices} />
 
         <RecentlyViewed
           current={{
@@ -160,6 +108,11 @@ export default async function ProductPage({ params }: PageProps) {
             brand: product.brand ?? null,
           }}
         />
+
+        <CoursesCarousel courses={upcomingCourses} />
+
+        <ServicesSection services={activeServices} />
+        </div>
       </div>
     </main>
   )

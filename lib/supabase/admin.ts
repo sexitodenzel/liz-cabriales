@@ -64,6 +64,7 @@ export type AdminProduct = {
   sku: string | null
   description: string | null
   long_description: string | null
+  application_text: string | null
   search_synonyms: string | null
   base_price: number
   cost_price: number | null
@@ -97,6 +98,10 @@ export type AdminProductVariant = {
   price: number
   stock: number
   is_active: boolean
+  color_hex: string | null
+  color_name: string | null
+  size_label: string | null
+  is_limited_edition: boolean
 }
 
 export type CreateVariantInput = {
@@ -105,6 +110,10 @@ export type CreateVariantInput = {
   price: number
   stock: number
   isActive?: boolean
+  colorHex?: string | null
+  colorName?: string | null
+  sizeLabel?: string | null
+  isLimitedEdition?: boolean
 }
 
 export type UpdateVariantInput = Partial<CreateVariantInput>
@@ -138,7 +147,12 @@ export type CreateAdminProductInput = {
     price: number
     stock: number
     isActive?: boolean
+    colorHex?: string | null
+    colorName?: string | null
+    sizeLabel?: string | null
+    isLimitedEdition?: boolean
   }>
+  applicationText?: string | null
 }
 
 export type UpdateAdminProductInput = Partial<CreateAdminProductInput>
@@ -1432,6 +1446,7 @@ export async function getAdminProducts(): Promise<
       sku,
       description,
       long_description,
+      application_text,
       search_synonyms,
       base_price,
       cost_price,
@@ -1481,6 +1496,7 @@ export async function getAdminProducts(): Promise<
         sku: string | null
         description: string | null
         long_description: string | null
+        application_text: string | null
         search_synonyms: string | null
         base_price: number
         cost_price: number | null
@@ -1513,6 +1529,7 @@ export async function getAdminProducts(): Promise<
         sku: current.sku ?? null,
         description: current.description ?? null,
         long_description: current.long_description ?? null,
+        application_text: current.application_text ?? null,
         search_synonyms: current.search_synonyms ?? null,
         base_price: Number(current.base_price),
         cost_price: current.cost_price !== null ? Number(current.cost_price) : null,
@@ -1559,6 +1576,7 @@ export async function createAdminProduct(
       description: input.description ?? null,
       long_description: input.longDescription ?? null,
       search_synonyms: input.searchSynonyms ?? null,
+      application_text: input.applicationText ?? null,
       base_price: input.basePrice,
       cost_price: input.costPrice ?? null,
       wholesale_price: input.wholesalePrice ?? null,
@@ -1583,6 +1601,7 @@ export async function createAdminProduct(
       sku,
       description,
       long_description,
+      application_text,
       search_synonyms,
       base_price,
       cost_price,
@@ -1648,6 +1667,10 @@ export async function createAdminProduct(
           price: v.price,
           stock: v.stock,
           is_active: v.isActive ?? true,
+          color_hex: v.colorHex ?? null,
+          color_name: v.colorName ?? null,
+          size_label: v.sizeLabel ?? null,
+          is_limited_edition: v.isLimitedEdition ?? false,
         })
       if (variantError) {
         await supabaseAdmin.from("product_variants").delete().eq("product_id", product.id)
@@ -1685,6 +1708,7 @@ export async function createAdminProduct(
     sku: (product.sku as string | null) ?? null,
     description: (product.description as string) ?? null,
     long_description: (product.long_description as string | null) ?? null,
+    application_text: (product.application_text as string | null) ?? null,
     search_synonyms: (product.search_synonyms as string | null) ?? null,
     base_price: Number(product.base_price),
     cost_price: product.cost_price !== null ? Number(product.cost_price) : null,
@@ -1724,6 +1748,7 @@ export async function updateAdminProduct(
   if (input.description !== undefined) updatePayload.description = input.description
   if (input.longDescription !== undefined) updatePayload.long_description = input.longDescription
   if (input.searchSynonyms !== undefined) updatePayload.search_synonyms = input.searchSynonyms
+  if (input.applicationText !== undefined) updatePayload.application_text = input.applicationText
   if (input.basePrice !== undefined) updatePayload.base_price = input.basePrice
   if (input.costPrice !== undefined) updatePayload.cost_price = input.costPrice
   if (input.wholesalePrice !== undefined) updatePayload.wholesale_price = input.wholesalePrice
@@ -1787,6 +1812,7 @@ export async function updateAdminProduct(
       sku,
       description,
       long_description,
+      application_text,
       search_synonyms,
       base_price,
       cost_price,
@@ -1850,6 +1876,7 @@ export async function updateAdminProduct(
     sku: (data.sku as string | null) ?? null,
     description: (data.description as string) ?? null,
     long_description: (data.long_description as string | null) ?? null,
+    application_text: (data.application_text as string | null) ?? null,
     search_synonyms: (data.search_synonyms as string | null) ?? null,
     base_price: Number(data.base_price),
     cost_price: data.cost_price !== null ? Number(data.cost_price) : null,
@@ -1957,7 +1984,7 @@ export async function getAdminProductVariants(
 ): Promise<Result<AdminProductVariant[]>> {
   const { data, error } = await supabaseAdmin
     .from("product_variants")
-    .select("id, product_id, sku, variant_name, price, stock, is_active")
+    .select("id, product_id, sku, variant_name, price, stock, is_active, color_hex, color_name, size_label, is_limited_edition")
     .eq("product_id", productId)
     .order("created_at", { ascending: true })
 
@@ -1974,6 +2001,10 @@ export async function getAdminProductVariants(
       price: Number(row.price),
       stock: Number(row.stock),
       is_active: Boolean(row.is_active),
+      color_hex: (row.color_hex as string | null) ?? null,
+      color_name: (row.color_name as string | null) ?? null,
+      size_label: (row.size_label as string | null) ?? null,
+      is_limited_edition: Boolean(row.is_limited_edition),
     })),
     error: null,
   }
@@ -1997,8 +2028,12 @@ export async function createAdminProductVariant(
       price: input.price,
       stock: input.stock,
       is_active: input.isActive ?? true,
+      color_hex: input.colorHex ?? null,
+      color_name: input.colorName ?? null,
+      size_label: input.sizeLabel ?? null,
+      is_limited_edition: input.isLimitedEdition ?? false,
     })
-    .select("id, product_id, sku, variant_name, price, stock, is_active")
+    .select("id, product_id, sku, variant_name, price, stock, is_active, color_hex, color_name, size_label, is_limited_edition")
     .single()
 
   if (error || !data) {
@@ -2027,6 +2062,10 @@ export async function createAdminProductVariant(
       price: Number(data.price),
       stock: createdStock,
       is_active: Boolean(data.is_active),
+      color_hex: (data.color_hex as string | null) ?? null,
+      color_name: (data.color_name as string | null) ?? null,
+      size_label: (data.size_label as string | null) ?? null,
+      is_limited_edition: Boolean(data.is_limited_edition),
     },
     error: null,
   }
@@ -2052,12 +2091,17 @@ export async function updateAdminProductVariant(
   if (input.price !== undefined) payload.price = input.price
   if (input.stock !== undefined) payload.stock = input.stock
   if (input.isActive !== undefined) payload.is_active = input.isActive
+  if (input.colorHex !== undefined) payload.color_hex = input.colorHex
+  if (input.colorName !== undefined) payload.color_name = input.colorName
+  if (input.sizeLabel !== undefined) payload.size_label = input.sizeLabel
+  if (input.isLimitedEdition !== undefined)
+    payload.is_limited_edition = input.isLimitedEdition
 
   const { data, error } = await supabaseAdmin
     .from("product_variants")
     .update(payload)
     .eq("id", variantId)
-    .select("id, product_id, sku, variant_name, price, stock, is_active")
+    .select("id, product_id, sku, variant_name, price, stock, is_active, color_hex, color_name, size_label, is_limited_edition")
     .single()
 
   if (error || !data) {
@@ -2086,6 +2130,10 @@ export async function updateAdminProductVariant(
       price: Number(data.price),
       stock: updatedStock,
       is_active: Boolean(data.is_active),
+      color_hex: (data.color_hex as string | null) ?? null,
+      color_name: (data.color_name as string | null) ?? null,
+      size_label: (data.size_label as string | null) ?? null,
+      is_limited_edition: Boolean(data.is_limited_edition),
     },
     error: null,
   }

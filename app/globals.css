@@ -13,9 +13,9 @@
   --surface: #ffffff;
   /* Altura fija del navbar: la usan el carrito y el overlay para alinearse */
   --navbar-h: 64px;
-  /* Fallback mobile hasta que ResizeObserver actualice --navbar-actual-h */
   --navbar-mobile-h: 64px;
-  /* Valor dinámico actualizado por ResizeObserver en Navbar.tsx; fallback al mobile */
+  /* Altura ESTÁTICA del navbar: 64px mobile, 104px en ≥1200px (media query abajo).
+     No se actualiza en runtime; el colapso se hace con transform (ver Hermès collapse). */
   --navbar-actual-h: var(--navbar-mobile-h);
   /* Borde inferior del chrome (anuncios + navbar); SiteChromeMetrics.tsx */
   --site-chrome-bottom: var(--navbar-actual-h);
@@ -63,32 +63,52 @@ html {
    expanded) para que los stickys que la usan como `top` NO disparen reflow
    cada frame. El "ajuste visual" cuando colapsa se hace con `transform: translateY(-56px)`
    en el navbar + en los siblings sticky marcados con .navbar-follow-collapse.
-   `margin-bottom: -56px` en el navbar absorbe el espacio del flow para que el
-   contenido bajo el header suba sincronizadamente sin reflow del header. */
+   --navbar-scroll-y la escribe Navbar.tsx en cada frame de scroll, restando el
+   offsetTop del header (announcement bar) para que el colapso empiece justo
+   cuando el sticky se pega en top:0 — sin eso el navbar se movería al doble
+   de velocidad del contenido y abriría un hueco. */
 @media (min-width: 1200px) {
   :root {
     --navbar-actual-h: 104px;
+    --navbar-scroll-y: 0px;
   }
 
   #site-navbar {
     height: 104px;
-    transition:
-      transform 220ms cubic-bezier(0.32, 0.72, 0, 1),
-      margin-bottom 220ms cubic-bezier(0.32, 0.72, 0, 1);
+    transform: translate3d(0, calc(var(--navbar-scroll-y, 0px) * -1), 0);
     will-change: transform;
   }
 
   .navbar-follow-collapse {
-    transition: transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+    transform: translate3d(0, calc(var(--navbar-scroll-y, 0px) * -1), 0);
     will-change: transform;
   }
 
-  :root.navbar-collapsed #site-navbar {
-    transform: translate3d(0, -56px, 0);
-    margin-bottom: -56px;
+  /* Sincronía perfecta con el scroll (Chrome/Edge/Safari modernos): la
+     scroll-driven animation corre en el compositor, SIN el frame de lag del
+     fallback JS. Con scroll rápido, ese lag abría huecos entre el chrome
+     transformado y el contenido, exponiendo el FooterStage negro de fondo.
+     En browsers con soporte, esta animation pisa el transform de arriba;
+     --navbar-pin-offset (altura del announcement bar) la escribe Navbar.tsx. */
+  @supports (animation-timeline: scroll()) {
+    #site-navbar,
+    .navbar-follow-collapse {
+      animation-name: lc-navbar-collapse;
+      animation-duration: auto;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root block);
+      animation-range: var(--navbar-pin-offset, 0px)
+        calc(var(--navbar-pin-offset, 0px) + 56px);
+    }
   }
+}
 
-  :root.navbar-collapsed .navbar-follow-collapse {
+@keyframes lc-navbar-collapse {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
     transform: translate3d(0, -56px, 0);
   }
 }

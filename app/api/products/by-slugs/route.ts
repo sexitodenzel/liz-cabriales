@@ -15,6 +15,10 @@ type VariantRow = {
   price: number | string
   stock: number | string
   is_active: boolean
+  color_hex?: string | null
+  color_name?: string | null
+  size_label?: string | null
+  is_limited_edition?: boolean | null
 }
 
 type RawRow = {
@@ -23,6 +27,8 @@ type RawRow = {
   name: string
   slug: string
   description: string | null
+  long_description?: string | null
+  application_text?: string | null
   base_price: number | string
   discount_percent?: number | string | null
   images: string[] | null
@@ -66,6 +72,8 @@ function mapRow(row: RawRow): ProductWithCategory | null {
     name: row.name,
     slug: row.slug,
     description: row.description ?? null,
+    long_description: row.long_description ?? null,
+    application_text: row.application_text ?? null,
     base_price: Number(row.base_price),
     discount_percent: Number(row.discount_percent ?? 0),
     images: row.images ?? null,
@@ -86,6 +94,10 @@ function mapRow(row: RawRow): ProductWithCategory | null {
       price: Number(variant.price),
       stock: Number(variant.stock),
       is_active: Boolean(variant.is_active),
+      color_hex: variant.color_hex ?? null,
+      color_name: variant.color_name ?? null,
+      size_label: variant.size_label ?? null,
+      is_limited_edition: Boolean(variant.is_limited_edition ?? false),
     })),
   }
 }
@@ -99,10 +111,10 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from("products")
     .select(`
-      id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity,
+      id, category_id, name, slug, description, long_description, application_text, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity,
       is_featured, is_best_seller, is_active, updated_at, created_at,
       categories ( id, name, slug ),
-      product_variants ( id, product_id, sku, variant_name, price, stock, is_active )
+      product_variants ( id, product_id, sku, variant_name, price, stock, is_active, color_hex, color_name, size_label, is_limited_edition )
     `)
     .in("slug", slugs)
     .is("deleted_at", null)

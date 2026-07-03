@@ -39,6 +39,13 @@ export const storeCheckoutDetailButtonClassName = [
   "px-5 py-3 text-sm",
 ].join(" ")
 
+// Botón cuadrado negro sólido tipo Chanel para la página de detalle.
+export const storeHeroAddToCartClassName = [
+  "inline-flex w-full items-center justify-center bg-neutral-900 px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-white",
+  "transition-all duration-200 ease-out hover:bg-neutral-800 active:scale-[0.98] active:duration-75",
+  "disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-white",
+].join(" ")
+
 // Default "iluminar dorado" hover effect for interactive elements in the store
 // (color shift + soft gold drop-shadow glow). Pair with click feedback below.
 export const storeGoldHoverGlow =

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useId, useMemo, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useState } from "react"
 
 import { useCart } from "@/app/components/cart/CartContext"
 import type { CartItem } from "@/lib/cart"
@@ -25,6 +25,14 @@ type Props = {
   enableQuantitySelector?: boolean
   openCartOnAdd?: boolean
   variant?: "default" | "icon"
+  /** Si se pasa, oculta el <select> interno y delega la selección al padre. */
+  selectedVariantId?: string | null
+  /** Notifica al padre cuando cambia la selección desde el <select> interno. */
+  onVariantChange?: (variantId: string) => void
+  /** Oculta el bloque de precio (úsalo cuando el padre ya lo muestra). */
+  hidePrice?: boolean
+  /** Texto del botón en estado idle. Default: "Agregar al carrito". */
+  idleLabel?: string
 }
 
 function formatPrice(value: number): string {
@@ -59,7 +67,12 @@ export default function AddToCartButton({
   enableQuantitySelector = false,
   openCartOnAdd = true,
   variant = "default",
+  selectedVariantId,
+  onVariantChange,
+  hidePrice = false,
+  idleLabel,
 }: Props) {
+  const isControlled = selectedVariantId !== undefined
   const { addItem, openCart } = useCart()
   const [isAdding, setIsAdding] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
@@ -76,8 +89,18 @@ export default function AddToCartButton({
     [variants]
   )
   const defaultVariant = useMemo(() => pickVariant(variants), [variants])
-  const [selectedId, setSelectedId] = useState<string | null>(
+  const [internalSelectedId, setInternalSelectedId] = useState<string | null>(
     defaultVariant?.id ?? null
+  )
+  const selectedId = isControlled
+    ? selectedVariantId ?? null
+    : internalSelectedId
+  const setSelectedId = useCallback(
+    (id: string) => {
+      if (!isControlled) setInternalSelectedId(id)
+      onVariantChange?.(id)
+    },
+    [isControlled, onVariantChange]
   )
   const [quantity, setQuantity] = useState(1)
 
@@ -89,7 +112,7 @@ export default function AddToCartButton({
     return defaultVariant
   }, [variants, selectedId, defaultVariant])
 
-  const showSelector = enableSelector && activeVariants.length > 1
+  const showSelector = enableSelector && activeVariants.length > 1 && !isControlled
   const outOfStock = selectedVariant ? selectedVariant.stock <= 0 : true
   const canAdd = Boolean(selectedVariant) && !outOfStock
   const maxQuantity = 99
@@ -157,7 +180,7 @@ export default function AddToCartButton({
           ? "Agregando..."
           : swapKey === "added"
             ? "Agregado"
-            : "Agregar al carrito"
+            : (idleLabel ?? "Agregar al carrito")
 
   const iconButtonClassName = className ?? storeIconButtonClassName
 
@@ -279,22 +302,24 @@ export default function AddToCartButton({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-baseline gap-2">
-        <span className="text-2xl font-bold text-[#0a0a0a]">
-          {formatPrice(displayPrice)}
-        </span>
-        <span className="text-sm font-medium text-neutral-500">MXN</span>
-        {hasActiveDiscount && (
-          <>
-            <span className="text-sm text-neutral-400 line-through">
-              {formatPrice(rawPrice)}
-            </span>
-            <span className="rounded-full bg-[#C9A84C] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
-              -{discountPercent}%
-            </span>
-          </>
-        )}
-      </div>
+      {!hidePrice && (
+        <div className="flex flex-wrap items-baseline gap-2">
+          <span className="text-2xl font-bold text-[#0a0a0a]">
+            {formatPrice(displayPrice)}
+          </span>
+          <span className="text-sm font-medium text-neutral-500">MXN</span>
+          {hasActiveDiscount && (
+            <>
+              <span className="text-sm text-neutral-400 line-through">
+                {formatPrice(rawPrice)}
+              </span>
+              <span className="rounded-full bg-[#C9A84C] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+                -{discountPercent}%
+              </span>
+            </>
+          )}
+        </div>
+      )}
 
       {!selectedVariant || !outOfStock ? (
         <p className="text-xs font-medium">

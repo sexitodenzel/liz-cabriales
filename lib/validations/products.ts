@@ -24,6 +24,22 @@ export const variantSchema = z.object({
     .nonnegative("El stock no puede ser negativo")
     .max(STOCK_MAX, "El stock está fuera de rango"),
   isActive: z.boolean().optional().default(true),
+  colorHex: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, "Color inválido (#RRGGBB)")
+    .nullable()
+    .optional(),
+  colorName: z
+    .string()
+    .max(80, "El nombre del color es demasiado largo")
+    .nullable()
+    .optional(),
+  sizeLabel: z
+    .string()
+    .max(40, "La etiqueta de tamaño es demasiado larga")
+    .nullable()
+    .optional(),
+  isLimitedEdition: z.boolean().optional(),
 })
 
 export const createVariantSchema = variantSchema
@@ -53,6 +69,11 @@ export const createProductSchema = z.object({
   longDescription: z
     .string()
     .max(20000, "La descripción larga es demasiado larga")
+    .nullable()
+    .optional(),
+  applicationText: z
+    .string()
+    .max(10000, "El texto de aplicación es demasiado largo")
     .nullable()
     .optional(),
   searchSynonyms: z

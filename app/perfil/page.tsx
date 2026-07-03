@@ -107,28 +107,18 @@ export default async function PerfilPage() {
       </div>
 
       <div className="mt-10">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
-          <div>
-            <h3 className="text-xl font-medium text-neutral-900">Datos principales</h3>
-            <div className="mt-4 border-t border-neutral-300 pt-4 text-sm text-neutral-800">
-              <p>{displayName}</p>
-              <p className="mt-1">{email}</p>
-              {memberSince && <p className="mt-1 text-neutral-600">Miembro desde {memberSince}</p>}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xl font-medium text-neutral-900">Dirección principal</h3>
-            <div className="mt-4 border-t border-neutral-300 pt-4 text-sm text-neutral-800">
-              {primaryAddress ? (
-                <p className="whitespace-pre-line">{primaryAddress}</p>
-              ) : (
-                <p className="text-neutral-600">
-                  Aún no tienes una dirección principal. Se guardará al completar tu primer pedido con envío.
-                </p>
-              )}
-            </div>
-          </div>
+        <h3 className="text-xl font-medium text-neutral-900">Datos principales</h3>
+        <div className="mt-4 border-t border-neutral-300 pt-4 text-sm text-neutral-800">
+          <p>{displayName}</p>
+          <p className="mt-1">{email}</p>
+          {memberSince && <p className="mt-1 text-neutral-600">Miembro desde {memberSince}</p>}
+          {primaryAddress ? (
+            <p className="mt-1 whitespace-pre-line">{primaryAddress}</p>
+          ) : (
+            <p className="mt-1 text-neutral-600">
+              Aún no tienes una dirección guardada. Se guardará al completar tu primer pedido con envío.
+            </p>
+          )}
         </div>
       </div>
     </AccountShell>

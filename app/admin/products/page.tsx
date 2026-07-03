@@ -35,6 +35,7 @@ type CreateFormState = {
   sku: string
   description: string
   longDescription: string
+  applicationText: string
   searchSynonyms: string
   basePrice: string
   costPrice: string
@@ -61,6 +62,9 @@ type VariantFormRow = {
   price: string
   stock: string
   isActive: boolean
+  colorHex: string
+  sizeLabel: string
+  isLimitedEdition: boolean
   _toDelete?: boolean
 }
 
@@ -247,6 +251,7 @@ export default function AdminProductsPage() {
     sku: "",
     description: "",
     longDescription: "",
+    applicationText: "",
     searchSynonyms: "",
     basePrice: "",
     costPrice: "",
@@ -1188,6 +1193,7 @@ export default function AdminProductsPage() {
           sku: form.sku || null,
           description: form.description || null,
           longDescription: form.longDescription || null,
+          applicationText: form.applicationText || null,
           searchSynonyms: form.searchSynonyms || null,
           basePrice: basePriceNumber,
           costPrice: form.costPrice ? Number(form.costPrice) : null,
@@ -1213,6 +1219,10 @@ export default function AdminProductsPage() {
                 price: Number(v.price) || 0,
                 stock: Number(v.stock) || 0,
                 isActive: v.isActive,
+                colorHex: v.colorHex || null,
+                colorName: v.colorHex ? v.variantName : null,
+                sizeLabel: v.sizeLabel || null,
+                isLimitedEdition: v.isLimitedEdition,
               }))
             : undefined,
         }),
@@ -1234,6 +1244,7 @@ export default function AdminProductsPage() {
         sku: "",
         description: "",
         longDescription: "",
+        applicationText: "",
         searchSynonyms: "",
         basePrice: "",
         costPrice: "",
@@ -1272,6 +1283,7 @@ export default function AdminProductsPage() {
       sku: product.sku ?? "",
       description: product.description ?? "",
       longDescription: product.long_description ?? "",
+      applicationText: product.application_text ?? "",
       searchSynonyms: product.search_synonyms ?? "",
       basePrice: String(product.base_price),
       costPrice: product.cost_price !== null ? String(product.cost_price) : "",
@@ -1305,6 +1317,9 @@ export default function AdminProductsPage() {
             price: String(v.price),
             stock: String(v.stock),
             isActive: v.is_active,
+            colorHex: v.color_hex ?? "",
+            sizeLabel: v.size_label ?? "",
+            isLimitedEdition: v.is_limited_edition,
           }))
         )
       }
@@ -1405,6 +1420,7 @@ export default function AdminProductsPage() {
           sku: editForm.sku || null,
           description: editForm.description || null,
           longDescription: editForm.longDescription || null,
+          applicationText: editForm.applicationText || null,
           searchSynonyms: editForm.searchSynonyms || null,
           basePrice: basePriceNumber,
           costPrice: editForm.costPrice ? Number(editForm.costPrice) : null,
@@ -1456,6 +1472,10 @@ export default function AdminProductsPage() {
               price: Number(v.price) || 0,
               stock: Number(v.stock) || 0,
               isActive: v.isActive,
+              colorHex: v.colorHex || null,
+              colorName: v.colorHex ? v.variantName : null,
+              sizeLabel: v.sizeLabel || null,
+              isLimitedEdition: v.isLimitedEdition,
             }),
           })
         ),
@@ -1469,6 +1489,10 @@ export default function AdminProductsPage() {
               price: Number(v.price) || 0,
               stock: Number(v.stock) || 0,
               isActive: v.isActive,
+              colorHex: v.colorHex || null,
+              colorName: v.colorHex ? v.variantName : null,
+              sizeLabel: v.sizeLabel || null,
+              isLimitedEdition: v.isLimitedEdition,
             }),
           })
         ),
@@ -1713,6 +1737,22 @@ export default function AdminProductsPage() {
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium tracking-wide text-neutral-600">
+                  APLICACIÓN / TAMAÑO
+                </label>
+                <textarea
+                  value={form.applicationText}
+                  onChange={(event) =>
+                    handleFormChange("applicationText", event.target.value)
+                  }
+                  rows={3}
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                  style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                  placeholder={"Cómo aplicar / pasos / detalles de presentación…\nDivide en párrafos con un renglón en blanco."}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium tracking-wide text-neutral-600">
                   SINÓNIMOS DE BÚSQUEDA
                 </label>
                 <textarea
@@ -1849,7 +1889,7 @@ export default function AdminProductsPage() {
                   {form.categoryId &&
                     subcategories.filter((sub) => sub.category_id === form.categoryId).length === 0 && (
                       <p className="text-[11px] text-neutral-500">
-                        Esta categoría no tiene subcategorías. Crea una desde el panel "Gestionar subcategorías".
+                        Esta categoría no tiene subcategorías. Crea una desde el panel &quot;Gestionar subcategorías&quot;.
                       </p>
                     )}
                 </div>
@@ -1969,7 +2009,7 @@ export default function AdminProductsPage() {
                     onClick={() =>
                       setCreateVariants((prev) => [
                         ...prev,
-                        { variantName: "", sku: "", price: form.basePrice, stock: "0", isActive: true },
+                        { variantName: "", sku: "", price: form.basePrice, stock: "0", isActive: true, colorHex: "", sizeLabel: "", isLimitedEdition: false },
                       ])
                     }
                     className="text-[11px] font-medium text-[#c9a84c] hover:underline"
@@ -1990,6 +2030,9 @@ export default function AdminProductsPage() {
                           <th className="px-3 py-2 text-left font-medium">SKU</th>
                           <th className="px-3 py-2 text-left font-medium">Precio</th>
                           <th className="px-3 py-2 text-left font-medium">Stock</th>
+                          <th className="px-3 py-2 text-left font-medium">Color</th>
+                          <th className="px-3 py-2 text-left font-medium">Tamaño</th>
+                          <th className="px-3 py-2 text-center font-medium">Ed. Lim.</th>
                           <th className="px-3 py-2 text-center font-medium">Activo</th>
                           <th className="px-3 py-2" />
                         </tr>
@@ -2054,6 +2097,60 @@ export default function AdminProductsPage() {
                                 }}
                                 className={`w-full min-w-[60px] rounded border bg-white px-2 py-1 text-xs outline-none ${createErrors[variantStockKey(idx)] ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-[#c9a84c]"}`}
                                 placeholder="0"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="color"
+                                  value={v.colorHex || "#000000"}
+                                  onChange={(e) =>
+                                    setCreateVariants((prev) =>
+                                      prev.map((r, i) => i === idx ? { ...r, colorHex: e.target.value } : r)
+                                    )
+                                  }
+                                  className="h-6 w-8 cursor-pointer rounded border border-neutral-200"
+                                  title="Color de la bolita"
+                                />
+                                {v.colorHex ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setCreateVariants((prev) =>
+                                        prev.map((r, i) => i === idx ? { ...r, colorHex: "" } : r)
+                                      )
+                                    }
+                                    className="text-[10px] text-neutral-400 hover:text-red-500"
+                                    title="Quitar color"
+                                  >
+                                    ✕
+                                  </button>
+                                ) : null}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <input
+                                type="text"
+                                value={v.sizeLabel}
+                                onChange={(e) =>
+                                  setCreateVariants((prev) =>
+                                    prev.map((r, i) => i === idx ? { ...r, sizeLabel: e.target.value } : r)
+                                  )
+                                }
+                                className="w-full min-w-[70px] rounded border border-neutral-200 bg-white px-2 py-1 text-xs outline-none focus:border-[#c9a84c]"
+                                placeholder="13 ml"
+                              />
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <input
+                                type="checkbox"
+                                checked={v.isLimitedEdition}
+                                onChange={(e) =>
+                                  setCreateVariants((prev) =>
+                                    prev.map((r, i) => i === idx ? { ...r, isLimitedEdition: e.target.checked } : r)
+                                  )
+                                }
+                                className="h-3.5 w-3.5 rounded border-neutral-300 accent-[#c9a84c]"
                               />
                             </td>
                             <td className="px-3 py-2 text-center">
@@ -2761,6 +2858,18 @@ export default function AdminProductsPage() {
                                 </div>
 
                                 <div className="space-y-1">
+                                  <label className="block text-[11px] font-medium tracking-wide text-neutral-600">APLICACIÓN / TAMAÑO</label>
+                                  <textarea
+                                    value={editForm.applicationText}
+                                    onChange={(e) => handleEditFormChange("applicationText", e.target.value)}
+                                    rows={2}
+                                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-[color:var(--brand-gold)] focus:ring-1 focus:ring-[color:var(--brand-gold)]"
+                                    style={{ "--brand-gold": BRAND_GOLD } as React.CSSProperties}
+                                    placeholder="Cómo aplicar, pasos, presentación…"
+                                  />
+                                </div>
+
+                                <div className="space-y-1">
                                   <label className="block text-[11px] font-medium tracking-wide text-neutral-600">DESCRIPCIÓN LARGA</label>
                                   <textarea
                                     value={editForm.longDescription}
@@ -2899,7 +3008,7 @@ export default function AdminProductsPage() {
                                       onClick={() =>
                                         setEditVariants((prev) => [
                                           ...prev,
-                                          { variantName: "", sku: "", price: editForm.basePrice, stock: "0", isActive: true },
+                                          { variantName: "", sku: "", price: editForm.basePrice, stock: "0", isActive: true, colorHex: "", sizeLabel: "", isLimitedEdition: false },
                                         ])
                                       }
                                       className="text-[11px] font-medium text-[#c9a84c] hover:underline"
@@ -2920,6 +3029,9 @@ export default function AdminProductsPage() {
                                             <th className="px-2 py-1.5 text-left font-medium">SKU</th>
                                             <th className="px-2 py-1.5 text-left font-medium">Precio</th>
                                             <th className="px-2 py-1.5 text-left font-medium">Stock</th>
+                                            <th className="px-2 py-1.5 text-left font-medium">Color</th>
+                                            <th className="px-2 py-1.5 text-left font-medium">Tamaño</th>
+                                            <th className="px-2 py-1.5 text-center font-medium">Ed.Lim.</th>
                                             <th className="px-2 py-1.5 text-center font-medium">Activo</th>
                                             <th className="px-2 py-1.5" />
                                           </tr>
@@ -2986,6 +3098,60 @@ export default function AdminProductsPage() {
                                                     }}
                                                     className={`w-full min-w-[55px] rounded border bg-white px-2 py-1 text-xs outline-none ${editErrors[variantStockKey(idx)] ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-[#c9a84c]"}`}
                                                     placeholder="0"
+                                                  />
+                                                </td>
+                                                <td className="px-2 py-1.5">
+                                                  <div className="flex items-center gap-1.5">
+                                                    <input
+                                                      type="color"
+                                                      value={v.colorHex || "#000000"}
+                                                      onChange={(e) =>
+                                                        setEditVariants((prev) =>
+                                                          prev.map((r, i) => i === idx ? { ...r, colorHex: e.target.value } : r)
+                                                        )
+                                                      }
+                                                      className="h-6 w-8 cursor-pointer rounded border border-neutral-200"
+                                                      title="Color de la bolita"
+                                                    />
+                                                    {v.colorHex ? (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                          setEditVariants((prev) =>
+                                                            prev.map((r, i) => i === idx ? { ...r, colorHex: "" } : r)
+                                                          )
+                                                        }
+                                                        className="text-[10px] text-neutral-400 hover:text-red-500"
+                                                        title="Quitar color"
+                                                      >
+                                                        ✕
+                                                      </button>
+                                                    ) : null}
+                                                  </div>
+                                                </td>
+                                                <td className="px-2 py-1.5">
+                                                  <input
+                                                    type="text"
+                                                    value={v.sizeLabel}
+                                                    onChange={(e) =>
+                                                      setEditVariants((prev) =>
+                                                        prev.map((r, i) => i === idx ? { ...r, sizeLabel: e.target.value } : r)
+                                                      )
+                                                    }
+                                                    className="w-full min-w-[60px] rounded border border-neutral-200 bg-white px-2 py-1 text-xs outline-none focus:border-[#c9a84c]"
+                                                    placeholder="13 ml"
+                                                  />
+                                                </td>
+                                                <td className="px-2 py-1.5 text-center">
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={v.isLimitedEdition}
+                                                    onChange={(e) =>
+                                                      setEditVariants((prev) =>
+                                                        prev.map((r, i) => i === idx ? { ...r, isLimitedEdition: e.target.checked } : r)
+                                                      )
+                                                    }
+                                                    className="h-3.5 w-3.5 rounded border-neutral-300 accent-[#c9a84c]"
                                                   />
                                                 </td>
                                                 <td className="px-2 py-1.5 text-center">

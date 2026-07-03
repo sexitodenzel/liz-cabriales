@@ -7,6 +7,8 @@ type FloatingSelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, "placeh
   label: string
   required?: boolean
   error?: string | null
+  /** Pinta label + border en rojo sin mostrar mensaje. Útil para grupos con un mensaje compartido. */
+  invalid?: boolean
   helper?: ReactNode
   containerClassName?: string
 }
@@ -17,6 +19,7 @@ const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>(
       label,
       required,
       error,
+      invalid,
       helper,
       containerClassName = "",
       id: idProp,
@@ -44,7 +47,8 @@ const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>(
     const currentValue = isControlled ? String(value ?? "") : internalValue
     const hasValue = currentValue.length > 0
     const float = focused || hasValue
-    const hasError = Boolean(error)
+    const hasError = Boolean(error) || Boolean(invalid)
+    const showErrorMessage = Boolean(error)
 
     const labelColor = hasError
       ? "text-red-600"
@@ -91,8 +95,8 @@ const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>(
               setFocused(false)
               onBlur?.(event)
             }}
-            className={`w-full appearance-none bg-transparent pb-2 pt-5 pr-6 text-[15px] text-neutral-900 outline-none ${
-              hasValue ? "" : "text-transparent"
+            className={`w-full appearance-none bg-transparent pb-2 pt-5 pr-6 text-[15px] outline-none [&>option]:bg-white [&>option]:text-neutral-900 ${
+              hasValue ? "text-neutral-900" : "text-transparent"
             } ${className}`}
             {...rest}
           >
@@ -104,7 +108,7 @@ const FloatingSelect = forwardRef<HTMLSelectElement, FloatingSelectProps>(
           </span>
         </div>
 
-        {hasError ? (
+        {showErrorMessage ? (
           <p className="mt-2 text-[12px] text-red-600">{error}</p>
         ) : null}
         {helper ? (

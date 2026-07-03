@@ -121,7 +121,7 @@ type SearchSuggestionsContentProps = {
   categories?: SearchSuggestionCategory[]
   loading: boolean
   onClose: () => void
-  variant?: "desktop" | "mobile"
+  variant?: "desktop" | "mobile" | "desktop-compact" | "desktop-dropdown"
 }
 
 export function SearchSuggestionsContent({
@@ -139,6 +139,86 @@ export function SearchSuggestionsContent({
   const hasCategories = categories.length > 0
   const hasAny = hasProducts || hasBrands || hasCategories
   const searchHref = getSearchDestination(trimmed)
+
+  if (variant === "desktop-compact") {
+    const compactHeading =
+      "mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500"
+    const compactLink =
+      "text-[14px] text-neutral-900 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#C6A75E] hover:decoration-[#C6A75E]"
+
+    if (loading && !hasAny) {
+      return <p className="py-6 text-sm text-neutral-500">Buscando...</p>
+    }
+
+    if (!hasAny) {
+      return (
+        <p className="py-6 text-sm text-neutral-500">
+          Sin resultados para &quot;{trimmed}&quot;
+        </p>
+      )
+    }
+
+    return (
+      <div className="pb-6 pt-2">
+        {hasCategories && (
+          <section className="mb-6">
+            <h3 className={compactHeading}>Categorías</h3>
+            <ul className="flex flex-col gap-2.5">
+              {categories.slice(0, 8).map((c) => (
+                <li key={c.id}>
+                  <Link href={c.href} onClick={onClose} className={compactLink}>
+                    {c.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {hasBrands && (
+          <section className="mb-6">
+            <h3 className={compactHeading}>Marcas</h3>
+            <ul className="flex flex-col gap-2.5">
+              {brands.slice(0, 8).map((b) => (
+                <li key={b.id}>
+                  <Link href={b.href} onClick={onClose} className={compactLink}>
+                    {b.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {hasProducts && (
+          <section className="mb-6">
+            <h3 className={compactHeading}>Productos</h3>
+            <ul className="flex flex-col gap-2.5">
+              {products.slice(0, 8).map((p) => (
+                <li key={p.id}>
+                  <Link
+                    href={`/tienda/${p.slug}`}
+                    onClick={onClose}
+                    className={compactLink}
+                  >
+                    {p.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <Link
+          href={searchHref}
+          onClick={onClose}
+          className="inline-flex text-[12px] font-semibold uppercase tracking-[0.14em] text-neutral-700 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#C6A75E] hover:decoration-[#C6A75E]"
+        >
+          Ver todos los resultados
+        </Link>
+      </div>
+    )
+  }
 
   const isMobile = variant === "mobile"
 
@@ -292,7 +372,7 @@ type EmptyStatePanelProps = {
   bestSellers: SearchSuggestionProduct[]
   loading: boolean
   onClose: () => void
-  variant?: "desktop" | "mobile"
+  variant?: "desktop" | "mobile" | "desktop-compact" | "desktop-dropdown"
 }
 
 export function EmptyStatePanel({
@@ -315,6 +395,148 @@ export function EmptyStatePanel({
     return (
       <div className="py-6 text-sm text-neutral-500">
         Escribe para buscar productos o colecciones.
+      </div>
+    )
+  }
+
+  if (variant === "desktop-compact") {
+    const compactHeading =
+      "mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500"
+    const compactLink =
+      "text-[14px] text-neutral-900 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#C6A75E] hover:decoration-[#C6A75E]"
+
+    return (
+      <div className="space-y-7 pb-6">
+        {hasTop && (
+          <section>
+            <h3 className={compactHeading}>Sugerencias de búsqueda</h3>
+            <ul className="flex flex-col gap-2.5">
+              {topSearches.slice(0, 8).map((chip) => (
+                <li key={chip.id}>
+                  <Link
+                    href={chip.href}
+                    onClick={onClose}
+                    className={compactLink}
+                  >
+                    {chip.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {hasBest && (
+          <section>
+            <h3 className={compactHeading}>Best Sellers</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {bestSellers.slice(0, 4).map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/tienda/${product.slug}`}
+                  onClick={onClose}
+                  className="group block overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-md"
+                >
+                  <div className="aspect-square w-full overflow-hidden bg-neutral-100">
+                    {product.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-neutral-400">
+                        LC
+                      </div>
+                    )}
+                  </div>
+                  <div className="px-2.5 py-2">
+                    <p className="line-clamp-2 text-[12px] font-medium text-neutral-900">
+                      {product.name}
+                    </p>
+                    <p className={`mt-1 ${SEARCH_PRODUCT_PRICE_CLASS}`}>
+                      {formatPrice(product.price)}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    )
+  }
+
+  if (variant === "desktop-dropdown") {
+    const visibleTop = topSearches.slice(0, 12)
+    const visibleBest = bestSellers.slice(0, 6)
+
+    return (
+      <div className="space-y-5">
+        {hasTop && (
+          <section>
+            <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              Más buscados
+            </h3>
+            <div className="grid grid-cols-3 gap-x-8 gap-y-1.5 lg:grid-cols-4">
+              {visibleTop.map((chip) => (
+                <Link
+                  key={chip.id}
+                  href={chip.href}
+                  onClick={onClose}
+                  className="truncate text-[13px] text-neutral-800 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#C6A75E] hover:decoration-[#C6A75E]"
+                  title={chip.label}
+                >
+                  {chip.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {hasBest && (
+          <section>
+            <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              Best Sellers
+            </h3>
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+              {visibleBest.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/tienda/${product.slug}`}
+                  onClick={onClose}
+                  className="group flex flex-col"
+                >
+                  <div className="aspect-square w-full overflow-hidden rounded-md border border-neutral-100 bg-neutral-50">
+                    {product.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-400">
+                        LC
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2 flex min-w-0 flex-col px-0.5">
+                    <p className="line-clamp-2 text-[12px] font-light leading-snug text-[#1a1a1a]">
+                      <span className="underline decoration-neutral-700 decoration-[1px] underline-offset-[4px]">
+                        {product.name}
+                      </span>
+                    </p>
+                    <p className={`mt-1 ${SEARCH_PRODUCT_PRICE_CLASS}`}>
+                      {formatPrice(product.price)}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     )
   }

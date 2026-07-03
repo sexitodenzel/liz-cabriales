@@ -25,12 +25,16 @@ export default function ServicesSection({ services }: Props) {
 
   return (
     <section className="mt-16">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold">Servicios profesionales</h2>
-          <p className="mt-0.5 text-sm text-neutral-500">
-            Podología y cuidado de uñas a tu alcance
-          </p>
+      <div className="flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold">
+            <Link
+              href="/servicios"
+              className="transition-colors hover:text-[#a8862f]"
+            >
+              Servicios profesionales
+            </Link>
+          </h2>
         </div>
         <Link
           href="/servicios"
@@ -40,36 +44,32 @@ export default function ServicesSection({ services }: Props) {
         </Link>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => (
           <div
             key={service.id}
-            className="flex flex-col justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-shadow duration-200 hover:shadow-md"
+            className="flex h-full items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-5 transition-colors duration-200 hover:border-neutral-300"
           >
-            <div>
-              <h3 className="text-base font-semibold text-[#0a0a0a]">{service.name}</h3>
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-medium leading-snug text-[#0a0a0a]">
+                {service.name}
+              </h3>
               {service.description ? (
-                <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-neutral-600">
+                <p className="mt-1 line-clamp-1 text-sm leading-relaxed text-neutral-500">
                   {service.description}
                 </p>
               ) : null}
+              <p className="mt-1.5 text-[11px] uppercase tracking-[0.14em] text-neutral-400">
+                {formatDuration(service.duration_min)}
+              </p>
+              <p className="mt-2 text-base font-semibold text-[#C9A84C]">
+                {formatPrice(service.price)}
+              </p>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-lg font-semibold text-[#C9A84C]">
-                  {formatPrice(service.price)}
-                </span>
-                <span className="text-xs text-neutral-400">
-                  {formatDuration(service.duration_min)}
-                </span>
-              </div>
-              <Link
-                href="/servicios"
-                className={storeInlineButtonClassName}
-              >
-                Agendar
-              </Link>
-            </div>
+
+            <Link href="/servicios" className={`${storeInlineButtonClassName} shrink-0`}>
+              Agendar
+            </Link>
           </div>
         ))}
       </div>

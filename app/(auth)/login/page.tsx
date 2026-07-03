@@ -49,9 +49,15 @@ export default function LoginPage() {
     setServerError(null)
 
     if (step === "email") {
+      if (!email.trim()) {
+        setEmailError("Información necesaria")
+        return
+      }
       const parsed = authEmailSchema.safeParse(email)
       if (!parsed.success) {
-        setEmailError("Información necesaria")
+        setEmailError(
+          "Indique un correo electrónico válido. Ejemplo: nombreapellidos@dominio.com"
+        )
         return
       }
       setEmailError(null)
@@ -97,10 +103,14 @@ export default function LoginPage() {
         password: credResult.data.password,
       })
       if (error || !data.user) {
-        setServerError(
-          error?.message ??
+        const raw = error?.message ?? ""
+        const friendly = /invalid login credentials/i.test(raw)
+          ? "Correo o contraseña incorrectos."
+          : /email not confirmed/i.test(raw)
+          ? "Aún no confirmas tu correo. Revisa tu bandeja de entrada."
+          : raw ||
             "No se pudo iniciar sesión. Verifica tus datos e intenta de nuevo."
-        )
+        setServerError(friendly)
         return
       }
       const { data: profile } = await supabase
@@ -153,9 +163,6 @@ export default function LoginPage() {
               setServerError(null)
             }}
             error={emailError}
-            helper={
-              !emailError ? "Formato esperado: nombreapellidos@dominio.com" : null
-            }
           />
 
           {step === "password" ? (
