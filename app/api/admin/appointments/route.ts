@@ -5,6 +5,7 @@ import { requireAdminOrReceptionist } from "@/lib/supabase/admin"
 import {
   adminCreateManualAppointment,
   cancelExpiredPendingAppointments,
+  completePastAppointments,
   getAdminAppointments,
   getUpcomingAdminAppointments,
 } from "@/lib/supabase/appointments"
@@ -71,12 +72,13 @@ export async function GET(request: NextRequest) {
     const { date, professional_id, status, limit } = parseResult.data
 
     await cancelExpiredPendingAppointments()
+    await completePastAppointments()
 
     if (!date) {
       const result = await getUpcomingAdminAppointments({
-        limit: limit ?? 10,
+        limit: limit ?? 50,
         professionalId: professional_id,
-        status: status ?? "pending",
+        status,
       })
       if (!result.data) {
         return errorResponse(result.error.message, 500, result.error.code)

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
-import { PENDING_PAYMENT_HOURS, paymentDeadlineThresholdIso } from "@/lib/appointmentPaymentPolicy"
+import { cancelExpiredPendingAppointments, completePastAppointments } from "@/lib/supabase/appointments"
+import { paymentDeadlineThresholdIso } from "@/lib/appointmentPaymentPolicy"
 
 /**
  * Cron de limpieza: cancela órdenes, citas e inscripciones que llevan
@@ -58,7 +59,7 @@ export async function GET(
 
   const ordersHours = Number(process.env.CLEANUP_ORDERS_HOURS ?? 2)
   const appointmentsHours = Number(
-    process.env.CLEANUP_APPOINTMENTS_HOURS ?? PENDING_PAYMENT_HOURS
+    process.env.CLEANUP_APPOINTMENTS_HOURS ?? 4
   )
   const registrationsHours = Number(
     process.env.CLEANUP_REGISTRATIONS_HOURS ?? 2
@@ -67,6 +68,7 @@ export async function GET(
   const results = {
     orders: 0,
     appointments: 0,
+    appointments_completed: 0,
     registrations: 0,
     errors: [] as string[],
   }
@@ -88,21 +90,27 @@ export async function GET(
     results.errors.push(`orders: ${(err as Error).message}`)
   }
 
-  // ── Citas abandonadas ────────────────────────────────────────────────────
+  // ── Citas abandonadas (ventana 4 h o 20 min según fecha de la cita) ─────
   try {
-    const { data, error } = await supabaseAdmin
-      .from("appointments")
-      .update({ status: "cancelled" })
-      .eq("status", "pending")
-      .lt("created_at", paymentDeadlineThresholdIso(appointmentsHours))
-      .select("id")
-    if (error) {
-      results.errors.push(`appointments: ${error.message}`)
+    const apptResult = await cancelExpiredPendingAppointments()
+    if (apptResult.error) {
+      results.errors.push(`appointments: ${apptResult.error.message}`)
     } else {
-      results.appointments = data?.length ?? 0
+      results.appointments = apptResult.data ?? 0
     }
   } catch (err) {
     results.errors.push(`appointments: ${(err as Error).message}`)
+  }
+
+  try {
+    const completeResult = await completePastAppointments()
+    if (completeResult.error) {
+      results.errors.push(`appointments_complete: ${completeResult.error.message}`)
+    } else {
+      results.appointments_completed = completeResult.data ?? 0
+    }
+  } catch (err) {
+    results.errors.push(`appointments_complete: ${(err as Error).message}`)
   }
 
   // ── Inscripciones abandonadas ────────────────────────────────────────────
@@ -127,6 +135,7 @@ export async function GET(
     cancelled: {
       orders: results.orders,
       appointments: results.appointments,
+      appointments_completed: results.appointments_completed,
       registrations: results.registrations,
     },
     thresholds: {

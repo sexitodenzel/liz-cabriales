@@ -4,7 +4,7 @@ import {
   appointmentAllowsClientCancel,
   CANCEL_MIN_HOURS,
 } from "@/lib/appointmentCancelPolicy"
-import { paymentDeadlineThresholdIso } from "@/lib/appointmentPaymentPolicy"
+import { isPaymentDeadlineExpired } from "@/lib/appointmentPaymentPolicy"
 import type { AppointmentStatus, AppointmentType } from "@/types"
 
 import { createClient } from "./server"
@@ -14,6 +14,15 @@ import type {
   CreateAppointmentInput,
 } from "@/lib/validations/appointments"
 import type { ServiceSelectionInput } from "@/lib/validations/services"
+import {
+  buildSlotStartsForDay,
+  eachDateInclusive,
+  hhmmToMinutes as studioHhmmToMinutes,
+  isBlockedSlotActive,
+  normalizeStudioTime,
+  resolveStudioDayHours,
+} from "@/lib/appointments/studio-hours"
+import { getStudioWeeklyHoursCached } from "@/lib/supabase/studio-hours"
 import {
   insertAppointmentServiceOptions,
   queryServiceRows,
@@ -43,6 +52,8 @@ export const BUSINESS_OPEN_HHMM = "09:00"
 export const BUSINESS_CLOSE_HHMM = "19:00"
 export const SLOT_STEP_MIN = 30
 export const MIN_LEAD_MINUTES = 60
+/** Margen de preparación tras cada cita agendada (evita sobreagendamiento). */
+export const APPOINTMENT_PREP_BUFFER_MIN = 90
 export { CANCEL_MIN_HOURS }
 
 function hhmmToMinutes(hhmm: string): number {
@@ -61,23 +72,6 @@ function normalizeTime(value: string): string {
   return `${s}:00`
 }
 
-function isSunday(dateStr: string): boolean {
-  // dateStr en formato YYYY-MM-DD (hora local del servidor)
-  const [y, m, d] = dateStr.split("-").map(Number)
-  const dt = new Date(y, m - 1, d)
-  return dt.getDay() === 0
-}
-
-function buildSlotStarts(durationMin: number): number[] {
-  const open = hhmmToMinutes(BUSINESS_OPEN_HHMM)
-  const close = hhmmToMinutes(BUSINESS_CLOSE_HHMM)
-  const slots: number[] = []
-  for (let t = open; t + durationMin <= close; t += SLOT_STEP_MIN) {
-    slots.push(t)
-  }
-  return slots
-}
-
 function overlaps(
   aStart: number,
   aEnd: number,
@@ -85,6 +79,40 @@ function overlaps(
   bEnd: number
 ): boolean {
   return aStart < bEnd && bStart < aEnd
+}
+
+function appointmentBusyEndMin(startMin: number, endMin: number): number {
+  return Math.max(endMin, startMin + APPOINTMENT_PREP_BUFFER_MIN)
+}
+
+async function assertWithinStudioHours(
+  date: string,
+  startMin: number,
+  endMin: number
+): Promise<Result<null>> {
+  const weeklyHours = await getStudioWeeklyHoursCached()
+  const dayHours = resolveStudioDayHours(date, weeklyHours)
+  if (!dayHours) {
+    return {
+      data: null,
+      error: {
+        message: "No hay citas disponibles este día",
+        code: "CLOSED_DAY",
+      },
+    }
+  }
+  const openMin = studioHhmmToMinutes(normalizeStudioTime(dayHours.open_time))
+  const closeMin = studioHhmmToMinutes(normalizeStudioTime(dayHours.close_time))
+  if (startMin < openMin || endMin > closeMin) {
+    return {
+      data: null,
+      error: {
+        message: "El horario está fuera del horario de atención configurado",
+        code: "OUT_OF_BUSINESS_HOURS",
+      },
+    }
+  }
+  return { data: null, error: null }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -169,6 +197,7 @@ export type AppointmentRecord = {
   end_time: string
   total: number
   status: AppointmentStatus
+  cancelled_by: "client" | "admin" | "system" | null
   created_at: string
   services: AppointmentServiceLine[]
 }
@@ -223,8 +252,7 @@ export async function getServices(): Promise<Result<ServiceRow[]>> {
 }
 
 export async function getProfessionals(): Promise<Result<ProfessionalRow[]>> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("professionals")
     .select("id, name, bio, photo_url, is_active")
     .eq("is_active", true)
@@ -294,10 +322,12 @@ async function loadBusySlots(
       start_time: string
       end_time: string
     }
+    const startMin = hhmmToMinutes(r.start_time)
+    const endMin = hhmmToMinutes(r.end_time)
     busy.push({
       professionalId: r.professional_id,
-      startMin: hhmmToMinutes(r.start_time),
-      endMin: hhmmToMinutes(r.end_time),
+      startMin,
+      endMin: appointmentBusyEndMin(startMin, endMin),
     })
   }
 
@@ -338,8 +368,7 @@ function filterAvailableStartsForProfessional(
 /**
  * Calcula slots disponibles. Si professionalId === "any" devuelve la unión
  * de slots entre los profesionales activos (asignando uno disponible).
- * Considera: horario 9-19, intervalos de 30 min, mínimo 1 hora de anticipación,
- * sin domingos, sin traslapes con citas ni bloqueos.
+ * Usa studio_weekly_hours + bloqueos y citas existentes.
  */
 export async function getAvailableSlots(
   date: string,
@@ -353,7 +382,9 @@ export async function getAvailableSlots(
     }
   }
 
-  if (isSunday(date)) {
+  const weeklyHours = await getStudioWeeklyHoursCached()
+  const dayHours = resolveStudioDayHours(date, weeklyHours)
+  if (!dayHours) {
     return { data: [], error: null }
   }
 
@@ -389,7 +420,12 @@ export async function getAvailableSlots(
     return { data: [], error: null }
   }
 
-  const baseSlots = buildSlotStarts(durationMin)
+  const baseSlots = buildSlotStartsForDay(
+    durationMin,
+    dayHours.open_time,
+    dayHours.close_time,
+    SLOT_STEP_MIN
+  )
 
   const slotsOut: AvailabilitySlot[] = []
   const seenMinutes = new Set<number>()
@@ -520,27 +556,9 @@ export async function createAppointment(
   const total = services.reduce((a, s) => a + s.price, 0) + optionsPrice
   const startMin = hhmmToMinutes(input.start_time)
   const endMin = startMin + totalDuration
-  const closeMin = hhmmToMinutes(BUSINESS_CLOSE_HHMM)
 
-  if (endMin > closeMin) {
-    return {
-      data: null,
-      error: {
-        message: "El horario excede el cierre del negocio",
-        code: "OUT_OF_BUSINESS_HOURS",
-      },
-    }
-  }
-
-  if (isSunday(input.date)) {
-    return {
-      data: null,
-      error: {
-        message: "No se atiende los domingos",
-        code: "CLOSED_DAY",
-      },
-    }
-  }
+  const hoursCheck = await assertWithinStudioHours(input.date, startMin, endMin)
+  if (hoursCheck.error) return hoursCheck
 
   // 2) Resolver profesional ("any" → primero disponible)
   const allProfs = await getProfessionals()
@@ -703,6 +721,7 @@ type RawApptRow = {
   end_time: string
   total: number | string
   status: string
+  cancelled_by?: string | null
   created_at: string
   professionals: { name?: string } | { name?: string }[] | null
   appointment_services:
@@ -745,6 +764,12 @@ function mapApptRow(row: RawApptRow): AppointmentRecord {
     end_time: row.end_time,
     total: Number(row.total),
     status: row.status as AppointmentStatus,
+    cancelled_by:
+      row.cancelled_by === "client" ||
+      row.cancelled_by === "admin" ||
+      row.cancelled_by === "system"
+        ? row.cancelled_by
+        : null,
     created_at: row.created_at,
     services,
   }
@@ -971,6 +996,7 @@ export async function cancelAppointment(
   }
 
   if (
+    r.status !== "pending" &&
     !appointmentAllowsClientCancel({
       date: r.date,
       start_time: r.start_time,
@@ -990,6 +1016,7 @@ export async function cancelAppointment(
     .from("appointments")
     .update({
       status: "cancelled",
+      cancelled_by: "client",
       updated_at: new Date().toISOString(),
     })
     .eq("id", appointmentId)
@@ -1011,6 +1038,7 @@ export async function adminCancelAppointment(
     .from("appointments")
     .update({
       status: "cancelled",
+      cancelled_by: "admin",
       updated_at: new Date().toISOString(),
     })
     .eq("id", appointmentId)
@@ -1121,26 +1149,15 @@ export async function rescheduleAppointment(
     }
   }
 
-  // 3) Validar nuevo horario
-  if (isSunday(input.date)) {
-    return {
-      data: null,
-      error: { message: "No se atiende los domingos", code: "CLOSED_DAY" },
-    }
-  }
-
   const newStartMin = hhmmToMinutes(input.start_time)
   const newEndMin = newStartMin + totalDuration
-  const closeMin = hhmmToMinutes(BUSINESS_CLOSE_HHMM)
-  if (newEndMin > closeMin) {
-    return {
-      data: null,
-      error: {
-        message: "El horario excede el cierre del negocio",
-        code: "OUT_OF_BUSINESS_HOURS",
-      },
-    }
-  }
+
+  const hoursCheck = await assertWithinStudioHours(
+    input.date,
+    newStartMin,
+    newEndMin
+  )
+  if (hoursCheck.error) return hoursCheck
 
   const targetProfId = input.professional_id ?? row.professional_id
 
@@ -1171,7 +1188,10 @@ export async function rescheduleAppointment(
   }>) {
     if (a.id === appointmentId) continue
     const bStart = hhmmToMinutes(a.start_time)
-    const bEnd = hhmmToMinutes(a.end_time)
+    const bEnd = appointmentBusyEndMin(
+      bStart,
+      hhmmToMinutes(a.end_time)
+    )
     if (overlaps(newStartMin, newEndMin, bStart, bEnd)) {
       return {
         data: null,
@@ -1265,7 +1285,7 @@ type RawAdminApptRow = RawApptRow & {
 
 function adminAppointmentSelect() {
   return `id, user_id, professional_id, appointment_type, date, start_time, end_time,
-       total, status, created_at,
+       total, status, cancelled_by, created_at,
        professionals ( name ),
        users ( first_name, last_name, email, phone ),
        appointment_services (
@@ -1314,10 +1334,10 @@ export async function getAdminAppointments(
 export async function getUpcomingAdminAppointments(options: {
   limit?: number
   professionalId?: string
+  /** Sin filtro: todos los estados. */
   status?: AppointmentStatus
 }): Promise<Result<AdminAppointmentRow[]>> {
-  const limit = options.limit ?? 10
-  const status = options.status ?? "pending"
+  const limit = options.limit ?? 50
   const today = new Date()
   const yyyy = today.getFullYear()
   const mm = String(today.getMonth() + 1).padStart(2, "0")
@@ -1327,11 +1347,14 @@ export async function getUpcomingAdminAppointments(options: {
   let query = supabaseAdmin
     .from("appointments")
     .select(adminAppointmentSelect())
-    .eq("status", status)
     .gte("date", todayStr)
     .order("date", { ascending: true })
     .order("start_time", { ascending: true })
     .limit(limit)
+
+  if (options.status) {
+    query = query.eq("status", options.status)
+  }
 
   if (options.professionalId) {
     query = query.eq("professional_id", options.professionalId)
@@ -1347,28 +1370,103 @@ export async function getUpcomingAdminAppointments(options: {
   return { data: mapAdminAppointmentRows(rows), error: null }
 }
 
-export async function cancelExpiredPendingAppointments(options?: {
+function getAppointmentEndMs(date: string, endTime: string): number {
+  const [yy, mm, dd] = date.split("-").map(Number)
+  const [hh, mi, ss = 0] = endTime.split(":").map(Number)
+  return new Date(yy, mm - 1, dd, hh, mi, ss, 0).getTime()
+}
+
+/** Marca como completadas las citas confirmadas cuya hora de fin ya pasó. */
+export async function completePastAppointments(options?: {
   userId?: string
 }): Promise<Result<number>> {
-  const threshold = paymentDeadlineThresholdIso()
-
   let query = supabaseAdmin
     .from("appointments")
-    .update({ status: "cancelled" })
-    .eq("status", "pending")
-    .lt("created_at", threshold)
+    .select("id, date, end_time")
+    .eq("status", "paid")
 
   if (options?.userId) {
     query = query.eq("user_id", options.userId)
   }
 
-  const { data, error } = await query.select("id")
+  const { data, error } = await query
 
   if (error) {
     return { data: null, error: { message: error.message, code: error.code } }
   }
 
-  return { data: data?.length ?? 0, error: null }
+  const now = Date.now()
+  const toComplete = (data ?? [])
+    .filter((row) =>
+      getAppointmentEndMs(String(row.date), String(row.end_time)) <= now
+    )
+    .map((row) => row.id as string)
+
+  if (toComplete.length === 0) {
+    return { data: 0, error: null }
+  }
+
+  const { data: updated, error: updateError } = await supabaseAdmin
+    .from("appointments")
+    .update({
+      status: "completed",
+      updated_at: new Date().toISOString(),
+    })
+    .in("id", toComplete)
+    .select("id")
+
+  if (updateError) {
+    return {
+      data: null,
+      error: { message: updateError.message, code: updateError.code },
+    }
+  }
+
+  return { data: updated?.length ?? 0, error: null }
+}
+
+export async function cancelExpiredPendingAppointments(options?: {
+  userId?: string
+}): Promise<Result<number>> {
+  let query = supabaseAdmin
+    .from("appointments")
+    .select("id, date, created_at")
+    .eq("status", "pending")
+
+  if (options?.userId) {
+    query = query.eq("user_id", options.userId)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  const expiredIds = (data ?? [])
+    .filter((row) =>
+      isPaymentDeadlineExpired(
+        String(row.date),
+        String(row.created_at)
+      )
+    )
+    .map((row) => row.id as string)
+
+  if (expiredIds.length === 0) {
+    return { data: 0, error: null }
+  }
+
+  const { data: updated, error: updateError } = await supabaseAdmin
+    .from("appointments")
+    .update({ status: "cancelled", cancelled_by: "system" })
+    .in("id", expiredIds)
+    .select("id")
+
+  if (updateError) {
+    return { data: null, error: { message: updateError.message, code: updateError.code } }
+  }
+
+  return { data: updated?.length ?? 0, error: null }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -1737,6 +1835,55 @@ export async function createBlockedSlot(
   return { data: data as BlockedSlotRow, error: null }
 }
 
+export async function createBlockedSlotsForDateRange(input: {
+  professional_id: string
+  start_date: string
+  end_date: string
+  reason?: string | null
+}): Promise<Result<{ days_blocked: number }>> {
+  const dates = eachDateInclusive(input.start_date, input.end_date)
+  if (dates.length === 0) {
+    return {
+      data: null,
+      error: {
+        message: "Rango de fechas inválido",
+        code: "VALIDATION_ERROR",
+      },
+    }
+  }
+  if (dates.length > 366) {
+    return {
+      data: null,
+      error: {
+        message: "El rango no puede superar 366 días",
+        code: "VALIDATION_ERROR",
+      },
+    }
+  }
+
+  const rows = dates.map((date) => ({
+    professional_id: input.professional_id,
+    date,
+    start_time: "00:00:00",
+    end_time: "23:59:59",
+    reason: input.reason ?? null,
+  }))
+
+  const { error } = await supabaseAdmin.from("blocked_slots").insert(rows)
+
+  if (error) {
+    return {
+      data: null,
+      error: {
+        message: error.message ?? "No se pudieron bloquear los días",
+        code: error.code,
+      },
+    }
+  }
+
+  return { data: { days_blocked: dates.length }, error: null }
+}
+
 export async function deleteBlockedSlot(id: string): Promise<Result<null>> {
   const { error } = await supabaseAdmin
     .from("blocked_slots")
@@ -1769,6 +1916,39 @@ export async function getBlockedSlotsForDate(
   }
 
   return { data: (data ?? []) as BlockedSlotRow[], error: null }
+}
+
+export async function getUpcomingBlockedSlots(options?: {
+  professionalIds?: string[]
+  limit?: number
+}): Promise<Result<BlockedSlotRow[]>> {
+  const today = new Date().toISOString().split("T")[0]
+  const limit = options?.limit ?? 50
+
+  let query = supabaseAdmin
+    .from("blocked_slots")
+    .select("id, professional_id, date, start_time, end_time, reason, created_at")
+    .gte("date", today)
+    .order("date", { ascending: true })
+    .order("start_time", { ascending: true })
+    .limit(limit)
+
+  if (options?.professionalIds?.length) {
+    query = query.in("professional_id", options.professionalIds)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+
+  const now = new Date()
+  const active = ((data ?? []) as BlockedSlotRow[]).filter((row) =>
+    isBlockedSlotActive(row, now)
+  )
+
+  return { data: active, error: null }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -1952,6 +2132,7 @@ export async function updateAppointmentStatusToCancelledFromPayment(
     .from("appointments")
     .update({
       status: "cancelled",
+      cancelled_by: "system",
       updated_at: new Date().toISOString(),
     })
     .eq("id", appointmentId)

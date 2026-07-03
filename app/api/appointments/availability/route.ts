@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import {
   cancelExpiredPendingAppointments,
+  completePastAppointments,
   getAvailableSlots,
 } from "@/lib/supabase/appointments"
 import { availabilityQuerySchema } from "@/lib/validations/appointments"
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
     const { date, professional_id, duration_min } = parseResult.data
 
     await cancelExpiredPendingAppointments()
+    await completePastAppointments()
 
     const result = await getAvailableSlots(date, professional_id, duration_min)
 

@@ -13,6 +13,7 @@ const ALLOWED_TAGS = new Set([
   "services",
   "professionals",
   "landing-slots",
+  "studio-hours",
 ])
 
 function mapStatus(code?: string): number {

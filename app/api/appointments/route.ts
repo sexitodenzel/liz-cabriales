@@ -8,6 +8,7 @@ import {
   type AppointmentRecord,
 } from "@/lib/supabase/appointments"
 import { createAppointmentSchema } from "@/lib/validations/appointments"
+import { sendAdminNewAppointmentEmail } from "@/lib/email/admin"
 
 type ApiError = { message: string; code?: string }
 type ApiResponse<T> = { data: T; error: null } | { data: null; error: ApiError }
@@ -111,6 +112,13 @@ export async function POST(
               : 500
       return errorResponse(result.error.message, status, result.error.code)
     }
+
+    sendAdminNewAppointmentEmail(result.data.appointment_id).catch((err) =>
+      console.error(
+        `[api/appointments POST] Error enviando alerta admin para cita ${result.data!.appointment_id}:`,
+        err
+      )
+    )
 
     return NextResponse.json({
       data: {

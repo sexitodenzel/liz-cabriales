@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { revalidateTag } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
 import { requireAdminOrReceptionist } from "@/lib/supabase/admin"
@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
     }
 
     revalidateTag("services", "max")
+    revalidatePath("/servicios")
 
     return NextResponse.json(
       { data: { filter: result.data }, error: null },

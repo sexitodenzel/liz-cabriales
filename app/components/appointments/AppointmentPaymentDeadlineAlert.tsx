@@ -5,28 +5,37 @@ import { useEffect, useState } from "react"
 import {
   formatPaymentCountdown,
   getPaymentTimeRemainingMs,
+  isSameDayAppointmentBooking,
   PENDING_PAYMENT_HOURS,
+  PENDING_PAYMENT_MINUTES_SAME_DAY,
 } from "@/lib/appointmentPaymentPolicy"
 
 type Props = {
+  appointmentDate: string
   createdAt: string
   variant?: "page" | "inline"
 }
 
 export default function AppointmentPaymentDeadlineAlert({
+  appointmentDate,
   createdAt,
   variant = "page",
 }: Props) {
   const [remainingMs, setRemainingMs] = useState(() =>
-    getPaymentTimeRemainingMs(createdAt)
+    getPaymentTimeRemainingMs(appointmentDate, createdAt)
   )
+  const isSameDay = isSameDayAppointmentBooking(appointmentDate, createdAt)
+  const windowLabel = isSameDay
+    ? `${PENDING_PAYMENT_MINUTES_SAME_DAY} minutos`
+    : `${PENDING_PAYMENT_HOURS} horas`
 
   useEffect(() => {
-    const tick = () => setRemainingMs(getPaymentTimeRemainingMs(createdAt))
+    const tick = () =>
+      setRemainingMs(getPaymentTimeRemainingMs(appointmentDate, createdAt))
     tick()
     const id = window.setInterval(tick, 1000)
     return () => window.clearInterval(id)
-  }, [createdAt])
+  }, [appointmentDate, createdAt])
 
   const expired = remainingMs <= 0
 
@@ -35,8 +44,8 @@ export default function AppointmentPaymentDeadlineAlert({
       <p className="text-sm text-neutral-700">
         {expired ? (
           <>
-            El plazo de {PENDING_PAYMENT_HOURS} horas expiró. Esta reserva será
-            cancelada automáticamente.
+            El plazo de {windowLabel} expiró. Esta reserva será cancelada
+            automáticamente.
           </>
         ) : (
           <>
@@ -62,9 +71,8 @@ export default function AppointmentPaymentDeadlineAlert({
           : "Completa tu pago lo antes posible"}
       </h2>
       <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-        Tienes <strong>{PENDING_PAYMENT_HOURS} horas</strong> desde que agendaste
-        para pagar tu cita. Paga lo antes posible para garantizar la
-        disponibilidad del horario reservado.
+        Tienes <strong>{windowLabel}</strong> desde que agendaste para transferir
+        tu anticipo y mantener la cita.
       </p>
       {!expired && (
         <p className="mt-4 text-sm font-medium text-[#9b7a1f]">

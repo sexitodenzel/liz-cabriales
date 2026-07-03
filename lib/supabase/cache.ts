@@ -803,7 +803,7 @@ export const getServicesWithOptionsCached = unstable_cache(
 
 export const getProfessionalsCached = unstable_cache(
   async (): Promise<Result<ProfessionalRow[]>> => {
-    const { data, error } = await db()
+    const { data, error } = await adminDb()
       .from("professionals")
       .select("id, name, bio, photo_url, is_active")
       .eq("is_active", true)
@@ -827,5 +827,5 @@ export const getProfessionalsCached = unstable_cache(
     return { data: rows, error: null }
   },
   ["professionals"],
-  { revalidate: 300, tags: ["professionals"] }
+  { revalidate: 60, tags: ["professionals"] }
 )

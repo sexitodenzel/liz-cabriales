@@ -1,11 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { createClient } from "@/lib/supabase/client"
 import type {
+  AppointmentRecord,
   ProfessionalRow,
   ServiceFilterRow,
   ServiceWithOptions,
@@ -16,9 +17,14 @@ import ServiceOptionsPicker, {
   resolveServiceOptions,
   sumSelectedOptions,
 } from "@/components/shared/ServiceOptionsPicker"
+import {
+  buildBookableDates,
+  type StudioWeeklyHourRow,
+} from "@/lib/appointments/studio-hours"
 
 import BookingSummary from "./components/BookingSummary"
 import FullCalendarModal from "./components/FullCalendarModal"
+import TransferPaymentModal from "./components/TransferPaymentModal"
 
 type Slot = {
   start_time: string
@@ -32,8 +38,10 @@ type Props = {
   services: ServiceWithOptions[]
   filters: ServiceFilterRow[]
   professionals: ProfessionalRow[]
+  studioWeeklyHours: StudioWeeklyHourRow[]
   isAuthenticated: boolean
-  activeAppointmentId: string | null
+  activeAppointment: AppointmentRecord | null
+  transferAccountNumber: string
 }
 
 const STEP_LABELS: Record<Step, string> = {
@@ -114,25 +122,8 @@ function groupSlotsByPeriod(slots: Slot[]) {
   return { morning, afternoon }
 }
 
-const DAYS_MS = 1000 * 60 * 60 * 24
 const QUICK_PICK_DAYS = 30
 const CALENDAR_HORIZON_DAYS = 90
-
-function buildBookableDates(daysAhead: number): Date[] {
-  const out: Date[] = []
-  const now = new Date()
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  for (let i = 0; i < daysAhead; i++) {
-    const d = new Date(start.getTime() + i * DAYS_MS)
-    if (d.getDay() === 0) continue
-    out.push(d)
-  }
-  return out
-}
-
-function buildAvailableDates(): Date[] {
-  return buildBookableDates(QUICK_PICK_DAYS)
-}
 
 function IconArrowLeft() {
   return (
@@ -319,10 +310,19 @@ export default function ServiciosClient({
   services,
   filters: initialFilters,
   professionals,
+  studioWeeklyHours,
   isAuthenticated,
-  activeAppointmentId,
+  activeAppointment: initialActiveAppointment,
+  transferAccountNumber: initialTransferAccountNumber,
 }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const [transferAccountNumber, setTransferAccountNumber] = useState(
+    initialTransferAccountNumber
+  )
+  const [modalAppointment, setModalAppointment] =
+    useState<AppointmentRecord | null>(initialActiveAppointment)
 
   const [step, setStep] = useState<Step>(1)
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([])
@@ -365,8 +365,10 @@ export default function ServiciosClient({
 
   const eligibleProfessionals = useMemo(
     () =>
-      professionals.filter((professional) =>
-        professionalMatchesServiceFilters(professional, requiredFilterIds)
+      professionals.filter(
+        (professional) =>
+          professional.is_active &&
+          professionalMatchesServiceFilters(professional, requiredFilterIds)
       ),
     [professionals, requiredFilterIds]
   )
@@ -380,44 +382,73 @@ export default function ServiciosClient({
   const totalDuration =
     selectedServices.reduce((a, s) => a + s.duration_min, 0) +
     optionTotals.duration
-  const availableDates = useMemo(buildAvailableDates, [])
+  const availableDates = useMemo(
+    () => buildBookableDates(QUICK_PICK_DAYS, studioWeeklyHours),
+    [studioWeeklyHours]
+  )
   const bookableDateSet = useMemo(
     () =>
       new Set(
-        buildBookableDates(CALENDAR_HORIZON_DAYS).map((d) => toDateString(d))
+        buildBookableDates(CALENDAR_HORIZON_DAYS, studioWeeklyHours).map((d) =>
+          toDateString(d)
+        )
       ),
-    []
+    [studioWeeklyHours]
   )
   const bookableRange = useMemo(() => {
-    const dates = buildBookableDates(CALENDAR_HORIZON_DAYS)
+    const dates = buildBookableDates(CALENDAR_HORIZON_DAYS, studioWeeklyHours)
     return {
       min: dates[0] ? toDateString(dates[0]) : toDateString(new Date()),
       max: dates[dates.length - 1]
         ? toDateString(dates[dates.length - 1])
         : toDateString(new Date()),
     }
-  }, [])
+  }, [studioWeeklyHours])
   const { morning: morningSlots, afternoon: afternoonSlots } = useMemo(
     () => groupSlotsByPeriod(slots),
     [slots]
   )
 
+  useEffect(() => {
+    if (selectedDate && !bookableDateSet.has(selectedDate)) {
+      setSelectedDate(null)
+      setSelectedSlot(null)
+    }
+  }, [selectedDate, bookableDateSet])
+
   const filters =
     initialFilters.length > 0 ? initialFilters : DEFAULT_FILTERS
 
-  const availableCategories = useMemo(() => {
-    const slugsInUse = new Set(
-      services
-        .map((s) => s.filter_slug)
-        .filter((slug): slug is string => Boolean(slug))
-    )
-    return filters.filter((f) => slugsInUse.has(f.slug))
-  }, [services, filters])
+  const availableCategories = useMemo(
+    () => filters.filter((f) => f.is_active),
+    [filters]
+  )
 
   const filteredServices = useMemo(() => {
     if (activeCategory === "all") return services
     return services.filter((s) => s.filter_slug === activeCategory)
   }, [services, activeCategory])
+
+  useEffect(() => {
+    const categoria = searchParams.get("categoria")?.trim()
+    const servicioId = searchParams.get("servicio")?.trim()
+
+    if (categoria && availableCategories.some((f) => f.slug === categoria)) {
+      setActiveCategory(categoria)
+    }
+
+    if (!servicioId) return
+    const service = services.find((s) => s.id === servicioId)
+    if (!service) return
+
+    if (service.filter_slug) {
+      setActiveCategory(service.filter_slug)
+    }
+    setSelectedServiceIds([servicioId])
+    if (service.options.length > 0) {
+      setOptionsExpandedId(servicioId)
+    }
+  }, [searchParams, availableCategories, services])
 
   const selectedProfessional = professionals.find(
     (p) => p.id === selectedProfessionalId
@@ -433,29 +464,25 @@ export default function ServiciosClient({
   const toggleService = (id: string) => {
     setSelectedServiceIds((prev) => {
       if (prev.includes(id)) {
-        setSelectedOptionsByService((opts) => {
-          const next = { ...opts }
-          delete next[id]
-          return next
-        })
+        setSelectedOptionsByService({})
         if (optionsExpandedId === id) setOptionsExpandedId(null)
-        return prev.filter((x) => x !== id)
+        return []
       }
       const svc = services.find((s) => s.id === id)
+      setSelectedOptionsByService({})
       if (svc && svc.options.length > 0) {
         setOptionsExpandedId(id)
+      } else {
+        setOptionsExpandedId(null)
       }
-      return [...prev, id]
+      return [id]
     })
   }
 
   const handleServiceOptionsChange = (serviceId: string, optionIds: string[]) => {
-    setSelectedOptionsByService((prev) => ({
-      ...prev,
-      [serviceId]: optionIds,
-    }))
-    if (optionIds.length > 0 && !selectedServiceIds.includes(serviceId)) {
-      setSelectedServiceIds((prev) => [...prev, serviceId])
+    setSelectedOptionsByService({ [serviceId]: optionIds })
+    setSelectedServiceIds([serviceId])
+    if (optionIds.length > 0) {
       setOptionsExpandedId(serviceId)
     }
   }
@@ -474,6 +501,17 @@ export default function ServiciosClient({
     () => buildServiceSelections(selectedServiceIds, selectedOptionsByService),
     [selectedServiceIds, selectedOptionsByService]
   )
+
+  const servicesMissingOptions = useMemo(() => {
+    const missing = new Set<string>()
+    for (const id of selectedServiceIds) {
+      const svc = services.find((s) => s.id === id)
+      if (!svc || svc.options.length === 0) continue
+      const chosen = selectedOptionsByService[id] ?? []
+      if (chosen.length === 0) missing.add(id)
+    }
+    return missing
+  }, [selectedServiceIds, selectedOptionsByService, services])
 
   const fetchSlots = useCallback(async () => {
     if (!selectedDate || !selectedProfessionalId || totalDuration === 0) {
@@ -567,14 +605,20 @@ export default function ServiciosClient({
         }
 
         if (data.service_ids?.length) {
-          setSelectedServiceIds(data.service_ids)
-        }
-        if (data.service_selections?.length) {
-          const map: Record<string, string[]> = {}
-          for (const row of data.service_selections) {
-            map[row.service_id] = row.option_ids
+          const serviceId = data.service_ids[0]
+          setSelectedServiceIds([serviceId])
+          if (data.service_selections?.length) {
+            const row = data.service_selections.find(
+              (s) => s.service_id === serviceId
+            )
+            if (row) {
+              setSelectedOptionsByService({ [serviceId]: row.option_ids })
+            }
           }
-          setSelectedOptionsByService(map)
+        } else if (data.service_selections?.length) {
+          const row = data.service_selections[0]
+          setSelectedServiceIds([row.service_id])
+          setSelectedOptionsByService({ [row.service_id]: row.option_ids })
         }
         if (data.professional_id) {
           setSelectedProfessionalId(data.professional_id)
@@ -622,12 +666,23 @@ export default function ServiciosClient({
   const hasValidPhone = phoneDigits.length === 10
 
   const canContinue =
-    (step === 1 && selectedServiceIds.length > 0) ||
-    (step === 2 && selectedProfessionalId !== null) ||
+    (step === 1 &&
+      selectedServiceIds.length > 0 &&
+      servicesMissingOptions.size === 0) ||
+    (step === 2 &&
+      selectedProfessionalId !== null &&
+      eligibleProfessionals.length > 0) ||
     (step === 3 && selectedSlot !== null) ||
     (step === 4 && hasValidPhone)
 
   const handleContinue = () => {
+    if (step === 1 && servicesMissingOptions.size > 0) {
+      const firstMissing = selectedServiceIds.find((id) =>
+        servicesMissingOptions.has(id)
+      )
+      if (firstMissing) setOptionsExpandedId(firstMissing)
+      return
+    }
     if (canContinue && step < 4) setStep((s) => (s + 1) as Step)
   }
 
@@ -645,12 +700,42 @@ export default function ServiciosClient({
   }, [step])
 
   useEffect(() => {
-    if (selectedProfessionalId === "any" || !selectedProfessionalId) return
+    if (!selectedProfessionalId) return
+    if (selectedProfessionalId === "any") {
+      if (eligibleProfessionals.length === 0) setSelectedProfessionalId(null)
+      return
+    }
     const stillEligible = eligibleProfessionals.some(
       (professional) => professional.id === selectedProfessionalId
     )
     if (!stillEligible) setSelectedProfessionalId(null)
   }, [eligibleProfessionals, selectedProfessionalId])
+
+  const hasBlockingAppointment = Boolean(
+    modalAppointment &&
+      (modalAppointment.status === "pending" ||
+        modalAppointment.status === "paid")
+  )
+
+  const handleTransferCancelled = useCallback(() => {
+    setModalAppointment(null)
+    router.refresh()
+  }, [router])
+
+  const handleTransferStatusChange = useCallback(
+    (status: AppointmentRecord["status"]) => {
+      setModalAppointment((prev) => (prev ? { ...prev, status } : prev))
+    },
+    []
+  )
+
+  useEffect(() => {
+    setTransferAccountNumber(initialTransferAccountNumber)
+  }, [initialTransferAccountNumber])
+
+  useEffect(() => {
+    setModalAppointment(initialActiveAppointment)
+  }, [initialActiveAppointment])
 
   const handleConfirm = async () => {
     if (!hasValidPhone) {
@@ -680,6 +765,10 @@ export default function ServiciosClient({
     }
 
     if (!selectedSlot || !selectedDate || !selectedProfessionalId) return
+    if (hasBlockingAppointment) {
+      setSubmitError("Ya tienes una cita activa. Completa o cancela tu reserva actual.")
+      return
+    }
 
     setSubmitting(true)
     setSubmitError(null)
@@ -709,66 +798,50 @@ export default function ServiciosClient({
 
       const appointmentId = json.data.appointment_id
 
-      const payRes = await fetch("/api/payments/appointment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ appointment_id: appointmentId }),
-      })
-      const payJson = await payRes.json()
-      if (!payRes.ok || payJson.error) {
-        router.push(`/cita/${appointmentId}`)
-        return
+      const activeRes = await fetch("/api/appointments/active")
+      const activeJson = await activeRes.json()
+      if (activeRes.ok && activeJson.data?.appointment) {
+        setModalAppointment(activeJson.data.appointment)
+        if (typeof activeJson.data.transfer_account_number === "string") {
+          setTransferAccountNumber(activeJson.data.transfer_account_number)
+        }
+      } else {
+        setModalAppointment((prev) =>
+          prev ??
+          ({
+            id: appointmentId,
+            user_id: null,
+            professional_id: selectedSlot.professional_id,
+            professional_name: selectedProfessional?.name ?? null,
+            appointment_type: "individual",
+            date: selectedDate,
+            start_time: selectedSlot.start_time,
+            end_time: selectedSlot.end_time,
+            total: json.data.total,
+            status: "pending",
+            cancelled_by: null,
+            created_at: new Date().toISOString(),
+            services: selectedServices.map((s) => ({
+              service_id: s.id,
+              service_name: s.name,
+              unit_price: s.price,
+              duration_min: s.duration_min,
+            })),
+          } satisfies AppointmentRecord)
+        )
       }
 
-      if (payJson.data.payment_url) {
-        const newTab = window.open(payJson.data.payment_url, "_blank")
-        if (!newTab) {
-          setSubmitError(
-            "Tu navegador bloqueó la ventana de pago. Ve a tu cita y usa el botón de pago."
-          )
-        }
-        router.push(`/cita/${appointmentId}`)
-      } else {
-        setSubmitError("No se pudo generar el enlace de pago")
-      }
+      setStep(1)
+      setSelectedServiceIds([])
+      setSelectedOptionsByService({})
+      setSelectedProfessionalId(null)
+      setSelectedDate(null)
+      setSelectedSlot(null)
     } catch {
       setSubmitError("Error de red al reservar")
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (activeAppointmentId) {
-    return (
-      <main className="flex min-h-[60vh] items-center justify-center bg-[var(--background)] py-16 site-container">
-        <div className="w-full max-w-md rounded-lg border border-neutral-200/80 bg-white p-8 text-center shadow-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#c9a84c]">
-            Cita activa
-          </p>
-          <h1 className="mt-3 font-[family-name:var(--font-playfair),serif] text-2xl font-medium text-[#111]">
-            Ya tienes una cita reservada
-          </h1>
-          <p className="mt-3 text-sm text-neutral-500">
-            Solo puedes tener una cita activa a la vez. Revisa o cancela tu cita
-            actual antes de reservar una nueva.
-          </p>
-          <div className="mt-6 flex justify-center gap-3">
-            <Link
-              href={`/cita/${activeAppointmentId}`}
-              className="inline-flex items-center justify-center rounded-lg bg-[#111] px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#c9a84c] hover:text-[#111]"
-            >
-              Ver mi cita
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-lg border border-neutral-200 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#111] transition-colors hover:border-[#111]"
-            >
-              Inicio
-            </Link>
-          </div>
-        </div>
-      </main>
-    )
   }
 
   const summaryProps = {
@@ -895,12 +968,17 @@ export default function ServiciosClient({
                       s.description && s.description.length > 120
                     const hasSubOptions = s.options.length > 0
                     const showSubindex = hasSubOptions && optionsExpanded
+                    const missingOption = servicesMissingOptions.has(s.id)
 
                     return (
                       <div
                         key={s.id}
                         className={`group w-full rounded-lg p-6 text-left transition-all duration-200 md:p-8 ${
-                          selected ? SELECTED_CARD : DEFAULT_CARD
+                          missingOption
+                            ? "border-2 border-[#c9a84c]/70 bg-white ring-1 ring-[#c9a84c]/20"
+                            : selected
+                              ? SELECTED_CARD
+                              : DEFAULT_CARD
                         }`}
                       >
                         <div className="flex items-start justify-between gap-4">
@@ -969,7 +1047,7 @@ export default function ServiciosClient({
                             aria-label={
                               selected
                                 ? `Quitar ${s.name}`
-                                : `Agregar ${s.name}`
+                                : `Seleccionar ${s.name}`
                             }
                           >
                             {selected ? (
@@ -981,16 +1059,23 @@ export default function ServiciosClient({
                         </div>
 
                         {showSubindex && (
-                          <ServiceOptionsPicker
-                            serviceId={s.id}
-                            serviceName={s.name}
-                            options={s.options}
-                            selectedOptionIds={
-                              selectedOptionsByService[s.id] ?? []
-                            }
-                            onChange={handleServiceOptionsChange}
-                            variant="subindex"
-                          />
+                          <>
+                            <ServiceOptionsPicker
+                              serviceId={s.id}
+                              serviceName={s.name}
+                              options={s.options}
+                              selectedOptionIds={
+                                selectedOptionsByService[s.id] ?? []
+                              }
+                              onChange={handleServiceOptionsChange}
+                              variant="subindex"
+                            />
+                            {missingOption && (
+                              <p className="mt-3 text-xs font-medium text-red-600">
+                                Elige al menos una opción para continuar.
+                              </p>
+                            )}
+                          </>
                         )}
                       </div>
                     )
@@ -1013,44 +1098,46 @@ export default function ServiciosClient({
                 />
 
                 <div className="mx-auto max-w-3xl space-y-3">
-                  <div
-                    className={`flex cursor-pointer items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
-                      selectedProfessionalId === "any"
-                        ? SELECTED_CARD
-                        : DEFAULT_CARD
-                    }`}
-                  >
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[#c9a84c]">
-                      <IconShuffle />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-[family-name:var(--font-playfair),serif] text-lg text-[#111]">
-                        Sin preferencia
-                      </p>
-                      <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-neutral-500">
-                        Máxima disponibilidad
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProfessionalId("any")}
-                      className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                  {eligibleProfessionals.length > 0 && (
+                    <div
+                      className={`flex cursor-pointer items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
                         selectedProfessionalId === "any"
-                          ? "border-[#c9a84c] bg-[#c9a84c] text-[#111]"
-                          : "border-neutral-300 text-neutral-600 hover:border-[#c9a84c]"
+                          ? SELECTED_CARD
+                          : DEFAULT_CARD
                       }`}
                     >
-                      {selectedProfessionalId === "any"
-                        ? "Seleccionado"
-                        : "Seleccionar"}
-                    </button>
-                  </div>
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[#c9a84c]">
+                        <IconShuffle />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-[family-name:var(--font-playfair),serif] text-lg text-[#111]">
+                          Sin preferencia
+                        </p>
+                        <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-neutral-500">
+                          Máxima disponibilidad
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedProfessionalId("any")}
+                        className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                          selectedProfessionalId === "any"
+                            ? "border-[#c9a84c] bg-[#c9a84c] text-[#111]"
+                            : "border-neutral-300 text-neutral-600 hover:border-[#c9a84c]"
+                        }`}
+                      >
+                        {selectedProfessionalId === "any"
+                          ? "Seleccionado"
+                          : "Seleccionar"}
+                      </button>
+                    </div>
+                  )}
 
                   {eligibleProfessionals.length === 0 ? (
                     <p className="rounded-lg border border-neutral-200/80 bg-white p-6 text-center text-sm text-neutral-500">
                       No hay trabajadoras disponibles para los servicios
-                      seleccionados. Puedes elegir &quot;Sin preferencia&quot; o
-                      volver a ajustar tus servicios.
+                      seleccionados. Vuelve al paso anterior y ajusta tus
+                      servicios.
                     </p>
                   ) : (
                     eligibleProfessionals.map((p) => {
@@ -1291,14 +1378,74 @@ export default function ServiciosClient({
                     <div className="rounded-lg border border-neutral-200/60 bg-white p-6 md:p-8">
                       <div className="flex items-start gap-4">
                         <span className="text-[#c9a84c]">ℹ</span>
-                        <div>
+                        <div className="min-w-0">
                           <p className="text-sm font-semibold text-[#111]">
-                            Política de cancelación
+                            Antes de confirmar tu cita
                           </p>
                           <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-                            Cancela con al menos 24 horas de anticipación. Los
-                            pagos no son reembolsables una vez procesados.
+                            Al reservar aceptas las siguientes condiciones del
+                            estudio:
                           </p>
+                          <ul className="mt-4 space-y-4 text-sm leading-relaxed text-neutral-600">
+                            <li className="flex gap-3">
+                              <span
+                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a84c]"
+                                aria-hidden
+                              />
+                              <span>
+                                <strong className="font-semibold text-[#111]">
+                                  Anticipo no reembolsable.
+                                </strong>{" "}
+                                El anticipo de tu cita no es reembolsable una
+                                vez realizado el pago.
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span
+                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a84c]"
+                                aria-hidden
+                              />
+                              <span>
+                                <strong className="font-semibold text-[#111]">
+                                  Puntualidad.
+                                </strong>{" "}
+                                Te pedimos llegar a tu hora. Cuentas con{" "}
+                                <strong className="font-semibold text-[#111]">
+                                  10 minutos de tolerancia
+                                </strong>
+                                ; después de ese tiempo tu cita podrá cancelarse
+                                para respetar los tiempos del resto de clientas.
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span
+                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a84c]"
+                                aria-hidden
+                              />
+                              <span>
+                                <strong className="font-semibold text-[#111]">
+                                  Ambiente del estudio.
+                                </strong>{" "}
+                                Este es un momento de tranquilidad para ti. Por
+                                favor no asistas con niños, para que puedas
+                                disfrutar tu cita con calma.
+                              </span>
+                            </li>
+                            <li className="flex gap-3">
+                              <span
+                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a84c]"
+                                aria-hidden
+                              />
+                              <span>
+                                <strong className="font-semibold text-[#111]">
+                                  Cancelaciones.
+                                </strong>{" "}
+                                Si necesitas cancelar, hazlo con al menos 24
+                                horas de anticipación desde tu perfil o por
+                                WhatsApp.
+                              </span>
+                            </li>
+                          </ul>
                         </div>
                       </div>
                     </div>
@@ -1414,6 +1561,26 @@ export default function ServiciosClient({
           )}
         </div>
       </div>
+
+      {modalAppointment &&
+        (modalAppointment.status === "pending" ||
+          modalAppointment.status === "paid") && (
+          <TransferPaymentModal
+            appointment={modalAppointment}
+            transferAccountNumber={transferAccountNumber}
+            formatPrice={formatPrice}
+            formatTimeLabel={formatTimeLabel}
+            prettyDate={prettyDate}
+            onExpired={handleTransferCancelled}
+            onStatusChange={handleTransferStatusChange}
+            onCancelled={handleTransferCancelled}
+            onDismiss={
+              modalAppointment.status === "paid"
+                ? () => setModalAppointment(null)
+                : undefined
+            }
+          />
+        )}
     </div>
   )
 }

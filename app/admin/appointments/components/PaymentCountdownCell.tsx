@@ -9,23 +9,29 @@ import {
 import type { AppointmentStatus } from "@/types"
 
 type Props = {
+  appointmentDate: string
   createdAt: string
   status: AppointmentStatus
 }
 
-export default function PaymentCountdownCell({ createdAt, status }: Props) {
+export default function PaymentCountdownCell({
+  appointmentDate,
+  createdAt,
+  status,
+}: Props) {
   const [remainingMs, setRemainingMs] = useState(() =>
-    getPaymentTimeRemainingMs(createdAt)
+    getPaymentTimeRemainingMs(appointmentDate, createdAt)
   )
 
   useEffect(() => {
     if (status !== "pending") return
 
-    const tick = () => setRemainingMs(getPaymentTimeRemainingMs(createdAt))
+    const tick = () =>
+      setRemainingMs(getPaymentTimeRemainingMs(appointmentDate, createdAt))
     tick()
     const id = window.setInterval(tick, 1000)
     return () => window.clearInterval(id)
-  }, [createdAt, status])
+  }, [appointmentDate, createdAt, status])
 
   if (status !== "pending") {
     return <span className="text-neutral-400">—</span>

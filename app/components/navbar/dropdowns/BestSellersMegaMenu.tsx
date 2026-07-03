@@ -56,9 +56,9 @@ export default function BestSellersMegaMenu({
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      style={{ top: "var(--navbar-actual-h)" }}
+      style={{ maxHeight: "calc(100vh - var(--navbar-actual-h) - 80px)" }}
       className={`
-        fixed left-0 right-0 z-40 hidden md:block
+        megamenu-hover-bridge absolute left-0 right-0 top-full z-40 hidden md:block
         overflow-hidden bg-white border-t border-neutral-200
         shadow-[0_16px_40px_rgba(0,0,0,0.06)]
         transition-opacity ease-out

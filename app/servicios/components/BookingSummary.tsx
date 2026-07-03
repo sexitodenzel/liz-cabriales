@@ -250,8 +250,8 @@ export default function BookingSummary({
           <div className="mb-5 flex items-start gap-3 rounded-lg bg-neutral-50 p-4">
             <span className="text-[#c9a84c]">✓</span>
             <p className="text-xs leading-relaxed text-neutral-600">
-              Pago seguro con MercadoPago. Podrás completar el pago al confirmar
-              tu reserva.
+              Al confirmar, tu reserva quedará en espera. Realiza la transferencia
+              del anticipo y envía tu comprobante por WhatsApp.
             </p>
           </div>
         )}

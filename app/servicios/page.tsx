@@ -1,11 +1,13 @@
+import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
-import { getUserActiveAppointment, cancelExpiredPendingAppointments } from "@/lib/supabase/appointments"
+import { getUserActiveAppointment, cancelExpiredPendingAppointments, completePastAppointments, getProfessionals } from "@/lib/supabase/appointments"
 import {
-  getProfessionalsCached as getProfessionals,
   getServicesCached,
   getServicesWithOptionsCached as getServices,
 } from "@/lib/supabase/cache"
 import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
+import { getStudioWeeklyHoursCached } from "@/lib/supabase/studio-hours"
+import { getStudioSettingsCached } from "@/lib/supabase/studio-settings"
 
 import ServiciosClient from "./ServiciosClient"
 
@@ -17,10 +19,12 @@ export default async function ServiciosPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const [servicesWithOptionsRes, profsRes, filtersRes] = await Promise.all([
+  const [servicesWithOptionsRes, profsRes, filtersRes, studioWeeklyHours] =
+    await Promise.all([
     getServices(),
     getProfessionals(),
     getPublicServiceFilters(),
+    getStudioWeeklyHoursCached(),
   ])
 
   let servicesRes = servicesWithOptionsRes
@@ -34,13 +38,16 @@ export default async function ServiciosPage() {
     }
   }
 
-  let activeAppointmentId: string | null = null
+  let activeAppointment = null
   if (user) {
     await cancelExpiredPendingAppointments({ userId: user.id })
+    await completePastAppointments({ userId: user.id })
 
     const active = await getUserActiveAppointment(user.id)
-    if (active.data) activeAppointmentId = active.data.id
+    if (active.data) activeAppointment = active.data
   }
+
+  const studioSettings = await getStudioSettingsCached()
 
   if (!servicesRes.data || !profsRes.data) {
     return (
@@ -58,12 +65,16 @@ export default async function ServiciosPage() {
   }
 
   return (
-    <ServiciosClient
-      services={servicesRes.data}
-      filters={filtersRes.data ?? []}
-      professionals={profsRes.data}
-      isAuthenticated={Boolean(user)}
-      activeAppointmentId={activeAppointmentId}
-    />
+    <Suspense fallback={null}>
+      <ServiciosClient
+        services={servicesRes.data}
+        filters={filtersRes.data ?? []}
+        professionals={profsRes.data}
+        studioWeeklyHours={studioWeeklyHours}
+        isAuthenticated={Boolean(user)}
+        activeAppointment={activeAppointment}
+        transferAccountNumber={studioSettings.transfer_account_number}
+      />
+    </Suspense>
   )
 }

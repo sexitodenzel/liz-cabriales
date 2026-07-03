@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
+import { tiendaCategories, cursosCategories } from "./menuData"
 import type { TiendaCategory } from "./menuData"
 import { formatFreeShippingThreshold } from "@/lib/constants/shipping"
 import { Drawer } from "@/app/components/ui/motion/drawer"
@@ -61,7 +61,7 @@ const SECTIONS: Array<{
 }> = [
   { key: "Tienda",    href: "/tienda",    sectionLabel: "toda la tienda", data: tiendaCategories },
   { key: "Academia",  href: "/academia",  sectionLabel: "cursos",         data: cursosCategories },
-  { key: "Servicios", href: "/servicios", sectionLabel: "servicios",      data: serviciosCategories },
+  { key: "Servicios", href: "/servicios", sectionLabel: "servicios",      data: [] as TiendaCategory[] },
 ]
 
 const viewKey = (v: DrawerView): string => {
@@ -84,14 +84,19 @@ export default function MobileDrawer({
   const [pendingIndex, setPendingIndex] = useState<number | null>(null)
   const [nailArtPosts, setNailArtPosts] = useState<NailArtTile[] | null>(null)
   const [bestSellers, setBestSellers] = useState<BestSellerTile[] | null>(null)
+  const [serviciosMenuCategories, setServiciosMenuCategories] = useState<TiendaCategory[] | null>(null)
   const [mounted, setMounted] = useState(false)
   const prevPathname = useRef(pathname)
 
   const sectionsByKey = useMemo(() => {
-    return SECTIONS.map((s) =>
-      s.key === "Tienda" ? { ...s, data: tiendaMenuCategories } : s
-    )
-  }, [tiendaMenuCategories])
+    return SECTIONS.map((s) => {
+      if (s.key === "Tienda") return { ...s, data: tiendaMenuCategories }
+      if (s.key === "Servicios" && serviciosMenuCategories) {
+        return { ...s, data: serviciosMenuCategories }
+      }
+      return s
+    })
+  }, [tiendaMenuCategories, serviciosMenuCategories])
 
   useEffect(() => {
     if (prevPathname.current !== pathname) {
@@ -111,6 +116,16 @@ export default function MobileDrawer({
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (serviciosMenuCategories !== null) return
+    void fetch("/api/navbar/servicios-menu")
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((json) =>
+        setServiciosMenuCategories(Array.isArray(json?.data) ? json.data : [])
+      )
+      .catch(() => setServiciosMenuCategories([]))
+  }, [serviciosMenuCategories])
 
   useEffect(() => {
     if (pendingIndex === null) return

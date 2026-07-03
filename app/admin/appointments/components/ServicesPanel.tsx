@@ -15,7 +15,7 @@ type Props = {
   filters: ServiceFilterRow[]
   onServicesChange: (services: ServiceRow[]) => void
   onFiltersChange: (filters: ServiceFilterRow[]) => void
-  onBookingRefresh?: () => void
+  onBookingRefresh?: () => void | Promise<void>
 }
 
 type ServiceForm = {
@@ -57,10 +57,15 @@ export default function ServicesPanel({
   )
   const [newFilterName, setNewFilterName] = useState("")
   const [addingFilter, setAddingFilter] = useState(false)
+  const [confirmDeleteFilterId, setConfirmDeleteFilterId] = useState<
+    string | null
+  >(null)
+  const [deletingFilterId, setDeletingFilterId] = useState<string | null>(null)
   const [serviceOptions, setServiceOptions] = useState<
     Record<string, ServiceOptionRow[]>
   >({})
   const [draftLabels, setDraftLabels] = useState<Record<string, string>>({})
+  const [draftPrices, setDraftPrices] = useState<Record<string, string>>({})
   const [loadingOptions, setLoadingOptions] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -106,13 +111,27 @@ export default function ServicesPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expandedServiceId])
 
-  function openCreateService() {
+  async function refreshFiltersFromApi() {
+    try {
+      const res = await fetch("/api/admin/service-filters")
+      const json = await res.json()
+      if (res.ok && json.data?.filters) {
+        onFiltersChange(json.data.filters as ServiceFilterRow[])
+      }
+    } catch {
+      // noop
+    }
+  }
+
+  async function openCreateService() {
+    await refreshFiltersFromApi()
     setEditingService(null)
     setServiceForm(EMPTY_SERVICE)
     setShowServiceModal(true)
   }
 
-  function openEditService(service: ServiceRow) {
+  async function openEditService(service: ServiceRow) {
+    await refreshFiltersFromApi()
     setEditingService(service)
     setServiceForm({
       name: service.name,
@@ -274,12 +293,19 @@ export default function ServicesPanel({
       return
     }
 
+    const priceRaw = (draftPrices[serviceId] ?? "").trim()
+    const price_delta = priceRaw === "" ? 0 : Number(priceRaw)
+    if (!Number.isFinite(price_delta) || price_delta < 0) {
+      toast.error("Precio del complemento inválido")
+      return
+    }
+
     setBusyId(serviceId)
     try {
       const res = await fetch(`/api/admin/services/${serviceId}/options`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label }),
+        body: JSON.stringify({ label, price_delta }),
       })
       const json = await res.json()
       if (!res.ok || json.error) {
@@ -293,6 +319,7 @@ export default function ServicesPanel({
         [serviceId]: [...(prev[serviceId] ?? []), created],
       }))
       setDraftLabels((prev) => ({ ...prev, [serviceId]: "" }))
+      setDraftPrices((prev) => ({ ...prev, [serviceId]: "" }))
 
       onServicesChange(
         services.map((s) =>
@@ -303,6 +330,46 @@ export default function ServicesPanel({
       toast.success("Opción agregada")
     } catch {
       toast.error("Error de red al agregar opción")
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function handleUpdateOptionPrice(
+    serviceId: string,
+    optionId: string,
+    priceRaw: string
+  ) {
+    const price_delta = priceRaw.trim() === "" ? 0 : Number(priceRaw)
+    if (!Number.isFinite(price_delta) || price_delta < 0) {
+      toast.error("Precio inválido")
+      return
+    }
+
+    setBusyId(optionId)
+    try {
+      const res = await fetch(`/api/admin/service-options/${optionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ price_delta }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        toast.error(json?.error?.message ?? "No se pudo actualizar el precio")
+        return
+      }
+
+      const updated = json.data.option as ServiceOptionRow
+      setServiceOptions((prev) => ({
+        ...prev,
+        [serviceId]: (prev[serviceId] ?? []).map((o) =>
+          o.id === optionId ? updated : o
+        ),
+      }))
+      onBookingRefresh?.()
+      toast.success("Precio actualizado")
+    } catch {
+      toast.error("Error de red al actualizar precio")
     } finally {
       setBusyId(null)
     }
@@ -360,13 +427,42 @@ export default function ServicesPanel({
           (a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)
         )
       )
+      if (showServiceModal) {
+        setServiceForm((f) => ({ ...f, filter_id: created.id }))
+      }
       setNewFilterName("")
-      onBookingRefresh?.()
+      await onBookingRefresh?.()
       toast.success("Filtro agregado")
     } catch {
       toast.error("Error de red al agregar filtro")
     } finally {
       setAddingFilter(false)
+    }
+  }
+
+  async function handleDeleteFilter(id: string) {
+    setDeletingFilterId(id)
+    try {
+      const res = await fetch(`/api/admin/service-filters/${id}`, {
+        method: "DELETE",
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        toast.error(json?.error?.message ?? "No se pudo eliminar el filtro")
+        return
+      }
+
+      onFiltersChange(filters.filter((f) => f.id !== id))
+      setConfirmDeleteFilterId(null)
+      if (serviceForm.filter_id === id) {
+        setServiceForm((f) => ({ ...f, filter_id: "" }))
+      }
+      await onBookingRefresh?.()
+      toast.success("Filtro eliminado")
+    } catch {
+      toast.error("Error de red al eliminar filtro")
+    } finally {
+      setDeletingFilterId(null)
     }
   }
 
@@ -381,14 +477,48 @@ export default function ServicesPanel({
             Manos, Pies u otros que agregues. Cada servicio elige en cuál aparece.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {filters.map((filter) => (
-              <span
-                key={filter.id}
-                className="rounded-full border border-[#c9a84c]/40 bg-[#fdfaf3] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111]"
-              >
-                {filter.name}
-              </span>
-            ))}
+            {filters.map((filter) => {
+              const confirming = confirmDeleteFilterId === filter.id
+              const deleting = deletingFilterId === filter.id
+              return (
+                <span
+                  key={filter.id}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#c9a84c]/40 bg-[#fdfaf3] py-1 pl-3 pr-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#111]"
+                >
+                  {filter.name}
+                  {confirming ? (
+                    <span className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteFilter(filter.id)}
+                        disabled={deleting}
+                        className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] text-white hover:bg-red-700 disabled:opacity-60"
+                      >
+                        {deleting ? "…" : "Sí"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteFilterId(null)}
+                        disabled={deleting}
+                        className="rounded-full border border-neutral-300 px-2 py-0.5 text-[10px] text-neutral-600 hover:border-neutral-400"
+                      >
+                        No
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteFilterId(filter.id)}
+                      className="flex h-5 w-5 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                      aria-label={`Eliminar filtro ${filter.name}`}
+                      title="Eliminar filtro"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  )}
+                </span>
+              )
+            })}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <input
@@ -548,31 +678,60 @@ export default function ServicesPanel({
                       ) : (
                         <>
                           {opts.length > 0 && (
-                            <ul className="mt-4 space-y-1 border-l-2 border-[#c9a84c]/40 pl-4">
+                            <ul className="mt-4 space-y-2 border-l-2 border-[#c9a84c]/40 pl-4">
                               {opts.map((opt) => (
                                 <li
                                   key={opt.id}
-                                  className="flex items-center justify-between gap-2 py-1"
+                                  className="flex flex-wrap items-center justify-between gap-2 py-1"
                                 >
-                                  <span className="text-sm italic text-[#111]">
+                                  <span className="min-w-0 flex-1 text-sm italic text-[#111]">
                                     {opt.label}
                                   </span>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleRemoveOption(service.id, opt.id)
-                                    }
-                                    disabled={busyId === opt.id}
-                                    className="text-[11px] font-semibold uppercase tracking-[0.08em] text-red-600 hover:text-red-700 disabled:opacity-40"
-                                  >
-                                    Quitar
-                                  </button>
+                                  <div className="flex items-center gap-2">
+                                    <label className="sr-only" htmlFor={`opt-price-${opt.id}`}>
+                                      Precio de {opt.label}
+                                    </label>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs font-medium text-[#c9a84c]">
+                                        +
+                                      </span>
+                                      <input
+                                        id={`opt-price-${opt.id}`}
+                                        type="number"
+                                        min={0}
+                                        step={1}
+                                        defaultValue={opt.price_delta}
+                                        key={`${opt.id}-${opt.price_delta}`}
+                                        onBlur={(e) => {
+                                          const next = e.target.value
+                                          if (Number(next) === opt.price_delta) return
+                                          void handleUpdateOptionPrice(
+                                            service.id,
+                                            opt.id,
+                                            next
+                                          )
+                                        }}
+                                        disabled={busyId === opt.id}
+                                        className="w-20 rounded-lg border border-neutral-200 px-2 py-1 text-right text-sm outline-none focus:border-[#c9a84c] disabled:opacity-50"
+                                      />
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleRemoveOption(service.id, opt.id)
+                                      }
+                                      disabled={busyId === opt.id}
+                                      className="text-[11px] font-semibold uppercase tracking-[0.08em] text-red-600 hover:text-red-700 disabled:opacity-40"
+                                    >
+                                      Quitar
+                                    </button>
+                                  </div>
                                 </li>
                               ))}
                             </ul>
                           )}
 
-                          <div className="mt-4 flex flex-wrap gap-2">
+                          <div className="mt-4 flex flex-wrap items-end gap-2">
                             <input
                               type="text"
                               value={draftLabels[service.id] ?? ""}
@@ -588,9 +747,38 @@ export default function ServicesPanel({
                                   void handleAddOption(service.id)
                                 }
                               }}
-                              placeholder="Ej. Acrílico, Manicura spa, Pedicure en seco"
-                              className="min-w-[220px] flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#c9a84c]"
+                              placeholder="Nombre del complemento"
+                              className="min-w-[180px] flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#c9a84c]"
                             />
+                            <div>
+                              <label
+                                htmlFor={`draft-price-${service.id}`}
+                                className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.1em] text-neutral-500"
+                              >
+                                Precio (+)
+                              </label>
+                              <input
+                                id={`draft-price-${service.id}`}
+                                type="number"
+                                min={0}
+                                step={1}
+                                value={draftPrices[service.id] ?? ""}
+                                onChange={(e) =>
+                                  setDraftPrices((prev) => ({
+                                    ...prev,
+                                    [service.id]: e.target.value,
+                                  }))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault()
+                                    void handleAddOption(service.id)
+                                  }
+                                }}
+                                placeholder="0"
+                                className="w-24 rounded-lg border border-neutral-200 px-3 py-2 text-right text-sm outline-none focus:border-[#c9a84c]"
+                              />
+                            </div>
                             <button
                               type="button"
                               onClick={() => handleAddOption(service.id)}
@@ -601,8 +789,8 @@ export default function ServicesPanel({
                             </button>
                           </div>
                           <p className="mt-2 text-[11px] text-neutral-500">
-                            Cada complemento aparece como sub-opción al hacer clic
-                            en el servicio en /servicios.
+                            Cada complemento aparece en /servicios con su precio
+                            (+$) y se suma al total del servicio al seleccionarlo.
                           </p>
                         </>
                       )}

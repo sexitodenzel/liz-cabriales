@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { revalidateTag } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
 import { requireAdminOrReceptionist } from "@/lib/supabase/admin"
@@ -73,6 +73,7 @@ export async function PATCH(
     }
 
     revalidateTag("professionals", "max")
+    revalidatePath("/servicios")
 
     return NextResponse.json({
       data: { professional: result.data },
@@ -114,6 +115,7 @@ export async function DELETE(
     }
 
     revalidateTag("professionals", "max")
+    revalidatePath("/servicios")
 
     return NextResponse.json({ data: { ok: true }, error: null })
   } catch (err) {

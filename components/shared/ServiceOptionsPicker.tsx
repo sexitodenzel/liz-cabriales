@@ -209,11 +209,14 @@ function SubindexList({
                   <SubindexCheckbox checked={active} />
                   <span className="italic">{opt.label}</span>
                 </span>
-                {(opt.price_delta > 0 || opt.duration_delta > 0) && (
+                {opt.price_delta > 0 && (
+                  <span className="shrink-0 text-sm font-medium tabular-nums text-[#c9a84c]">
+                    +{formatPrice(opt.price_delta)}
+                  </span>
+                )}
+                {opt.price_delta <= 0 && opt.duration_delta > 0 && (
                   <span className="shrink-0 text-[11px] text-neutral-500">
-                    {opt.price_delta > 0 ? `+${formatPrice(opt.price_delta)}` : ""}
-                    {opt.price_delta > 0 && opt.duration_delta > 0 ? " · " : ""}
-                    {opt.duration_delta > 0 ? `+${opt.duration_delta} min` : ""}
+                    +{opt.duration_delta} min
                   </span>
                 )}
               </label>

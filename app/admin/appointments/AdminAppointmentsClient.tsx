@@ -6,6 +6,8 @@ import { CalendarX2, Pencil, X } from "lucide-react"
 
 import type {
   AdminAppointmentRow,
+  AppointmentRecord,
+  BlockedSlotRow,
   ProfessionalRow,
   ServiceFilterRow,
   ServiceRow,
@@ -16,6 +18,8 @@ import type { AppointmentStatus } from "@/types"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import DatePicker from "@/components/shared/DatePicker"
 import NewAppointmentModal from "./components/NewAppointmentModal"
+import AvailabilitySchedulePanel from "./components/AvailabilitySchedulePanel"
+import TransferSettingsPanel from "./components/TransferSettingsPanel"
 import BlockSlotModal from "./components/BlockSlotModal"
 import RescheduleAppointmentModal from "./components/RescheduleAppointmentModal"
 import CourseDaysPanel from "./components/CourseDaysPanel"
@@ -107,7 +111,13 @@ function formatDateLabel(dateStr: string): string {
   })
 }
 
-function statusLabel(status: AppointmentStatus): string {
+function statusLabel(
+  status: AppointmentStatus,
+  cancelledBy?: AppointmentRecord["cancelled_by"]
+): string {
+  if (status === "cancelled" && cancelledBy === "client") {
+    return "Cancelado por el cliente"
+  }
   const map: Record<AppointmentStatus, string> = {
     pending: "Pendiente",
     paid: "Confirmada",
@@ -117,12 +127,18 @@ function statusLabel(status: AppointmentStatus): string {
   return map[status] ?? status
 }
 
-function statusClass(status: AppointmentStatus): string {
+function statusClass(
+  status: AppointmentStatus,
+  cancelledBy?: AppointmentRecord["cancelled_by"]
+): string {
+  if (status === "cancelled" && cancelledBy === "client") {
+    return "bg-red-50 text-red-700 border-red-200"
+  }
   switch (status) {
     case "pending":
       return "bg-neutral-100 text-neutral-600 border-neutral-200"
     case "paid":
-      return "bg-rose-50 text-rose-800 border-rose-200"
+      return "bg-emerald-50 text-emerald-700 border-emerald-200"
     case "completed":
       return "bg-emerald-50 text-emerald-800 border-emerald-200"
     case "cancelled":
@@ -183,7 +199,10 @@ export default function AdminAppointmentsClient({
   }, [])
   const [loading, setLoading] = useState(false)
   const [showNewModal, setShowNewModal] = useState(false)
-  const [blockTarget, setBlockTarget] = useState<ProfessionalRow | null>(null)
+  const [blockModalWorker, setBlockModalWorker] = useState<ProfessionalRow | null>(
+    null
+  )
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlotRow[]>([])
   const [rescheduleTarget, setRescheduleTarget] =
     useState<AdminAppointmentRow | null>(null)
 
@@ -193,6 +212,21 @@ export default function AdminAppointmentsClient({
     () => workers.filter((w) => w.is_active),
     [workers]
   )
+
+  const fetchBlockedSlots = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/blocked-slots", {
+        headers: { "Content-Type": "application/json" },
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        return
+      }
+      setBlockedSlots(json.data?.blocked_slots ?? [])
+    } catch {
+      // noop
+    }
+  }, [])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -234,6 +268,10 @@ export default function AdminAppointmentsClient({
     fetchData()
   }, [fetchData])
 
+  useEffect(() => {
+    fetchBlockedSlots()
+  }, [fetchBlockedSlots])
+
   const handleCancel = async (id: string) => {
     const ok = window.confirm("¿Cancelar esta cita?")
     if (!ok) return
@@ -250,6 +288,27 @@ export default function AdminAppointmentsClient({
       fetchData()
     } catch {
       toast.error("Error de red al cancelar")
+    }
+  }
+
+  const handleConfirmPayment = async (id: string) => {
+    const ok = window.confirm(
+      "¿Confirmar que recibiste el anticipo y marcar esta cita como pagada?"
+    )
+    if (!ok) return
+    try {
+      const res = await fetch(`/api/admin/appointments/${id}/confirm`, {
+        method: "PATCH",
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) {
+        toast.error(json?.error?.message ?? "No se pudo confirmar el pago")
+        return
+      }
+      toast.success("Cita confirmada como pagada")
+      fetchData()
+    } catch {
+      toast.error("Error de red al confirmar pago")
     }
   }
 
@@ -303,7 +362,8 @@ export default function AdminAppointmentsClient({
             </h1>
             {isUpcomingView && (
               <p className="mt-2 text-sm text-neutral-500">
-                Mostrando las próximas 10 citas pendientes sin filtro de fecha.
+                Próximas citas de hoy en adelante. Con estado &quot;Cualquiera&quot;
+                se muestran todos los estatus.
               </p>
             )}
           </div>
@@ -360,9 +420,14 @@ export default function AdminAppointmentsClient({
         <WorkersPanel
           workers={workers}
           filters={managedFilters}
+          blockedSlots={blockedSlots}
           onWorkersChange={setWorkers}
-          onBlockSchedule={setBlockTarget}
+          onBlockSchedule={setBlockModalWorker}
         />
+
+        <AvailabilitySchedulePanel className="mb-6" />
+
+        <TransferSettingsPanel className="mb-6" />
 
         <div className="overflow-hidden rounded-lg border border-neutral-200/80 bg-white shadow-sm">
           <div className="flex flex-wrap items-end gap-4 border-b border-neutral-100 px-5 py-4">
@@ -484,7 +549,7 @@ export default function AdminAppointmentsClient({
                         <CalendarX2 className="h-5 w-5 text-neutral-400" />
                         <p className="text-sm">
                           {isUpcomingView
-                            ? "No hay citas pendientes próximas con los filtros seleccionados."
+                            ? "No hay citas próximas con los filtros seleccionados."
                             : "No hay citas para este día con los filtros seleccionados."}
                         </p>
                       </div>
@@ -568,19 +633,30 @@ export default function AdminAppointmentsClient({
                         </td>
                         <td className="px-5 py-4">
                           <span
-                            className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClass(a.status)}`}
+                            className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClass(a.status, a.cancelled_by)}`}
                           >
-                            {statusLabel(a.status)}
+                            {statusLabel(a.status, a.cancelled_by)}
                           </span>
                         </td>
                         <td className="px-5 py-4">
                           <PaymentCountdownCell
+                            appointmentDate={a.date}
                             createdAt={a.created_at}
                             status={a.status}
                           />
                         </td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-1">
+                            {a.status === "pending" && (
+                              <button
+                                type="button"
+                                onClick={() => void handleConfirmPayment(a.id)}
+                                className="mr-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.06em] text-emerald-800 transition-colors hover:bg-emerald-100"
+                                title="Confirmar pago recibido"
+                              >
+                                Confirmar pago
+                              </button>
+                            )}
                             {(a.status === "paid" ||
                               a.status === "pending") && (
                               <button
@@ -632,14 +708,15 @@ export default function AdminAppointmentsClient({
         />
       )}
 
-      {blockTarget && (
+      {blockModalWorker && (
         <BlockSlotModal
           professionals={activeWorkers}
           defaultDate={date || todayString()}
-          defaultProfessionalId={blockTarget.id}
-          onClose={() => setBlockTarget(null)}
+          defaultProfessionalId={blockModalWorker.id}
+          onClose={() => setBlockModalWorker(null)}
           onCreated={() => {
-            setBlockTarget(null)
+            setBlockModalWorker(null)
+            fetchBlockedSlots()
             fetchData()
           }}
         />

@@ -210,48 +210,4 @@ export const cursosCategories: TiendaCategory[] = [
   },
 ]
 
-export const serviciosCategories: TiendaCategory[] = [
-  {
-    label: "Manicure",
-    slug: "manicure",
-    href: "/servicios",
-    subcategories: [
-      { label: "Manicure básico",    href: "/servicios" },
-      { label: "Manicure con gel",   href: "/servicios" },
-      { label: "Manicure acrílico",  href: "/servicios" },
-      { label: "Nail art",           href: "/servicios" },
-      { label: "Diseños especiales", href: "/servicios" },
-    ],
-  },
-  {
-    label: "Pedicure",
-    slug: "pedicure",
-    href: "/servicios",
-    subcategories: [
-      { label: "Pedicure básico",    href: "/servicios" },
-      { label: "Pedicure con gel",   href: "/servicios" },
-      { label: "Pedicure spa",       href: "/servicios" },
-    ],
-  },
-  {
-    label: "Podología",
-    slug: "podologia",
-    href: "/servicios",
-    subcategories: [
-      { label: "Podología básica",          href: "/servicios" },
-      { label: "Tratamiento especializado", href: "/servicios" },
-      { label: "Uñas encarnadas",           href: "/servicios" },
-    ],
-  },
-  {
-    label: "Agendar cita",
-    slug: "agendar",
-    href: "/servicios",
-    subcategories: [
-      { label: "Ver disponibilidad", href: "/servicios" },
-      { label: "Agendar cita",       href: "/servicios" },
-    ],
-  },
-]
-
 export const menuData = {} as const

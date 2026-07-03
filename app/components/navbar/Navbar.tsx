@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation"
 import { Search, ShoppingBag, X, Heart, User } from "lucide-react"
 import { useState, useEffect, useRef, useMemo } from "react"
 import { getSearchDestination } from "@/lib/search-navigation"
-import { tiendaCategories, cursosCategories, serviciosCategories } from "./menuData"
+import { tiendaCategories, cursosCategories } from "./menuData"
 import CartMenu from "./dropdowns/CartMenu"
 import DesktopMegaMenu from "./dropdowns/DesktopMegaMenu"
+import ServiciosMegaMenu from "./dropdowns/ServiciosMegaMenu"
 import BestSellersMegaMenu from "./dropdowns/BestSellersMegaMenu"
 import BrandsMegaMenu from "./dropdowns/BrandsMegaMenu"
 import LizMegaMenu from "./dropdowns/LizMegaMenu"
@@ -70,6 +71,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [hideChrome, setHideChrome] = useState(false)
   const menuCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navBarStyleRef = useRef({ left: 0, width: 0, visible: false })
+  const activeMenuRef = useRef<DesktopMenu>(null)
   const navRef = useRef<HTMLElement>(null)
   const navLinkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
   const headerRef = useRef<HTMLElement>(null)
@@ -128,10 +130,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     menuCloseTimerRef.current = setTimeout(() => {
       setActiveMenu(null)
       hideNavBar()
-    }, 120)
+    }, 200)
   }
   const openDesktopMenu = (menu: Exclude<DesktopMenu, null>) => {
     clearMenuCloseTimer()
+    setHideChrome(false)
     closeCart()
     setMobileSearchOpen(false)
     setDrawerOpen(false)
@@ -156,6 +159,15 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   }, [activeMenu])
 
   useEffect(() => () => clearMenuCloseTimer(), [])
+
+  activeMenuRef.current = activeMenu
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("navbar-menu-open", Boolean(activeMenu))
+    return () => {
+      document.documentElement.classList.remove("navbar-menu-open")
+    }
+  }, [activeMenu])
 
   useEffect(() => {
     if (!drawerOpen) return
@@ -202,7 +214,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       )
       const y = Math.min(MAX_OFFSET, Math.max(0, window.scrollY - pinOffset))
       document.documentElement.style.setProperty("--navbar-scroll-y", `${y}px`)
-      setHideChrome(y >= MAX_OFFSET)
+      if (!activeMenuRef.current) {
+        setHideChrome(y >= MAX_OFFSET)
+      }
     }
     window.addEventListener("scroll", update, { passive: true })
     window.addEventListener("resize", update)
@@ -224,6 +238,13 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       setActiveMenu(null)
     }
   }, [isCartOpen])
+
+  // Mantener chrome visible mientras hay overlay abierto (megamenu, carrito, búsqueda).
+  useEffect(() => {
+    if (activeMenu || isCartOpen || drawerOpen || mobileSearchOpen) {
+      setHideChrome(false)
+    }
+  }, [activeMenu, isCartOpen, drawerOpen, mobileSearchOpen])
 
   useEffect(() => {
     const updateCompactDesktop = () => {
@@ -397,6 +418,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         id="site-navbar"
         ref={headerRef}
         className="relative z-50 w-full sticky top-0 overflow-visible bg-white text-neutral-800"
+        onMouseLeave={scheduleMenuClose}
       >
 
         {/* ===== COMPACT TOOLBAR (mobile + ventanas estrechas en desktop) ===== */}
@@ -485,7 +507,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             el header se mueve con `transform` (GPU) — no animamos height. */}
         <div
           className={`navbar-toolbar relative z-10 flex h-full w-full flex-col ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
-          onMouseLeave={scheduleMenuClose}
         >
           {/* Fila superior: logo centrado + iconos a la derecha. Al colapsar, el
               header entero se traslada -56px (GPU) y esta fila queda fuera del
@@ -571,7 +592,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   className="shrink-0 justify-self-center no-underline transition-opacity hover:opacity-90"
                   tabIndex={hideChrome ? -1 : 0}
                   aria-label="Ir al inicio"
-                  onMouseEnter={scheduleMenuClose}
+                  onMouseEnter={() => activeMenu && scheduleMenuClose()}
                 >
                   <span className="inline-flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10">
                     <Image
@@ -587,7 +608,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
                 <div
                   className="relative z-20 flex shrink-0 items-center justify-self-end gap-0.5 pr-1"
-                  onMouseEnter={scheduleMenuClose}
+                  onMouseEnter={() => activeMenu && scheduleMenuClose()}
                 >
                   <Link
                     href="/wishlist"
@@ -687,7 +708,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           sectionLabel="toda la tienda"
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
-          onMouseLeave={scheduleMenuClose}
         />
         <DesktopMegaMenu
           isOpen={activeMenu === "Academia"}
@@ -696,16 +716,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           sectionLabel="cursos"
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
-          onMouseLeave={scheduleMenuClose}
         />
-        <DesktopMegaMenu
+        <ServiciosMegaMenu
           isOpen={activeMenu === "Servicios"}
-          categories={serviciosCategories}
-          sectionHref="/servicios"
-          sectionLabel="servicios"
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
-          onMouseLeave={scheduleMenuClose}
         />
         <BestSellersMegaMenu
           isOpen={activeMenu === "Best Sellers"}
@@ -713,20 +728,17 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           loading={emptyStateLoading}
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
-          onMouseLeave={scheduleMenuClose}
         />
         <BrandsMegaMenu
           isOpen={activeMenu === "Marcas"}
           brands={brandMenuItems}
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
-          onMouseLeave={scheduleMenuClose}
         />
         <LizMegaMenu
           isOpen={activeMenu === "Conócenos"}
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
-          onMouseLeave={scheduleMenuClose}
         />
       </header>
 

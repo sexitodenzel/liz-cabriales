@@ -9,6 +9,14 @@ const timeString = z
   .regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, "La hora debe tener formato HH:MM")
   .transform((v) => (v.length === 5 ? `${v}:00` : v))
 
+const closeTimeString = z
+  .string()
+  .regex(/^(([01]\d|2[0-3]):[0-5]\d|24:00)(:[0-5]\d)?$/, "La hora de cierre es inválida")
+  .transform((v) => {
+    if (v.startsWith("24")) return "24:00:00"
+    return v.length === 5 ? `${v}:00` : v
+  })
+
 export const professionalAnySchema = z.union([uuid, z.literal("any")])
 
 const appointmentCoreSchema = z.object({
@@ -70,6 +78,70 @@ export const blockedSlotSchema = z
   })
 
 export type BlockedSlotInput = z.infer<typeof blockedSlotSchema>
+
+export const blockedSlotHoursSchema = blockedSlotSchema
+
+export const blockedSlotDaysSchema = z
+  .object({
+    mode: z.literal("days"),
+    professional_id: uuid,
+    start_date: dateString,
+    end_date: dateString,
+    reason: z.string().trim().max(200).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.start_date > value.end_date) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["end_date"],
+        message: "La fecha final debe ser posterior o igual a la inicial",
+      })
+    }
+  })
+
+export const blockedSlotCreateSchema = z.discriminatedUnion("mode", [
+  blockedSlotHoursSchema.extend({ mode: z.literal("hours") }),
+  blockedSlotDaysSchema,
+])
+
+export type BlockedSlotCreateInput = z.infer<typeof blockedSlotCreateSchema>
+
+export const studioWeeklyHourRowSchema = z
+  .object({
+    day_of_week: z.coerce.number().int().min(0).max(6),
+    is_open: z.boolean(),
+    open_time: timeString,
+    close_time: closeTimeString,
+  })
+  .superRefine((value, ctx) => {
+    if (!value.is_open) return
+    const open = value.open_time.slice(0, 5)
+    const close = value.close_time.startsWith("24")
+      ? "24:00"
+      : value.close_time.slice(0, 5)
+    if (open >= close) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["close_time"],
+        message: "La hora de cierre debe ser posterior a la de inicio",
+      })
+    }
+  })
+
+export const studioWeeklyHoursUpdateSchema = z.object({
+  hours: z.array(studioWeeklyHourRowSchema).length(7),
+})
+
+export const studioSettingsUpdateSchema = z.object({
+  transfer_account_number: z
+    .string()
+    .trim()
+    .max(80, "El número es demasiado largo"),
+})
+
+export type StudioWeeklyHoursUpdateInput = z.infer<
+  typeof studioWeeklyHoursUpdateSchema
+>
 
 export const availabilityQuerySchema = z.object({
   date: dateString,

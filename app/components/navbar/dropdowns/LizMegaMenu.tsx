@@ -90,7 +90,7 @@ export default function LizMegaMenu({
       onMouseLeave={onMouseLeave}
       style={{ maxHeight: "calc(100vh - var(--navbar-actual-h) - 80px)" }}
       className={`
-        absolute left-0 right-0 top-full z-40 hidden md:block
+        megamenu-hover-bridge absolute left-0 right-0 top-full z-40 hidden md:block
         overflow-y-auto bg-white border-t border-neutral-200
         transition-opacity ease-out
         ${isOpen

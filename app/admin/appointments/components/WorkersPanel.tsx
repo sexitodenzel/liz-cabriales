@@ -1,18 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Ban, Pencil, Trash2, UserRound } from "lucide-react"
 
 import type {
+  BlockedSlotRow,
   ProfessionalRow,
   ServiceFilterRow,
 } from "@/lib/supabase/appointments"
+import {
+  formatStudioTimeLabel,
+  isBlockedSlotActive,
+} from "@/lib/appointments/studio-hours"
 import ImageUploader from "@/app/admin/components/ImageUploader"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type Props = {
   workers: ProfessionalRow[]
   filters: ServiceFilterRow[]
+  blockedSlots: BlockedSlotRow[]
   onWorkersChange: (workers: ProfessionalRow[]) => void
   onBlockSchedule: (worker: ProfessionalRow) => void
 }
@@ -44,9 +50,19 @@ function sortWorkers(workers: ProfessionalRow[]) {
   return [...workers].sort((a, b) => a.name.localeCompare(b.name))
 }
 
+function isFullDayBlock(block: BlockedSlotRow): boolean {
+  return block.start_time.startsWith("00:00") && block.end_time.startsWith("23:59")
+}
+
+function blockUnavailableLabel(block: BlockedSlotRow): string {
+  if (isFullDayBlock(block)) return "No disponible todo el día"
+  return `No disponible de ${formatStudioTimeLabel(block.start_time)} a ${formatStudioTimeLabel(block.end_time)}`
+}
+
 export default function WorkersPanel({
   workers,
   filters,
+  blockedSlots,
   onWorkersChange,
   onBlockSchedule,
 }: Props) {
@@ -57,6 +73,24 @@ export default function WorkersPanel({
 
   const activeCount = workers.filter((w) => w.is_active).length
   const isEditing = Boolean(form?.id)
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  const nextBlockByWorker = useMemo(() => {
+    const map = new Map<string, BlockedSlotRow>()
+    for (const block of blockedSlots) {
+      if (!block.professional_id) continue
+      if (!isBlockedSlotActive(block, now)) continue
+      if (!map.has(block.professional_id)) {
+        map.set(block.professional_id, block)
+      }
+    }
+    return map
+  }, [blockedSlots, now])
 
   function openCreateModal() {
     setForm({ ...EMPTY_FORM })
@@ -229,11 +263,14 @@ export default function WorkersPanel({
           </div>
         ) : (
           <ul className="divide-y divide-neutral-100">
-            {workers.map((worker) => (
-              <li
-                key={worker.id}
-                className="flex flex-wrap items-center gap-3 px-5 py-4"
-              >
+            {workers.map((worker) => {
+              const nextBlock = nextBlockByWorker.get(worker.id)
+
+              return (
+                <li
+                  key={worker.id}
+                  className="flex flex-wrap items-center gap-3 px-5 py-4"
+                >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <div
                     className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[11px] font-semibold ${
@@ -266,6 +303,16 @@ export default function WorkersPanel({
                       {" · "}
                       {filterLabels(worker)}
                     </p>
+                    {nextBlock && (
+                      <div className="mt-1 space-y-0.5 text-xs">
+                        <p className="font-medium text-red-600">
+                          {blockUnavailableLabel(nextBlock)}
+                        </p>
+                        <p className="text-[#111]">
+                          Por: {nextBlock.reason?.trim() || "Sin motivo registrado"}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -326,8 +373,9 @@ export default function WorkersPanel({
                     </button>
                   )}
                 </div>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>

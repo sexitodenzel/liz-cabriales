@@ -153,7 +153,10 @@ export default async function CitaPage({ params, searchParams }: Props) {
         )}
 
         {appointment.status === "pending" && (
-          <AppointmentPaymentDeadlineAlert createdAt={appointment.created_at} />
+          <AppointmentPaymentDeadlineAlert
+            appointmentDate={appointment.date}
+            createdAt={appointment.created_at}
+          />
         )}
 
         {!isSuccess && !isPending && appointment.status !== "pending" && (
