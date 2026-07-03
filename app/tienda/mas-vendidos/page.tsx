@@ -55,6 +55,7 @@ export default async function BestSellersPage() {
 
         <ProductListingSection
           products={bestSellers}
+          badge="Best seller"
           emptyMessage="Aún no hay productos marcados como best sellers."
         />
       </div>

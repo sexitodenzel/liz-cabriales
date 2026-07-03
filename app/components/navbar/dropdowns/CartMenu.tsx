@@ -17,6 +17,7 @@ import {
 import { createClient } from "@/lib/supabase/client"
 import { CartItem } from "@/lib/cart"
 import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
+import SlidingNumber from "@/app/components/ui/motion/sliding-number"
 import { Drawer } from "@/app/components/ui/motion/drawer"
 
 function formatMXN(value: number) {
@@ -401,8 +402,8 @@ export default function CartMenu() {
                         >
                           −
                         </button>
-                        <span className="w-6 text-center text-[12px] font-medium tabular-nums text-[#1a1a1a]">
-                          {item.qty}
+                        <span className="flex w-6 justify-center text-[12px] font-medium tabular-nums text-[#1a1a1a]">
+                          <SlidingNumber value={item.qty} />
                         </span>
                         <button
                           type="button"
@@ -488,7 +489,7 @@ export default function CartMenu() {
         <div className="flex items-center justify-between">
           <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal:</p>
           <p className="text-[14px] font-semibold tabular-nums text-[#c9a84c]">
-            {formatMXN(subtotal)}
+            <SlidingNumber value={subtotal} format={formatMXN} />
           </p>
         </div>
         <p className="mt-1 text-[11px] text-neutral-400">

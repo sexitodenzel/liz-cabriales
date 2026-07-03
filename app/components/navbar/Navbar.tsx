@@ -31,6 +31,7 @@ import {
 import { useCart } from "../cart/CartContext"
 import { useWishlist } from "../wishlist/WishlistContext"
 import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
+import SlidingNumber from "../ui/motion/sliding-number"
 
 type DesktopMenu = "Tienda" | "Academia" | "Servicios" | "Marcas" | "Conócenos" | null
 
@@ -499,7 +500,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                 <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.75} />
                 {cartBadgeCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a84c] px-1 text-[10px] text-white">
-                    {cartBadgeCount}
+                    <SlidingNumber value={cartBadgeCount} />
                   </span>
                 )}
               </span>
@@ -658,7 +659,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                       <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
                       {cartBadgeCount > 0 && (
                         <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a84c] px-1 text-[10px] text-white">
-                          {cartBadgeCount}
+                          <SlidingNumber value={cartBadgeCount} />
                         </span>
                       )}
                     </span>

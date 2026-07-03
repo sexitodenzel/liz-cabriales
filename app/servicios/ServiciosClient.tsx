@@ -1547,16 +1547,12 @@ export default function ServiciosClient({
           </div>
 
           {step < 4 ? (
-            <div className="hidden w-72 shrink-0 lg:block xl:w-80">
-              <div className="sticky top-[calc(var(--site-chrome-bottom)+5.5rem)]">
-                <BookingSummary {...summaryProps} />
-              </div>
+            <div className="sticky top-[calc(var(--site-chrome-bottom)+5.5rem)] hidden w-72 shrink-0 lg:block xl:w-80">
+              <BookingSummary {...summaryProps} />
             </div>
           ) : (
-            <aside className="hidden lg:col-span-4 lg:block">
-              <div className="sticky top-[calc(var(--site-chrome-bottom)+5.5rem)]">
-                <BookingSummary {...summaryProps} />
-              </div>
+            <aside className="sticky top-[calc(var(--site-chrome-bottom)+5.5rem)] hidden lg:col-span-4 lg:block">
+              <BookingSummary {...summaryProps} />
             </aside>
           )}
         </div>

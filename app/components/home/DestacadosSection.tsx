@@ -35,6 +35,13 @@ export default async function DestacadosSection() {
 
   const candidates: ShopperTab[] = [
     {
+      id: "best-sellers",
+      name: "Best sellers",
+      href: "/tienda/mas-vendidos",
+      badge: "Best seller",
+      products: toShopperProducts(bestResult.error ? [] : bestResult.data),
+    },
+    {
       id: "ofertas",
       name: "En oferta",
       href: "/tienda/ofertas",
@@ -44,13 +51,8 @@ export default async function DestacadosSection() {
       id: "nuevos",
       name: "Nuevos",
       href: "/tienda/nuevos",
+      badge: "Nuevo",
       products: toShopperProducts(newResult.error ? [] : newResult.data),
-    },
-    {
-      id: "best-sellers",
-      name: "Best sellers",
-      href: "/tienda/mas-vendidos",
-      products: toShopperProducts(bestResult.error ? [] : bestResult.data),
     },
   ]
 

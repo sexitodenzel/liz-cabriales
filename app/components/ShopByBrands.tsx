@@ -2,7 +2,6 @@ import Link from "next/link"
 
 import type { HomeBrandItem } from "@/lib/supabase/cache"
 import { Marquee } from "@/app/components/ui/motion/marquee"
-import SectionHeader from "@/app/components/ui/SectionHeader"
 
 type ShopByBrandsProps = {
   brands: HomeBrandItem[]
@@ -15,24 +14,23 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
   if (brands.length === 0) return null
 
   return (
-    <section className="py-12 md:py-16" aria-labelledby="shop-by-brands-title">
-      <SectionHeader
-        id="shop-by-brands-title"
-        eyebrow="Distribuidora oficial"
-        title={
-          <>
-            Marcas <em>Disponibles</em>
-          </>
-        }
-        description="Explora nuestras marcas aliadas y entra directo a su selección dentro de tienda."
-      />
+    <section className="py-8 md:py-10" aria-labelledby="shop-by-brands-title">
+      <header className="mb-6 text-center md:mb-8">
+        <h2
+          id="shop-by-brands-title"
+          className="text-[13px] font-medium uppercase tracking-[0.28em] text-ink-soft"
+        >
+          Distribuidora oficial
+        </h2>
+        <div className="mx-auto mt-4 h-px w-12 bg-gold-soft" aria-hidden />
+      </header>
 
-      <Marquee speed={60} pauseOnHover gap="1.5rem" className="py-4">
+      <Marquee speed={95} pauseOnHover gap="1rem" className="py-4">
         {brands.map((brand) => (
           <Link
             key={brand.id}
             href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
-            className="group flex h-[120px] w-[220px] shrink-0 items-center justify-center bg-transparent px-6 py-4 transition-opacity duration-200 hover:opacity-100"
+            className="group flex h-[120px] w-[180px] shrink-0 items-center justify-center rounded-2xl border border-ink/[0.06] bg-white/70 px-6 py-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-colors duration-200 hover:border-gold-soft hover:bg-white"
             aria-label={`Ver productos de ${brand.name}`}
           >
             {brand.logo_url ? (
@@ -40,7 +38,7 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
               <img
                 src={brand.logo_url}
                 alt={brand.name}
-                className="max-h-[88px] w-auto max-w-full object-contain opacity-90 transition-all duration-200 group-hover:opacity-100"
+                className="max-h-[60px] w-auto max-w-[130px] object-contain opacity-70 grayscale transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0"
                 loading="lazy"
               />
             ) : (

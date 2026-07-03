@@ -59,10 +59,18 @@ export default async function CategoriasSection() {
 
   return (
     <section
-      id="home-categorias-title"
       className="py-12 md:py-16"
-      aria-label="Compra por categoría"
+      aria-labelledby="home-categorias-title"
     >
+      <header className="mb-8 text-center md:mb-10">
+        <h2
+          id="home-categorias-title"
+          className="font-display text-[clamp(20px,2.4vw,28px)] font-medium tracking-[-0.01em] text-ink"
+        >
+          Compra por colección
+        </h2>
+        <div className="mx-auto mt-3 h-px w-12 bg-gold-soft" aria-hidden />
+      </header>
       <TabbedShopper tabs={tabs} />
     </section>
   )

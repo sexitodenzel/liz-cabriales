@@ -33,7 +33,7 @@ export function Marquee({
         fade && vertical && "[mask-image:linear-gradient(to_bottom,transparent,black_12%,black_88%,transparent)]",
         className,
       )}
-      style={{ "--gap": gap } as React.CSSProperties}
+      style={{ "--gap": gap, gap } as React.CSSProperties}
     >
       {[0, 1].map((dup) => (
         <div

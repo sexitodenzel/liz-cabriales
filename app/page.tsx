@@ -8,12 +8,13 @@ import AcademiaEventos from "./components/home/AcademiaEventos"
 import NailArtSection from "./components/NailArtSection"
 import HomeSpotlightSection from "./components/home/HomeSpotlightSection"
 import InstagramFeed from "./components/InstagramFeed"
+import InView from "./components/ui/motion/in-view"
 
 export const revalidate = 60
 
 /* Orden narrativo de la landing:
-   hero (3 pilares) → marcas → compra por categoría → en oferta/nuevos/best
-   sellers → academia/eventos → inspiración → historia → instagram. */
+   hero (3 pilares) → marcas → en oferta/nuevos/best sellers → compra por
+   categoría → academia/eventos → inspiración → historia → instagram. */
 
 export default function Home() {
   return (
@@ -23,18 +24,26 @@ export default function Home() {
         <HomeTopSections />
       </Suspense>
       <div className="site-container">
-        <Suspense fallback={null}>
-          <CategoriasSection />
-        </Suspense>
-        <Suspense fallback={null}>
-          <DestacadosSection />
-        </Suspense>
+        <InView>
+          <Suspense fallback={null}>
+            <DestacadosSection />
+          </Suspense>
+        </InView>
+        <InView>
+          <Suspense fallback={null}>
+            <CategoriasSection />
+          </Suspense>
+        </InView>
       </div>
       <div className="site-container">
-        <AcademiaEventos />
-        <Suspense fallback={null}>
-          <NailArtSection />
-        </Suspense>
+        <InView>
+          <AcademiaEventos />
+        </InView>
+        <InView>
+          <Suspense fallback={null}>
+            <NailArtSection />
+          </Suspense>
+        </InView>
       </div>
       <Suspense fallback={null}>
         <HomeSpotlightSection />

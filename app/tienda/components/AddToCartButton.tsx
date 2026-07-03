@@ -7,6 +7,7 @@ import type { CartItem } from "@/lib/cart"
 import type { ProductVariant } from "@/lib/supabase/products"
 import { applyDiscount } from "@/lib/tienda/discount"
 import { ActionSwapText } from "@/app/components/ui/motion/action-swap"
+import SlidingNumber from "@/app/components/ui/motion/sliding-number"
 import NotifyWhenAvailable from "./NotifyWhenAvailable"
 import { storeIconButtonClassName } from "./store-button-styles"
 import { Check, Loader2, ShoppingBag } from "lucide-react"
@@ -313,8 +314,8 @@ export default function AddToCartButton({
               <span className="text-sm text-neutral-400 line-through">
                 {formatPrice(rawPrice)}
               </span>
-              <span className="rounded-full bg-[#C9A84C] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
-                -{discountPercent}%
+              <span className="bg-[#C9A84C] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+                {discountPercent}% OFF
               </span>
             </>
           )}
@@ -347,8 +348,8 @@ export default function AddToCartButton({
             >
               -
             </button>
-            <span className="min-w-[2ch] text-center text-sm font-semibold text-[#0a0a0a]">
-              {quantity}
+            <span className="flex min-w-[2ch] justify-center text-sm font-semibold tabular-nums text-[#0a0a0a]">
+              <SlidingNumber value={quantity} />
             </span>
             <button
               type="button"

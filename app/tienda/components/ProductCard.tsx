@@ -16,6 +16,8 @@ import { TiltCard } from "@/app/components/ui/motion/tilt-card"
 type Props = {
   product: ProductWithCategory
   layout?: "grid" | "list"
+  /** Etiqueta fija a mostrar sobre la imagen (ej. "Nuevo", "Best seller"). */
+  badge?: string
 }
 
 function formatPrice(value: number): string {
@@ -27,7 +29,7 @@ function formatPrice(value: number): string {
   }).format(value)
 }
 
-export default function ProductCard({ product, layout = "grid" }: Props) {
+export default function ProductCard({ product, layout = "grid", badge }: Props) {
   const { toggle, has, hydrated: wishlistHydrated } = useWishlist()
   const wishlisted = wishlistHydrated && has(product.slug)
   const brand = product.brand ?? "Sin marca"
@@ -61,7 +63,15 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
     activeVariants.every((variant) => variant.stock <= 0)
 
   const imagePillClassName =
-    "rounded-full bg-black/80 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide sm:px-3 sm:py-1 sm:text-xs"
+    "bg-black/80 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide sm:px-3 sm:py-1 sm:text-xs"
+
+  const labelBadgeClassName =
+    "absolute left-2 top-2 z-10 bg-white/95 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-ink shadow-sm sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[10px]"
+
+  // Si hay badge (Nuevo/Best seller) en la esquina, baja el punto de abrasividad.
+  const abrasivityPosClass = badge
+    ? "left-2 top-9 sm:left-3 sm:top-11"
+    : "left-2 top-2 sm:left-3 sm:top-3"
 
   const imageNavButtonClassName =
     "absolute top-1/2 z-10 flex -translate-y-1/2 cursor-pointer items-center justify-center text-black/70 transition-all duration-200 hover:text-black md:opacity-0 md:group-hover:opacity-100"
@@ -136,8 +146,8 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
       <p className="text-[11px] text-neutral-400 line-through sm:text-xs">
         {formatPrice(product.base_price)}
       </p>
-      <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
-        -{product.discount_percent}%
+      <span className="bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
+        {product.discount_percent}% OFF
       </span>
     </div>
   ) : (
@@ -172,6 +182,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
               {initials || "LC"}
             </div>
           )}
+          {badge && <span className={labelBadgeClassName}>{badge}</span>}
           {isOutOfStock && (
             <div className={`absolute right-2 top-2 z-10 ${imagePillClassName} text-red-400`}>
               Agotado
@@ -181,7 +192,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
             <span
               aria-label={`Abrasividad ${abrasivityLevel.label} (cinta ${abrasivityLevel.tape})`}
               title={`Abrasividad ${abrasivityLevel.label} · Cinta ${abrasivityLevel.tape}`}
-              className="absolute left-2 top-2 z-10 inline-block h-3 w-3 rounded-full border border-white/70 shadow-sm"
+              className={`absolute z-10 inline-block h-3 w-3 rounded-full border border-white/70 shadow-sm ${abrasivityPosClass}`}
               style={{ backgroundColor: abrasivityLevel.color }}
             />
           )}
@@ -224,8 +235,8 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
               <p className="text-xs text-neutral-400 line-through sm:text-sm">
                 {formatPrice(product.base_price)}
               </p>
-              <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:text-[11px]">
-                -{product.discount_percent}%
+              <span className="bg-[#C9A84C] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:text-[11px]">
+                {product.discount_percent}% OFF
               </span>
             </div>
           ) : (
@@ -332,6 +343,8 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
             </div>
           )}
 
+          {badge && <span className={labelBadgeClassName}>{badge}</span>}
+
           {isOutOfStock && (
             <div
               className={`absolute right-2 top-2 z-10 ${imagePillClassName} text-red-400 sm:right-3 sm:top-3`}
@@ -341,8 +354,8 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
           )}
 
           {productHasDiscount && !isOutOfStock && (
-            <div className="absolute right-2 top-2 z-10 rounded-full bg-[#C9A84C] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm sm:right-3 sm:top-3 sm:px-3 sm:py-1 sm:text-xs">
-              -{product.discount_percent}%
+            <div className="absolute right-2 top-2 z-10 bg-[#C9A84C] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm sm:right-3 sm:top-3 sm:px-3 sm:py-1 sm:text-xs">
+              {product.discount_percent}% OFF
             </div>
           )}
 
@@ -350,7 +363,7 @@ export default function ProductCard({ product, layout = "grid" }: Props) {
             <span
               aria-label={`Abrasividad ${abrasivityLevel.label} (cinta ${abrasivityLevel.tape})`}
               title={`Abrasividad ${abrasivityLevel.label} · Cinta ${abrasivityLevel.tape}`}
-              className="absolute left-2 top-2 z-10 inline-block h-3 w-3 rounded-full border border-white/70 shadow-sm sm:left-3 sm:top-3 sm:h-3.5 sm:w-3.5"
+              className={`absolute z-10 inline-block h-3 w-3 rounded-full border border-white/70 shadow-sm sm:h-3.5 sm:w-3.5 ${abrasivityPosClass}`}
               style={{ backgroundColor: abrasivityLevel.color }}
             />
           )}

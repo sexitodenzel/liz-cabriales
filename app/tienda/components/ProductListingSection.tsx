@@ -28,6 +28,8 @@ const SORT_OPTIONS: SortOptionItem[] = [
 type ProductListingSectionProps = {
   products: ProductWithCategory[]
   emptyMessage?: string
+  /** Etiqueta fija a mostrar en cada card (ej. "Nuevo", "Best seller"). */
+  badge?: string
 }
 
 function sortProducts(products: ProductWithCategory[], sort: SortOption) {
@@ -52,6 +54,7 @@ function sortProducts(products: ProductWithCategory[], sort: SortOption) {
 export default function ProductListingSection({
   products,
   emptyMessage = "No hay productos para mostrar.",
+  badge,
 }: ProductListingSectionProps) {
   const [sort, setSort] = useState<SortOption>("destacados")
   const { viewMode, setViewMode } = useProductViewMode()
@@ -89,7 +92,7 @@ export default function ProductListingSection({
         }
       >
         {sortedProducts.map((product) => (
-          <ProductCard key={product.id} product={product} layout={viewMode} />
+          <ProductCard key={product.id} product={product} layout={viewMode} badge={badge} />
         ))}
       </div>
     </div>

@@ -45,6 +45,7 @@ export default async function NewProductsPage() {
 
         <ProductListingSection
           products={newestProducts}
+          badge="Nuevo"
           emptyMessage="Aún no hay productos nuevos en el catálogo."
         />
       </div>
