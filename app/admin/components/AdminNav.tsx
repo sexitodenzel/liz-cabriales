@@ -38,7 +38,7 @@ export default function AdminNav() {
             <Link
               key={href}
               href={href}
-              className="relative group text-[13px] tracking-[0.05em] text-[#C6A75E]"
+              className="relative group text-[13px] tracking-[0.05em] text-[#c9a84c]"
               aria-current={isActive ? "page" : undefined}
             >
               <span
@@ -49,7 +49,7 @@ export default function AdminNav() {
                 {label}
               </span>
               <span
-                className={`absolute left-0 -bottom-1 h-[1px] bg-[#C6A75E] transition-all duration-200 ${
+                className={`absolute left-0 -bottom-1 h-[1px] bg-[#c9a84c] transition-all duration-200 ${
                   isActive ? "w-full" : "w-0 group-hover:w-full"
                 }`}
               />

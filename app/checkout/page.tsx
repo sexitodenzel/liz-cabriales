@@ -48,13 +48,13 @@ export default async function CheckoutPage() {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/carrito"
-              className="inline-flex items-center justify-center border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
+              className="inline-flex items-center justify-center border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]"
             >
               Volver al carrito
             </Link>
             <Link
               href="/tienda"
-              className="inline-flex items-center justify-center bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C6A75E] hover:text-[#0a0a0a]"
+              className="inline-flex items-center justify-center bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9a84c] hover:text-[#0a0a0a]"
             >
               Seguir explorando
             </Link>

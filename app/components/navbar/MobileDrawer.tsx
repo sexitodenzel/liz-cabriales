@@ -29,21 +29,12 @@ type DrawerView =
   | { kind: "section"; section: SectionKey }
   | { kind: "category"; section: SectionKey; categorySlug: string }
   | { kind: "nail-art" }
-  | { kind: "best-sellers" }
 
 type NailArtTile = {
   id: string
   title: string
   slug: string
   cover_image: string | null
-}
-
-type BestSellerTile = {
-  id: string
-  name: string
-  slug: string
-  image: string | null
-  price: number
 }
 
 type Props = {
@@ -68,8 +59,7 @@ const viewKey = (v: DrawerView): string => {
   if (v.kind === "root") return "root"
   if (v.kind === "section") return `section:${v.section}`
   if (v.kind === "category") return `category:${v.section}:${v.categorySlug}`
-  if (v.kind === "nail-art") return "nail-art"
-  return "best-sellers"
+  return "nail-art"
 }
 
 export default function MobileDrawer({
@@ -83,7 +73,6 @@ export default function MobileDrawer({
   const [activeIndex, setActiveIndex] = useState(0)
   const [pendingIndex, setPendingIndex] = useState<number | null>(null)
   const [nailArtPosts, setNailArtPosts] = useState<NailArtTile[] | null>(null)
-  const [bestSellers, setBestSellers] = useState<BestSellerTile[] | null>(null)
   const [serviciosMenuCategories, setServiciosMenuCategories] = useState<TiendaCategory[] | null>(null)
   const [mounted, setMounted] = useState(false)
   const prevPathname = useRef(pathname)
@@ -145,12 +134,6 @@ export default function MobileDrawer({
         .then((json) => setNailArtPosts(Array.isArray(json?.data) ? json.data : []))
         .catch(() => setNailArtPosts([]))
     }
-    if (view.kind === "best-sellers" && bestSellers === null) {
-      void fetch("/api/products/best-sellers")
-        .then((r) => (r.ok ? r.json() : { data: [] }))
-        .then((json) => setBestSellers(Array.isArray(json?.data) ? json.data : []))
-        .catch(() => setBestSellers([]))
-    }
   }
 
   const pop = () => {
@@ -205,7 +188,6 @@ export default function MobileDrawer({
                 <RootPanel
                   onPushSection={(section) => push({ kind: "section", section })}
                   onPushNailArt={() => push({ kind: "nail-art" })}
-                  onPushBestSellers={() => push({ kind: "best-sellers" })}
                   onClose={onClose}
                   isLoggedIn={isLoggedIn}
                 />
@@ -238,13 +220,6 @@ export default function MobileDrawer({
                   onClose={onClose}
                 />
               )}
-              {view.kind === "best-sellers" && (
-                <BestSellersPanel
-                  products={bestSellers}
-                  onBack={pop}
-                  onClose={onClose}
-                />
-              )}
             </div>
           )
         })}
@@ -253,13 +228,13 @@ export default function MobileDrawer({
       {/* Social row */}
       <div className="shrink-0 flex items-center justify-around border-t border-neutral-200 px-4 py-5 md:px-6 lg:py-6">
         <a href="https://instagram.com/liz_cabriales" target="_blank" rel="noopener noreferrer" aria-label="Instagram" onClick={onClose}>
-          <Instagram className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
+          <Instagram className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c9a84c]" />
         </a>
         <a href="https://www.facebook.com/profile.php?id=100008326095757" target="_blank" rel="noopener noreferrer" aria-label="Facebook" onClick={onClose}>
-          <Facebook className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
+          <Facebook className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c9a84c]" />
         </a>
         <a href="https://wa.me/528332183399" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" onClick={onClose}>
-          <MessageCircle className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#C6A75E]" />
+          <MessageCircle className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c9a84c]" />
         </a>
       </div>
     </Drawer>
@@ -273,12 +248,11 @@ export default function MobileDrawer({
 type RootPanelProps = {
   onPushSection: (section: SectionKey) => void
   onPushNailArt: () => void
-  onPushBestSellers: () => void
   onClose: () => void
   isLoggedIn: boolean
 }
 
-function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, isLoggedIn }: RootPanelProps) {
+function RootPanel({ onPushSection, onPushNailArt, onClose, isLoggedIn }: RootPanelProps) {
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       {/* Nav sections */}
@@ -304,17 +278,6 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
         >
           <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
             Nail Art
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
-        </button>
-
-        <button
-          type="button"
-          onClick={onPushBestSellers}
-          className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
-        >
-          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
-            Best Sellers
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
         </button>
@@ -386,14 +349,14 @@ function RootPanel({ onPushSection, onPushNailArt, onPushBestSellers, onClose, i
               <Link
                 href="/terminos-y-condiciones"
                 onClick={onClose}
-                className="shrink-0 transition-colors hover:text-[#C6A75E]"
+                className="shrink-0 transition-colors hover:text-[#c9a84c]"
               >
                 Términos
               </Link>
               <Link
                 href="/aviso-de-privacidad"
                 onClick={onClose}
-                className="shrink-0 text-right transition-colors hover:text-[#C6A75E]"
+                className="shrink-0 text-right transition-colors hover:text-[#c9a84c]"
               >
                 Aviso de privacidad
               </Link>
@@ -421,7 +384,7 @@ function SectionPanel({ section, onBack, onClose, onPushCategory }: SectionPanel
         <Link
           href={section.href}
           onClick={onClose}
-          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#C6A75E] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
+          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c9a84c] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver {section.sectionLabel}</span>
         </Link>
@@ -475,7 +438,7 @@ function CategoryPanel({ category, onBack, onClose }: CategoryPanelProps) {
         <Link
           href={category.href}
           onClick={onClose}
-          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#C6A75E] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
+          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c9a84c] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver todo en {category.label}</span>
         </Link>
@@ -555,69 +518,12 @@ function NailArtPanel({ posts, onBack, onClose }: NailArtPanelProps) {
           className="group flex flex-col gap-2"
         >
           <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-sm bg-[#f1ece4]">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C6A75E]">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c]">
               Ver todo
             </span>
           </div>
           <span className="text-[12px] font-medium leading-snug text-[#1a1a1a]">
             Todos los looks
-          </span>
-        </Link>
-      </div>
-    </div>
-  )
-}
-
-type BestSellersPanelProps = {
-  products: BestSellerTile[] | null
-  onBack: () => void
-  onClose: () => void
-}
-
-function BestSellersPanel({ products, onBack, onClose }: BestSellersPanelProps) {
-  const isLoading = products === null
-  const items = products ?? []
-  return (
-    <div className="flex min-h-full min-w-0 flex-col">
-      <PanelHeader title="Best sellers" onBack={onBack} />
-      <div className="grid grid-cols-2 gap-x-2 gap-y-4 px-3 py-5 md:px-4">
-        {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => <TileSkeleton key={i} />)
-          : items.slice(0, 5).map((product) => (
-              <Link
-                key={product.id}
-                href={`/tienda/${product.slug}`}
-                onClick={onClose}
-                className="group flex flex-col gap-2"
-              >
-                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-sm bg-neutral-100">
-                  {product.image ? (
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 640px) 40vw, 200px"
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                    />
-                  ) : null}
-                </div>
-                <span className="line-clamp-2 text-[12px] font-medium leading-snug text-[#1a1a1a]">
-                  {product.name}
-                </span>
-              </Link>
-            ))}
-        <Link
-          href="/tienda/mas-vendidos"
-          onClick={onClose}
-          className="group flex flex-col gap-2"
-        >
-          <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-sm bg-[#f1ece4]">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C6A75E]">
-              Ver todo
-            </span>
-          </div>
-          <span className="text-[12px] font-medium leading-snug text-[#1a1a1a]">
-            Todos los más vendidos
           </span>
         </Link>
       </div>

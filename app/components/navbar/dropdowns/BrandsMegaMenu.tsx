@@ -63,7 +63,7 @@ export default function BrandsMegaMenu({
           <Link
             href="/tienda"
             onClick={onClose}
-            className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C6A75E] hover:opacity-80 transition-opacity"
+            className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c] hover:opacity-80 transition-opacity"
           >
             Ver toda la tienda
           </Link>
@@ -87,7 +87,7 @@ export default function BrandsMegaMenu({
                 <Link
                   href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
                   onClick={onClose}
-                  className="block text-[14px] text-neutral-700 hover:text-[#C6A75E] transition-colors"
+                  className="block text-[14px] text-neutral-700 hover:text-[#c9a84c] transition-colors"
                 >
                   {brand.name}
                 </Link>

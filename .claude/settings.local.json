@@ -68,7 +68,10 @@
       "PowerShell(npm rm *)",
       "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c | Select-Object LocalAddress,LocalPort,OwningProcess; Get-Process -Id \\($c.OwningProcess | Select-Object -Unique\\) | Select-Object Id,ProcessName } else { \"Nada escuchando en :3000\" })",
       "PowerShell(foreach \\($p in 3000,3001,3002\\) { $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c.OwningProcess | Select-Object -Unique | ForEach-Object { taskkill /PID $_ /F 2>$null } } }; Start-Sleep -Seconds 1; foreach \\($p in 3000,3001,3002\\) { $c = Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { \"$p ocupado\" } else { \"$p libre\" } })",
-      "PowerShell(node \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\scratchpad\\\\test-sda.js\")"
+      "PowerShell(node \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\scratchpad\\\\test-sda.js\")",
+      "Skill(run)",
+      "WebFetch(domain:motion-primitives.com)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; Write-Output \\(\"PID $_ = \" + $p.ProcessName\\) } } else { Write-Output \"nada escuchando en 3000\" })"
     ]
   }
 }

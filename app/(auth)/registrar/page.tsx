@@ -296,7 +296,7 @@ export default function RegistrarPage() {
   return (
     <div className="w-full max-w-5xl">
       <div className="bg-neutral-100 px-6 py-10 sm:px-14 sm:py-14">
-        <h1 className="mb-3 font-[family-name:var(--font-cormorant-garamond)] text-xl tracking-[0.25em] text-neutral-900 sm:text-2xl">
+        <h1 className="mb-3 font-display text-xl tracking-[0.25em] text-neutral-900 sm:text-2xl">
           CREAR UNA CUENTA
         </h1>
         <p className="mb-8 text-[13px] text-neutral-700">

@@ -69,7 +69,7 @@ export default function DesktopMegaMenu({
           <Link
             href={sectionHref}
             onClick={onClose}
-            className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C6A75E] hover:opacity-80 transition-opacity"
+            className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c] hover:opacity-80 transition-opacity"
           >
             Ver {sectionLabel}
           </Link>
@@ -99,7 +99,7 @@ export default function DesktopMegaMenu({
                     <Link
                       href={cat.href}
                       onClick={onClose}
-                      className="block mb-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] hover:text-[#C6A75E] transition-colors"
+                      className="block mb-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] hover:text-[#c9a84c] transition-colors"
                     >
                       {cat.label}
                     </Link>
@@ -109,7 +109,7 @@ export default function DesktopMegaMenu({
                           <Link
                             href={sub.href}
                             onClick={onClose}
-                            className="block text-[14px] text-neutral-700 hover:text-[#C6A75E] transition-colors line-clamp-1"
+                            className="block text-[14px] text-neutral-700 hover:text-[#c9a84c] transition-colors line-clamp-1"
                           >
                             {sub.label}
                           </Link>
@@ -120,7 +120,7 @@ export default function DesktopMegaMenu({
                           <Link
                             href={cat.href}
                             onClick={onClose}
-                            className="block pt-1 text-[13px] font-medium text-[#C6A75E] hover:opacity-80 transition-opacity"
+                            className="block pt-1 text-[13px] font-medium text-[#c9a84c] hover:opacity-80 transition-opacity"
                           >
                             Ver todos los nuevos →
                           </Link>
@@ -148,7 +148,7 @@ export default function DesktopMegaMenu({
                         <Link
                           href={cat.href}
                           onClick={onClose}
-                          className="block text-[14px] text-neutral-700 hover:text-[#C6A75E] transition-colors line-clamp-1"
+                          className="block text-[14px] text-neutral-700 hover:text-[#c9a84c] transition-colors line-clamp-1"
                         >
                           {cat.label}
                         </Link>

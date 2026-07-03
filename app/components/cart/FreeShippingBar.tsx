@@ -17,7 +17,7 @@ export default function FreeShippingBar({ amount }: { amount: number }) {
     <div className="mb-3">
       <div className="mb-1.5 flex items-center justify-between">
         {reached ? (
-          <p className="text-[11px] font-semibold text-[#C6A75E]">
+          <p className="text-[11px] font-semibold text-[#c9a84c]">
             ¡Envío gratis en tu pedido!
           </p>
         ) : (
@@ -35,7 +35,7 @@ export default function FreeShippingBar({ amount }: { amount: number }) {
       </div>
       <div className="h-1.5 w-full overflow-hidden bg-neutral-200">
         <div
-          className="h-full bg-[#C6A75E] transition-all duration-500"
+          className="h-full bg-[#c9a84c] transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>

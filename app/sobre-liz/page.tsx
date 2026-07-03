@@ -265,7 +265,7 @@ export default async function SobreLizPage() {
           </div>
 
           <div className="mx-auto w-full max-w-[420px]">
-            <div className="relative rounded-2xl bg-gradient-to-br from-[#f0dfa8] via-[#c6a75e] to-[#8f6f2f] p-[3px] shadow-[0_18px_50px_rgba(168,134,47,0.22)]">
+            <div className="relative rounded-2xl bg-gradient-to-br from-[#f0dfa8] via-[#c9a84c] to-[#8f6f2f] p-[3px] shadow-[0_18px_50px_rgba(168,134,47,0.22)]">
               <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[13px] bg-neutral-100">
                 <Image
                   src={heroPhoto}

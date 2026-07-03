@@ -66,7 +66,7 @@ export default function TiendaMegaMenu({
           <div className="mb-4">
             <Link
               href={sectionHref}
-              className="text-[11px] uppercase tracking-[0.15em] text-neutral-500 hover:text-[#C6A75E] transition-colors"
+              className="text-[11px] uppercase tracking-[0.15em] text-neutral-500 hover:text-[#c9a84c] transition-colors"
             >
               Categorías
             </Link>
@@ -82,8 +82,8 @@ export default function TiendaMegaMenu({
                     block rounded-md px-3 py-2
                     text-[14px] transition-all duration-150
                     ${hoveredIndex === idx
-                      ? "bg-neutral-100 text-[#C6A75E]"
-                      : "text-[#1a1a1a] hover:text-[#C6A75E]"
+                      ? "bg-neutral-100 text-[#c9a84c]"
+                      : "text-[#1a1a1a] hover:text-[#c9a84c]"
                     }
                   `}
                 >
@@ -110,7 +110,7 @@ export default function TiendaMegaMenu({
               <div className="mb-5">
                 <Link
                   href={cat.href}
-                  className="text-[11px] uppercase tracking-[0.15em] text-neutral-500 hover:text-[#C6A75E] transition-colors"
+                  className="text-[11px] uppercase tracking-[0.15em] text-neutral-500 hover:text-[#c9a84c] transition-colors"
                 >
                   {cat.label}
                 </Link>
@@ -149,7 +149,7 @@ export default function TiendaMegaMenu({
                     >
                       <Link
                         href={sub.href}
-                        className="block py-2 text-[15px] text-[#1a1a1a] transition-colors hover:text-[#C6A75E] line-clamp-2"
+                        className="block py-2 text-[15px] text-[#1a1a1a] transition-colors hover:text-[#c9a84c] line-clamp-2"
                       >
                         {sub.label}
                       </Link>

@@ -93,7 +93,7 @@ export default function MegaMenu({ activeMenu, currentMenu }: MegaMenuProps) {
                 >
                   <Link
                     href={item.href}
-                    className="transition-colors duration-200 hover:text-[#C6A75E]"
+                    className="transition-colors duration-200 hover:text-[#c9a84c]"
                   >
                     {item.label}
                   </Link>

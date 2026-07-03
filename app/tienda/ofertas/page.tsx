@@ -20,7 +20,7 @@ export default async function OfertasPage() {
       <main className="min-h-screen bg-white text-[#0a0a0a]">
         <div className="site-container pt-5 pb-12">
           <h1 className="text-2xl font-semibold">
-            <span className="text-[#C6A75E]">Ofertas</span>
+            <span className="text-[#c9a84c]">Ofertas</span>
           </h1>
           <p className="mt-4 text-sm text-red-600">
             Ocurrió un error al cargar las ofertas. Intenta de nuevo más tarde.
@@ -46,7 +46,7 @@ export default async function OfertasPage() {
         <header className="mb-10 space-y-3 border-b border-neutral-200 pb-6">
           <div className="flex flex-wrap items-end gap-3">
             <h1 className="text-2xl font-semibold md:text-3xl">
-              <span className="text-[#C6A75E]">Ofertas</span>{" "}
+              <span className="text-[#c9a84c]">Ofertas</span>{" "}
               <span className="text-[#0a0a0a]">vigentes</span>
             </h1>
             {onSale.length > 0 && (

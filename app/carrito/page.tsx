@@ -170,7 +170,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex shrink-0 flex-col items-end justify-between self-start">
-                    <p className="text-[13px] font-semibold tabular-nums text-[#C6A75E]">
+                    <p className="text-[13px] font-semibold tabular-nums text-[#c9a84c]">
                       {formatMXN(item.price * item.quantity)}
                     </p>
                     <button
@@ -193,7 +193,7 @@ export default function CartPage() {
 
             <div className="flex items-center justify-between">
               <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal:</p>
-              <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">
+              <p className="text-[14px] font-semibold tabular-nums text-[#c9a84c]">
                 {formatMXN(subtotal)}
               </p>
             </div>
@@ -214,7 +214,7 @@ export default function CartPage() {
               </Link>
               <Link
                 href="/tienda"
-                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 bg-white text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#C6A75E] hover:text-[#C6A75E]"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 bg-white text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]"
               >
                 Continuar explorando
               </Link>

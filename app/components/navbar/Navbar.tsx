@@ -10,7 +10,6 @@ import { tiendaCategories, cursosCategories } from "./menuData"
 import CartMenu from "./dropdowns/CartMenu"
 import DesktopMegaMenu from "./dropdowns/DesktopMegaMenu"
 import ServiciosMegaMenu from "./dropdowns/ServiciosMegaMenu"
-import BestSellersMegaMenu from "./dropdowns/BestSellersMegaMenu"
 import BrandsMegaMenu from "./dropdowns/BrandsMegaMenu"
 import LizMegaMenu from "./dropdowns/LizMegaMenu"
 import MobileDrawer from "./MobileDrawer"
@@ -33,7 +32,7 @@ import { useCart } from "../cart/CartContext"
 import { useWishlist } from "../wishlist/WishlistContext"
 import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
 
-type DesktopMenu = "Tienda" | "Academia" | "Servicios" | "Best Sellers" | "Marcas" | "Conócenos" | null
+type DesktopMenu = "Tienda" | "Academia" | "Servicios" | "Marcas" | "Conócenos" | null
 
 type NavbarProps = {
   isLoggedIn?: boolean
@@ -45,7 +44,6 @@ const DESKTOP_NAV_ITEMS = [
   { label: "Tienda" as const, href: "/tienda" },
   { label: "Academia" as const, href: "/academia" },
   { label: "Servicios" as const, href: "/servicios" },
-  { label: "Best Sellers" as const, href: "/tienda/mas-vendidos" },
   { label: "Marcas" as const, href: "/tienda" },
   { label: "Conócenos" as const, href: "/sobre-liz" },
 ] as const
@@ -79,13 +77,20 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const overlayGuardRef = useRef(false)
   const {
     itemCount,
+    isLoading: cartLoading,
     isCartOpen,
     openCart,
     closeCart,
     isProgrammatic,
     clearProgrammatic,
   } = useCart()
-  const { count: wishlistCount } = useWishlist()
+  const { count: wishlistCount, hydrated: wishlistHydrated } = useWishlist()
+
+  // El carrito/wishlist se cargan de localStorage/DB en un effect (post-hidratación).
+  // Server y primer render de cliente deben coincidir en "sin badge", si no React
+  // lanza el error de hydration mismatch. Por eso los badges esperan a que cargue.
+  const cartBadgeCount = cartLoading ? 0 : itemCount
+  const wishlistBadgeCount = wishlistHydrated ? wishlistCount : 0
 
   const clearMenuCloseTimer = () => {
     if (menuCloseTimerRef.current) {
@@ -409,7 +414,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   }
 
   const iconBtnBase =
-    "inline-flex h-10 w-10 shrink-0 cursor-pointer items-center text-black transition-all duration-200 ease-out hover:scale-110 hover:text-[#C6A75E] active:scale-90 active:duration-75 sm:h-11 sm:w-11"
+    "inline-flex h-10 w-10 shrink-0 cursor-pointer items-center text-black transition-all duration-200 ease-out hover:scale-110 hover:text-[#c9a84c] active:scale-90 active:duration-75 sm:h-11 sm:w-11"
   const showCompactToolbar = isCompactDesktop
 
   return (
@@ -417,7 +422,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       <header
         id="site-navbar"
         ref={headerRef}
-        className="relative z-50 w-full sticky top-0 overflow-visible bg-white text-neutral-800"
+        className="relative z-50 w-full sticky top-0 overflow-visible bg-ivory text-neutral-800"
         onMouseLeave={scheduleMenuClose}
       >
 
@@ -492,9 +497,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             >
               <span className="relative shrink-0">
                 <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.75} />
-                {itemCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C6A75E] px-1 text-[10px] text-white">
-                    {itemCount}
+                {cartBadgeCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a84c] px-1 text-[10px] text-white">
+                    {cartBadgeCount}
                   </span>
                 )}
               </span>
@@ -574,7 +579,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                         }
                       }}
                       tabIndex={mobileSearchOpen || searchQuery.length > 0 ? 0 : -1}
-                      className={`inline-flex shrink-0 items-center justify-center text-neutral-900 transition-opacity duration-150 ease-out hover:text-[#C6A75E] ${
+                      className={`inline-flex shrink-0 items-center justify-center text-neutral-900 transition-opacity duration-150 ease-out hover:text-[#c9a84c] ${
                         mobileSearchOpen || searchQuery.length > 0
                           ? "opacity-100 pointer-events-auto"
                           : "opacity-0 pointer-events-none"
@@ -619,7 +624,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   >
                     <span className="relative shrink-0">
                       <Heart className="h-5 w-5" strokeWidth={1.75} />
-                      <WishlistCountBadge count={wishlistCount} />
+                      <WishlistCountBadge count={wishlistBadgeCount} />
                     </span>
                   </Link>
 
@@ -651,9 +656,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   >
                     <span className="relative shrink-0">
                       <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
-                      {itemCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C6A75E] px-1 text-[10px] text-white">
-                          {itemCount}
+                      {cartBadgeCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a84c] px-1 text-[10px] text-white">
+                          {cartBadgeCount}
                         </span>
                       )}
                     </span>
@@ -667,7 +672,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             <nav ref={navRef} className="relative flex items-center justify-center gap-0">
               <span
                 aria-hidden
-                className={`pointer-events-none absolute -bottom-1 h-[1.5px] bg-[#C6A75E] duration-150 ease-out ${
+                className={`pointer-events-none absolute -bottom-1 h-[1.5px] bg-[#c9a84c] duration-150 ease-out ${
                   navBarAnimate === "grow"
                     ? "transition-[width]"
                     : "transition-[left,width]"
@@ -688,7 +693,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   onMouseEnter={() => handleNavMouseEnter(label)}
                   onFocus={() => handleNavMouseEnter(label)}
                   className={`relative inline-flex items-center justify-center px-2 whitespace-nowrap text-center text-[13px] font-medium uppercase tracking-[0.14em] transition-colors lg:px-3 lg:text-[14px] lg:tracking-[0.16em] ${
-                    activeMenu === label ? "text-[#C6A75E]" : "text-[#1a1a1a] hover:text-[#C6A75E]"
+                    activeMenu === label ? "text-[#c9a84c]" : "text-[#1a1a1a] hover:text-[#c9a84c]"
                   }`}
                 >
                   {label}
@@ -719,13 +724,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         />
         <ServiciosMegaMenu
           isOpen={activeMenu === "Servicios"}
-          onClose={() => setActiveMenu(null)}
-          onMouseEnter={clearMenuCloseTimer}
-        />
-        <BestSellersMegaMenu
-          isOpen={activeMenu === "Best Sellers"}
-          products={bestSellers}
-          loading={emptyStateLoading}
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
         />

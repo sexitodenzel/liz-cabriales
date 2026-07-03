@@ -64,7 +64,8 @@ export default function StickyCartBar({ product, selectedVariant, triggerRef }: 
 
   return (
     <div className="navbar-follow-collapse fixed left-0 right-0 z-40 border-b border-neutral-200 bg-white" style={{ top: "var(--navbar-actual-h, 64px)" }}>
-      <div className="site-container flex items-center gap-3 py-2.5 sm:gap-4 sm:py-3">
+      <div className="site-container">
+        <div className="mx-auto flex w-full max-w-[1200px] items-center gap-3 py-2.5 sm:gap-4 sm:py-3">
         <button
           type="button"
           onClick={goToTop}
@@ -121,6 +122,7 @@ export default function StickyCartBar({ product, selectedVariant, triggerRef }: 
             openCartOnAdd
             className={`${storeCheckoutDetailButtonClassName} !w-auto !px-4 !py-2 !text-[11px] sm:!px-5 sm:!py-2.5`}
           />
+        </div>
         </div>
       </div>
     </div>

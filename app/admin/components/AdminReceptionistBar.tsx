@@ -30,10 +30,10 @@ export default function AdminReceptionistBar() {
               className="relative group text-[13px] tracking-[0.05em] text-[var(--foreground)]"
               aria-current="page"
             >
-              <span className="transition-colors duration-200 group-hover:text-[#C6A75E]">
+              <span className="transition-colors duration-200 group-hover:text-[#c9a84c]">
                 Agenda
               </span>
-              <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#C6A75E] transition-all duration-200 group-hover:w-full" />
+              <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#c9a84c] transition-all duration-200 group-hover:w-full" />
             </Link>
           </nav>
         </div>

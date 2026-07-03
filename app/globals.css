@@ -1,14 +1,40 @@
 @import "tailwindcss";
 
 /* =====================================
+   TOKENS DE DISEÑO — única fuente de verdad
+   Dirección: marfil cálido + dorado discreto.
+   Dos dorados y solo dos: `gold` para texto sobre fondos claros,
+   `gold-soft` para acentos decorativos y texto sobre fondos oscuros.
+===================================== */
+
+@theme {
+  --color-ivory: #fbfbfa;
+  --color-surface: #ffffff;
+  --color-ink: #1c1a17;
+  --color-ink-soft: #79736a;
+  --color-gold: #a8862f;
+  --color-gold-soft: #c9a84c;
+  --color-line: #e9e4da;
+  --radius-card: 4px;
+}
+
+/* `inline` es obligatorio aquí: --font-playfair la define next/font en el
+   <body>, así que el token debe resolverse en el elemento que lo usa
+   (no en :root, donde la variable no existe). */
+@theme inline {
+  --font-display: var(--font-playfair), serif;
+}
+
+/* =====================================
    VARIABLES GLOBALES DE MARCA
 ===================================== */
 
 :root {
-  /* Marfil cálido (no blanco óptico): más acorde al dorado de marca y menos “clínico” */
-  --background: #faf8f5;
-  --foreground: #111111;
-  --gold: #c6a75e;
+  /* Casi-blanco neutro (sin amarillo): limpio como referencia Westman, pero deja
+     un pelín de suavidad para que las cards --surface #ffffff sigan resaltando. */
+  --background: #fbfbfa;
+  --foreground: #1c1a17;
+  --gold: #c9a84c;
   /* Tarjetas / superficies que deben resaltar sobre el fondo */
   --surface: #ffffff;
   /* Altura fija del navbar: la usan el carrito y el overlay para alinearse */
@@ -139,6 +165,10 @@ body.cart-scroll-locked {
 body {
   background: var(--background);
   color: var(--foreground);
+  /* La página nunca debe scrollear en horizontal: si algo sobresale, expone el
+     negro del FooterStage detrás. `clip` (no `hidden`) no crea contenedor de
+     scroll, así que no afecta al navbar sticky ni al colapso scroll-driven. */
+  overflow-x: clip;
 }
 
 /* iOS Safari: evita el auto-zoom al hacer focus en inputs (cualquier input con

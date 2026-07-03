@@ -167,7 +167,7 @@ function SuggestionCard({
         </p>
       </div>
 
-      <p className="mt-1 text-[11px] font-semibold text-[#C6A75E]">{priceLabel}</p>
+      <p className="mt-1 text-[11px] font-semibold text-[#c9a84c]">{priceLabel}</p>
       <button
         type="button"
         onClick={() => void onAdd()}
@@ -416,7 +416,7 @@ export default function CartMenu() {
                   </div>
 
                   <div className="flex shrink-0 flex-col items-end justify-between self-start">
-                    <p className="text-[13px] font-semibold tabular-nums text-[#C6A75E]">
+                    <p className="text-[13px] font-semibold tabular-nums text-[#c9a84c]">
                       {formatMXN(item.price * item.qty)}
                     </p>
                     <button
@@ -487,7 +487,7 @@ export default function CartMenu() {
         {!isEmpty && <FreeShippingBar amount={subtotal} />}
         <div className="flex items-center justify-between">
           <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal:</p>
-          <p className="text-[14px] font-semibold tabular-nums text-[#C6A75E]">
+          <p className="text-[14px] font-semibold tabular-nums text-[#c9a84c]">
             {formatMXN(subtotal)}
           </p>
         </div>
@@ -516,7 +516,7 @@ export default function CartMenu() {
               <Link
                 href="/carrito"
                 onClick={closeCart}
-                className="mt-3 block w-full text-center text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-[#C6A75E]"
+                className="mt-3 block w-full text-center text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-[#c9a84c]"
               >
                 Ver bolsa
               </Link>

@@ -246,7 +246,7 @@ export default function EventsGallery({
                 {(item.caption || item.date) && (
                   <div className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 pb-4 pt-10 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                     {item.date && (
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#e7c97a]">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c]">
                         {item.date}
                       </p>
                     )}

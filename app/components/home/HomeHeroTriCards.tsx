@@ -301,7 +301,7 @@ export default function HomeHeroTriCards() {
         style={{ height: `${SECTION_HEIGHT_VH}vh` }}
       >
         <div
-          className="navbar-follow-collapse sticky w-full overflow-hidden bg-white px-6"
+          className="navbar-follow-collapse sticky w-full overflow-hidden bg-ivory px-6"
           style={{
             top: "var(--navbar-actual-h, 64px)",
             // -24px abajo para dejar el mismo respiro blanco que el px-6
@@ -343,7 +343,7 @@ export default function HomeHeroTriCards() {
               <span className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white/90">
                 {CENTER.eyebrow}
               </span>
-              <h2 className="max-w-[14ch] font-[family-name:var(--font-cormorant-garamond)] text-xl font-light leading-[1.1] md:text-3xl lg:text-4xl">
+              <h2 className="max-w-[14ch] font-display text-xl font-normal leading-[1.1] md:text-3xl lg:text-4xl">
                 {CENTER.title}
               </h2>
               <p className="mt-2 max-w-xs text-[11px] text-white/85 md:text-xs">
@@ -447,7 +447,7 @@ function CardBlock({
             <span className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white/90">
               {card.eyebrow}
             </span>
-            <h2 className="max-w-[14ch] font-[family-name:var(--font-cormorant-garamond)] text-4xl font-light leading-[1.05] md:text-6xl lg:text-7xl">
+            <h2 className="max-w-[14ch] font-display text-4xl font-normal leading-[1.05] md:text-6xl lg:text-7xl">
               {card.title}
             </h2>
             <p className="mt-5 max-w-md text-sm text-white/85 md:text-base">
@@ -465,7 +465,7 @@ function CardBlock({
           <span className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white/80">
             {card.eyebrow}
           </span>
-          <h3 className="font-[family-name:var(--font-cormorant-garamond)] text-2xl font-light leading-tight md:text-3xl">
+          <h3 className="font-display text-2xl font-normal leading-tight md:text-3xl">
             {card.title}
           </h3>
           <span className="mt-3 inline-flex w-fit items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">

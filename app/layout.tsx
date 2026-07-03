@@ -17,17 +17,11 @@ import SiteChromeMetrics from "./components/SiteChromeMetrics";
    (Puedes cambiar aquí las tipografías después)
    ========================= */
 
-import {
-  Playfair_Display,
-  Inter,
-  Parisienne,
-  Outfit,
-  Cormorant_Garamond,
-} from "next/font/google";
+import { Playfair_Display, Outfit } from "next/font/google";
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#faf8f5",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -49,21 +43,6 @@ const outfit = Outfit({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-});
-
-const parisienne = Parisienne({
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const cormorantGaramond = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
-  variable: "--font-cormorant-garamond",
-});
-
 /* =========================
    LAYOUT PRINCIPAL
    (NO TOCAR estructura base)
@@ -78,7 +57,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${outfit.className} ${cormorantGaramond.variable} ${playfairDisplay.variable} flex min-h-screen flex-col`}
+        className={`${outfit.className} ${playfairDisplay.variable} flex min-h-screen flex-col`}
       >
         <CartProvider>
           <WishlistProvider>
