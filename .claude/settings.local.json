@@ -71,7 +71,15 @@
       "PowerShell(node \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\5db660d4-6ff1-48a8-8ba3-9370acf392b3\\\\scratchpad\\\\test-sda.js\")",
       "Skill(run)",
       "WebFetch(domain:motion-primitives.com)",
-      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; Write-Output \\(\"PID $_ = \" + $p.ProcessName\\) } } else { Write-Output \"nada escuchando en 3000\" })"
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; Write-Output \\(\"PID $_ = \" + $p.ProcessName\\) } } else { Write-Output \"nada escuchando en 3000\" })",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $b = [System.Drawing.Bitmap]::FromFile\\(\"C:\\\\Users\\\\migue\\\\.claude\\\\image-cache\\\\dedca36a-9e81-4437-9446-0bda8999a545\\\\2.png\"\\); foreach \\($y in @\\(150, 200, 300, 420, 450, 500, 700, 900, 1000\\)\\) { $p1 = $b.GetPixel\\(960, $y\\); $p2 = $b.GetPixel\\(300, $y\\); $p3 = $b.GetPixel\\(1700, $y\\); Write-Host \\(\"y={0}  center=\\({1},{2},{3}\\)  left=\\({4},{5},{6}\\)  right=\\({7},{8},{9}\\)\" -f $y, $p1.R, $p1.G, $p1.B, $p2.R, $p2.G, $p2.B, $p3.R, $p3.G, $p3.B\\) }; $b.Dispose\\(\\))",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $b = [System.Drawing.Bitmap]::FromFile\\(\"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\dedca36a-9e81-4437-9446-0bda8999a545\\\\scratchpad\\\\bug-brightened.png\"\\); foreach \\($y in @\\(130, 165, 200, 300, 420, 445, 500, 700, 900, 1005\\)\\) { $p1 = $b.GetPixel\\(960, $y\\); $p2 = $b.GetPixel\\(300, $y\\); $p3 = $b.GetPixel\\(1700, $y\\); Write-Host \\(\"y={0}  x960=\\({1},{2},{3}\\)  x300=\\({4},{5},{6}\\)  x1700=\\({7},{8},{9}\\)\" -f $y, $p1.R, $p1.G, $p1.B, $p2.R, $p2.G, $p2.B, $p3.R, $p3.G, $p3.B\\) }; $b.Dispose\\(\\))",
+      "PowerShell(npx tsc --noEmit)",
+      "PowerShell(& \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\dedca36a-9e81-4437-9446-0bda8999a545\\\\scratchpad\\\\scan-frames.ps1\")",
+      "PowerShell(Set-Content *)",
+      "PowerShell(& \"C:\\\\Users\\\\migue\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-migue-Desktop-liz-cabriales\\\\dedca36a-9e81-4437-9446-0bda8999a545\\\\scratchpad\\\\scan-frames2.ps1\")",
+      "PowerShell(git fetch *)",
+      "PowerShell(git *)"
     ]
   }
 }

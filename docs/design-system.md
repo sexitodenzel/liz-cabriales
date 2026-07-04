@@ -83,8 +83,8 @@ Pendiente de definir con Liz (ver [`design-notes.md`](./ux/design-notes.md)). Po
 
 ### Sitio público
 
-- Container: `.site-container` (vars `--site-max-w: 1600px`, `--site-px: 1.5rem`)
-- Navbar height: `--navbar-actual-h` estática (64px mobile, 104px ≥1200px vía media query en `globals.css`); colapso Hermès 100% transform con `--navbar-scroll-y` (Navbar.tsx) + clase `.navbar-follow-collapse` en stickies que lo siguen
+- Container: `.site-container` (vars `--site-max-w: 1600px`, `--site-px: clamp(1.5rem, 3vw, 3.5rem)` — respiro lateral estándar que escala con el ancho; 24px móvil → 56px en pantallas anchas)
+- Navbar height: `--navbar-actual-h` estática (64px mobile, 104px ≥1200px vía media query en `globals.css`); colapso binario por dirección de scroll (bajar colapsa, subir expande): Navbar.tsx togglea `html.lc-nav-collapsed` y CSS transiciona el transform; clase `.navbar-follow-collapse` en stickies que lo siguen; el hero de home se dimensiona con `--home-hero-inset` (altura colapsada del navbar) para que al colapsar no quede franja blanca abajo
 - Footer "telón": altura `--footer-stage-h`
 
 ### Auth (login / registrar) — Hermès-style

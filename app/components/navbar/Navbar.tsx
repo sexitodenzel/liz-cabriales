@@ -192,48 +192,62 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [drawerOpen])
 
-  // Scroll-linked navbar collapse (solo desktop ≥1200px): se traslada suavemente
-  // con el scroll (0-56px) en lugar de togglear. No cambia el flow.
-  // El colapso arranca cuando el navbar ya está pegado en top:0 — restamos la
-  // altura del announcement bar (contenido previo al header); si no, el
-  // transform duplica la velocidad de scroll y abre un hueco bajo el navbar.
-  // OJO: no usar header.offsetTop para esto — en un sticky ya pegado incluye
-  // el desplazamiento del sticky (crece con el scroll) y el colapso muere.
+  // Colapso del navbar (solo desktop ≥1200px), binario y por DIRECCIÓN de
+  // scroll: bajar colapsa, subir expande de inmediato (no solo al llegar al
+  // top). El movimiento lo hace CSS con una transition de transform sobre
+  // html.lc-nav-collapsed (ver globals.css) — 100% GPU, nada por frame.
+  // Umbrales ACUMULADOS por dirección: micro-scrolls (layout shifts, rueda
+  // inercial rebotando) no togglean. Cerca del top queda siempre expandido
+  // para que el toggle no parpadee mientras el sticky aún no se pega; el
+  // announcement bar (contenido previo al header) cuenta como parte del top.
   // hideChrome (aria/tabIndex de la fila superior) sigue este mismo estado.
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1200px)")
-    const MAX_OFFSET = 56
-    // Sin rAF a propósito: los scroll events ya llegan alineados a frame y el
-    // rAF solo añadía un frame extra de lag al fallback JS (en browsers con
-    // scroll-driven animations el visual lo lleva el compositor, ver CSS).
+    const COLLAPSE_AFTER = 24
+    const EXPAND_AFTER = -8
+    let lastY = window.scrollY
+    let acc = 0
+
+    const setCollapsed = (collapsed: boolean) => {
+      document.documentElement.classList.toggle("lc-nav-collapsed", collapsed)
+      // Con un megamenu abierto el chrome debe seguir accesible (aria/tabIndex)
+      if (!activeMenuRef.current) setHideChrome(collapsed)
+    }
+
     const update = () => {
+      const y = window.scrollY
+      const delta = y - lastY
+      lastY = y
       if (!mq.matches) {
-        document.documentElement.style.removeProperty("--navbar-scroll-y")
-        setHideChrome(false)
+        acc = 0
+        setCollapsed(false)
         return
       }
       const pinOffset =
         document.getElementById("site-announcement-bar")?.offsetHeight ?? 0
-      document.documentElement.style.setProperty(
-        "--navbar-pin-offset",
-        `${pinOffset}px`
-      )
-      const y = Math.min(MAX_OFFSET, Math.max(0, window.scrollY - pinOffset))
-      document.documentElement.style.setProperty("--navbar-scroll-y", `${y}px`)
-      if (!activeMenuRef.current) {
-        setHideChrome(y >= MAX_OFFSET)
+      if (y <= pinOffset + 56) {
+        acc = 0
+        setCollapsed(false)
+        return
       }
+      if (delta > 0 !== acc > 0) acc = 0
+      acc += delta
+      if (acc > COLLAPSE_AFTER) setCollapsed(true)
+      else if (acc < EXPAND_AFTER) setCollapsed(false)
+    }
+
+    const handleModeChange = () => {
+      lastY = window.scrollY
+      acc = 0
+      if (!mq.matches) setCollapsed(false)
     }
     window.addEventListener("scroll", update, { passive: true })
-    window.addEventListener("resize", update)
-    mq.addEventListener("change", update)
+    mq.addEventListener("change", handleModeChange)
     update()
     return () => {
       window.removeEventListener("scroll", update)
-      window.removeEventListener("resize", update)
-      mq.removeEventListener("change", update)
-      document.documentElement.style.removeProperty("--navbar-scroll-y")
-      document.documentElement.style.removeProperty("--navbar-pin-offset")
+      mq.removeEventListener("change", handleModeChange)
+      document.documentElement.classList.remove("lc-nav-collapsed")
     }
   }, [])
 

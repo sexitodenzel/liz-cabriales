@@ -43,11 +43,21 @@
   /* Altura ESTÁTICA del navbar: 64px mobile, 104px en ≥1200px (media query abajo).
      No se actualiza en runtime; el colapso se hace con transform (ver Hermès collapse). */
   --navbar-actual-h: var(--navbar-mobile-h);
+  /* Alto que el hero de home le resta a 100vh (navbar visible + respiro de
+     24px abajo). En ≥1200px usa la altura COLAPSADA del navbar (48px + 24px):
+     el hero sigue al colapso con transform, así que se dimensiona para ese
+     estado — expandido, su borde inferior queda ~32px bajo el fold
+     (full-bleed) y al colapsar el respiro entra exacto al viewport, sin
+     franja blanca y sin animar height (ver Hermès/Dior collapse abajo). */
+  --home-hero-inset: calc(var(--navbar-mobile-h) + 24px);
   /* Borde inferior del chrome (anuncios + navbar); SiteChromeMetrics.tsx */
   --site-chrome-bottom: var(--navbar-actual-h);
   /* Contenedor horizontal unificado (navbar + páginas públicas en desktop) */
   --site-max-w: 1600px;
-  --site-px: 1.5rem;
+  /* Respiro lateral estándar de todo el sitio: escala con el ancho de pantalla.
+     24px en móvil → hasta 56px en pantallas anchas. Un solo token = misma
+     alineación en home, tienda, cursos, servicios, footer, etc. */
+  --site-px: clamp(1.5rem, 3vw, 3.5rem);
   /* Hero slider dots — estilo OPI */
   --hero-dot-size: 8px;
   --hero-dot-gap: 12px;
@@ -83,49 +93,41 @@ html {
   overflow-anchor: none;
 }
 
-/* Hermès collapse (sólo desktop wide ≥1200px).
-   Estrategia 100% GPU: animamos `transform` del navbar y de cualquier sticky
-   que deba seguirlo. La var --navbar-actual-h se mantiene ESTÁTICA (104px
-   expanded) para que los stickys que la usan como `top` NO disparen reflow
-   cada frame. El "ajuste visual" cuando colapsa se hace con `transform: translateY(-56px)`
-   en el navbar + en los siblings sticky marcados con .navbar-follow-collapse.
-   --navbar-scroll-y la escribe Navbar.tsx en cada frame de scroll, restando el
-   offsetTop del header (announcement bar) para que el colapso empiece justo
-   cuando el sticky se pega en top:0 — sin eso el navbar se movería al doble
-   de velocidad del contenido y abriría un hueco. */
+/* Hermès/Dior collapse (sólo desktop wide ≥1200px).
+   Binario y por DIRECCIÓN de scroll: Navbar.tsx togglea html.lc-nav-collapsed
+   (bajar colapsa, subir expande de inmediato) y el movimiento es una
+   transition de `transform` — 100% GPU, cero trabajo por frame. La var
+   --navbar-actual-h se mantiene ESTÁTICA (104px expanded) para que los
+   stickys que la usan como `top` NO disparen reflow. Los stickys/fixed que
+   deben pegarse al navbar colapsado (barra de filtros, sticky cart bar)
+   llevan .navbar-follow-collapse y se trasladan con la misma transition. */
 @media (min-width: 1200px) {
   :root {
     --navbar-actual-h: 104px;
-    --navbar-scroll-y: 0px;
+    /* 48px de navbar colapsado + 24px de respiro (ver :root arriba) */
+    --home-hero-inset: 72px;
+  }
+
+  #site-navbar,
+  .navbar-follow-collapse {
+    transform: translate3d(0, 0, 0);
+    transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
   }
 
   #site-navbar {
     height: 104px;
-    transform: translate3d(0, calc(var(--navbar-scroll-y, 0px) * -1), 0);
-    will-change: transform;
   }
 
-  .navbar-follow-collapse {
-    transform: translate3d(0, calc(var(--navbar-scroll-y, 0px) * -1), 0);
-    will-change: transform;
+  html.lc-nav-collapsed #site-navbar,
+  html.lc-nav-collapsed .navbar-follow-collapse {
+    transform: translate3d(0, -56px, 0);
   }
 
-  /* Sincronía perfecta con el scroll (Chrome/Edge/Safari modernos): la
-     scroll-driven animation corre en el compositor, SIN el frame de lag del
-     fallback JS. Con scroll rápido, ese lag abría huecos entre el chrome
-     transformado y el contenido, exponiendo el FooterStage negro de fondo.
-     En browsers con soporte, esta animation pisa el transform de arriba;
-     --navbar-pin-offset (altura del announcement bar) la escribe Navbar.tsx. */
-  @supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: reduce) {
     #site-navbar,
     .navbar-follow-collapse {
-      animation-name: lc-navbar-collapse;
-      animation-duration: auto;
-      animation-timing-function: linear;
-      animation-fill-mode: both;
-      animation-timeline: scroll(root block);
-      animation-range: var(--navbar-pin-offset, 0px)
-        calc(var(--navbar-pin-offset, 0px) + 56px);
+      transition: none;
     }
   }
 
@@ -138,12 +140,36 @@ html {
   }
 }
 
-@keyframes lc-navbar-collapse {
+/* Entrada única del hero mobile de home (HomeTriCards con prop `entrance`):
+   Ken Burns sutil en la IMAGEN (solo transform, GPU) + fade-rise del bloque
+   de texto. Nunca scale en texto — el texto solo hace opacity/translate. */
+@media (prefers-reduced-motion: no-preference) {
+  .lc-hero-kenburns {
+    animation: lc-hero-kenburns 2400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .lc-hero-text-rise {
+    animation: lc-hero-text-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) 250ms both;
+  }
+}
+
+@keyframes lc-hero-kenburns {
   from {
-    transform: translate3d(0, 0, 0);
+    transform: translateZ(0) scale(1.07);
   }
   to {
-    transform: translate3d(0, -56px, 0);
+    transform: translateZ(0) scale(1);
+  }
+}
+
+@keyframes lc-hero-text-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -617,6 +643,8 @@ html::-webkit-scrollbar-thumb:hover {
 @media (prefers-reduced-motion: reduce) {
   #site-footer-stage {
     position: static;
+    /* En flujo debe verse siempre; el visibility del reveal solo aplica al modo fijo */
+    visibility: visible;
   }
 
   .curtain-footer-spacer {

@@ -172,16 +172,16 @@ export default function TabbedShopper({
             <button
               onClick={() => scrollByViewport(-1)}
               aria-label="Anterior"
-              className="absolute left-1 top-[38%] z-10 hidden -translate-y-1/2 cursor-pointer text-ink transition-colors duration-200 [filter:drop-shadow(0_1px_2px_rgba(255,255,255,0.85))] hover:text-gold lg:block"
+              className="absolute left-0 top-[38%] z-10 hidden -translate-x-full -translate-y-1/2 cursor-pointer pr-1.5 text-ink transition-colors duration-200 hover:text-gold lg:block"
             >
-              <ChevronLeftIcon className="h-7 w-7" />
+              <ChevronLeftIcon className="h-6 w-6" />
             </button>
             <button
               onClick={() => scrollByViewport(1)}
               aria-label="Siguiente"
-              className="absolute right-1 top-[38%] z-10 hidden -translate-y-1/2 cursor-pointer text-ink transition-colors duration-200 [filter:drop-shadow(0_1px_2px_rgba(255,255,255,0.85))] hover:text-gold lg:block"
+              className="absolute right-0 top-[38%] z-10 hidden translate-x-full -translate-y-1/2 cursor-pointer pl-1.5 text-ink transition-colors duration-200 hover:text-gold lg:block"
             >
-              <ChevronRightIcon className="h-7 w-7" />
+              <ChevronRightIcon className="h-6 w-6" />
             </button>
           </>
         )}

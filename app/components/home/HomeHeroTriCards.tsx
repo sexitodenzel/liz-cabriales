@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
+import InView from "../ui/motion/in-view"
+
 type Card = {
   href: string
   eyebrow: string
@@ -304,9 +306,12 @@ export default function HomeHeroTriCards() {
           className="navbar-follow-collapse sticky w-full overflow-hidden bg-ivory px-6"
           style={{
             top: "var(--navbar-actual-h, 64px)",
-            // -24px abajo para dejar el mismo respiro blanco que el px-6
-            // lateral; evita que la imagen abarrote el borde inferior.
-            height: "calc(100vh - var(--navbar-actual-h, 64px) - 24px)",
+            // --home-hero-inset (globals.css) dimensiona el hero para el
+            // navbar COLAPSADO en ≥1200px: expandido, el borde inferior queda
+            // ~32px bajo el fold (full-bleed); al colapsar, el follow-collapse
+            // lo sube -56px por transform y el respiro de 24px entra exacto
+            // al viewport. Así no hay franja blanca ni se anima height.
+            height: "calc(100vh - var(--home-hero-inset, 88px))",
           }}
         >
           <div className="relative h-full w-full">
@@ -375,16 +380,27 @@ export default function HomeHeroTriCards() {
         </div>
       </section>
 
-      {/* MOBILE: stacked sin animación */}
+      {/* MOBILE: editorial full-bleed (Dior-style) — hero a pantalla completa
+          (100svh menos navbar) con entrada Ken Burns sutil en la imagen (GPU)
+          y fade-rise del texto; Academia/Cabina a lo ancho completo debajo,
+          con reveal escalonado (InView). Los gaps de 3px dejan ver el marfil
+          del fondo como hairlines entre cards. */}
       <section
         aria-label="Tienda, academia y servicios"
-        className="grid gap-3 px-4 py-4 md:hidden"
+        className="flex flex-col gap-[3px] md:hidden"
       >
-        <CardBlock card={CENTER} hero className="h-[55vh]" />
-        <div className="grid grid-cols-2 gap-3">
-          <CardBlock card={LEFT} compact className="h-[40vh]" />
-          <CardBlock card={RIGHT} compact className="h-[40vh]" />
-        </div>
+        <CardBlock
+          card={CENTER}
+          hero
+          entrance
+          className="h-[calc(100svh-var(--navbar-mobile-h,64px))]"
+        />
+        <InView>
+          <CardBlock card={LEFT} compact className="h-[60svh]" />
+        </InView>
+        <InView delay={0.1}>
+          <CardBlock card={RIGHT} compact className="h-[60svh]" />
+        </InView>
       </section>
     </>
   )
@@ -394,6 +410,10 @@ function CardBlock({
   card,
   hero = false,
   compact = false,
+  // entrance: animación de entrada única (mobile hero) — Ken Burns sutil en
+  // la imagen + fade-rise del texto (clases lc-* en globals.css). Solo
+  // transform/opacity, GPU; nunca scale en texto.
+  entrance = false,
   style,
   className = "",
   titleStyle,
@@ -405,6 +425,7 @@ function CardBlock({
   card: Card
   hero?: boolean
   compact?: boolean
+  entrance?: boolean
   style?: React.CSSProperties
   className?: string
   titleStyle?: React.CSSProperties
@@ -425,7 +446,7 @@ function CardBlock({
         src={card.image}
         alt={card.alt}
         fill
-        sizes={hero ? "(min-width: 768px) 95vw, 100vw" : "(min-width: 768px) 31vw, 50vw"}
+        sizes={hero ? "(min-width: 768px) 95vw, 100vw" : "(min-width: 768px) 31vw, 100vw"}
         // En hero NO aplicamos hover-scale: el hover dispara/cancela una
         // transition de scale 1200ms en paralelo a la animación de width/left
         // del padre — son dos animaciones peleando por el mismo frame y eso
@@ -433,7 +454,7 @@ function CardBlock({
         // laterales mantienen el hover scale (no animan width).
         className={
           hero
-            ? "object-cover"
+            ? `object-cover${entrance ? " lc-hero-kenburns" : ""}`
             : "object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
         }
         priority={priority}
@@ -443,7 +464,10 @@ function CardBlock({
 
       {hero && !hideHeroText && (
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
-          <div style={titleStyle} className="flex flex-col items-center">
+          <div
+            style={titleStyle}
+            className={`flex flex-col items-center${entrance ? " lc-hero-text-rise" : ""}`}
+          >
             <span className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white/90">
               {card.eyebrow}
             </span>
@@ -460,12 +484,23 @@ function CardBlock({
         </div>
       )}
 
+      {/* Hint de scroll del hero mobile (el desktop tiene el suyo propio,
+          ligado al estado expanded de la sección sticky). */}
+      {hero && entrance && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-white/80"
+        >
+          <span className="inline-block animate-pulse">↓ Desliza</span>
+        </div>
+      )}
+
       {compact && (
-        <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
+        <div className="absolute inset-0 flex flex-col justify-end p-7 text-white md:p-6">
           <span className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white/80">
             {card.eyebrow}
           </span>
-          <h3 className="font-display text-2xl font-normal leading-tight md:text-3xl">
+          <h3 className="font-display text-3xl font-normal leading-tight md:text-3xl">
             {card.title}
           </h3>
           <span className="mt-3 inline-flex w-fit items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">
