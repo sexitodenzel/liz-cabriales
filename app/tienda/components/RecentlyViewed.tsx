@@ -122,19 +122,17 @@ export default function RecentlyViewed({ current }: Props) {
                 </Link>
               </TiltCard>
               <div className="pt-2">
-                <div className="flex items-end justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-900 sm:text-xs sm:tracking-[0.18em]">
-                      {brand}
-                    </p>
-                    <h3 className="mt-0.5 line-clamp-2 min-h-[2lh] text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
-                      <Link href={`/tienda/${item.slug}`}>{item.name}</Link>
-                    </h3>
-                    <p className="mt-1 text-sm font-semibold text-[#C9A84C] sm:text-base">
-                      {formatPrice(item.base_price)}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-center gap-1.5">
+                <h3 className="line-clamp-2 text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
+                  <Link href={`/tienda/${item.slug}`}>{item.name}</Link>
+                </h3>
+                <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-500 sm:text-xs sm:tracking-[0.18em]">
+                  {brand}
+                </p>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-[#C9A84C] sm:text-base">
+                    {formatPrice(item.base_price)}
+                  </p>
+                  <div className="flex shrink-0 items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => toggle(item.slug)}

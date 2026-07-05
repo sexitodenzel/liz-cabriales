@@ -201,14 +201,14 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-2.5 sm:gap-3 md:gap-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-900 sm:text-xs sm:tracking-[0.18em]">
-                {brand}
-              </p>
-              <h3 className="mt-1 line-clamp-2 text-sm font-medium leading-snug text-[#0a0a0a] [min-height:2lh] sm:text-base md:text-lg">
+              <h3 className="line-clamp-2 text-sm font-medium leading-snug text-[#0a0a0a] sm:text-base md:text-lg">
                 <Link href={`/tienda/${product.slug}`} className="hover:text-[#a8862f]">
                   {product.name}
                 </Link>
               </h3>
+              <p className="mt-1 truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-500 sm:text-xs sm:tracking-[0.18em]">
+                {brand}
+              </p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
               <button
@@ -413,17 +413,15 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
       </TiltCard>
 
       <div className="pt-2">
-        <div className="flex items-end justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-900 sm:text-xs sm:tracking-[0.18em]">
-              {brand}
-            </p>
-            <h3 className="mt-0.5 line-clamp-2 min-h-[2lh] text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
-              {product.name}
-            </h3>
-            <div className="mt-1">{priceBlock}</div>
-          </div>
-          <div className="flex shrink-0 flex-col items-center gap-1.5">
+        <h3 className="line-clamp-2 text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
+          {product.name}
+        </h3>
+        <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-500 sm:text-xs sm:tracking-[0.18em]">
+          {brand}
+        </p>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <div className="min-w-0">{priceBlock}</div>
+          <div className="flex shrink-0 items-center gap-1.5">
             {heartButton}
             {iconActionButton}
           </div>
