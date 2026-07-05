@@ -3,10 +3,12 @@ import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
 import { getCourseById, getInstructors, getCourseGallery } from "@/lib/supabase/courses"
+import { getAllCourseReviews } from "@/lib/supabase/course-reviews"
 
 import CourseForm, {
   type CourseFormInitialValues,
 } from "../../components/CourseForm"
+import CourseReviewsModeration from "../../components/CourseReviewsModeration"
 
 export const dynamic = "force-dynamic"
 
@@ -31,10 +33,11 @@ export default async function EditCoursePage({ params }: Props) {
 
   if (profile?.role !== "admin") redirect("/login")
 
-  const [courseRes, instructorsRes, galleryRes] = await Promise.all([
+  const [courseRes, instructorsRes, galleryRes, reviewsRes] = await Promise.all([
     getCourseById(id),
     getInstructors(),
     getCourseGallery(id),
+    getAllCourseReviews(id),
   ])
 
   if (!courseRes.data) {
@@ -74,13 +77,16 @@ export default async function EditCoursePage({ params }: Props) {
   }
 
   return (
-    <CourseForm
-      mode="edit"
-      courseId={c.id}
-      instructors={instructorsRes.data ?? []}
-      initialValues={initialValues}
-      initialImages={c.images}
-      initialGallery={galleryRes.data ?? []}
-    />
+    <>
+      <CourseForm
+        mode="edit"
+        courseId={c.id}
+        instructors={instructorsRes.data ?? []}
+        initialValues={initialValues}
+        initialImages={c.images}
+        initialGallery={galleryRes.data ?? []}
+      />
+      <CourseReviewsModeration initialReviews={reviewsRes.data ?? []} />
+    </>
   )
 }

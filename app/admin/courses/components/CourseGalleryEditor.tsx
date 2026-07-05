@@ -10,6 +10,7 @@ export type LocalGalleryItem = {
   url: string
   thumbnail_url: string | null
   caption: string
+  is_cover: boolean
 }
 
 function ytThumb(url: string): string | null {
@@ -35,6 +36,7 @@ export function toLocalGalleryItems(raw: CourseGalleryItem[]): LocalGalleryItem[
     url: item.url,
     thumbnail_url: item.thumbnail_url,
     caption: item.caption ?? "",
+    is_cover: Boolean(item.is_cover),
   }))
 }
 
@@ -50,7 +52,14 @@ export default function CourseGalleryEditor({ items, onChange, onError }: Props)
   function addImage(url: string) {
     onChange([
       ...items,
-      { tempId: uid(), type: "image", url, thumbnail_url: null, caption: "" },
+      {
+        tempId: uid(),
+        type: "image",
+        url,
+        thumbnail_url: null,
+        caption: "",
+        is_cover: false,
+      },
     ])
   }
 
@@ -69,6 +78,7 @@ export default function CourseGalleryEditor({ items, onChange, onError }: Props)
         url,
         thumbnail_url: ytThumb(url),
         caption: "",
+        is_cover: false,
       },
     ])
     setVideoUrl("")
@@ -80,6 +90,15 @@ export default function CourseGalleryEditor({ items, onChange, onError }: Props)
 
   function updateCaption(tempId: string, caption: string) {
     onChange(items.map((i) => (i.tempId === tempId ? { ...i, caption } : i)))
+  }
+
+  function setGalleryCover(tempId: string) {
+    onChange(
+      items.map((i) => ({
+        ...i,
+        is_cover: i.tempId === tempId ? !i.is_cover : false,
+      }))
+    )
   }
 
   const labelCls =
@@ -136,6 +155,29 @@ export default function CourseGalleryEditor({ items, onChange, onError }: Props)
                   >
                     {item.type === "image" ? "Imagen" : "Video"}
                   </span>
+                  {item.type === "image" && (
+                    <button
+                      type="button"
+                      onClick={() => setGalleryCover(item.tempId)}
+                      title="La foto que representa al curso en la galería de eventos"
+                      className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                        item.is_cover
+                          ? "bg-[#c9a84c] text-white"
+                          : "bg-white text-[#9a9a9a] ring-1 ring-inset ring-[#ececec] hover:text-[#a8893a] hover:ring-[#c9a84c]"
+                      }`}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill={item.is_cover ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="h-3 w-3"
+                      >
+                        <path d="M12 2.5l2.95 6.06 6.68.92-4.87 4.67 1.2 6.63L12 17.6l-5.96 3.18 1.2-6.63-4.87-4.67 6.68-.92L12 2.5z" />
+                      </svg>
+                      {item.is_cover ? "Portada de galería" : "Usar en galería"}
+                    </button>
+                  )}
                   {item.type === "video" && (
                     <span className="truncate text-[11px] text-[#9a9a9a]">
                       {item.url}

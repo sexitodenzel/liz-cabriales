@@ -1,12 +1,15 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 
 export type EventGalleryItem = {
   id: string
   url: string
   caption: string | null
   date?: string
+  /** Si la foto pertenece a un curso, navega a su página en vez de abrir lightbox */
+  href?: string
 }
 
 type Lightbox = { url: string; caption: string | null; idx: number } | null
@@ -223,18 +226,9 @@ export default function EventsGallery({
         )}
 
         <div className="columns-1 gap-3 sm:columns-2 lg:columns-3 [&>*]:mb-3">
-          {visibleItems.map((item, idx) => (
-            <div key={item.id} className="break-inside-avoid">
-              <button
-                className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
-                onClick={() =>
-                  setLightbox({
-                    url: item.url,
-                    caption: item.caption,
-                    idx: indexMap.get(item.id) ?? idx,
-                  })
-                }
-              >
+          {visibleItems.map((item, idx) => {
+            const media = (
+              <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.url}
@@ -253,13 +247,44 @@ export default function EventsGallery({
                     {item.caption && (
                       <p className="mt-1 text-[13px] leading-snug text-white">{item.caption}</p>
                     )}
+                    {item.href && (
+                      <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c9a84c]">
+                        Ver curso →
+                      </p>
+                    )}
                   </div>
                 )}
 
                 <div className="absolute left-0 top-0 h-0.5 w-0 bg-[#c9a84c] transition-all duration-500 group-hover:w-full" />
-              </button>
-            </div>
-          ))}
+              </>
+            )
+
+            return (
+              <div key={item.id} className="break-inside-avoid">
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className="group relative block w-full overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
+                  >
+                    {media}
+                  </Link>
+                ) : (
+                  <button
+                    className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
+                    onClick={() =>
+                      setLightbox({
+                        url: item.url,
+                        caption: item.caption,
+                        idx: indexMap.get(item.id) ?? idx,
+                      })
+                    }
+                  >
+                    {media}
+                  </button>
+                )}
+              </div>
+            )
+          })}
         </div>
       </section>
 

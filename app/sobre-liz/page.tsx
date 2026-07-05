@@ -7,7 +7,10 @@ import SobreLizStats from "./components/SobreLizStats"
 import TestimonialsCarousel, { type Testimonial } from "./components/TestimonialsCarousel"
 import { resolveSobreLizBrandPhoto } from "@/lib/sobre-liz/brand-photo"
 import { getLandingPageDataCached } from "@/lib/supabase/landing-slots"
-import { getEventsGallery } from "@/lib/supabase/events-gallery"
+import {
+  getEventsGallery,
+  getPastCoursesForGallery,
+} from "@/lib/supabase/events-gallery"
 
 export const metadata: Metadata = {
   title: "Sobre Liz Cabriales | Academia y Distribuidora",
@@ -188,27 +191,38 @@ const TESTIMONIALS: Testimonial[] = [
   },
 ]
 
-function mapEventRows(
-  rows: { id: string; image_url: string; caption: string | null; event_date: string | null }[]
-): EventGalleryItem[] {
-  return rows.map((row) => {
-    const year = row.event_date?.match(/\b(20\d{2})\b/)?.[1]
-    return {
+export default async function SobreLizPage() {
+  const [{ slots }, eventRows, pastCoursesData] = await Promise.all([
+    getLandingPageDataCached(),
+    getEventsGallery(),
+    getPastCoursesForGallery(),
+  ])
+  const heroPhoto = resolveSobreLizBrandPhoto(slots.brand_photo)
+
+  // Fotos de cursos pasados: navegan directo a la página del curso.
+  const courseItems: EventGalleryItem[] = pastCoursesData.courses.map((course) => ({
+    id: `course-${course.id}`,
+    url: course.cover_image,
+    caption: course.title,
+    date: course.start_date.slice(0, 4),
+    href: `/academia/${course.id}`,
+  }))
+
+  // Fotos sueltas de liz_events que no pertenecen a ningún curso.
+  const courseUrls = new Set(pastCoursesData.knownUrls)
+  const extraItems: EventGalleryItem[] = eventRows
+    .filter((row) => !courseUrls.has(row.image_url))
+    .map((row) => ({
       id: row.id,
       url: row.image_url,
       caption: row.caption,
-      date: year ?? undefined,
-    }
-  })
-}
+      date: row.event_date?.match(/\b(20\d{2})\b/)?.[1],
+    }))
 
-export default async function SobreLizPage() {
-  const [{ slots }, eventRows] = await Promise.all([
-    getLandingPageDataCached(),
-    getEventsGallery(),
-  ])
-  const heroPhoto = resolveSobreLizBrandPhoto(slots.brand_photo)
-  const galleryItems = eventRows.length > 0 ? mapEventRows(eventRows) : EVENT_GALLERY
+  const dbItems = [...courseItems, ...extraItems].sort((a, b) =>
+    (b.date ?? "").localeCompare(a.date ?? "")
+  )
+  const galleryItems = dbItems.length > 0 ? dbItems : EVENT_GALLERY
 
   return (
     <main id="sobre-liz" className="min-h-screen bg-white text-black">

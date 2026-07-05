@@ -202,6 +202,7 @@ export default function CourseForm({
                 thumbnail_url: item.thumbnail_url,
                 caption: item.caption || null,
                 position: i,
+                is_cover: item.is_cover,
               })),
             }),
           }),

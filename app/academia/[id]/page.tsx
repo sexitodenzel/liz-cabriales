@@ -6,9 +6,15 @@ import {
   getUserRegistrations,
   getCourseGallery,
 } from "@/lib/supabase/courses"
+import {
+  getCourseReviews,
+  getReviewEligibility,
+  type ReviewEligibility,
+} from "@/lib/supabase/course-reviews"
 import { getMinDeposit } from "@/lib/utils"
 
 import CourseDetail from "./CourseDetail"
+import CourseReviews from "./CourseReviews"
 
 export const dynamic = "force-dynamic"
 
@@ -78,6 +84,20 @@ export default async function AcademiaDetallePage({ params }: Props) {
     }
   }
 
+  let reviews = { reviews: [], summary: { average: 0, count: 0 } } as Awaited<
+    ReturnType<typeof getCourseReviews>
+  >
+  let eligibility: ReviewEligibility = { canReview: false, ownReview: null }
+
+  if (isPast) {
+    ;[reviews, eligibility] = await Promise.all([
+      getCourseReviews(course.id),
+      user
+        ? getReviewEligibility(course.id, user.id)
+        : Promise.resolve<ReviewEligibility>({ canReview: false, ownReview: null }),
+    ])
+  }
+
   return (
     <main className="min-h-screen bg-white text-[#1a1a1a]">
       <CourseDetail
@@ -89,6 +109,17 @@ export default async function AcademiaDetallePage({ params }: Props) {
         minDeposit={minDeposit}
         gallery={galleryRes.data ?? []}
       />
+      {isPast && (
+        <div className="site-container">
+          <CourseReviews
+            courseId={course.id}
+            initialReviews={reviews.reviews}
+            initialSummary={reviews.summary}
+            canReview={eligibility.canReview}
+            ownReview={eligibility.ownReview}
+          />
+        </div>
+      )}
     </main>
   )
 }

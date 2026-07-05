@@ -45,6 +45,92 @@ function mapRow(row: unknown): LizEventRow {
   }
 }
 
+export type PastCourseGalleryRow = {
+  id: string
+  title: string
+  description: string
+  cover_image: string
+  start_date: string
+}
+
+type RawGalleryEmbed = {
+  url: string
+  type: string
+  position: number
+  is_cover?: boolean
+}
+
+type RawPastCourseRow = {
+  id: string
+  title: string
+  description: string
+  cover_image: string | null
+  start_date: string
+  course_gallery: RawGalleryEmbed[] | null
+}
+
+/**
+ * Foto que representa al curso en la galería de eventos:
+ * 1) imagen de su galería marcada como portada de galería (is_cover),
+ * 2) primera imagen de su galería,
+ * 3) portada del curso (cover_image, normalmente el flyer).
+ */
+function pickGalleryPhoto(row: RawPastCourseRow): string | null {
+  const images = (row.course_gallery ?? [])
+    .filter((g) => g.type === "image")
+    .sort((a, b) => a.position - b.position)
+  const marked = images.find((g) => g.is_cover)
+  return marked?.url ?? images[0]?.url ?? row.cover_image ?? null
+}
+
+export type PastCoursesGalleryData = {
+  courses: PastCourseGalleryRow[]
+  /** URLs de todas las fotos ligadas a cursos, para deduplicar liz_events */
+  knownUrls: string[]
+}
+
+/**
+ * Cursos pasados publicados con foto — la fuente principal de la galería de
+ * eventos. La foto lleva directo a la página del curso (/academia/[id]).
+ */
+export const getPastCoursesForGallery = unstable_cache(
+  async (): Promise<PastCoursesGalleryData> => {
+    const today = new Date().toISOString().slice(0, 10)
+    // course_gallery(*) tolera que is_cover aún no exista en la tabla
+    const { data, error } = await db()
+      .from("courses")
+      .select(
+        "id, title, description, cover_image, start_date, course_gallery ( * )"
+      )
+      .eq("is_published", true)
+      .lt("start_date", today)
+      .order("start_date", { ascending: false })
+
+    if (error) return { courses: [], knownUrls: [] }
+
+    const courses: PastCourseGalleryRow[] = []
+    const knownUrls = new Set<string>()
+    for (const raw of (data ?? []) as unknown as RawPastCourseRow[]) {
+      if (raw.cover_image) knownUrls.add(raw.cover_image)
+      for (const g of raw.course_gallery ?? []) {
+        if (g.type === "image") knownUrls.add(g.url)
+      }
+      const photo = pickGalleryPhoto(raw)
+      if (!photo) continue
+      courses.push({
+        id: raw.id,
+        title: raw.title,
+        description: raw.description,
+        cover_image: photo,
+        start_date: raw.start_date,
+      })
+    }
+    return { courses, knownUrls: Array.from(knownUrls) }
+  },
+  ["past-courses-gallery"],
+  { revalidate: 300, tags: ["courses", "liz-events"] }
+)
+
 /** Galería pública para /sobre-liz. Degrada a vacío si la tabla no existe. */
 export const getEventsGallery = unstable_cache(
   async (): Promise<LizEventRow[]> => {

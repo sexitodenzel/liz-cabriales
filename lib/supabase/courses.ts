@@ -71,6 +71,7 @@ export type CourseGalleryItem = {
   thumbnail_url: string | null
   caption: string | null
   position: number
+  is_cover: boolean
   created_at: string
 }
 
@@ -268,9 +269,10 @@ const COURSE_COLUMNS = `
 export async function getCourseGallery(
   courseId: string
 ): Promise<Result<CourseGalleryItem[]>> {
+  // select("*") para tolerar que is_cover aún no exista en la tabla
   const { data, error } = await supabaseAdmin
     .from("course_gallery")
-    .select("id, course_id, type, url, thumbnail_url, caption, position, created_at")
+    .select("*")
     .eq("course_id", courseId)
     .order("position", { ascending: true })
 
@@ -278,7 +280,11 @@ export async function getCourseGallery(
     return { data: null, error: { message: error.message, code: error.code } }
   }
 
-  return { data: (data ?? []) as CourseGalleryItem[], error: null }
+  const items = (data ?? []).map((raw) => ({
+    ...(raw as CourseGalleryItem),
+    is_cover: Boolean((raw as { is_cover?: boolean }).is_cover),
+  }))
+  return { data: items, error: null }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────

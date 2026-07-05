@@ -15,6 +15,7 @@ type GalleryInput = {
   thumbnail_url?: string | null
   caption?: string | null
   position: number
+  is_cover?: boolean
 }
 
 async function assertAdmin() {
@@ -41,7 +42,7 @@ export async function GET(
     const { id } = await params
     const { data, error } = await supabaseAdmin
       .from("course_gallery")
-      .select("id, course_id, type, url, thumbnail_url, caption, position, created_at")
+      .select("*")
       .eq("course_id", id)
       .order("position", { ascending: true })
 
@@ -102,6 +103,10 @@ export async function PUT(
     }
 
     if (items.length > 0) {
+      // Solo una foto puede ser portada de galería (la primera marcada gana)
+      const coverIdx = items.findIndex(
+        (item) => item.type === "image" && item.is_cover
+      )
       const rows = items.map((item, i) => ({
         course_id: id,
         type: item.type,
@@ -109,10 +114,20 @@ export async function PUT(
         thumbnail_url: item.thumbnail_url ?? null,
         caption: item.caption || null,
         position: i,
+        is_cover: i === coverIdx,
       }))
-      const { error: insertError } = await supabaseAdmin
+      let { error: insertError } = await supabaseAdmin
         .from("course_gallery")
         .insert(rows)
+
+      // Si la columna is_cover aún no existe, reintenta sin ella para no
+      // perder la galería (el delete de arriba ya se ejecutó).
+      if (insertError && /is_cover/.test(insertError.message)) {
+        const legacyRows = rows.map(({ is_cover: _isCover, ...rest }) => rest)
+        ;({ error: insertError } = await supabaseAdmin
+          .from("course_gallery")
+          .insert(legacyRows))
+      }
 
       if (insertError) {
         return NextResponse.json(
