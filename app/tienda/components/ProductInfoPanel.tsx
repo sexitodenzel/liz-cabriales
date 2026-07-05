@@ -151,13 +151,13 @@ export default function ProductInfoPanel({
           onClick={() => wishlist.toggle(product.slug)}
           aria-label={isFavorited ? "Quitar de favoritos" : "Agregar a favoritos"}
           aria-pressed={isFavorited}
-          className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-neutral-700 transition-colors hover:text-rose-500"
+          className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-neutral-700 transition-colors hover:text-[#0a0a0a]"
         >
           <Heart
             className="h-5 w-5"
             strokeWidth={1.5}
             fill={isFavorited ? "currentColor" : "none"}
-            style={isFavorited ? { color: "#e11d48" } : undefined}
+            style={isFavorited ? { color: "#0a0a0a" } : undefined}
           />
         </button>
       </div>

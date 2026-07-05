@@ -97,7 +97,7 @@ export default function ProductFilterSortBar({
   return (
     <>
       <div
-        className={`navbar-follow-collapse sticky top-[var(--navbar-actual-h)] z-20 -mx-[var(--site-px)] bg-white px-[var(--site-px)] py-1.5 transition-opacity duration-200 ${
+        className={`navbar-follow-collapse sticky top-[var(--navbar-actual-h)] z-20 -mx-[var(--site-px)] bg-ivory px-[var(--site-px)] py-1.5 transition-opacity duration-200 ${
           isCartOpen ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >

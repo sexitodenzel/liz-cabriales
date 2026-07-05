@@ -16,7 +16,7 @@ export default async function NewProductsPage() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-white text-[#0a0a0a]">
+      <main className="min-h-screen bg-ivory text-[#0a0a0a]">
         <div className="site-container pt-5 pb-12">
           <h1 className="text-2xl font-semibold">
             <span className="text-[#c9a84c]">Nuevos</span>{" "}
@@ -33,7 +33,7 @@ export default async function NewProductsPage() {
   const newestProducts = (products ?? []) as ProductWithCategory[]
 
   return (
-    <main className="min-h-screen bg-white text-[#0a0a0a]">
+    <main className="min-h-screen bg-ivory text-[#0a0a0a]">
       <div className="site-container pt-5 pb-12">
         <Breadcrumb
           items={[

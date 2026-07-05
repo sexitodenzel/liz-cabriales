@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: PageProps) {
   const hasCourseToday = courseSlot != null
 
   return (
-    <main className="min-h-screen bg-white text-[#0a0a0a]">
+    <main className="min-h-screen bg-ivory text-[#0a0a0a]">
       <div className="site-container pt-5 pb-12">
         <div className="mx-auto w-full max-w-[1200px]">
         {/* <Breadcrumb
