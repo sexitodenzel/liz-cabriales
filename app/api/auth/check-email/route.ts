@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
 import { authEmailSchema } from "@/lib/validations/auth"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 type ApiError = { message: string; code?: string }
 type ApiResponse = { data: { exists: boolean }; error: null } | { data: null; error: ApiError }
@@ -11,7 +12,29 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Frena la enumeración de correos: un usuario legítimo hace 1-2 checks al
+// entrar al login; 10/min por IP deja margen para NAT compartido.
+const RATE_LIMIT_PER_MINUTE = 10
+
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+  const rate = checkRateLimit(
+    `check-email:${getClientIp(request)}`,
+    RATE_LIMIT_PER_MINUTE,
+    60_000
+  )
+  if (!rate.allowed) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: {
+          message: "Demasiados intentos. Espera un momento e intenta de nuevo.",
+          code: "RATE_LIMITED",
+        },
+      },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } }
+    )
+  }
+
   let json: unknown
   try {
     json = await request.json()

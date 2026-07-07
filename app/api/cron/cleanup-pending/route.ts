@@ -8,8 +8,8 @@ import { paymentDeadlineThresholdIso } from "@/lib/appointmentPaymentPolicy"
  * Cron de limpieza: cancela órdenes, citas e inscripciones que llevan
  * demasiado tiempo en estado `pending` (usuario abandonó sin pagar).
  *
- * Llamar con header `Authorization: Bearer <CRON_SECRET>` o con
- * query param `?secret=<CRON_SECRET>`.
+ * Llamar con header `Authorization: Bearer <CRON_SECRET>`.
+ * (No se acepta por query param: los query params quedan en logs.)
  *
  * Recomendado: correr cada 30 min - 1 hora.
  *
@@ -43,8 +43,7 @@ function isAuthorized(request: NextRequest): boolean {
   const headerToken = header.toLowerCase().startsWith("bearer ")
     ? header.slice(7).trim()
     : null
-  const queryToken = request.nextUrl.searchParams.get("secret")
-  return headerToken === secret || queryToken === secret
+  return headerToken === secret
 }
 
 export async function GET(

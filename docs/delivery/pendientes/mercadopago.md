@@ -27,6 +27,21 @@
 
 ---
 
+## ⚠️ Cambio de seguridad (auditoría 2026-07-05)
+
+Desde la auditoría, **el webhook exige la firma en producción**: si
+`MERCADOPAGO_WEBHOOK_SECRET` NO está configurada en Vercel (producción), el
+webhook responde 200 pero **no procesa el pago** (loggea un error), para no
+acreditar cobros sin verificar firma. Consecuencia práctica: **si falta esa var,
+los pagos no se marcan como `paid` automáticamente.**
+
+- [ ] **Verificar que `MERCADOPAGO_WEBHOOK_SECRET` exista en Vercel → producción.**
+  Es el primer paso a revisar si un pago se aprueba en MP pero la orden queda `pending`.
+
+Ver `docs/tech/security-audit-2026-07-05.md` (hallazgo #3).
+
+---
+
 ## Prueba de aceptación (E2E)
 
 - [ ] Realizar un pago real o de QA desde el checkout.

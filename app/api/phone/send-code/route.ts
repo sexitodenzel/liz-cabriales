@@ -47,9 +47,10 @@ export async function POST(
 
     const result = await sendPhoneOtp(user.id, parseResult.data.phone)
     if (result.error) {
+      const status = result.error.code === "RATE_LIMITED" ? 429 : 500
       return NextResponse.json(
         { data: null, error: result.error },
-        { status: 500 }
+        { status }
       )
     }
 

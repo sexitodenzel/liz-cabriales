@@ -75,7 +75,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       )
     }
 
-    const ext = file.name.split(".").pop() ?? "bin"
+    const rawExt = file.name.split(".").pop() ?? ""
+    const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || "bin"
     const storagePath = `constancia/${orderId}/${Date.now()}.${ext}`
     const arrayBuffer = await file.arrayBuffer()
 

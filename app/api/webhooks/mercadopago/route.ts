@@ -1,4 +1,4 @@
-import { createHmac } from "crypto"
+import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { MercadoPagoConfig, Payment } from "mercadopago"
 
@@ -128,7 +128,12 @@ function verifyWebhookSignature(
   const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`
   const computed = createHmac("sha256", secret).update(manifest).digest("hex")
 
-  return computed === v1
+  const computedBuf = Buffer.from(computed)
+  const receivedBuf = Buffer.from(v1)
+  return (
+    computedBuf.length === receivedBuf.length &&
+    timingSafeEqual(computedBuf, receivedBuf)
+  )
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -149,6 +154,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const signature = request.headers.get("x-signature")
     const requestId = request.headers.get("x-request-id")
     const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET
+
+    // En producción la firma es obligatoria: sin secret configurado no se
+    // procesa nada (retornamos 200 para que MP no reintente, pero se loggea
+    // fuerte porque significa que los pagos no se están acreditando).
+    if (!webhookSecret && process.env.NODE_ENV === "production") {
+      console.error(
+        "[webhook] MERCADOPAGO_WEBHOOK_SECRET no está configurada en producción. " +
+        "Webhook ignorado; configúrala en Vercel con la clave del dashboard de MP."
+      )
+      return NextResponse.json({ received: true }, { status: 200 })
+    }
 
     // Verificar firma si el secret está configurado
     if (webhookSecret) {

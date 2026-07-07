@@ -47,9 +47,14 @@ export async function POST(
 
     const result = await verifyPhoneOtp(user.id, parseResult.data.code)
     if (result.error) {
-      const status = result.error.code === "INVALID_CODE" || result.error.code === "CODE_EXPIRED"
-        ? 400
-        : 500
+      const status =
+        result.error.code === "TOO_MANY_ATTEMPTS"
+          ? 429
+          : result.error.code === "INVALID_CODE" ||
+              result.error.code === "CODE_EXPIRED" ||
+              result.error.code === "NO_CODE"
+            ? 400
+            : 500
       return NextResponse.json({ data: null, error: result.error }, { status })
     }
 
