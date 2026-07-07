@@ -484,6 +484,8 @@ export default function ProductGrid({
                 : "flex flex-col"
             }
           >
+            {/* sr-only: evita el salto h1→h3 (los nombres de producto son h3) */}
+            <h2 className="sr-only">Productos</h2>
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}

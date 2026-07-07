@@ -256,12 +256,12 @@ function CourseCard({ course }: { course: CourseWithStats }) {
 
       {/* Card body */}
       <div className="flex flex-1 flex-col gap-2.5 px-5 py-[18px]">
-        <h3
+        <h2
           className="text-[19px] font-medium leading-snug text-[#1a1a1a]"
           style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
         >
           {course.title}
-        </h3>
+        </h2>
         <p className="line-clamp-3 flex-1 text-[13px] leading-relaxed text-[#6b6b6b]">
           {course.description}
         </p>

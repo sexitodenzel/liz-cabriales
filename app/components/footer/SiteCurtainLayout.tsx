@@ -29,12 +29,12 @@ export default function SiteCurtainLayout({
   const prefersReducedMotion = usePrefersReducedMotion()
 
   if (pathname.startsWith("/admin")) {
-    return <div className="flex flex-1 flex-col">{children}</div>
+    return <div id="main-content" className="flex flex-1 flex-col">{children}</div>
   }
 
   if (prefersReducedMotion) {
     return (
-      <div className="flex flex-1 flex-col">
+      <div id="main-content" className="flex flex-1 flex-col">
         {children}
         <FooterStage static />
       </div>
@@ -47,7 +47,7 @@ export default function SiteCurtainLayout({
         id="site-curtain"
         className="relative z-[1] flex flex-1 flex-col"
       >
-        <div className="flex flex-1 flex-col bg-white">{children}</div>
+        <div id="main-content" className="flex flex-1 flex-col bg-white">{children}</div>
         <CurtainFooterSpacer />
       </div>
       <FooterStage />

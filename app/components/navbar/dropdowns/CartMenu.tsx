@@ -168,7 +168,7 @@ function SuggestionCard({
         </p>
       </div>
 
-      <p className="mt-1 text-[11px] font-semibold text-[#c9a84c]">{priceLabel}</p>
+      <p className="mt-1 text-[11px] font-semibold text-gold">{priceLabel}</p>
       <button
         type="button"
         onClick={() => void onAdd()}
@@ -395,6 +395,7 @@ export default function CartMenu() {
                       <div className="flex items-center rounded-full border border-neutral-300">
                         <button
                           type="button"
+                          aria-label={`Reducir cantidad de ${item.name}`}
                           onClick={() =>
                             updateQuantity(item.id, Math.max(1, item.qty - 1))
                           }
@@ -407,6 +408,7 @@ export default function CartMenu() {
                         </span>
                         <button
                           type="button"
+                          aria-label={`Aumentar cantidad de ${item.name}`}
                           onClick={() => updateQuantity(item.id, item.qty + 1)}
                           className="flex h-7 w-7 items-center justify-center rounded-full text-[14px] transition-colors hover:bg-neutral-100"
                         >
@@ -417,7 +419,7 @@ export default function CartMenu() {
                   </div>
 
                   <div className="flex shrink-0 flex-col items-end justify-between self-start">
-                    <p className="text-[13px] font-semibold tabular-nums text-[#c9a84c]">
+                    <p className="text-[13px] font-semibold tabular-nums text-gold">
                       {formatMXN(item.price * item.qty)}
                     </p>
                     <button

@@ -987,15 +987,15 @@ export default function ServiciosClient({
                             onClick={() => handleServiceCardClick(s)}
                             className="min-w-0 flex-1 text-left"
                           >
-                            <h3
+                            <h2
                               className={`font-[family-name:var(--font-playfair),serif] text-lg md:text-xl ${
                                 selected
-                                  ? "text-[#c9a84c]"
-                                  : "text-[#111] group-hover:text-[#c9a84c]"
+                                  ? "text-gold"
+                                  : "text-[#111] group-hover:text-gold"
                               }`}
                             >
                               {s.name}
-                            </h3>
+                            </h2>
                             <p className="mt-1 text-[11px] uppercase tracking-[0.1em] text-neutral-500">
                               {formatDuration(s.duration_min)}
                               {hasSubOptions && (

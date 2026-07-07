@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 
 const INSTAGRAM_URL = "https://www.instagram.com/liz_cabriales/"
@@ -37,6 +37,27 @@ const PLACEHOLDER_POSTS: InstagramPost[] = [
   media_type: "IMAGE" as const,
   timestamp: "",
 }))
+
+function useInView<T extends HTMLElement = HTMLElement>(threshold = 0.12) {
+  const ref = useRef<T>(null)
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true)
+          io.disconnect()
+        }
+      },
+      { threshold }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [threshold])
+  return { ref, inView }
+}
 
 function VideoIcon() {
   return (
@@ -83,7 +104,8 @@ function PostCard({ post }: { post: InstagramPost }) {
         </span>
       )}
 
-      <div className="absolute inset-0 bg-black/55 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100" />
+      {/* Velo inferior: deja respirar la foto en vez de apagarla completa */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100" />
 
       {post.caption && (
         <div className="absolute bottom-0 left-0 right-0 z-10 translate-y-2 p-5 text-white opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100">
@@ -108,6 +130,7 @@ function PostSkeleton() {
 export default function InstagramFeed() {
   const [posts, setPosts] = useState<InstagramPost[]>([])
   const [loading, setLoading] = useState(true)
+  const { ref, inView } = useInView<HTMLElement>(0.08)
 
   useEffect(() => {
     fetch("/api/instagram")
@@ -124,9 +147,15 @@ export default function InstagramFeed() {
   const items = !loading && posts.length === 0 ? PLACEHOLDER_POSTS : posts
 
   return (
-    <section className="site-container pb-24 pt-12 text-ink" aria-labelledby="home-instagram-title">
+    <section
+      ref={ref}
+      className="site-container pb-24 pt-14 text-ink md:pt-20"
+      aria-labelledby="home-instagram-title"
+    >
       {/* Eyebrow */}
-      <div className="mb-4 flex items-center justify-center gap-3">
+      <div
+        className={`mb-4 flex items-center justify-center gap-3 transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+      >
         <span className="block h-px w-12 bg-gold-soft" aria-hidden />
         <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gold">
           Academia Liz Cabriales
@@ -137,14 +166,18 @@ export default function InstagramFeed() {
       {/* Title */}
       <h2
         id="home-instagram-title"
-        className="text-center font-display text-[clamp(44px,6.5vw,88px)] font-medium leading-none tracking-[-0.02em] text-ink"
+        className={`text-center font-display text-[clamp(44px,6.5vw,88px)] font-medium leading-none tracking-[-0.02em] text-ink transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        style={{ transitionDelay: "80ms" }}
       >
         #lizcabriales
       </h2>
 
       {/* Subtext */}
-      <p className="mb-14 mt-3 text-center text-[15px] text-ink-soft">
-        Síguenos en{" "}
+      <p
+        className={`mb-12 mt-3 text-center text-[15px] text-ink-soft transition-all duration-700 ease-out md:mb-14 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        style={{ transitionDelay: "140ms" }}
+      >
+        El día a día de la academia y el estudio en{" "}
         <a
           href={INSTAGRAM_URL}
           target="_blank"
@@ -155,12 +188,24 @@ export default function InstagramFeed() {
         </a>
       </p>
 
-      {/* Grid + arrow */}
+      {/* Grid con ritmo editorial: las columnas pares bajan un paso en desktop */}
       <div className="relative">
-        <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4 md:gap-2">
           {loading
-            ? Array.from({ length: 4 }).map((_, i) => <PostSkeleton key={i} />)
-            : items.map((post) => <PostCard key={post.id} post={post} />)}
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className={i % 2 === 1 ? "md:mt-7" : undefined}>
+                  <PostSkeleton />
+                </div>
+              ))
+            : items.map((post, i) => (
+                <div
+                  key={post.id}
+                  className={`transition-all duration-700 ease-out ${i % 2 === 1 ? "md:mt-7" : ""} ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}
+                  style={{ transitionDelay: `${180 + i * 90}ms` }}
+                >
+                  <PostCard post={post} />
+                </div>
+              ))}
         </div>
 
         {!loading && (
@@ -184,6 +229,26 @@ export default function InstagramFeed() {
             </svg>
           </a>
         )}
+      </div>
+
+      {/* CTA visible en todos los tamaños (la flecha lateral solo existe en pantallas muy anchas) */}
+      <div
+        className={`mt-12 flex justify-center transition-all duration-700 ease-out md:mt-16 ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        style={{ transitionDelay: "320ms" }}
+      >
+        <a
+          href={INSTAGRAM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group inline-flex items-center justify-center gap-2 rounded-full border border-gold-soft/60 px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-gold transition-colors duration-300 hover:bg-gold-soft/10"
+        >
+          Ver más en Instagram
+          <span className="transition-transform duration-[280ms] ease-out group-hover:translate-x-1">
+            <svg width="15" height="10" viewBox="0 0 18 12" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+              <path d="M1 6 H16 M12 1.5 L16.5 6 L12 10.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        </a>
       </div>
     </section>
   )

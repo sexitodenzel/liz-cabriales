@@ -190,12 +190,17 @@ export default function MobileFilterSheet({
 
   useEffect(() => {
     if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", onKey)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = "hidden"
     return () => {
+      window.removeEventListener("keydown", onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [open])
+  }, [open, onClose])
 
   const toggleCategory = (slug: string) => {
     if (selectedCategories.includes(slug)) {
@@ -243,6 +248,9 @@ export default function MobileFilterSheet({
         role="dialog"
         aria-modal="true"
         aria-label="Filtros de productos"
+        // inert: cerrado sigue montado (por la transición); sin esto queda
+        // alcanzable por Tab y lectores de pantalla detrás del contenido.
+        inert={!open}
         className={`fixed bottom-0 left-6 right-6 z-[73] flex max-h-[92vh] flex-col rounded-t-[20px] bg-white shadow-2xl md:hidden transition-transform duration-300 ease-out ${
           open ? "translate-y-0" : "translate-y-full pointer-events-none"
         }`}

@@ -500,9 +500,9 @@ function CardBlock({
           <span className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white/80">
             {card.eyebrow}
           </span>
-          <h3 className="font-display text-3xl font-normal leading-tight md:text-3xl">
+          <h2 className="font-display text-3xl font-normal leading-tight md:text-3xl">
             {card.title}
-          </h3>
+          </h2>
           <span className="mt-3 inline-flex w-fit items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">
             {card.cta}
           </span>

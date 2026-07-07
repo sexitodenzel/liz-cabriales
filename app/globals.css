@@ -12,7 +12,8 @@
   --color-surface: #ffffff;
   --color-ink: #1c1a17;
   --color-ink-soft: #79736a;
-  --color-gold: #a8862f;
+  /* AA sobre marfil/blanco (4.7:1) y con blanco encima (4.9:1); mismo tono */
+  --color-gold: #8a6d26;
   --color-gold-soft: #c9a84c;
   --color-line: #e9e4da;
   --radius-card: 4px;
@@ -64,6 +65,37 @@
   --hero-dot-pl: clamp(2.75rem, 7vw, 4.5rem);
   /* Altura del footer escenario (telón); FooterStage.tsx */
   --footer-stage-h: 0px;
+}
+
+/* =====================================
+   ACCESIBILIDAD: focus visible + skip link
+   Reglas sin @layer: ganan a las utilities (p. ej. outline-none) por cascada.
+   Solo :focus-visible → no aparece con clic de mouse en botones/enlaces.
+   Los inputs quedan fuera: FloatingInput ya marca foco con borde + label.
+===================================== */
+
+:where(a, button, [role="button"], summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* Enlace "saltar al contenido": oculto hasta recibir foco por teclado */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 200;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  background: var(--color-ink);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  transform: translateY(calc(-100% - 16px));
+}
+
+.skip-link:focus-visible {
+  transform: none;
 }
 
 /* Rejilla única del sitio público: navbar, tienda, home, footer, etc. */
@@ -170,6 +202,20 @@ html {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Sello giratorio del spotlight (BrandDescription): rotación continua del
+   texto circular. Solo transform (GPU) y apagado con reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .lc-rotate-slow {
+    animation: lc-rotate-slow 28s linear infinite;
+  }
+}
+
+@keyframes lc-rotate-slow {
+  to {
+    transform: rotate(360deg);
   }
 }
 

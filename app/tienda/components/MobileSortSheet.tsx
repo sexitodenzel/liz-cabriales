@@ -25,6 +25,7 @@ function SortOptionRow({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className="flex w-full items-center gap-3 py-4 text-left text-sm text-[#0a0a0a]"
     >
       <span
@@ -49,12 +50,17 @@ export default function MobileSortSheet({
 }: MobileSortSheetProps) {
   useEffect(() => {
     if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", onKey)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = "hidden"
     return () => {
+      window.removeEventListener("keydown", onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [open])
+  }, [open, onClose])
 
   const handleSelect = (value: string) => {
     onSortChange(value)
@@ -75,6 +81,9 @@ export default function MobileSortSheet({
         role="dialog"
         aria-modal="true"
         aria-label="Ordenar productos"
+        // inert: cerrado sigue montado (por la transición); sin esto queda
+        // alcanzable por Tab y lectores de pantalla detrás del contenido.
+        inert={!open}
         className={`fixed bottom-0 left-6 right-6 z-[73] flex flex-col rounded-t-[20px] bg-white shadow-2xl md:hidden transition-transform duration-300 ease-out ${
           open ? "translate-y-0" : "translate-y-full pointer-events-none"
         }`}

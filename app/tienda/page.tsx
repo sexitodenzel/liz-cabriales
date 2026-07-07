@@ -120,6 +120,7 @@ export default async function StorePage({
 
   return (
     <main className="min-h-screen bg-ivory text-[#0a0a0a]">
+      <h1 className="sr-only">Tienda</h1>
       <div className="site-container pb-12">
         <ProductGrid
           products={products}

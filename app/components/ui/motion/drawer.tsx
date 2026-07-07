@@ -1,7 +1,7 @@
 "use client"
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { EASE_OUT, SPRING_PANEL } from "@/lib/ease"
 import { cn } from "@/lib/utils"
@@ -29,6 +29,7 @@ export function Drawer({
 }: DrawerProps) {
   const reduce = useReducedMotion()
   const [mounted, setMounted] = useState(false)
+  const panelRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -42,9 +43,15 @@ export function Drawer({
     window.addEventListener("keydown", onKey)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = "hidden"
+    // Mover el foco al panel al abrir: sin esto, Tab sigue recorriendo la
+    // página de fondo y el lector de pantalla nunca entra al diálogo.
+    const opener = document.activeElement as HTMLElement | null
+    const focusFrame = requestAnimationFrame(() => panelRef.current?.focus())
     return () => {
       window.removeEventListener("keydown", onKey)
       document.body.style.overflow = prevOverflow
+      cancelAnimationFrame(focusFrame)
+      opener?.focus?.()
     }
   }, [open, onOpenChange])
 
@@ -58,7 +65,7 @@ export function Drawer({
         <div className="fixed inset-0 z-50">
           <motion.button
             type="button"
-            aria-label="Close"
+            aria-label="Cerrar"
             tabIndex={dismissable ? 0 : -1}
             onClick={() => dismissable && onOpenChange(false)}
             initial={{ opacity: 0 }}
@@ -71,6 +78,8 @@ export function Drawer({
             )}
           />
           <motion.aside
+            ref={panelRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label={ariaLabel}

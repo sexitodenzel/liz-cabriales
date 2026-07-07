@@ -20,12 +20,12 @@ import SiteChromeMetrics from "./components/SiteChromeMetrics";
 import { Playfair_Display, Outfit } from "next/font/google";
 import type { Viewport } from "next";
 
+/* Nunca bloquear el zoom (maximumScale/userScalable): WCAG 1.4.4 —
+   usuarios con baja visión dependen del pellizco para leer. */
 export const viewport: Viewport = {
   themeColor: "#faf8f5",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 /* =========================
@@ -59,6 +59,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${outfit.className} ${playfairDisplay.variable} flex min-h-screen flex-col`}
       >
+        <a href="#main-content" className="skip-link">
+          Saltar al contenido
+        </a>
         <CartProvider>
           <WishlistProvider>
             <SiteChromeMetrics />

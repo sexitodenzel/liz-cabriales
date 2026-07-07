@@ -418,27 +418,27 @@ function ShippingStep(p: ShippingProps) {
                 <div className="space-y-3">
 
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">1. Nombre completo</p>
-                    <input type="text" value={p.nombreCompleto} onChange={(e) => bind("nombre_completo", p.setNombreCompleto)(e.target.value)} className={inp("nombre_completo")} placeholder="Nombre y apellidos" />
+                    <label htmlFor="chk-nombre" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">1. Nombre completo</label>
+                    <input id="chk-nombre" type="text" value={p.nombreCompleto} onChange={(e) => bind("nombre_completo", p.setNombreCompleto)(e.target.value)} className={inp("nombre_completo")} placeholder="Nombre y apellidos" />
                     {p.fieldErrors.nombre_completo && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.nombre_completo}</p>}
                   </div>
 
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">2. Calle y número de casa</p>
-                    <input type="text" value={p.calleNumero} onChange={(e) => bind("calle_numero", p.setCalleNumero)(e.target.value)} className={inp("calle_numero")} placeholder="Calle 5 de Mayo #123 Int. 4" />
+                    <label htmlFor="chk-calle" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">2. Calle y número de casa</label>
+                    <input id="chk-calle" type="text" value={p.calleNumero} onChange={(e) => bind("calle_numero", p.setCalleNumero)(e.target.value)} className={inp("calle_numero")} placeholder="Calle 5 de Mayo #123 Int. 4" />
                     {p.fieldErrors.calle_numero && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.calle_numero}</p>}
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">3. Colonia</p>
-                      <input type="text" value={p.colonia} onChange={(e) => bind("colonia", p.setColonia)(e.target.value)} className={inp("colonia")} placeholder="Nombre de la colonia" />
+                      <label htmlFor="chk-colonia" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">3. Colonia</label>
+                      <input id="chk-colonia" type="text" value={p.colonia} onChange={(e) => bind("colonia", p.setColonia)(e.target.value)} className={inp("colonia")} placeholder="Nombre de la colonia" />
                       {p.fieldErrors.colonia && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.colonia}</p>}
                     </div>
                     <div>
-                      <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">4. C.P.</p>
+                      <label htmlFor="chk-cp" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">4. C.P.</label>
                       <input
-                        type="text" inputMode="numeric" maxLength={5}
+                        id="chk-cp" type="text" inputMode="numeric" maxLength={5}
                         value={p.cp}
                         onChange={(e) => {
                           const v = e.target.value.replace(/\D/g, "").slice(0, 5)
@@ -461,27 +461,27 @@ function ShippingStep(p: ShippingProps) {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">5. Municipio</p>
-                      <input type="text" value={p.municipio} onChange={(e) => bind("municipio", p.setMunicipio)(e.target.value)} className={inp("municipio")} placeholder="Municipio" />
+                      <label htmlFor="chk-municipio" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">5. Municipio</label>
+                      <input id="chk-municipio" type="text" value={p.municipio} onChange={(e) => bind("municipio", p.setMunicipio)(e.target.value)} className={inp("municipio")} placeholder="Municipio" />
                       {p.fieldErrors.municipio && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.municipio}</p>}
                     </div>
                     <div>
-                      <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">6. Ciudad</p>
-                      <input type="text" value={p.ciudad} onChange={(e) => bind("ciudad", p.setCiudad)(e.target.value)} className={inp("ciudad")} placeholder="Ciudad" />
+                      <label htmlFor="chk-ciudad" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">6. Ciudad</label>
+                      <input id="chk-ciudad" type="text" value={p.ciudad} onChange={(e) => bind("ciudad", p.setCiudad)(e.target.value)} className={inp("ciudad")} placeholder="Ciudad" />
                       {p.fieldErrors.ciudad && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.ciudad}</p>}
                     </div>
                   </div>
 
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">7. Estado</p>
-                    <input type="text" value={p.estado} onChange={(e) => bind("estado", p.setEstado)(e.target.value)} className={inp("estado")} placeholder="Tamaulipas" />
+                    <label htmlFor="chk-estado" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">7. Estado</label>
+                    <input id="chk-estado" type="text" value={p.estado} onChange={(e) => bind("estado", p.setEstado)(e.target.value)} className={inp("estado")} placeholder="Tamaulipas" />
                     {p.fieldErrors.estado && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.estado}</p>}
                   </div>
 
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">8. Teléfono</p>
+                    <label htmlFor="chk-telefono" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">8. Teléfono</label>
                     <input
-                      type="tel" inputMode="numeric" maxLength={10}
+                      id="chk-telefono" type="tel" inputMode="numeric" maxLength={10}
                       value={p.telefono}
                       onChange={(e) => bind("telefono", p.setTelefono)(e.target.value.replace(/\D/g, "").slice(0, 10))}
                       className={inp("telefono")} placeholder="10 dígitos"
@@ -493,18 +493,19 @@ function ShippingStep(p: ShippingProps) {
                   </div>
 
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">
+                    <label htmlFor="chk-entre-calles" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">
                       9. Entre qué calles se encuentra tu casa <span className="font-normal text-neutral-400">(obligatorio)</span>
-                    </p>
-                    <input type="text" value={p.entreCalles} onChange={(e) => bind("entre_calles", p.setEntreCalles)(e.target.value)} className={inp("entre_calles")} placeholder="Entre Allende y Altamira" />
+                    </label>
+                    <input id="chk-entre-calles" type="text" value={p.entreCalles} onChange={(e) => bind("entre_calles", p.setEntreCalles)(e.target.value)} className={inp("entre_calles")} placeholder="Entre Allende y Altamira" />
                     {p.fieldErrors.entre_calles && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.entre_calles}</p>}
                   </div>
 
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">
+                    <label htmlFor="chk-referencia" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">
                       10. Referencia del domicilio <span className="font-normal text-neutral-400">(obligatorio)</span>
-                    </p>
+                    </label>
                     <textarea
+                      id="chk-referencia"
                       value={p.referencia}
                       onChange={(e) => bind("referencia", p.setReferencia)(e.target.value)}
                       rows={2}
@@ -539,18 +540,18 @@ function ShippingStep(p: ShippingProps) {
               {p.requiresInvoice && (
                 <div className="mt-3 space-y-3">
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">RFC</p>
-                    <input type="text" value={p.rfc} onChange={(e) => p.setRfc(e.target.value.slice(0, 13).toUpperCase())} maxLength={13} className={`${inp("rfc")} uppercase`} placeholder="XAXX010101000" />
+                    <label htmlFor="chk-rfc" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">RFC</label>
+                    <input id="chk-rfc" type="text" value={p.rfc} onChange={(e) => p.setRfc(e.target.value.slice(0, 13).toUpperCase())} maxLength={13} className={`${inp("rfc")} uppercase`} placeholder="XAXX010101000" />
                     {p.fieldErrors.rfc && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.rfc}</p>}
                   </div>
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">Razón social</p>
-                    <input type="text" value={p.razonSocial} onChange={(e) => p.setRazonSocial(e.target.value)} className={inp("razon_social")} placeholder="Nombre o denominación fiscal" />
+                    <label htmlFor="chk-razon-social" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">Razón social</label>
+                    <input id="chk-razon-social" type="text" value={p.razonSocial} onChange={(e) => p.setRazonSocial(e.target.value)} className={inp("razon_social")} placeholder="Nombre o denominación fiscal" />
                     {p.fieldErrors.razon_social && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.razon_social}</p>}
                   </div>
                   <div>
-                    <p className="mb-1 text-[12px] font-medium text-[#1a1a1a]">Correo para recibir la factura</p>
-                    <input type="email" value={p.invoiceEmail} onChange={(e) => p.setInvoiceEmail(e.target.value)} className={inp("invoice_email")} placeholder="correo@empresa.com" />
+                    <label htmlFor="chk-invoice-email" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">Correo para recibir la factura</label>
+                    <input id="chk-invoice-email" type="email" value={p.invoiceEmail} onChange={(e) => p.setInvoiceEmail(e.target.value)} className={inp("invoice_email")} placeholder="correo@empresa.com" />
                     {p.fieldErrors.invoice_email && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.invoice_email}</p>}
                   </div>
                   <div>
@@ -1035,6 +1036,7 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
 
   return (
     <main className="min-h-screen bg-white text-[#1a1a1a]">
+      <h1 className="sr-only">Checkout</h1>
       <div className="site-container pt-5">
         <Breadcrumb items={breadcrumbItems} />
       </div>

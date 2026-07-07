@@ -109,7 +109,7 @@ export default function Footer({ expanded = false }: { expanded?: boolean }) {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-neutral-500">
+        <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-neutral-400">
           <div className="flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-4">
             <Link href="/aviso-de-privacidad" className="transition-colors hover:text-[#c9a84c]">
               Aviso de privacidad
@@ -119,7 +119,7 @@ export default function Footer({ expanded = false }: { expanded?: boolean }) {
               Términos y condiciones
             </Link>
           </div>
-          <p className="mt-3 text-neutral-600">
+          <p className="mt-3 text-neutral-400">
             © {new Date().getFullYear()} Liz Cabriales Studio. Todos los derechos reservados.
           </p>
         </div>
