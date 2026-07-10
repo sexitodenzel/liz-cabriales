@@ -136,7 +136,12 @@ export async function sendNewOrderAlerts(orderId: string): Promise<void> {
   const user = unwrapUser(order.users)
   const orderShortId = orderId.slice(0, 8).toUpperCase()
   const total = formatMxn(Number(order.total))
-  const deliveryLabel = order.delivery_type === "pickup" ? "Retiro en local" : "Envío a domicilio"
+  const deliveryLabel =
+    order.delivery_type === "pickup"
+      ? "Retiro en local"
+      : order.delivery_type === "local_delivery"
+        ? "Entrega a domicilio (local)"
+        : "Envío a domicilio"
 
   const adminPhone = process.env.ADMIN_WHATSAPP_PHONE
   if (adminPhone) {

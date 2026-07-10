@@ -6,7 +6,7 @@ export type OrderInfoProps = {
 export default function OrderInfo({ hasCourseToday, courseSlot }: OrderInfoProps) {
   const pickupHours = hasCourseToday && courseSlot
     ? `Solo ${courseSlot.start_time.slice(0, 5)}–${courseSlot.end_time.slice(0, 5)} (día de curso)`
-    : "Lu–Vi 10:00–18:30 · Sá 11:00–15:30"
+    : "Lu–Sá 10:00–19:00 · Dom 10:00–14:00 (días de curso)"
 
   return (
     <div className="space-y-8 text-sm leading-7 text-neutral-700">
@@ -37,6 +37,21 @@ export default function OrderInfo({ hasCourseToday, courseSlot }: OrderInfoProps
           <span className="font-medium text-[#0a0a0a]">{pickupHours}</span> · Nayarit
           #204-B, Cd. Madero, Tamaulipas. Una vez listo tu pedido, te avisamos por
           WhatsApp para que pases a recogerlo.
+        </p>
+      </section>
+
+      <section>
+        <h4 className="text-sm font-semibold uppercase tracking-[0.16em] text-[#0a0a0a]">
+          Envío a domicilio local
+        </h4>
+        <p className="mt-3">
+          Si estás en{" "}
+          <span className="font-medium text-[#0a0a0a]">
+            Tampico, Cd. Madero o Altamira
+          </span>
+          , llevamos tu pedido a domicilio con repartidor. Te compartimos su número
+          por WhatsApp y el costo del envío lo pagas directamente al repartidor al
+          recibir tu pedido.
         </p>
       </section>
 

@@ -232,7 +232,9 @@ export default function DigitalTicket({
             value={
               order.delivery_type === "shipping"
                 ? "Envio a domicilio"
-                : "Retiro en local"
+                : order.delivery_type === "local_delivery"
+                  ? "A domicilio (local)"
+                  : "Retiro en local"
             }
           />
           {order.carrier && <Row label="Paqueteria" value={order.carrier} />}
@@ -241,7 +243,7 @@ export default function DigitalTicket({
           )}
         </div>
 
-        {order.delivery_type === "shipping" && order.shipping_address && (
+        {order.delivery_type !== "pickup" && order.shipping_address && (
           <div className={`mt-3 text-neutral-500 ${t.address}`}>
             <p className="uppercase tracking-[0.12em] text-neutral-400">
               Direccion

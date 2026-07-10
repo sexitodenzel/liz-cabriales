@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback, type FormEvent } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ChevronDown, Clock, MapPin, Package } from "lucide-react"
+import { ChevronDown, Clock, MapPin, Package, Store, Truck } from "lucide-react"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import RelatedProductsCarousel from "@/app/tienda/components/RelatedProductsCarousel"
@@ -14,6 +14,8 @@ import {
 } from "@/lib/constants/cfdi"
 import { FREE_SHIPPING_THRESHOLD_MXN } from "@/lib/constants/shipping"
 import {
+  LOCAL_DELIVERY_CITIES,
+  LOCAL_DELIVERY_ZONES_LABEL,
   PICKUP_LOCATION_ADDRESS,
   PICKUP_LOCATION_HOURS,
   PICKUP_LOCATION_NAME,
@@ -120,6 +122,9 @@ function ShippingStep(p: ShippingProps) {
   const totalItems = p.initialCart.items.reduce((s, i) => s + i.quantity, 0)
   const isPaymentStep = Boolean(p.createdOrder && (p.paymentUrl || p.paymentError))
   const previewItems = [...p.initialCart.items].reverse().slice(0, 2)
+  const isLocalDelivery = p.deliveryType === "local_delivery"
+  // "Local" agrupa retiro en tienda y envío a domicilio local (mismo grupo de tabs).
+  const isLocalMode = p.deliveryType === "pickup" || p.deliveryType === "local_delivery"
   const shippingIsFree =
     p.deliveryType === "pickup" ||
     p.initialCart.total >= FREE_SHIPPING_THRESHOLD_MXN
@@ -159,7 +164,7 @@ function ShippingStep(p: ShippingProps) {
 
   const summaryTotals = (
     <div className="shrink-0 border-t border-neutral-200 pt-4">
-      {p.deliveryType !== "pickup" && <FreeShippingBar amount={p.initialCart.total} />}
+      {p.deliveryType === "shipping" && <FreeShippingBar amount={p.initialCart.total} />}
       {!shippingPending && (
         <div className="flex items-center justify-between">
           <p className="text-[13px] text-neutral-500">Subtotal</p>
@@ -176,6 +181,8 @@ function ShippingStep(p: ShippingProps) {
         <p className="text-[12px] text-neutral-500">Envío</p>
         {p.deliveryType === "pickup" ? (
           <p className="text-[12px] font-medium text-[#1a1a1a]">Retiro en local</p>
+        ) : isLocalDelivery ? (
+          <p className="text-[12px] font-medium text-[#1a1a1a]">Pagas al repartidor</p>
         ) : shippingIsFree ? (
           <p className="text-[12px] font-semibold text-[#c9a84c]">Gratis</p>
         ) : (
@@ -191,6 +198,12 @@ function ShippingStep(p: ShippingProps) {
       {shippingPending && (
         <p className="mt-2 text-[11px] leading-[1.5] text-neutral-500">
           El envío se cotiza y cobra por separado después de confirmar tu pago.
+        </p>
+      )}
+      {isLocalDelivery && (
+        <p className="mt-2 text-[11px] leading-[1.5] text-neutral-500">
+          Te compartimos por WhatsApp el número del repartidor; el costo del envío lo
+          pagas directamente a él al recibir tu pedido.
         </p>
       )}
     </div>
@@ -211,7 +224,7 @@ function ShippingStep(p: ShippingProps) {
         ))}
       </ul>
       <div className="mt-3 space-y-2 border-t border-neutral-200 pt-3">
-        {p.deliveryType !== "pickup" && <FreeShippingBar amount={p.initialCart.total} />}
+        {p.deliveryType === "shipping" && <FreeShippingBar amount={p.initialCart.total} />}
         {p.requiresInvoice && p.invoiceSurcharge > 0 && (
           <div className="flex items-center justify-between text-[12px]">
             <p className="text-neutral-500">CFDI ({CFDI_SURCHARGE_PERCENT}%)</p>
@@ -222,6 +235,8 @@ function ShippingStep(p: ShippingProps) {
           <p className="text-neutral-500">Envío</p>
           {p.deliveryType === "pickup" ? (
             <p className="font-medium text-[#1a1a1a]">Retiro en local</p>
+          ) : isLocalDelivery ? (
+            <p className="font-medium text-[#1a1a1a]">Pagas al repartidor</p>
           ) : shippingIsFree ? (
             <p className="font-medium text-[#c9a84c]">Gratis</p>
           ) : (
@@ -231,6 +246,11 @@ function ShippingStep(p: ShippingProps) {
         {shippingPending && (
           <p className="text-[11px] leading-[1.5] text-neutral-500">
             El envío se cotiza y cobra por separado.
+          </p>
+        )}
+        {isLocalDelivery && (
+          <p className="text-[11px] leading-[1.5] text-neutral-500">
+            El repartidor cobra el envío al entregar; te pasamos su WhatsApp.
           </p>
         )}
       </div>
@@ -327,13 +347,14 @@ function ShippingStep(p: ShippingProps) {
 
             {/* Tipo de entrega */}
             <div className="border-b border-neutral-200 px-0 py-4 lg:px-0">
+              {/* Nivel 1 — Envío nacional o Local (Tampico / Cd. Madero / Altamira) */}
               <div
                 className="flex rounded-xl bg-neutral-100 p-1"
                 role="radiogroup"
-                aria-label="Elige envío a domicilio o retiro en local"
+                aria-label="Elige envío nacional o entrega local"
               >
                 <label
-                  className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg py-2.5 text-[13px] font-medium transition-all ${
+                  className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg px-2 py-2.5 text-[13px] font-medium transition-all ${
                     p.deliveryType === "shipping"
                       ? "bg-white text-[#1a1a1a] shadow-sm"
                       : "bg-transparent text-neutral-500"
@@ -341,65 +362,136 @@ function ShippingStep(p: ShippingProps) {
                 >
                   <input
                     type="radio"
-                    name="delivery_type"
+                    name="delivery_mode"
                     value="shipping"
                     checked={p.deliveryType === "shipping"}
                     onChange={() => p.setDeliveryType("shipping")}
                     className="sr-only"
                   />
                   <Package className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                  <span>Envío</span>
+                  <span>Envío nacional</span>
                 </label>
                 <label
-                  className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg py-2.5 text-[13px] font-medium transition-all ${
-                    p.deliveryType === "pickup"
+                  className={`flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg px-2 py-2.5 text-[13px] font-medium transition-all ${
+                    isLocalMode
                       ? "bg-white text-[#1a1a1a] shadow-sm"
                       : "bg-transparent text-neutral-500"
                   }`}
                 >
                   <input
                     type="radio"
-                    name="delivery_type"
-                    value="pickup"
-                    checked={p.deliveryType === "pickup"}
-                    onChange={() => p.setDeliveryType("pickup")}
+                    name="delivery_mode"
+                    value="local"
+                    checked={isLocalMode}
+                    onChange={() => { if (!isLocalMode) p.setDeliveryType("pickup") }}
                     className="sr-only"
                   />
                   <MapPin className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                  <span>Retiro</span>
+                  <span>Local</span>
                 </label>
               </div>
 
-              {p.deliveryType === "pickup" && (
-                <div className="mt-3 space-y-2">
-                  <p className="text-[12px] text-neutral-500">Recoge en nuestro local</p>
-                  <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3.5">
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-[13px] font-semibold text-[#1a1a1a]">{PICKUP_LOCATION_NAME}</p>
-                      <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[#c9a84c]">
-                        Gratis
+              {isLocalMode && (
+                <div className="mt-3">
+                  <p className="mb-2 text-[11px] uppercase tracking-[0.14em] text-neutral-500">
+                    Solo {LOCAL_DELIVERY_ZONES_LABEL}
+                  </p>
+
+                  {/* Nivel 2 — Recoger en tienda o Envío a domicilio local */}
+                  <div
+                    className="flex rounded-xl bg-neutral-100 p-1"
+                    role="radiogroup"
+                    aria-label="Elige recoger en tienda o envío a domicilio local"
+                  >
+                    <label
+                      className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-1 py-2.5 text-[12px] font-medium transition-all ${
+                        p.deliveryType === "pickup"
+                          ? "bg-white text-[#1a1a1a] shadow-sm"
+                          : "bg-transparent text-neutral-500"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="delivery_type"
+                        value="pickup"
+                        checked={p.deliveryType === "pickup"}
+                        onChange={() => p.setDeliveryType("pickup")}
+                        className="sr-only"
+                      />
+                      <Store className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                      <span>Recoger en tienda</span>
+                    </label>
+                    <label
+                      className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-1 py-2.5 text-[12px] font-medium transition-all ${
+                        p.deliveryType === "local_delivery"
+                          ? "bg-white text-[#1a1a1a] shadow-sm"
+                          : "bg-transparent text-neutral-500"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="delivery_type"
+                        value="local_delivery"
+                        checked={p.deliveryType === "local_delivery"}
+                        onChange={() => p.setDeliveryType("local_delivery")}
+                        className="sr-only"
+                      />
+                      <Truck className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                      <span>Envío a domicilio</span>
+                    </label>
+                  </div>
+
+                  {p.deliveryType === "local_delivery" && (
+                    <div className="mt-3 rounded-xl border border-[#e6dcc0] bg-[#fbf7ec] p-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-[13px] font-semibold text-[#1a1a1a]">
+                          Entrega a domicilio con repartidor
+                        </p>
+                        <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[#a8862f]">
+                          Local
+                        </p>
+                      </div>
+                      <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-600">
+                        Solo para clientes en {LOCAL_DELIVERY_ZONES_LABEL}. Hoy pagas
+                        únicamente tus productos; el costo del envío lo pagas directamente
+                        al repartidor al recibir tu pedido. Te compartimos su número por
+                        WhatsApp.
                       </p>
                     </div>
-                    <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-600">
-                      {PICKUP_LOCATION_ADDRESS}
-                    </p>
-                    <p className="mt-2 flex items-start gap-1.5 text-[11px] text-neutral-500">
-                      <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
-                      <span>
-                        {PICKUP_READY_NOTE}
-                        <span className="mt-0.5 block">{PICKUP_LOCATION_HOURS}</span>
-                      </span>
-                    </p>
-                    <a
-                      href={PICKUP_MAPS_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-neutral-600"
-                    >
-                      <MapPin className="h-3 w-3 shrink-0" strokeWidth={1.75} />
-                      Ver en mapa
-                    </a>
-                  </div>
+                  )}
+
+                  {p.deliveryType === "pickup" && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-[12px] text-neutral-500">Recoge en nuestro local</p>
+                      <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3.5">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-[13px] font-semibold text-[#1a1a1a]">{PICKUP_LOCATION_NAME}</p>
+                          <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[#c9a84c]">
+                            Gratis
+                          </p>
+                        </div>
+                        <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-600">
+                          {PICKUP_LOCATION_ADDRESS}
+                        </p>
+                        <p className="mt-2 flex items-start gap-1.5 text-[11px] text-neutral-500">
+                          <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+                          <span>
+                            {PICKUP_READY_NOTE}
+                            <span className="mt-0.5 block">{PICKUP_LOCATION_HOURS}</span>
+                          </span>
+                        </p>
+                        <a
+                          href={PICKUP_MAPS_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-neutral-600"
+                        >
+                          <MapPin className="h-3 w-3 shrink-0" strokeWidth={1.75} />
+                          Ver en mapa
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -506,6 +598,92 @@ function ShippingStep(p: ShippingProps) {
                     </label>
                     <textarea
                       id="chk-referencia"
+                      value={p.referencia}
+                      onChange={(e) => bind("referencia", p.setReferencia)(e.target.value)}
+                      rows={2}
+                      className={inp("referencia")}
+                      placeholder="Casa color azul con portón negro, frente a la farmacia"
+                    />
+                    {p.fieldErrors.referencia && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.referencia}</p>}
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* Datos para entrega local */}
+            {p.deliveryType === "local_delivery" && (
+              <div className="border-b border-neutral-200 px-0 py-4 lg:px-0">
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-500">
+                    Datos para tu entrega local
+                  </p>
+                  {p.autoFilled && (
+                    <p className="text-[11px] text-neutral-500 underline">Datos de tu perfil precargados</p>
+                  )}
+                </div>
+                <div className="space-y-3">
+
+                  <div>
+                    <label htmlFor="chk-local-nombre" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">1. Nombre completo</label>
+                    <input id="chk-local-nombre" type="text" value={p.nombreCompleto} onChange={(e) => bind("nombre_completo", p.setNombreCompleto)(e.target.value)} className={inp("nombre_completo")} placeholder="Nombre y apellidos" />
+                    {p.fieldErrors.nombre_completo && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.nombre_completo}</p>}
+                  </div>
+
+                  <div>
+                    <label htmlFor="chk-local-tel" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">2. Teléfono / WhatsApp</label>
+                    <input
+                      id="chk-local-tel" type="tel" inputMode="numeric" maxLength={10}
+                      value={p.telefono}
+                      onChange={(e) => bind("telefono", p.setTelefono)(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      className={inp("telefono")} placeholder="10 dígitos"
+                    />
+                    {p.fieldErrors.telefono && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.telefono}</p>}
+                  </div>
+
+                  <div>
+                    <label htmlFor="chk-local-calle" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">3. Calle y número de casa</label>
+                    <input id="chk-local-calle" type="text" value={p.calleNumero} onChange={(e) => bind("calle_numero", p.setCalleNumero)(e.target.value)} className={inp("calle_numero")} placeholder="Calle 5 de Mayo #123 Int. 4" />
+                    {p.fieldErrors.calle_numero && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.calle_numero}</p>}
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="chk-local-colonia" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">4. Colonia</label>
+                      <input id="chk-local-colonia" type="text" value={p.colonia} onChange={(e) => bind("colonia", p.setColonia)(e.target.value)} className={inp("colonia")} placeholder="Nombre de la colonia" />
+                      {p.fieldErrors.colonia && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.colonia}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="chk-local-ciudad" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">5. Ciudad</label>
+                      <select
+                        id="chk-local-ciudad"
+                        value={LOCAL_DELIVERY_CITIES.includes(p.ciudad as (typeof LOCAL_DELIVERY_CITIES)[number]) ? p.ciudad : ""}
+                        onChange={(e) => bind("ciudad", p.setCiudad)(e.target.value)}
+                        className={inp("ciudad")}
+                      >
+                        <option value="" disabled>Selecciona tu ciudad</option>
+                        {LOCAL_DELIVERY_CITIES.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                      {p.fieldErrors.ciudad && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.ciudad}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="chk-local-entre" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">
+                      6. Entre qué calles <span className="font-normal text-neutral-400">(opcional)</span>
+                    </label>
+                    <input id="chk-local-entre" type="text" value={p.entreCalles} onChange={(e) => bind("entre_calles", p.setEntreCalles)(e.target.value)} className={inp("entre_calles")} placeholder="Entre Allende y Altamira" />
+                    {p.fieldErrors.entre_calles && <p className="mt-1 text-[11px] text-red-500">{p.fieldErrors.entre_calles}</p>}
+                  </div>
+
+                  <div>
+                    <label htmlFor="chk-local-ref" className="mb-1 block text-[12px] font-medium text-[#1a1a1a]">
+                      7. Referencia del domicilio <span className="font-normal text-neutral-400">(obligatorio)</span>
+                    </label>
+                    <textarea
+                      id="chk-local-ref"
                       value={p.referencia}
                       onChange={(e) => bind("referencia", p.setReferencia)(e.target.value)}
                       rows={2}
@@ -909,6 +1087,13 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
             referencia:   referencia || null,
             phone:        telefono || null,
           }).eq("id", user.id).then(() => {})
+        })
+      } else if (deliveryType === "local_delivery" && telefono) {
+        // En entrega local no guardamos la dirección como predeterminada, pero sí
+        // el teléfono/WhatsApp para que el admin pueda contactar al cliente.
+        createClient().auth.getUser().then(({ data: { user } }) => {
+          if (!user) return
+          createClient().from("users").update({ phone: telefono }).eq("id", user.id).then(() => {})
         })
       }
 

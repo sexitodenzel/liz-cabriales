@@ -53,7 +53,9 @@ function statusLabel(status: OrderStatus): string {
 }
 
 function deliveryLabel(type: string): string {
-  return type === "shipping" ? "Envío" : "Retiro en local"
+  if (type === "shipping") return "Envío"
+  if (type === "local_delivery") return "A domicilio (local)"
+  return "Retiro en local"
 }
 
 function AdminOrdersList() {

@@ -1,5 +1,9 @@
 import { z } from "zod"
 
+import { LOCAL_DELIVERY_CITIES } from "@/lib/constants/contact"
+
+const LOCAL_DELIVERY_CITY_SET = new Set<string>(LOCAL_DELIVERY_CITIES)
+
 // Protección contra inyección SQL y XSS en campos de texto libre
 const DANGEROUS_PATTERN = /(?:--|\/\*|\*\/|;\s*[\r\n]|\x00|<script|javascript:|<iframe)/i
 
@@ -32,7 +36,7 @@ const razonSocialSchema = z
 
 export const createOrderSchema = z
   .object({
-    delivery_type: z.enum(["shipping", "pickup"]),
+    delivery_type: z.enum(["shipping", "pickup", "local_delivery"]),
     // Campos para emitir guías (todos requeridos si delivery_type === "shipping")
     nombre_completo: safeOpt(160),
     calle_numero:    safeOpt(200),
@@ -97,6 +101,48 @@ export const createOrderSchema = z
     }
   })
   .superRefine((value, ctx) => {
+    if (value.delivery_type !== "local_delivery") return
+
+    const required = [
+      ["nombre_completo", "El nombre completo"],
+      ["calle_numero", "La calle y número de casa"],
+      ["colonia", "La colonia"],
+      ["ciudad", "La ciudad"],
+      ["telefono", "El teléfono / WhatsApp"],
+      ["referencia", "La referencia del domicilio"],
+    ] as const
+
+    for (const [field, label] of required) {
+      if (!value[field]?.trim()) {
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: `${label} es obligatorio`,
+        })
+      }
+    }
+
+    // La entrega local solo aplica en las ciudades permitidas.
+    const ciudad = value.ciudad?.trim() ?? ""
+    if (ciudad && !LOCAL_DELIVERY_CITY_SET.has(ciudad)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["ciudad"],
+        message: "La entrega a domicilio solo está disponible en Tampico, Cd. Madero y Altamira",
+      })
+    }
+
+    // Validar formato teléfono: 10 dígitos locales
+    const tel = value.telefono?.trim() ?? ""
+    if (tel && !/^\d{10}$/.test(tel)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["telefono"],
+        message: "El teléfono debe tener 10 dígitos (sin código de país)",
+      })
+    }
+  })
+  .superRefine((value, ctx) => {
     if (!value.requires_invoice) return
 
     const rfc = value.rfc?.trim() ?? ""
@@ -134,7 +180,7 @@ export const createOrderSchema = z
     let shippingState: string | undefined
     let shippingCity: string | undefined
 
-    if (value.delivery_type === "shipping") {
+    if (value.delivery_type !== "pickup") {
       const lines: string[] = []
       if (value.nombre_completo?.trim()) lines.push(`Nombre: ${value.nombre_completo.trim()}`)
       if (value.calle_numero?.trim())    lines.push(`Calle/Núm: ${value.calle_numero.trim()}`)
@@ -145,7 +191,9 @@ export const createOrderSchema = z
       if (value.entre_calles?.trim())    lines.push(`Entre calles: ${value.entre_calles.trim()}`)
       if (value.referencia?.trim())      lines.push(`Referencia: ${value.referencia.trim()}`)
       shippingAddress = lines.join("\n") || undefined
-      shippingState   = value.estado?.trim() || undefined
+      // La entrega local siempre es en Tamaulipas; el envío nacional usa el estado capturado.
+      shippingState   = value.estado?.trim() ||
+        (value.delivery_type === "local_delivery" ? "Tamaulipas" : undefined)
       shippingCity    = value.ciudad?.trim() || undefined
     }
 

@@ -101,9 +101,14 @@ export default function Footer({ expanded = false }: { expanded?: boolean }) {
                 <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
                 <span>Nayarit #204-B, C. Durango Esquina, Unidad Nacional, 89410 Cd Madero, Tamps.</span>
               </div>
-              <div className="flex items-center gap-2 text-neutral-300">
-                <Clock className="h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
-                <span>Lunes a Sábado, 9:00 a.m. – 7:00 p.m.</span>
+              <div className="flex items-start gap-2 text-neutral-300">
+                <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
+                <span>
+                  Lunes a Sábado, 10:00 a.m. – 7:00 p.m.
+                  <span className="mt-0.5 block">
+                    Domingo, 10:00 a.m. – 2:00 p.m. (días de curso)
+                  </span>
+                </span>
               </div>
             </div>
           </div>

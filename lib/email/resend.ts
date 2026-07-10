@@ -120,7 +120,7 @@ async function buildEmailPayload(
       raw.shipping_amount_final != null
         ? Number(raw.shipping_amount_final)
         : null,
-    deliveryType: raw.delivery_type as "shipping" | "pickup",
+    deliveryType: raw.delivery_type as "shipping" | "pickup" | "local_delivery",
     shippingAddress: raw.shipping_address,
     shippingCity: raw.shipping_city,
     shippingState: raw.shipping_state,

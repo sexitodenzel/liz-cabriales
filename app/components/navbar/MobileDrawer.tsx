@@ -336,7 +336,7 @@ function RootPanel({ onPushSection, onPushNailArt, onClose, isLoggedIn }: RootPa
         <div className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
           <Clock className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
           <span className="min-w-0 break-words text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1a1a1a] lg:text-[12px]">
-            Lun–Sáb, 9:00 a.m. – 7:00 p.m.
+            Lun–Sáb 10 a.m.–7 p.m. · Dom 10–2 (días de curso)
           </span>
         </div>
 

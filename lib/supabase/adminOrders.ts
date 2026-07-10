@@ -48,6 +48,7 @@ export type AdminOrderDetail = {
   client_first_name: string | null
   client_last_name: string | null
   client_email: string | null
+  client_phone: string | null
   // Factura
   requires_invoice: boolean
   rfc: string | null
@@ -66,6 +67,15 @@ function unwrapUserEmail(users: unknown): string | null {
   const u = Array.isArray(users) ? users[0] : users
   if (u && typeof u === "object" && "email" in u) {
     return String((u as { email: string }).email)
+  }
+  return null
+}
+
+function unwrapUserPhone(users: unknown): string | null {
+  const u = Array.isArray(users) ? users[0] : users
+  if (u && typeof u === "object" && "phone" in u) {
+    const phone = (u as { phone?: string | null }).phone
+    return phone ? String(phone) : null
   }
   return null
 }
@@ -205,7 +215,7 @@ export async function getAdminOrderById(
        constancia_fiscal_url,
        ticket_photo_url,
        invoice_issued_at,
-       users ( first_name, last_name, email ),
+       users ( first_name, last_name, email, phone ),
        order_items (
          quantity,
          unit_price,
@@ -233,6 +243,7 @@ export async function getAdminOrderById(
   const row = data as RawOrderRow
   const names = unwrapUserNames(row.users)
   const email = unwrapUserEmail(row.users)
+  const phone = unwrapUserPhone(row.users)
 
   const rawItems = (row.order_items ?? []) as Array<{
     quantity: number | string
@@ -297,6 +308,7 @@ export async function getAdminOrderById(
       client_first_name: names.first,
       client_last_name: names.last,
       client_email: email,
+      client_phone: phone,
       requires_invoice: Boolean(row.requires_invoice),
       rfc: row.rfc,
       razon_social: row.razon_social,

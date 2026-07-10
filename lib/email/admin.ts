@@ -95,7 +95,11 @@ export async function sendAdminNewOrderEmail(orderId: string): Promise<void> {
     .join("")
 
   const deliveryLabel =
-    raw.delivery_type === "shipping" ? "Envío a domicilio" : "Recoger en tienda"
+    raw.delivery_type === "shipping"
+      ? "Envío a domicilio"
+      : raw.delivery_type === "local_delivery"
+        ? "Entrega a domicilio (local)"
+        : "Recoger en tienda"
 
   const body = `
     <p style="margin:0 0 20px;font-size:15px;color:${BRAND_BLACK};line-height:1.5;">

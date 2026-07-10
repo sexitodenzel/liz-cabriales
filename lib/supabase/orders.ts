@@ -381,12 +381,11 @@ export async function createOrderFromActiveCart(
     return draftResult
   }
 
-  const shippingAddress =
-    input.delivery_type === "shipping" ? input.shipping_address ?? null : null
-  const shippingState =
-    input.delivery_type === "shipping" ? input.shipping_state ?? null : null
-  const shippingCity =
-    input.delivery_type === "shipping" ? input.shipping_city ?? null : null
+  // Tanto el envío nacional como la entrega local guardan dirección; el retiro no.
+  const capturesAddress = input.delivery_type !== "pickup"
+  const shippingAddress = capturesAddress ? input.shipping_address ?? null : null
+  const shippingState = capturesAddress ? input.shipping_state ?? null : null
+  const shippingCity = capturesAddress ? input.shipping_city ?? null : null
 
   const requiresInvoice = Boolean(input.requires_invoice)
   const invoiceSurcharge = requiresInvoice

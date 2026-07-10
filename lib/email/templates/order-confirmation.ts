@@ -12,7 +12,7 @@ export type OrderConfirmationData = {
   total: number
   shippingCost: number
   shippingAmountFinal: number | null
-  deliveryType: "shipping" | "pickup"
+  deliveryType: "shipping" | "pickup" | "local_delivery"
   shippingAddress: string | null
   shippingCity: string | null
   shippingState: string | null
@@ -134,10 +134,14 @@ export function buildOrderConfirmationHtml(
   }
 
   const deliveryLabel =
-    data.deliveryType === "shipping" ? "Envio a domicilio" : "Retiro en local"
+    data.deliveryType === "shipping"
+      ? "Envio a domicilio"
+      : data.deliveryType === "local_delivery"
+        ? "Entrega a domicilio (local)"
+        : "Retiro en local"
 
   const addressBlock =
-    data.deliveryType === "shipping" && data.shippingAddress
+    data.deliveryType !== "pickup" && data.shippingAddress
       ? `
         <tr>
           <td colspan="2" style="padding:10px 0 0;font-family:${MONO_FONT};">

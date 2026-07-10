@@ -348,8 +348,13 @@ export default function AdminOrderDetailPage() {
     .trim()
 
   const shippingBlock =
-    order.delivery_type === "shipping" ? (
+    order.delivery_type !== "pickup" ? (
       <div className="space-y-1 text-sm text-neutral-700">
+        {order.delivery_type === "local_delivery" && (
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#a8862f]">
+            Entrega a domicilio (local) · el cliente paga el envío al repartidor
+          </p>
+        )}
         <p>{order.shipping_address ?? "—"}</p>
         <p>
           {[order.shipping_city, order.shipping_state].filter(Boolean).join(", ") ||
@@ -402,6 +407,21 @@ export default function AdminOrderDetailPage() {
               <p>
                 <span className="text-[#6b6b6b]">Correo: </span>
                 {order.client_email ?? "—"}
+              </p>
+              <p>
+                <span className="text-[#6b6b6b]">WhatsApp: </span>
+                {order.client_phone ? (
+                  <a
+                    href={`https://wa.me/52${order.client_phone.replace(/\D/g, "").slice(-10)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-[#c9a84c]"
+                  >
+                    {order.client_phone}
+                  </a>
+                ) : (
+                  "—"
+                )}
               </p>
             </div>
           </section>
