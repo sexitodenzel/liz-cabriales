@@ -26,6 +26,7 @@ export type Result<T> =
 export type InstructorRow = {
   id: string
   name: string
+  title: string | null
   bio: string | null
   photo_url: string | null
   created_at: string
@@ -35,6 +36,7 @@ export type CourseRow = {
   id: string
   instructor_id: string
   title: string
+  short_description: string | null
   description: string
   cover_image: string | null
   price: number
@@ -124,6 +126,7 @@ function unwrap<T>(v: T | T[] | null | undefined): T | null {
 type RawInstructor = {
   id: string
   name: string
+  title: string | null
   bio: string | null
   photo_url: string | null
   created_at: string
@@ -141,6 +144,7 @@ type RawCourseRow = {
   id: string
   instructor_id: string
   title: string
+  short_description: string | null
   description: string
   cover_image: string | null
   price: number | string
@@ -180,6 +184,7 @@ function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
     id: row.id,
     instructor_id: row.instructor_id,
     title: row.title,
+    short_description: row.short_description ?? null,
     description: row.description,
     cover_image: row.cover_image,
     price: Number(row.price),
@@ -205,6 +210,7 @@ function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
       ? {
           id: ins.id,
           name: ins.name,
+          title: ins.title ?? null,
           bio: ins.bio ?? null,
           photo_url: ins.photo_url ?? null,
           created_at: ins.created_at,
@@ -253,12 +259,12 @@ function attachStats(
 }
 
 const COURSE_COLUMNS = `
-  id, instructor_id, title, description, cover_image, price, capacity,
+  id, instructor_id, title, short_description, description, cover_image, price, capacity,
   level, start_date, end_date, start_time, location, is_published,
   allow_online_registration, show_price_public, show_capacity_public,
   public_registered_count, public_capacity,
   created_at, updated_at,
-  instructors ( id, name, bio, photo_url, created_at ),
+  instructors ( id, name, title, bio, photo_url, created_at ),
   course_images ( id, image_url, is_cover, position, created_at )
 `
 
@@ -350,7 +356,7 @@ export async function getCourseById(
 export async function getInstructors(): Promise<Result<InstructorRow[]>> {
   const { data, error } = await supabaseAdmin
     .from("instructors")
-    .select("id, name, bio, photo_url, created_at")
+    .select("id, name, title, bio, photo_url, created_at")
     .order("name", { ascending: true })
 
   if (error) {
@@ -600,6 +606,11 @@ function normalizeCoursePayload(
 ): Record<string, unknown> {
   const payload: Record<string, unknown> = {}
   if (input.title !== undefined) payload.title = input.title
+  if (input.short_description !== undefined)
+    payload.short_description =
+      input.short_description && input.short_description.length > 0
+        ? input.short_description
+        : null
   if (input.description !== undefined) payload.description = input.description
   if (input.instructor_id !== undefined)
     payload.instructor_id = input.instructor_id

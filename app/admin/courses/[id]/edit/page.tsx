@@ -57,6 +57,7 @@ export default async function EditCoursePage({ params }: Props) {
   const c = courseRes.data
   const initialValues: CourseFormInitialValues = {
     title: c.title,
+    short_description: c.short_description ?? "",
     description: c.description,
     instructor_id: c.instructor_id,
     price: String(c.price),

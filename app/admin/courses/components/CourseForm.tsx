@@ -17,6 +17,7 @@ import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
 export type CourseFormInitialValues = {
   title: string
+  short_description: string
   description: string
   instructor_id: string
   price: string
@@ -136,6 +137,7 @@ export default function CourseForm({
 
     const payload: Record<string, unknown> = {
       title: values.title.trim(),
+      short_description: values.short_description.trim() || null,
       description: values.description.trim(),
       instructor_id: values.instructor_id,
       price: Number(values.price),
@@ -258,14 +260,36 @@ export default function CourseForm({
           </div>
 
           <div>
-            <label className={labelCls}>Descripción</label>
+            <label className={labelCls}>Descripción breve (opcional)</label>
             <textarea
-              required
-              rows={4}
-              value={values.description}
-              onChange={(e) => update("description", e.target.value)}
+              rows={2}
+              maxLength={300}
+              value={values.short_description}
+              onChange={(e) => update("short_description", e.target.value)}
+              placeholder="Gancho corto que acompaña al flyer (1–2 líneas)."
               className={inputCls}
             />
+            <p className="mt-1 text-[11px] text-[#9a9a9a]">
+              Es lo que sale en el banner y en la tarjeta del listado. Si la
+              dejas vacía, se usa el inicio de la descripción larga.{" "}
+              {values.short_description.length}/300
+            </p>
+          </div>
+
+          <div>
+            <label className={labelCls}>Descripción larga</label>
+            <textarea
+              required
+              rows={5}
+              value={values.description}
+              onChange={(e) => update("description", e.target.value)}
+              placeholder="Todo el detalle: temario, requisitos, qué incluye… Respeta los saltos de línea."
+              className={inputCls}
+            />
+            <p className="mt-1 text-[11px] text-[#9a9a9a]">
+              Se muestra completa en la página del curso, respetando tus
+              renglones y espacios.
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -362,14 +386,31 @@ export default function CourseForm({
 
           <div>
             <label className={labelCls}>Ubicación</label>
-            <input
-              type="text"
+            <textarea
               required
+              rows={2}
               value={values.location}
               onChange={(e) => update("location", e.target.value)}
               placeholder="Estudio, dirección o ciudad"
               className={inputCls}
             />
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] text-[#9a9a9a]">Rápido:</span>
+              {["Tampico, Tamaulipas", "Ubicación privada"].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => update("location", preset)}
+                  className="rounded-full border border-[#ececec] bg-white px-2.5 py-1 text-[11px] text-[#3a3a3a] transition-colors hover:border-[#c9a84c] hover:text-[#a8893a]"
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11px] text-[#9a9a9a]">
+              Se muestra tal cual en la página del curso. Puedes escribir varias
+              líneas (ciudad, referencia, etc.).
+            </p>
           </div>
 
           {/* ── Galería de imágenes ──────────────────────────────────── */}

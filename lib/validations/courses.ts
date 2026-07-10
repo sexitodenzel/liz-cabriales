@@ -19,6 +19,12 @@ export const courseLevelSchema = z.enum([
 export const createCourseSchema = z
   .object({
     title: z.string().trim().min(3, "El título es demasiado corto").max(160),
+    short_description: z
+      .string()
+      .trim()
+      .max(300, "El resumen breve es demasiado largo")
+      .optional()
+      .nullable(),
     description: z.string().trim().min(1, "La descripción es requerida"),
     instructor_id: uuid,
     price: z.coerce.number().min(0, "El precio no puede ser negativo"),
@@ -57,6 +63,7 @@ export type CreateCourseInput = z.infer<typeof createCourseSchema>
 
 export const updateCourseSchema = z.object({
   title: z.string().trim().min(3).max(160).optional(),
+  short_description: z.string().trim().max(300).optional().nullable(),
   description: z.string().trim().min(1).optional(),
   instructor_id: uuid.optional(),
   price: z.coerce.number().min(0).optional(),

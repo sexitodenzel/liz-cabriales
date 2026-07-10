@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic"
 
 const EMPTY_VALUES: CourseFormInitialValues = {
   title: "",
+  short_description: "",
   description: "",
   instructor_id: "",
   price: "",

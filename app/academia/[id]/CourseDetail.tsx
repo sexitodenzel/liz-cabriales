@@ -242,9 +242,12 @@ export default function CourseDetail({
               >
                 {course.title}
               </h1>
-              <p className="hidden sm:block max-w-[580px] text-[16px] leading-relaxed text-white/85">
-                {course.description.slice(0, 160)}
-                {course.description.length > 160 ? "…" : ""}
+              <p className="hidden sm:block line-clamp-2 max-w-[580px] text-[16px] leading-relaxed text-white/85">
+                {course.short_description
+                  ? course.short_description
+                  : `${course.description.slice(0, 160)}${
+                      course.description.length > 160 ? "…" : ""
+                    }`}
               </p>
               {isPast && course.show_capacity_public && (
                 <div className="mt-4 flex items-center gap-2 text-[13px] text-white/90">
@@ -296,7 +299,7 @@ export default function CourseDetail({
               </h2>
               <div className="mb-5 h-0.5 w-9 bg-[#c9a84c]" />
               <div className="text-[15px] leading-[1.7] text-[#3a3a3a]">
-                <p>{course.description}</p>
+                <p className="whitespace-pre-line">{course.description}</p>
               </div>
 
               {/* Level pill */}
@@ -345,7 +348,7 @@ export default function CourseDetail({
                       {course.instructor.name}
                     </div>
                     <div className="mb-2 text-[11px] uppercase tracking-[0.16em] text-[#6b6b6b]">
-                      Instructora · Academia Liz Cabriales
+                      {course.instructor.title || "Instructor(a)"} · Academia Liz Cabriales
                     </div>
                     {course.instructor.bio && (
                       <p className="mb-3 text-[13px] leading-relaxed text-[#3a3a3a]">
@@ -419,11 +422,10 @@ export default function CourseDetail({
               <div className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
                 Ubicación
               </div>
-              <address className="mb-3.5 not-italic text-[13.5px] leading-[1.55] text-[#3a3a3a]">
-                <strong className="mb-1 block text-[14px] font-semibold text-[#1a1a1a]">
+              <address className="mb-3.5 not-italic whitespace-pre-line text-[13.5px] leading-[1.55] text-[#3a3a3a]">
+                <strong className="block text-[14px] font-semibold text-[#1a1a1a]">
                   {course.location}
                 </strong>
-                Tampico, Tamaulipas · México
               </address>
               <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#ececec] bg-white px-3.5 py-2.5 text-[13px] text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]">
                 <CompassIcon /> Obtener direcciones

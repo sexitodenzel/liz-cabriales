@@ -247,7 +247,7 @@ function CourseCard({ course }: { course: CourseWithStats }) {
                 {course.instructor.name}
               </div>
               <div className="text-[9px] uppercase tracking-[0.12em] opacity-85">
-                Instructora
+                {course.instructor.title || "Instructor(a)"}
               </div>
             </div>
           </div>
@@ -263,14 +263,14 @@ function CourseCard({ course }: { course: CourseWithStats }) {
           {course.title}
         </h2>
         <p className="line-clamp-3 flex-1 text-[13px] leading-relaxed text-[#6b6b6b]">
-          {course.description}
+          {course.short_description || course.description}
         </p>
         <div className="mt-1 flex items-center gap-1.5 border-t border-[#ececec] pt-3 text-[12.5px] text-[#3a3a3a]">
           <PinIcon />
           <span className="truncate">{course.location}</span>
           {past ? (
-            <span className="ml-auto text-[12.5px] text-[#6b6b6b]">
-              Ver detalle →
+            <span className="ml-auto text-[12.5px] text-[#6b6b6b] transition-colors group-hover:text-[#a8893a]">
+              Ver detalle
             </span>
           ) : isFull && course.allow_online_registration ? (
             <span className="ml-auto text-[12px] font-semibold text-red-600">
@@ -281,8 +281,8 @@ function CourseCard({ course }: { course: CourseWithStats }) {
               {formatPrice(course.price)}
             </span>
           ) : (
-            <span className="ml-auto text-[12.5px] text-[#6b6b6b]">
-              Ver detalle →
+            <span className="ml-auto text-[12.5px] text-[#6b6b6b] transition-colors group-hover:text-[#a8893a]">
+              Ver detalle
             </span>
           )}
         </div>

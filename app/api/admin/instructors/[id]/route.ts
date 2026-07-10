@@ -41,8 +41,9 @@ export async function PATCH(
       )
     }
 
-    const { name, bio, photo_url } = body as {
+    const { name, title, bio, photo_url } = body as {
       name?: string
+      title?: string | null
       bio?: string | null
       photo_url?: string | null
     }
@@ -56,9 +57,14 @@ export async function PATCH(
 
     const { data, error } = await supabaseAdmin
       .from("instructors")
-      .update({ name: name.trim(), bio: bio || null, photo_url: photo_url || null })
+      .update({
+        name: name.trim(),
+        title: title?.trim() || null,
+        bio: bio || null,
+        photo_url: photo_url || null,
+      })
       .eq("id", id)
-      .select("id, name, bio, photo_url, created_at")
+      .select("id, name, title, bio, photo_url, created_at")
       .single()
 
     if (error || !data) {

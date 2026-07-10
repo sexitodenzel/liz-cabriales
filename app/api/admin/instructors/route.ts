@@ -29,7 +29,7 @@ export async function GET() {
 
     const { data, error } = await supabaseAdmin
       .from("instructors")
-      .select("id, name, bio, photo_url, created_at")
+      .select("id, name, title, bio, photo_url, created_at")
       .order("name", { ascending: true })
 
     if (error) {
@@ -69,8 +69,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { name, bio, photo_url } = body as {
+    const { name, title, bio, photo_url } = body as {
       name?: string
+      title?: string | null
       bio?: string | null
       photo_url?: string | null
     }
@@ -84,8 +85,13 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabaseAdmin
       .from("instructors")
-      .insert({ name: name.trim(), bio: bio || null, photo_url: photo_url || null })
-      .select("id, name, bio, photo_url, created_at")
+      .insert({
+        name: name.trim(),
+        title: title?.trim() || null,
+        bio: bio || null,
+        photo_url: photo_url || null,
+      })
+      .select("id, name, title, bio, photo_url, created_at")
       .single()
 
     if (error || !data) {

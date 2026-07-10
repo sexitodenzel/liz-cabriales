@@ -17,11 +17,25 @@ function initials(name: string) {
 type EditState = {
   id: string | null
   name: string
+  title: string
   bio: string
   photo_url: string
 }
 
-const EMPTY_EDIT: EditState = { id: null, name: "", bio: "", photo_url: "" }
+const EMPTY_EDIT: EditState = {
+  id: null,
+  name: "",
+  title: "",
+  bio: "",
+  photo_url: "",
+}
+
+const TITLE_SUGGESTIONS = [
+  "Máster",
+  "Educadora certificada",
+  "Instructora",
+  "Instructor",
+]
 
 export default function InstructorsClient({
   initial,
@@ -41,6 +55,7 @@ export default function InstructorsClient({
     setEditing({
       id: inst.id,
       name: inst.name,
+      title: inst.title ?? "",
       bio: inst.bio ?? "",
       photo_url: inst.photo_url ?? "",
     })
@@ -69,6 +84,7 @@ export default function InstructorsClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editing.name.trim(),
+          title: editing.title.trim() || null,
           bio: editing.bio.trim() || null,
           photo_url: editing.photo_url.trim() || null,
         }),
@@ -173,6 +189,11 @@ export default function InstructorsClient({
               {/* Info */}
               <div className="min-w-0 flex-1">
                 <div className="font-semibold text-[#1a1a1a]">{inst.name}</div>
+                {inst.title && (
+                  <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#a8893a]">
+                    {inst.title}
+                  </div>
+                )}
                 {inst.bio && (
                   <p className="mt-0.5 truncate text-xs text-[#6b6b6b]">
                     {inst.bio}
@@ -285,6 +306,44 @@ export default function InstructorsClient({
                   placeholder="Ej. Liz Cabriales"
                   className={inputCls}
                 />
+              </div>
+
+              {/* Rol / título */}
+              <div>
+                <label className={labelCls}>Rol o título (opcional)</label>
+                <input
+                  type="text"
+                  maxLength={60}
+                  value={editing.title}
+                  onChange={(e) =>
+                    setEditing((prev) =>
+                      prev ? { ...prev, title: e.target.value } : prev
+                    )
+                  }
+                  placeholder="Ej. Máster, Educadora certificada…"
+                  className={inputCls}
+                />
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-[#9a9a9a]">Rápido:</span>
+                  {TITLE_SUGGESTIONS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() =>
+                        setEditing((prev) =>
+                          prev ? { ...prev, title: preset } : prev
+                        )
+                      }
+                      className="rounded-full border border-[#ececec] bg-white px-2.5 py-1 text-[11px] text-[#3a3a3a] transition-colors hover:border-[#c9a84c] hover:text-[#a8893a]"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[11px] text-[#9a9a9a]">
+                  Sale debajo del nombre en el curso. Si lo dejas vacío, se
+                  muestra “Instructor(a)”.
+                </p>
               </div>
 
               {/* Bio */}
