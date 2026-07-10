@@ -67,6 +67,8 @@ export default async function EditCoursePage({ params }: Props) {
     end_date: c.end_date ?? "",
     start_time: c.start_time.slice(0, 5),
     location: c.location,
+    diploma_included: c.diploma_included,
+    highlights: c.highlights,
     cover_image: c.cover_image ?? "",
     is_published: c.is_published,
     allow_online_registration: c.allow_online_registration,

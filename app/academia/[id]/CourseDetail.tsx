@@ -12,6 +12,7 @@ import {
 } from "@/lib/calendar"
 import RegisterModal from "@/components/courses/RegisterModal"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import RichText from "@/components/shared/RichText"
 import CourseGallery from "./CourseGallery"
 
 type Props = {
@@ -64,20 +65,38 @@ function initials(name: string): string {
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 
-function CompassIcon() {
+// ── Brand logos (Agregar al calendario) ─────────────────────────────────────
+
+function AppleLogo() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a84c"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><path d="m16 8-2 6-6 2 2-6 6-2Z" />
+    <svg width="18" height="18" viewBox="0 0 384 512" aria-hidden="true">
+      <path fill="#000" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5c0 26.2 4.8 53.3 14.4 81.2 12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
     </svg>
   )
 }
 
-function CalIcon() {
+function OutlookLogo() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" />
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="20" y="14" width="24" height="20" rx="2" fill="#0F6CBD" />
+      <path fill="#fff" d="M20 16.5l12 8 12-8V19l-12 8-12-8z" />
+      <rect x="4" y="10" width="22" height="28" rx="3" fill="#0A4C8B" />
+      <ellipse cx="15" cy="24" rx="6" ry="7" fill="none" stroke="#fff" strokeWidth="3.5" />
+    </svg>
+  )
+}
+
+function GoogleCalendarLogo() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="9" y="9" width="30" height="30" rx="4" fill="#fff" />
+      <path fill="#EA4335" d="M9 13a4 4 0 0 1 4-4h4v8H9z" />
+      <path fill="#4285F4" d="M17 9h14v8H17z" />
+      <path fill="#FBBC04" d="M31 9h4a4 4 0 0 1 4 4v4h-8z" />
+      <path fill="#34A853" d="M9 31h30v4a4 4 0 0 1-4 4H13a4 4 0 0 1-4-4z" />
+      <rect x="9" y="17" width="30" height="14" fill="#fff" />
+      <text x="24" y="28.5" fontSize="12" fontWeight="700" fill="#1a73e8"
+        textAnchor="middle" fontFamily="Arial, sans-serif">31</text>
     </svg>
   )
 }
@@ -100,19 +119,131 @@ function MailIcon() {
   )
 }
 
-function ShareIcon({ title }: { title: string }) {
+const shareIconClass =
+  "grid h-9 w-9 place-items-center rounded-full border border-[#ececec] bg-white text-[#6b6b6b] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
+
+function FacebookGlyph() {
   return (
-    <button
-      title={title}
-      className="grid h-9 w-9 place-items-center rounded-full border border-[#ececec] bg-white text-[#6b6b6b] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" />
-        <circle cx="18" cy="19" r="3" />
-        <path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98" />
-      </svg>
-    </button>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z" />
+    </svg>
+  )
+}
+
+function WhatsAppGlyph() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35zM12.05 21.5h-.01a9.5 9.5 0 01-4.84-1.33l-.35-.2-3.6.94.96-3.51-.23-.36a9.46 9.46 0 01-1.45-5.05c0-5.24 4.27-9.5 9.52-9.5 2.54 0 4.93.99 6.73 2.79a9.46 9.46 0 012.78 6.72c0 5.24-4.27 9.5-9.5 9.5zM20.52 3.48A11.85 11.85 0 0012.05.02C5.5.02.16 5.35.16 11.9c0 2.1.55 4.14 1.6 5.95L.06 24l6.3-1.65a11.9 11.9 0 005.68 1.45h.01c6.55 0 11.89-5.33 11.89-11.88 0-3.18-1.24-6.16-3.42-8.44z" />
+    </svg>
+  )
+}
+
+function XGlyph() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.22-6.82-5.97 6.82H1.65l7.73-8.84L1.23 2.25h6.83l4.71 6.23 5.47-6.23zm-1.16 17.52h1.83L7.01 4.13H5.05l12.03 15.64z" />
+    </svg>
+  )
+}
+
+function TelegramGlyph() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M23.95 4.57l-3.62 17.06c-.27 1.2-.98 1.5-1.99.93l-5.5-4.05-2.65 2.55c-.29.29-.54.54-1.1.54l.39-5.56 10.12-9.14c.44-.39-.1-.61-.68-.22L6.4 13.68l-5.4-1.69c-1.17-.37-1.2-1.17.25-1.73L22.43 2.9c.98-.36 1.83.22 1.52 1.67z" />
+    </svg>
+  )
+}
+
+function LinkGlyph() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  )
+}
+
+function CheckGlyph() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
+function ShareButtons({ shareText }: { shareText: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const currentUrl = () =>
+    typeof window !== "undefined" ? window.location.href : ""
+
+  const openShare = (url: string) => {
+    window.open(url, "_blank", "noopener,noreferrer,width=620,height=680")
+  }
+
+  const shareTo = (network: "facebook" | "whatsapp" | "x" | "telegram") => {
+    const url = currentUrl()
+    const u = encodeURIComponent(url)
+    const t = encodeURIComponent(shareText)
+    switch (network) {
+      case "facebook":
+        openShare(`https://www.facebook.com/sharer/sharer.php?u=${u}`)
+        break
+      case "whatsapp":
+        openShare(`https://wa.me/?text=${encodeURIComponent(`${shareText} ${url}`)}`)
+        break
+      case "x":
+        openShare(`https://twitter.com/intent/tweet?text=${t}&url=${u}`)
+        break
+      case "telegram":
+        openShare(`https://t.me/share/url?url=${u}&text=${t}`)
+        break
+    }
+  }
+
+  const copyLink = async () => {
+    const url = currentUrl()
+    try {
+      // Compartir nativo en móvil (abre la hoja del sistema con todas las apps).
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ text: shareText, url })
+        return
+      }
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // Cancelado por el usuario o sin permisos: no hacemos nada.
+    }
+  }
+
+  return (
+    <div className="flex gap-2">
+      <button type="button" title="Compartir en Facebook" aria-label="Compartir en Facebook"
+        onClick={() => shareTo("facebook")} className={shareIconClass}>
+        <FacebookGlyph />
+      </button>
+      <button type="button" title="Compartir en WhatsApp" aria-label="Compartir en WhatsApp"
+        onClick={() => shareTo("whatsapp")} className={shareIconClass}>
+        <WhatsAppGlyph />
+      </button>
+      <button type="button" title="Compartir en X" aria-label="Compartir en X"
+        onClick={() => shareTo("x")} className={shareIconClass}>
+        <XGlyph />
+      </button>
+      <button type="button" title="Compartir en Telegram" aria-label="Compartir en Telegram"
+        onClick={() => shareTo("telegram")} className={shareIconClass}>
+        <TelegramGlyph />
+      </button>
+      <button type="button" title={copied ? "¡Enlace copiado!" : "Copiar enlace"}
+        aria-label={copied ? "Enlace copiado" : "Copiar enlace"}
+        onClick={copyLink}
+        className={`${shareIconClass} ${copied ? "border-[#c9a84c] text-[#a8893a]" : ""}`}>
+        {copied ? <CheckGlyph /> : <LinkGlyph />}
+      </button>
+    </div>
   )
 }
 
@@ -321,18 +452,26 @@ export default function CourseDetail({
                 {isPast ? "Sobre la edición" : "Sobre el taller"}
               </h2>
               <div className="mb-5 h-0.5 w-9 bg-[#c9a84c]" />
-              <div className="text-[15px] leading-[1.7] text-[#3a3a3a]">
-                <p className="whitespace-pre-line">{course.description}</p>
-              </div>
+              <RichText text={course.description} />
 
-              {/* Level pill */}
+              {/* Chips / distintivos */}
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#a8893a]">
                   {LEVEL_LABEL[course.level]}
                 </span>
-                <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#a8893a]">
-                  Diploma incluido
-                </span>
+                {course.diploma_included && (
+                  <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#a8893a]">
+                    Diploma incluido
+                  </span>
+                )}
+                {course.highlights.map((chip) => (
+                  <span
+                    key={chip}
+                    className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#a8893a]"
+                  >
+                    {chip}
+                  </span>
+                ))}
               </div>
             </section>
 
@@ -413,8 +552,7 @@ export default function CourseDetail({
                   </div>
                   <div className="text-[13px] text-[#6b6b6b]">{dayName}</div>
                   <div className="mt-1.5 text-[14px] font-medium text-[#1a1a1a]">
-                    {course.start_time.slice(0, 5)}{" "}
-                    <span className="text-[#c9a84c]">→</span>
+                    {course.start_time.slice(0, 5)}
                   </div>
                 </div>
               </div>
@@ -432,18 +570,18 @@ export default function CourseDetail({
                     title="Apple Calendar"
                     aria-label="Agregar a Apple Calendar"
                     onClick={() => downloadICS(calendarEvent)}
-                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c9a84c] hover:bg-[#fdfaf0]"
                   >
-                    <CalIcon />
+                    <AppleLogo />
                   </button>
                   <button
                     type="button"
                     title="Outlook"
                     aria-label="Agregar a Outlook"
                     onClick={() => downloadICS(calendarEvent)}
-                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c9a84c] hover:bg-[#fdfaf0]"
                   >
-                    <CalIcon />
+                    <OutlookLogo />
                   </button>
                   <a
                     href={buildGoogleCalendarUrl(calendarEvent)}
@@ -451,9 +589,9 @@ export default function CourseDetail({
                     rel="noreferrer"
                     title="Google Calendar"
                     aria-label="Agregar a Google Calendar"
-                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c9a84c] hover:bg-[#fdfaf0]"
                   >
-                    <CalIcon />
+                    <GoogleCalendarLogo />
                   </a>
                 </div>
               </div>
@@ -464,14 +602,11 @@ export default function CourseDetail({
               <div className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
                 Ubicación
               </div>
-              <address className="mb-3.5 not-italic whitespace-pre-line text-[13.5px] leading-[1.55] text-[#3a3a3a]">
+              <address className="not-italic whitespace-pre-line text-[13.5px] leading-[1.55] text-[#3a3a3a]">
                 <strong className="block text-[14px] font-semibold text-[#1a1a1a]">
                   {course.location}
                 </strong>
               </address>
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#ececec] bg-white px-3.5 py-2.5 text-[13px] text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]">
-                <CompassIcon /> Obtener direcciones
-              </button>
             </div>
 
             {/* Share */}
@@ -484,11 +619,13 @@ export default function CourseDetail({
                   ? "Comparte el recuerdo con tu comunidad."
                   : "Comparte este evento con tu comunidad."}
               </p>
-              <div className="flex gap-2">
-                {["Facebook", "Instagram", "WhatsApp", "X", "Copiar enlace"].map((s) => (
-                  <ShareIcon key={s} title={s} />
-                ))}
-              </div>
+              <ShareButtons
+                shareText={
+                  isPast
+                    ? `Recuerdos del taller de ${course.title} · Academia Liz Cabriales`
+                    : `Te invito al taller de ${course.title} el ${day} de ${monthFull} en ${course.location} · Academia Liz Cabriales`
+                }
+              />
             </div>
 
             {/* CTA */}

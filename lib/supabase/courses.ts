@@ -46,6 +46,8 @@ export type CourseRow = {
   end_date: string | null
   start_time: string
   location: string
+  diploma_included: boolean
+  highlights: string[]
   is_published: boolean
   allow_online_registration: boolean
   show_price_public: boolean
@@ -154,6 +156,8 @@ type RawCourseRow = {
   end_date: string | null
   start_time: string
   location: string
+  diploma_included: boolean | null
+  highlights: string[] | null
   is_published: boolean
   allow_online_registration: boolean
   show_price_public: boolean
@@ -194,6 +198,8 @@ function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
     end_date: row.end_date,
     start_time: row.start_time,
     location: row.location,
+    diploma_included: row.diploma_included == null ? true : Boolean(row.diploma_included),
+    highlights: Array.isArray(row.highlights) ? row.highlights : [],
     is_published: Boolean(row.is_published),
     allow_online_registration: Boolean(row.allow_online_registration),
     show_price_public: Boolean(row.show_price_public),
@@ -260,7 +266,7 @@ function attachStats(
 
 const COURSE_COLUMNS = `
   id, instructor_id, title, short_description, description, cover_image, price, capacity,
-  level, start_date, end_date, start_time, location, is_published,
+  level, start_date, end_date, start_time, location, diploma_included, highlights, is_published,
   allow_online_registration, show_price_public, show_capacity_public,
   public_registered_count, public_capacity,
   created_at, updated_at,
@@ -622,6 +628,10 @@ function normalizeCoursePayload(
     payload.end_date = input.end_date ? input.end_date : null
   if (input.start_time !== undefined) payload.start_time = input.start_time
   if (input.location !== undefined) payload.location = input.location
+  if (input.diploma_included !== undefined)
+    payload.diploma_included = input.diploma_included
+  if (input.highlights !== undefined)
+    payload.highlights = input.highlights ?? []
   if (input.cover_image !== undefined)
     payload.cover_image =
       input.cover_image && input.cover_image.length > 0 ? input.cover_image : null

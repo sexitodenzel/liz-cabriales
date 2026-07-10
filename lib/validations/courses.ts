@@ -34,6 +34,12 @@ export const createCourseSchema = z
     end_date: dateString.optional().nullable(),
     start_time: timeString,
     location: z.string().trim().min(1, "La ubicación es requerida").max(200),
+    diploma_included: z.boolean().optional().default(true),
+    highlights: z
+      .array(z.string().trim().min(1).max(40, "Cada distintivo debe ser corto (≤40)"))
+      .max(6, "Máximo 6 distintivos")
+      .optional()
+      .default([]),
     cover_image: z
       .string()
       .trim()
@@ -73,6 +79,11 @@ export const updateCourseSchema = z.object({
   end_date: dateString.optional().nullable(),
   start_time: timeString.optional(),
   location: z.string().trim().min(1).max(200).optional(),
+  diploma_included: z.boolean().optional(),
+  highlights: z
+    .array(z.string().trim().min(1).max(40))
+    .max(6, "Máximo 6 distintivos")
+    .optional(),
   cover_image: z
     .string()
     .trim()

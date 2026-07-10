@@ -21,6 +21,8 @@ const EMPTY_VALUES: CourseFormInitialValues = {
   end_date: "",
   start_time: "",
   location: "",
+  diploma_included: true,
+  highlights: [],
   cover_image: "",
   is_published: false,
   allow_online_registration: false,

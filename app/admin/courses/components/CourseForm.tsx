@@ -27,6 +27,8 @@ export type CourseFormInitialValues = {
   end_date: string
   start_time: string
   location: string
+  diploma_included: boolean
+  highlights: string[]
   cover_image: string
   is_published: boolean
   allow_online_registration: boolean
@@ -58,6 +60,18 @@ const LEVEL_OPTIONS: { value: CourseLevel; label: string }[] = [
   { value: "open", label: "Abierto" },
 ]
 
+const MAX_HIGHLIGHTS = 6
+
+// Ejemplos de un clic para los chips/distintivos del curso.
+const HIGHLIGHT_PRESETS = [
+  "Kit de materiales",
+  "Coffee break",
+  "Cupo limitado",
+  "Certificado avalado",
+  "Práctica en modelo real",
+  "Material descargable",
+]
+
 let _uid = 0
 function uid() {
   return `img-${++_uid}-${Math.random().toString(36).slice(2)}`
@@ -74,6 +88,7 @@ export default function CourseForm({
   const router = useRouter()
   const [values, setValues] = useState<CourseFormInitialValues>(initialValues)
   const [submitting, setSubmitting] = useState(false)
+  const [chipDraft, setChipDraft] = useState("")
 
   const [localGallery, setLocalGallery] = useState<LocalGalleryItem[]>(() =>
     initialGallery && initialGallery.length > 0
@@ -100,6 +115,28 @@ export default function CourseForm({
     value: CourseFormInitialValues[K]
   ) => {
     setValues((prev) => ({ ...prev, [key]: value }))
+  }
+
+  function addChip(raw: string) {
+    const chip = raw.trim().slice(0, 40)
+    if (!chip) return
+    setValues((prev) => {
+      if (
+        prev.highlights.length >= MAX_HIGHLIGHTS ||
+        prev.highlights.some((h) => h.toLowerCase() === chip.toLowerCase())
+      ) {
+        return prev
+      }
+      return { ...prev, highlights: [...prev.highlights, chip] }
+    })
+    setChipDraft("")
+  }
+
+  function removeChip(chip: string) {
+    setValues((prev) => ({
+      ...prev,
+      highlights: prev.highlights.filter((h) => h !== chip),
+    }))
   }
 
   function addImage(url: string) {
@@ -147,6 +184,8 @@ export default function CourseForm({
       end_date: values.end_date ? values.end_date : null,
       start_time: values.start_time,
       location: values.location.trim(),
+      diploma_included: values.diploma_included,
+      highlights: values.highlights,
       cover_image: coverUrl,
       is_published: values.is_published,
       allow_online_registration: values.allow_online_registration,
@@ -280,15 +319,27 @@ export default function CourseForm({
             <label className={labelCls}>Descripción larga</label>
             <textarea
               required
-              rows={5}
+              rows={9}
               value={values.description}
               onChange={(e) => update("description", e.target.value)}
-              placeholder="Todo el detalle: temario, requisitos, qué incluye… Respeta los saltos de línea."
+              placeholder={`Eleva el nivel de tus servicios con técnicas de vanguardia.
+
+## ¿Qué vas a aprender?
+- Técnica de Dry Pedicura con alineación avanzada
+- Creación paso a paso de prótesis ungueales
+
+## ¿Qué incluye tu inscripción?
+- Reconocimiento
+- Coffee Break durante la capacitación`}
               className={inputCls}
             />
             <p className="mt-1 text-[11px] text-[#9a9a9a]">
-              Se muestra completa en la página del curso, respetando tus
-              renglones y espacios.
+              Se muestra con formato bonito en la página del curso. Usa{" "}
+              <code className="rounded bg-[#f0f0f0] px-1">## Título</code> para
+              secciones, <code className="rounded bg-[#f0f0f0] px-1">- </code>{" "}
+              al inicio de un renglón para viñetas y{" "}
+              <code className="rounded bg-[#f0f0f0] px-1">**texto**</code> para
+              negritas.
             </p>
           </div>
 
@@ -412,6 +463,118 @@ export default function CourseForm({
               líneas (ciudad, referencia, etc.).
             </p>
           </div>
+
+          {/* ── Distintivos / chips del curso ─────────────────────────── */}
+          <section className="rounded-xl border border-[#ececec] bg-[#fafafa] p-4">
+            <div className="mb-3">
+              <h2 className="text-sm font-semibold text-[#1a1a1a]">
+                Distintivos del curso
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-[#6b6b6b]">
+                Son los pequeños chips dorados que aparecen debajo de la
+                descripción. El nivel del curso siempre se muestra
+                automáticamente.
+              </p>
+            </div>
+
+            <label className="flex items-start gap-3 text-sm text-[#3a3a3a]">
+              <input
+                type="checkbox"
+                checked={values.diploma_included}
+                onChange={(e) => update("diploma_included", e.target.checked)}
+                className={`${checkboxCls} mt-0.5`}
+              />
+              <span>
+                <span className="block font-medium text-[#1a1a1a]">
+                  Mostrar chip “Diploma incluido”
+                </span>
+                <span className="block text-xs leading-relaxed text-[#6b6b6b]">
+                  Actívalo solo si este curso entrega diploma o constancia.
+                </span>
+              </span>
+            </label>
+
+            <div className="mt-4 border-t border-[#ececec] pt-4">
+              <label className={labelCls}>Chips adicionales (opcional)</label>
+
+              {values.highlights.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {values.highlights.map((chip) => (
+                    <span
+                      key={chip}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[#e8dcb0] bg-[#f5efdc] py-[5px] pl-3 pr-2 text-[12px] font-medium text-[#a8893a]"
+                    >
+                      {chip}
+                      <button
+                        type="button"
+                        onClick={() => removeChip(chip)}
+                        aria-label={`Quitar ${chip}`}
+                        className="grid h-4 w-4 place-items-center rounded-full text-[#a8893a]/70 transition-colors hover:bg-[#a8893a] hover:text-white"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                          <path d="M18 6 6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {values.highlights.length < MAX_HIGHLIGHTS && (
+                <>
+                  <div className="mt-2.5 flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={40}
+                      value={chipDraft}
+                      onChange={(e) => setChipDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          addChip(chipDraft)
+                        }
+                      }}
+                      placeholder="Ej. Kit de materiales"
+                      className={`${inputCls} mt-0`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => addChip(chipDraft)}
+                      disabled={!chipDraft.trim()}
+                      className="shrink-0 rounded-lg border border-[#c9a84c] bg-white px-4 text-sm font-semibold text-[#a8893a] transition-colors hover:bg-[#c9a84c] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Agregar
+                    </button>
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="text-[11px] text-[#9a9a9a]">Ejemplos:</span>
+                    {HIGHLIGHT_PRESETS.filter(
+                      (p) =>
+                        !values.highlights.some(
+                          (h) => h.toLowerCase() === p.toLowerCase()
+                        )
+                    ).map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => addChip(preset)}
+                        className="rounded-full border border-dashed border-[#d8c68a] bg-white px-2.5 py-1 text-[11px] text-[#a8893a] transition-colors hover:border-[#c9a84c] hover:bg-[#f5efdc]"
+                      >
+                        + {preset}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <p className="mt-2 text-[11px] text-[#9a9a9a]">
+                {values.highlights.length}/{MAX_HIGHLIGHTS} chips · máx. 40
+                caracteres cada uno.
+              </p>
+            </div>
+          </section>
 
           {/* ── Galería de imágenes ──────────────────────────────────── */}
           <div>
