@@ -5,6 +5,11 @@ import Image from "next/image"
 import type { CourseWithStats, CourseGalleryItem } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 import { buildWhatsAppHref } from "@/lib/constants/contact"
+import {
+  buildGoogleCalendarUrl,
+  downloadICS,
+  type CalendarEvent,
+} from "@/lib/calendar"
 import RegisterModal from "@/components/courses/RegisterModal"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import CourseGallery from "./CourseGallery"
@@ -153,9 +158,27 @@ export default function CourseDetail({
     )
   )
   const remaining = course.public_spots_remaining
+
+  // Mensaje prellenado de WhatsApp con nombre del taller, fecha y apartado.
+  const depositText =
+    minDeposit > 0
+      ? ` ¿Me podrían compartir los detalles para el apartado de $${minDeposit.toLocaleString(
+          "es-MX"
+        )} pesos?`
+      : " ¿Me podrían compartir los detalles para inscribirme?"
   const whatsAppHref = buildWhatsAppHref(
-    `Hola, quiero información sobre el curso "${course.title}".`
+    `¡Hola, Academia Liz Cabriales! Me interesa inscribirme al taller de ${course.title} del ${day} de ${monthFull}.${depositText}`
   )
+
+  // Evento para "Agregar al calendario" (Apple / Outlook / Google).
+  const calendarEvent: CalendarEvent = {
+    id: course.id,
+    title: `${course.title} · Academia Liz Cabriales`,
+    description: course.short_description || course.description.slice(0, 300),
+    location: course.location,
+    startDate: course.start_date,
+    startTime: course.start_time,
+  }
 
   return (
     <>
@@ -404,15 +427,34 @@ export default function CourseDetail({
                   Agregar al calendario
                 </div>
                 <div className="flex gap-2.5">
-                  {["Apple Calendar", "Outlook", "Google Calendar"].map((cal) => (
-                    <button
-                      key={cal}
-                      title={cal}
-                      className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
-                    >
-                      <CalIcon />
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    title="Apple Calendar"
+                    aria-label="Agregar a Apple Calendar"
+                    onClick={() => downloadICS(calendarEvent)}
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
+                  >
+                    <CalIcon />
+                  </button>
+                  <button
+                    type="button"
+                    title="Outlook"
+                    aria-label="Agregar a Outlook"
+                    onClick={() => downloadICS(calendarEvent)}
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
+                  >
+                    <CalIcon />
+                  </button>
+                  <a
+                    href={buildGoogleCalendarUrl(calendarEvent)}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Google Calendar"
+                    aria-label="Agregar a Google Calendar"
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
+                  >
+                    <CalIcon />
+                  </a>
                 </div>
               </div>
             )}
