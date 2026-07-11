@@ -43,6 +43,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# graphify cache
-graphify-out/cache/
+# graphify (salida generada)
+graphify-out/
 .agents/
