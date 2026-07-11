@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 
 export type EventGalleryItem = {
@@ -68,7 +68,7 @@ function LightboxOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/95 backdrop-blur-sm"
+      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/95"
       onClick={onClose}
     >
       <button
@@ -141,6 +141,15 @@ export default function EventsGallery({
   const [lightbox, setLightbox] = useState<Lightbox>(null)
   const [year, setYear] = useState<string>(ALL_YEARS)
 
+  // En móvil el navegador dispara un "ghost click" ~300ms después del toque que
+  // caería sobre el overlay recién montado y lo cerraría solo; ignoramos cierres
+  // dentro de esa ventana.
+  const openedAtRef = useRef(0)
+  const handleOpen = useCallback((lb: Lightbox) => {
+    openedAtRef.current = Date.now()
+    setLightbox(lb)
+  }, [])
+
   const years = useMemo(() => {
     const set = new Set<string>()
     items.forEach((item) => {
@@ -161,7 +170,10 @@ export default function EventsGallery({
     return map
   }, [visibleItems])
 
-  const handleClose = useCallback(() => setLightbox(null), [])
+  const handleClose = useCallback(() => {
+    if (Date.now() - openedAtRef.current < 400) return
+    setLightbox(null)
+  }, [])
   const handlePrev = useCallback(() => {
     if (!lightbox || visibleItems.length === 0) return
     const newIdx = (lightbox.idx - 1 + visibleItems.length) % visibleItems.length
@@ -272,7 +284,7 @@ export default function EventsGallery({
                   <button
                     className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
                     onClick={() =>
-                      setLightbox({
+                      handleOpen({
                         url: item.url,
                         caption: item.caption,
                         idx: indexMap.get(item.id) ?? idx,

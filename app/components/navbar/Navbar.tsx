@@ -64,6 +64,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [isCompactDesktop, setIsCompactDesktop] = useState(false)
+  const [isDesktopWidth, setIsDesktopWidth] = useState(false)
   const [activeMenu, setActiveMenu] = useState<DesktopMenu>(null)
   const [navBarStyle, setNavBarStyle] = useState({ left: 0, width: 0, visible: false })
   const [navBarAnimate, setNavBarAnimate] = useState<"grow" | "slide">("grow")
@@ -270,6 +271,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     const updateCompactDesktop = () => {
       const width = window.innerWidth
       setIsCompactDesktop(width >= 768 && width < COMPACT_DESKTOP_MAX_WIDTH)
+      setIsDesktopWidth(width >= 768)
     }
     updateCompactDesktop()
     window.addEventListener("resize", updateCompactDesktop)
@@ -780,7 +782,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       {/* Overlay de blur global (carrito + megamenu desktop + búsqueda) */}
       <div
         className={`fixed inset-0 top-[var(--site-chrome-bottom,var(--navbar-actual-h))] backdrop-blur-md bg-black/10 z-[45] transition-opacity duration-300 md:top-0 ${
-          isCartOpen || activeMenu || (mobileSearchOpen && !showCompactToolbar) ? "opacity-100" : "opacity-0 pointer-events-none"
+          isCartOpen || activeMenu || (mobileSearchOpen && !showCompactToolbar && isDesktopWidth) ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onMouseEnter={() => {
           if (isProgrammatic()) { clearProgrammatic(); return }

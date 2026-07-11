@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import type { CourseGalleryItem } from "@/lib/supabase/courses"
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -121,7 +121,7 @@ function LightboxOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/95 backdrop-blur-sm"
+      className="fixed inset-0 z-[999] flex items-center justify-center bg-black/95"
       onClick={onClose}
     >
       {/* Close */}
@@ -304,6 +304,16 @@ function GalleryItem({
 export default function CourseGallery({ items }: { items: CourseGalleryItem[] }) {
   const [lightbox, setLightbox] = useState<Lightbox>(null)
 
+  // Momento en el que se abrió el lightbox. En móvil, el navegador dispara un
+  // "ghost click" ~300ms después del toque que caería sobre el overlay recién
+  // montado y lo cerraría solo; ignoramos cierres dentro de esa ventana.
+  const openedAtRef = useRef(0)
+
+  const handleOpen = useCallback((lb: Lightbox) => {
+    openedAtRef.current = Date.now()
+    setLightbox(lb)
+  }, [])
+
   const imageItems = useMemo(
     () => items.filter((i) => i.type === "image"),
     [items]
@@ -318,7 +328,10 @@ export default function CourseGallery({ items }: { items: CourseGalleryItem[] })
     return map
   }, [items])
 
-  const handleClose = useCallback(() => setLightbox(null), [])
+  const handleClose = useCallback(() => {
+    if (Date.now() - openedAtRef.current < 400) return
+    setLightbox(null)
+  }, [])
 
   const handlePrev = useCallback(() => {
     if (!lightbox || lightbox.kind !== "image") return
@@ -361,7 +374,7 @@ export default function CourseGallery({ items }: { items: CourseGalleryItem[] })
               <GalleryItem
                 item={item}
                 imgIndex={imageIndexMap.get(item.id) ?? 0}
-                onOpen={setLightbox}
+                onOpen={handleOpen}
               />
             </div>
           ))}
