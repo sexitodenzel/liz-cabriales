@@ -65,11 +65,11 @@ export default function CoursesCarousel({ courses }: Props) {
                     LC
                   </div>
                 )}
-                <div className="absolute left-3 top-3 rounded-md bg-white/90 px-2 py-1 text-center backdrop-blur-sm">
-                  <p className="text-[9px] font-semibold uppercase tracking-wide text-[#a8862f]">
+                <div className="absolute left-3 top-3 rounded-md border border-white/10 bg-[#141414]/60 px-2 py-1 text-center shadow-[0_2px_8px_rgba(0,0,0,0.25)] backdrop-blur-md">
+                  <p className="text-[9px] font-semibold uppercase tracking-wide text-[#e2c06f] [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
                     {month}
                   </p>
-                  <p className="text-sm font-semibold leading-none text-[#0a0a0a]">{day}</p>
+                  <p className="text-sm font-semibold leading-none text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">{day}</p>
                 </div>
               </div>
 

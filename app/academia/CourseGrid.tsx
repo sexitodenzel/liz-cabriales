@@ -199,27 +199,28 @@ function CourseCard({ course }: { course: CourseWithStats }) {
         {/* Bottom gradient */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/55" />
 
-        {/* Level tag */}
-        <span className="absolute left-4 top-4 z-10 rounded-[4px] bg-white/90 px-2.5 py-[5px] text-[10px] font-semibold uppercase tracking-[0.18em] text-[#3a3a3a] backdrop-blur-sm">
-          {LEVEL_LABEL[course.level]}
-        </span>
-
-        {/* Past badge */}
-        {past && (
-          <span className="absolute left-4 top-[42px] z-10 rounded-full bg-[#1a1a1a]/85 px-2.5 py-[5px] text-[10px] font-semibold uppercase tracking-wide text-[#c9a84c]">
-            Realizado
+        {/* Status chips */}
+        <div className="absolute left-4 top-4 z-10 flex flex-col items-start gap-1.5">
+          <span className="rounded-full border border-white/10 bg-[#141414]/60 px-3 py-[5px] text-[10px] font-semibold uppercase tracking-[0.16em] text-[#e2c06f] shadow-[0_2px_8px_rgba(0,0,0,0.25)] backdrop-blur-md [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
+            {LEVEL_LABEL[course.level]}
           </span>
-        )}
+          {past && (
+            <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-[#141414]/60 px-3 py-[5px] text-[10px] font-semibold uppercase tracking-[0.14em] text-[#e2c06f] shadow-[0_2px_8px_rgba(0,0,0,0.25)] backdrop-blur-md [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
+              <span className="h-[5px] w-[5px] rounded-full bg-[#d8b866]" />
+              Realizado
+            </span>
+          )}
+        </div>
 
         {/* Date badge */}
-        <div className="absolute right-3.5 top-3.5 z-10 flex h-[62px] w-[62px] flex-col items-center justify-center rounded-full border-[1.5px] border-[#c9a84c] bg-white text-center shadow-[0_4px_12px_rgba(0,0,0,0.10)]">
+        <div className="absolute right-3.5 top-3.5 z-10 flex h-[62px] w-[62px] flex-col items-center justify-center rounded-full border-[1.5px] border-[#c9a84c]/50 bg-[#141414]/60 text-center shadow-[0_4px_14px_rgba(0,0,0,0.25)] backdrop-blur-md">
           <span
-            className="text-[22px] font-semibold leading-none text-[#1a1a1a]"
+            className="text-[22px] font-semibold leading-none text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
           >
             {day}
           </span>
-          <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#a8893a]">
+          <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#e2c06f] [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
             {month}
           </span>
         </div>
