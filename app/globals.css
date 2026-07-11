@@ -74,7 +74,7 @@
    Los inputs quedan fuera: FloatingInput ya marca foco con borde + label.
 ===================================== */
 
-:where(a, button, [role="button"], summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+:where(a, button, [role="button"], summary, [tabindex]:not([tabindex="-1"])):not(input):not(textarea):not(select):focus-visible {
   outline: 2px solid var(--color-gold);
   outline-offset: 3px;
 }

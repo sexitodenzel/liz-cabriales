@@ -536,7 +536,7 @@ export default function CourseDetail({
           </div>
 
           {/* ── Sidebar ──────────────────────────────────────────────── */}
-          <aside className="sticky top-6 rounded-xl border border-[#ececec] bg-[#fafafa] p-7">
+          <aside className="navbar-follow-collapse sticky top-[calc(var(--navbar-actual-h,64px)+1.5rem)] self-start rounded-xl border border-[#ececec] bg-[#fafafa] p-7">
             {/* Date block */}
             <div className="mb-5 border-b border-[#ececec] pb-5">
               <div className="flex items-center gap-[18px]">
