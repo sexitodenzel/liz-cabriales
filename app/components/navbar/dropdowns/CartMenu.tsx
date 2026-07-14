@@ -4,7 +4,7 @@
    CART MENU
    ========================================= */
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { X, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -19,6 +19,8 @@ import { CartItem } from "@/lib/cart"
 import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
 import SlidingNumber from "@/app/components/ui/motion/sliding-number"
 import { Drawer } from "@/app/components/ui/motion/drawer"
+
+const emptySubscribe = () => () => {}
 
 function formatMXN(value: number) {
   return new Intl.NumberFormat("es-MX", {
@@ -217,13 +219,15 @@ function SuggestionCard({
 }
 
 export default function CartMenu() {
-  const { items, itemCount, subtotal, isLoading, updateQuantity, removeItem, isCartOpen, closeCart, addItem } =
+  const { items, itemCount, subtotal, isLoading, adjustItem, removeItem, isCartOpen, closeCart, addItem } =
     useCart()
 
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  // true solo tras hidratar en cliente; evita mismatch SSR/cliente
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  )
 
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
@@ -243,11 +247,14 @@ export default function CartMenu() {
 
   const isEmpty = resolvedItems.length === 0
 
-  const cartSlugStrRef = useRef("")
-  cartSlugStrRef.current = useMemo(
+  const cartSlugStr = useMemo(
     () => items.map((i) => i.productSlug).filter(Boolean).join(","),
     [items],
   )
+  const cartSlugStrRef = useRef("")
+  useEffect(() => {
+    cartSlugStrRef.current = cartSlugStr
+  }, [cartSlugStr])
 
   const hasFetchedRef = useRef(false)
 
@@ -396,9 +403,7 @@ export default function CartMenu() {
                         <button
                           type="button"
                           aria-label={`Reducir cantidad de ${item.name}`}
-                          onClick={() =>
-                            updateQuantity(item.id, Math.max(1, item.qty - 1))
-                          }
+                          onClick={() => adjustItem(item.id, -1)}
                           className="flex h-7 w-7 items-center justify-center rounded-full text-[14px] transition-colors hover:bg-neutral-100"
                         >
                           −
@@ -409,7 +414,7 @@ export default function CartMenu() {
                         <button
                           type="button"
                           aria-label={`Aumentar cantidad de ${item.name}`}
-                          onClick={() => updateQuantity(item.id, item.qty + 1)}
+                          onClick={() => adjustItem(item.id, 1)}
                           className="flex h-7 w-7 items-center justify-center rounded-full text-[14px] transition-colors hover:bg-neutral-100"
                         >
                           +

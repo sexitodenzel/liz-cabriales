@@ -83,6 +83,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const userIdRef = useRef<string | null>(null)
   const loadInFlightRef = useRef(false)
   const debounceApiRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  // Guardia contra respuestas fuera de orden: cada mutación local incrementa la
+  // secuencia; un snapshot del servidor solo se aplica si nada cambió después.
+  const mutationSeqRef = useRef(0)
+  const qtySyncInFlightRef = useRef(0)
 
   const applySnapshot = useCallback((snapshot: CartApiData) => {
     setItems(snapshot.items)
@@ -208,8 +212,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  const canApplyServerSnapshot = useCallback(
+    (seq: number) =>
+      mutationSeqRef.current === seq &&
+      debounceApiRef.current.size === 0 &&
+      qtySyncInFlightRef.current === 0,
+    []
+  )
+
   const addItem = useCallback(
     async (item: CartItem) => {
+      mutationSeqRef.current += 1
+      const seq = mutationSeqRef.current
+
       setItems((prev) => {
         const merged = mergeCartItems(prev, [item])
         persistGuest(merged)
@@ -222,18 +237,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             action: "add",
             item,
           })
-          applySnapshot(snapshot)
+          if (canApplyServerSnapshot(seq)) {
+            applySnapshot(snapshot)
+          }
           clearGuestCart()
         } catch {
           // se reintentara en la siguiente mutacion
         }
       }
     },
-    [applySnapshot, persistGuest]
+    [applySnapshot, canApplyServerSnapshot, persistGuest]
   )
 
   const removeItem = useCallback(
     async (variantId: string) => {
+      mutationSeqRef.current += 1
+      const seq = mutationSeqRef.current
+
+      const pendingTimer = debounceApiRef.current.get(variantId)
+      if (pendingTimer !== undefined) {
+        clearTimeout(pendingTimer)
+        debounceApiRef.current.delete(variantId)
+      }
+
       setItems((prev) => {
         const next = prev.filter((item) => item.variantId !== variantId)
         persistGuest(next)
@@ -244,13 +270,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         clearGuestCart()
         try {
           const snapshot = await requestCartSnapshot("DELETE", { variantId })
-          applySnapshot(snapshot)
+          if (canApplyServerSnapshot(seq)) {
+            applySnapshot(snapshot)
+          }
         } catch {
           // ignore
         }
       }
     },
-    [applySnapshot, persistGuest]
+    [applySnapshot, canApplyServerSnapshot, persistGuest]
   )
 
   const updateQuantity = useCallback(
@@ -259,6 +287,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await removeItem(variantId)
         return
       }
+
+      mutationSeqRef.current += 1
+      const seq = mutationSeqRef.current
 
       setItems((prev) => {
         const next = prev.map((item) =>
@@ -274,18 +305,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             variantId,
             quantity,
           })
-          applySnapshot(snapshot)
+          if (canApplyServerSnapshot(seq)) {
+            applySnapshot(snapshot)
+          }
           clearGuestCart()
         } catch {
           // ignore
         }
       }
     },
-    [applySnapshot, persistGuest, removeItem]
+    [applySnapshot, canApplyServerSnapshot, persistGuest, removeItem]
   )
 
   const adjustItem = useCallback(
     (variantId: string, delta: number, min = 1) => {
+      mutationSeqRef.current += 1
+
       setItems((prev) => {
         const next = prev.map((item) =>
           item.variantId !== variantId
@@ -305,17 +340,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         debounceApiRef.current.delete(variantId)
         const current = itemsRef.current.find((i) => i.variantId === variantId)
         if (!current) return
+        const seq = mutationSeqRef.current
+        qtySyncInFlightRef.current += 1
         requestCartSnapshot("PATCH", { variantId, quantity: current.quantity })
-          .then(applySnapshot)
-          .catch(() => {})
+          .then((snapshot) => {
+            qtySyncInFlightRef.current -= 1
+            if (canApplyServerSnapshot(seq)) {
+              applySnapshot(snapshot)
+            }
+          })
+          .catch(() => {
+            qtySyncInFlightRef.current -= 1
+          })
       }, 400)
 
       debounceApiRef.current.set(variantId, timer)
     },
-    [applySnapshot]
+    [applySnapshot, canApplyServerSnapshot, persistGuest]
   )
 
   const clearCart = useCallback(async () => {
+    mutationSeqRef.current += 1
+    const seq = mutationSeqRef.current
+
+    for (const timer of debounceApiRef.current.values()) {
+      clearTimeout(timer)
+    }
+    debounceApiRef.current.clear()
+
     setItems([])
     clearGuestCart()
 
@@ -324,12 +376,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const snapshot = await requestCartSnapshot("DELETE", {
           clearAll: true,
         })
-        applySnapshot(snapshot)
+        if (canApplyServerSnapshot(seq)) {
+          applySnapshot(snapshot)
+        }
       } catch {
         // ignore
       }
     }
-  }, [applySnapshot])
+  }, [applySnapshot, canApplyServerSnapshot])
 
   const dismissRemovedNotification = useCallback(() => {
     setRemovedCount(0)
