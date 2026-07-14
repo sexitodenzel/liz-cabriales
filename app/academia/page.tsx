@@ -1,6 +1,5 @@
 import { getPublishedCoursesCached } from "@/lib/supabase/courses"
 import CourseGrid from "./CourseGrid"
-import Breadcrumb from "@/components/shared/Breadcrumb"
 
 export const revalidate = 60
 
@@ -20,10 +19,12 @@ export default async function AcademiaPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white text-[#1a1a1a]">
+    <main className="min-h-screen bg-ivory text-[#1a1a1a]">
       <div className="site-container pt-5 pb-20">
-        <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Academia" }]} />
-        <CourseGrid courses={result.data} />
+        <CourseGrid
+          courses={result.data}
+          breadcrumbItems={[{ label: "Inicio", href: "/" }, { label: "Academia" }]}
+        />
       </div>
     </main>
   )

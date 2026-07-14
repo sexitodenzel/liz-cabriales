@@ -82,7 +82,7 @@ export default function ProductImageGallery({ images, alt }: Props) {
 
   if (!activeImage) {
     return (
-      <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-neutral-200" />
+      <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-neutral-200" />
     )
   }
 
@@ -91,7 +91,7 @@ export default function ProductImageGallery({ images, alt }: Props) {
       <div className="space-y-3">
         {/* Main image container */}
         <div
-          className="group relative aspect-[4/5] w-full cursor-zoom-in select-none overflow-hidden rounded-lg bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+          className="group relative aspect-[4/5] w-full cursor-zoom-in select-none overflow-hidden rounded-xl bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
           role="button"
           tabIndex={0}
           aria-label="Ver imagen completa"

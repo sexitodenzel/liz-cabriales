@@ -12,6 +12,7 @@ import type {
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import { createClient } from "@/lib/supabase/client"
 import ImageUploader from "@/app/admin/components/ImageUploader"
+import ImageLightbox from "@/app/components/shared/ImageLightbox"
 import {
   ABRASIVITY_LEVELS,
   isAbrasivityValue,
@@ -221,6 +222,7 @@ function FieldError({ message }: { message?: string }) {
 
 export default function AdminProductsPage() {
   const router = useRouter()
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [categories, setCategories] = useState<AdminCategory[]>([])
@@ -2207,12 +2209,19 @@ export default function AdminProductsPage() {
                     <div className="flex flex-wrap gap-2 mt-1">
                       {urls.map((url, idx) => (
                         <div key={idx} className="relative group shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={url}
-                            alt={`imagen ${idx + 1}`}
-                            className="h-14 w-14 rounded-lg object-cover border border-neutral-200"
-                          />
+                          <button
+                            type="button"
+                            onClick={() => setLightbox({ images: urls, index: idx })}
+                            aria-label="Ampliar imagen"
+                            className="block cursor-zoom-in"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={url}
+                              alt={`imagen ${idx + 1}`}
+                              className="h-14 w-14 rounded-lg border border-neutral-200 bg-neutral-100 object-contain"
+                            />
+                          </button>
                           <button
                             type="button"
                             onClick={() => {
@@ -3209,12 +3218,19 @@ export default function AdminProductsPage() {
                                       <div className="flex flex-wrap gap-1.5 mt-1">
                                         {urls.map((url, idx) => (
                                           <div key={idx} className="relative group shrink-0">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                              src={url}
-                                              alt={`imagen ${idx + 1}`}
-                                              className="h-12 w-12 rounded-lg object-cover border border-neutral-200"
-                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => setLightbox({ images: urls, index: idx })}
+                                              aria-label="Ampliar imagen"
+                                              className="block cursor-zoom-in"
+                                            >
+                                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                                              <img
+                                                src={url}
+                                                alt={`imagen ${idx + 1}`}
+                                                className="h-12 w-12 rounded-lg border border-neutral-200 bg-neutral-100 object-contain"
+                                              />
+                                            </button>
                                             <button
                                               type="button"
                                               onClick={() => {
@@ -3969,6 +3985,14 @@ export default function AdminProductsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images}
+          startIndex={lightbox.index}
+          onClose={() => setLightbox(null)}
+        />
       )}
     </div>
   )

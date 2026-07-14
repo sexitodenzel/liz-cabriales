@@ -41,6 +41,17 @@ type NavbarProps = {
 
 const COMPACT_DESKTOP_MAX_WIDTH = 1200
 
+// Borde inferior del navbar expandido (px). El navbar es sticky top-0 sin
+// transform en reposo, así que su bottom = --navbar-actual-h. Se lee una vez
+// por breakpoint (constante dentro de cada media query), no por frame.
+function readNavbarBottom(): number {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(
+    "--navbar-actual-h"
+  )
+  const value = parseFloat(raw)
+  return Number.isFinite(value) ? value : 104
+}
+
 const DESKTOP_NAV_ITEMS = [
   { label: "Tienda" as const, href: "/tienda" },
   { label: "Academia" as const, href: "/academia" },
@@ -88,11 +99,18 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   } = useCart()
   const { count: wishlistCount, hydrated: wishlistHydrated } = useWishlist()
 
-  // El carrito/wishlist se cargan de localStorage/DB en un effect (post-hidratación).
-  // Server y primer render de cliente deben coincidir en "sin badge", si no React
-  // lanza el error de hydration mismatch. Por eso los badges esperan a que cargue.
-  const cartBadgeCount = cartLoading ? 0 : itemCount
-  const wishlistBadgeCount = wishlistHydrated ? wishlistCount : 0
+  // Suspense alrededor del navbar (layout) permite hidratación selectiva: el
+  // CartProvider puede terminar de leer localStorage ANTES de que este Navbar
+  // hidrate. Si el badge depende solo de cartLoading, el cliente ya trae
+  // itemCount > 0 y no coincide con el HTML del server (sin badge).
+  // hasMounted es por instancia y siempre false en el primer render → match.
+  const [hasMounted, setHasMounted] = useState(false)
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
+
+  const cartBadgeCount = hasMounted && !cartLoading ? itemCount : 0
+  const wishlistBadgeCount = hasMounted && wishlistHydrated ? wishlistCount : 0
 
   const clearMenuCloseTimer = () => {
     if (menuCloseTimerRef.current) {
@@ -208,6 +226,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     const EXPAND_AFTER = -8
     let lastY = window.scrollY
     let acc = 0
+    // Barra sticky de la página que sigue el colapso (marcada con
+    // data-nav-collapse-guard). Se cachea entre frames; se re-consulta si el
+    // elemento se desmonta al cambiar de ruta.
+    let guardEl: HTMLElement | null = null
+    // Borde inferior del navbar EXPANDIDO (sin transform) = --navbar-actual-h.
+    let navbarBottom = readNavbarBottom()
 
     const setCollapsed = (collapsed: boolean) => {
       document.documentElement.classList.toggle("lc-nav-collapsed", collapsed)
@@ -219,14 +243,70 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       const y = window.scrollY
       const delta = y - lastY
       lastY = y
+      const root = document.documentElement
       if (!mq.matches) {
         acc = 0
+        root.classList.remove("lc-nav-guard-free")
         setCollapsed(false)
         return
       }
       const pinOffset =
         document.getElementById("site-announcement-bar")?.offsetHeight ?? 0
-      if (y <= pinOffset + 56) {
+      // En la zona top vamos a expandir sí o sí: el lc-nav-collapsed viejo NO
+      // cuenta como "pegada" (si no, al saltar al top guard-free quedaba
+      // apagado sin más scrolls que lo corrigieran, y el escudo ::before
+      // tapaba el breadcrumb con la barra ya en el flujo).
+      const inTopZone = y <= pinOffset + 56
+      const collapsed =
+        !inTopZone && root.classList.contains("lc-nav-collapsed")
+
+      // ¿La barra sticky de la página (data-nav-collapse-guard) ya tocó el
+      // navbar y está pegada bajo él? Solo leemos layout mientras seguimos
+      // expandidos (colapsados sabemos que está pegada → sin reflow por frame).
+      if (!collapsed && (!guardEl || !guardEl.isConnected)) {
+        guardEl = document.querySelector<HTMLElement>("[data-nav-collapse-guard]")
+      }
+      let guardTop = Number.POSITIVE_INFINITY
+      if (!collapsed && guardEl && guardEl.isConnected) {
+        guardTop = guardEl.getBoundingClientRect().top
+        if (inTopZone) {
+          // El rect incluye el transform del colapso: tras un salto al top la
+          // barra aún trae -56px y el rect miente "pegada" (148-56=92), dejando
+          // escudo y transición activos sin más scrolls que lo corrijan. En la
+          // zona top decide el layout puro (rect - translateY). Fuera del top
+          // se queda el rect CON transform: es lo que hace que el undock
+          // gradual espere a transform≈0 y el snap no dé salto.
+          const transform = getComputedStyle(guardEl).transform
+          if (transform && transform !== "none") {
+            guardTop -= new DOMMatrixReadOnly(transform).m42
+          }
+        }
+      }
+      const guardDocked =
+        collapsed ||
+        !guardEl ||
+        !guardEl.isConnected ||
+        guardTop <= navbarBottom + 1
+
+      // DESPEGADA: la barra vive en el flujo, sobre su hero (o arriba del todo),
+      // no bajo el navbar. Ahí NO debe arrastrar la transición de 480ms del
+      // colapso: si lo hace, al frenar arriba sigue deslizándose ~0.1s hasta su
+      // sitio. La marcamos para que CSS le quite la transition (snap inmediato)
+      // y apague el escudo ::before (globals.css). El check de "despegada" solo
+      // se cumple con el transform ya en ~0, así que el snap no da salto.
+      // Pegada → sigue al navbar con su transición (necesario para que no se
+      // abra un hueco con el hero al colapsar).
+      root.classList.toggle("lc-nav-guard-free", !guardDocked)
+
+      if (inTopZone) {
+        acc = 0
+        setCollapsed(false)
+        return
+      }
+      // No colapsar hasta que la barra se haya pegado: si el navbar sube 56px
+      // mientras la barra aún baja por el hero, queda un hueco con el hero
+      // asomándose (bug /academia: se leía "Eventos temporada 2026").
+      if (!guardDocked) {
         acc = 0
         setCollapsed(false)
         return
@@ -240,6 +320,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     const handleModeChange = () => {
       lastY = window.scrollY
       acc = 0
+      navbarBottom = readNavbarBottom()
       if (!mq.matches) setCollapsed(false)
     }
     window.addEventListener("scroll", update, { passive: true })
@@ -249,6 +330,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       window.removeEventListener("scroll", update)
       mq.removeEventListener("change", handleModeChange)
       document.documentElement.classList.remove("lc-nav-collapsed")
+      document.documentElement.classList.remove("lc-nav-guard-free")
     }
   }, [])
 

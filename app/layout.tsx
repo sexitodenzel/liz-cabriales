@@ -54,7 +54,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    /* lc-nav-guard-free de inicio: el escudo ::before de las barras
+       [data-nav-collapse-guard] (globals.css) queda apagado hasta que
+       Navbar.tsx mida si la barra está pegada al navbar — así no tapa
+       breadcrumbs/hero antes de hidratar. */
+    <html lang="es" className="lc-nav-guard-free" suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${outfit.className} ${playfairDisplay.variable} flex min-h-screen flex-col`}

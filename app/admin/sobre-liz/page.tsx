@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import DatePicker from "@/components/shared/DatePicker"
 import ImageUploader from "@/app/admin/components/ImageUploader"
+import ImageLightbox from "@/app/components/shared/ImageLightbox"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type LizEventRow = {
@@ -30,6 +31,7 @@ export default function AdminSobreLizPage() {
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
 
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [newImage, setNewImage] = useState("")
   const [newCaption, setNewCaption] = useState("")
@@ -159,22 +161,27 @@ export default function AdminSobreLizPage() {
           </p>
         ) : (
           <ul className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 lg:grid-cols-4">
-            {items.map((row) => {
+            {items.map((row, i) => {
               const isBusy = busyId === row.id
               return (
                 <li
                   key={row.id}
                   className="group overflow-hidden rounded-xl border border-neutral-200 bg-white"
                 >
-                  <div className="relative aspect-[4/3] w-full bg-neutral-100">
+                  <button
+                    type="button"
+                    onClick={() => setLightboxIndex(i)}
+                    aria-label="Ampliar imagen"
+                    className="relative block aspect-[4/3] w-full cursor-zoom-in bg-neutral-100"
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={row.image_url}
                       alt={row.caption ?? "Evento"}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                       loading="lazy"
                     />
-                  </div>
+                  </button>
                   <div className="flex flex-col gap-2 p-3">
                     <p className="line-clamp-2 text-[13px] font-medium text-neutral-800">
                       {row.caption || "Sin descripción"}
@@ -195,6 +202,14 @@ export default function AdminSobreLizPage() {
           </ul>
         )}
       </section>
+
+      {lightboxIndex !== null && items.length > 0 && (
+        <ImageLightbox
+          images={items.map((row) => row.image_url)}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
 
       {modalOpen && (
         <div
@@ -221,7 +236,7 @@ export default function AdminSobreLizPage() {
                     <img
                       src={newImage}
                       alt="Vista previa"
-                      className="h-20 w-20 rounded-lg object-cover"
+                      className="h-20 w-20 rounded-lg bg-neutral-100 object-contain"
                     />
                     <button
                       type="button"

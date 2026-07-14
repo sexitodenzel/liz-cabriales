@@ -1,10 +1,16 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import CurtainFooterSpacer from "./CurtainFooterSpacer"
 import FooterStage from "./FooterStage"
+
+/* El telón consume 1 viewport entero de scroll sin mostrar contenido nuevo.
+   Con menos de 3 viewports de contenido esa fase domina la página: la franja
+   negra aparece a media lista y el final es un viewport de vacío bajo el
+   navbar (bug reportado en /academia). Bajo el umbral, footer en flujo. */
+const CURTAIN_MIN_CONTENT_VIEWPORTS = 3
 
 function usePrefersReducedMotion(): boolean {
   const [prefersReduced, setPrefersReduced] = useState(false)
@@ -20,6 +26,41 @@ function usePrefersReducedMotion(): boolean {
   return prefersReduced
 }
 
+/* true si el contenido mide al menos N viewports. SSR/primer render asume que
+   sí (coincide con el HTML del server); useLayoutEffect corrige antes del
+   primer paint del cliente. ResizeObserver re-evalúa cuando el contenido
+   crece/encoge (datos, imágenes, filtros) y en resize del viewport. */
+function useContentSupportsCurtain(
+  contentRef: React.RefObject<HTMLDivElement | null>,
+  enabled: boolean,
+): boolean {
+  const [supportsCurtain, setSupportsCurtain] = useState(true)
+
+  useLayoutEffect(() => {
+    if (!enabled) return
+
+    const el = contentRef.current
+    if (!el) return
+
+    const evaluate = () => {
+      setSupportsCurtain(
+        el.offsetHeight >= window.innerHeight * CURTAIN_MIN_CONTENT_VIEWPORTS,
+      )
+    }
+
+    evaluate()
+    const observer = new ResizeObserver(evaluate)
+    observer.observe(el)
+    window.addEventListener("resize", evaluate)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("resize", evaluate)
+    }
+  }, [contentRef, enabled])
+
+  return supportsCurtain
+}
+
 export default function SiteCurtainLayout({
   children,
 }: {
@@ -27,30 +68,36 @@ export default function SiteCurtainLayout({
 }) {
   const pathname = usePathname()
   const prefersReducedMotion = usePrefersReducedMotion()
+  const contentRef = useRef<HTMLDivElement>(null)
+  const isAdmin = pathname.startsWith("/admin")
+  const contentSupportsCurtain = useContentSupportsCurtain(
+    contentRef,
+    !isAdmin && !prefersReducedMotion,
+  )
 
-  if (pathname.startsWith("/admin")) {
+  if (isAdmin) {
     return <div id="main-content" className="flex flex-1 flex-col">{children}</div>
   }
 
-  if (prefersReducedMotion) {
-    return (
-      <div id="main-content" className="flex flex-1 flex-col">
-        {children}
-        <FooterStage static />
-      </div>
-    )
-  }
+  const curtain = !prefersReducedMotion && contentSupportsCurtain
 
+  /* Misma forma de árbol en ambos modos (solo cambian clases y hermanos):
+     alternar curtain/estático no desmonta la página. */
   return (
     <>
       <div
         id="site-curtain"
-        className="relative z-[1] flex flex-1 flex-col"
+        className={curtain ? "relative z-[1] flex flex-1 flex-col" : "flex flex-1 flex-col"}
       >
-        <div id="main-content" className="flex flex-1 flex-col bg-white">{children}</div>
-        <CurtainFooterSpacer />
+        <div id="main-content" className="flex flex-1 flex-col bg-white">
+          <div ref={contentRef} className="flex flex-1 flex-col">
+            {children}
+          </div>
+          {!curtain && <FooterStage static />}
+        </div>
+        {curtain && <CurtainFooterSpacer />}
       </div>
-      <FooterStage />
+      {curtain && <FooterStage />}
     </>
   )
 }

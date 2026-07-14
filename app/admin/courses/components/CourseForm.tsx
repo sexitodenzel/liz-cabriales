@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import ImageUploader from "@/app/admin/components/ImageUploader"
+import ImageLightbox from "@/app/components/shared/ImageLightbox"
 import DatePicker from "@/components/shared/DatePicker"
 import CourseGalleryEditor, {
   type LocalGalleryItem,
@@ -89,6 +90,7 @@ export default function CourseForm({
   const [values, setValues] = useState<CourseFormInitialValues>(initialValues)
   const [submitting, setSubmitting] = useState(false)
   const [chipDraft, setChipDraft] = useState("")
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   const [localGallery, setLocalGallery] = useState<LocalGalleryItem[]>(() =>
     initialGallery && initialGallery.length > 0
@@ -587,7 +589,7 @@ export default function CourseForm({
 
             {localImages.length > 0 && (
               <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {localImages.map((img) => (
+                {localImages.map((img, i) => (
                   <div
                     key={img.tempId}
                     className={`group relative overflow-hidden rounded-lg border-2 transition-colors ${
@@ -596,25 +598,34 @@ export default function CourseForm({
                         : "border-[#ececec] hover:border-[#c9a84c]/40"
                     }`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={img.url}
-                      alt=""
-                      className="aspect-[4/3] w-full object-cover"
-                    />
+                    {/* Miniatura completa (object-contain): muestra el flyer sin
+                        recortar. Al clicar abre el lightbox en grande. */}
+                    <button
+                      type="button"
+                      onClick={() => setLightboxIndex(i)}
+                      aria-label="Ampliar imagen"
+                      className="block w-full cursor-zoom-in"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img.url}
+                        alt=""
+                        className="aspect-[4/3] w-full bg-neutral-100 object-contain"
+                      />
+                    </button>
 
                     {img.isCover && (
-                      <span className="absolute left-1.5 top-1.5 rounded bg-[#c9a84c] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white shadow">
+                      <span className="pointer-events-none absolute left-1.5 top-1.5 rounded bg-[#c9a84c] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white shadow">
                         Portada
                       </span>
                     )}
 
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/0 transition-colors group-hover:bg-black/40">
+                    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/0 transition-colors group-hover:bg-black/40">
                       {!img.isCover && (
                         <button
                           type="button"
                           onClick={() => setCover(img.tempId)}
-                          className="hidden rounded-md bg-white/90 px-2 py-1 text-[10px] font-semibold text-[#1a1a1a] transition-all hover:bg-[#c9a84c] hover:text-white group-hover:block"
+                          className="pointer-events-auto hidden rounded-md bg-white/90 px-2 py-1 text-[10px] font-semibold text-[#1a1a1a] transition-all hover:bg-[#c9a84c] hover:text-white group-hover:block"
                         >
                           Portada
                         </button>
@@ -622,7 +633,7 @@ export default function CourseForm({
                       <button
                         type="button"
                         onClick={() => removeImage(img.tempId)}
-                        className="hidden rounded-md bg-white/90 px-2 py-1 text-[10px] font-semibold text-red-600 transition-all hover:bg-red-600 hover:text-white group-hover:block"
+                        className="pointer-events-auto hidden rounded-md bg-white/90 px-2 py-1 text-[10px] font-semibold text-red-600 transition-all hover:bg-red-600 hover:text-white group-hover:block"
                       >
                         Quitar
                       </button>
@@ -645,6 +656,14 @@ export default function CourseForm({
                 </span>
               )}
             </div>
+
+            {lightboxIndex !== null && localImages.length > 0 && (
+              <ImageLightbox
+                images={localImages.map((img) => img.url)}
+                startIndex={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+              />
+            )}
           </div>
 
           {/* ── Galería del curso ──────────────────────────────────── */}

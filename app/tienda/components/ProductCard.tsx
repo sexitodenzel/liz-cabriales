@@ -63,10 +63,10 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
     activeVariants.every((variant) => variant.stock <= 0)
 
   const imagePillClassName =
-    "bg-black/80 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide sm:px-3 sm:py-1 sm:text-xs"
+    "rounded-full bg-black/80 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide sm:px-3 sm:py-1 sm:text-xs"
 
   const labelBadgeClassName =
-    "absolute left-2 top-2 z-10 bg-white/95 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-ink shadow-sm sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[10px]"
+    "absolute left-2 top-2 z-10 rounded-full bg-white/95 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-ink shadow-sm sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[10px]"
 
   // Si hay badge (Nuevo/Best seller) en la esquina, baja el punto de abrasividad.
   const abrasivityPosClass = badge
@@ -146,7 +146,7 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
       <p className="text-[11px] text-neutral-400 line-through sm:text-xs">
         {formatPrice(product.base_price)}
       </p>
-      <span className="bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
+      <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
         {product.discount_percent}% OFF
       </span>
     </div>
@@ -167,7 +167,7 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
       <article className="flex gap-5 border-b border-neutral-200 py-5 sm:gap-8 sm:py-7 md:gap-10 md:py-8">
         <Link
           href={`/tienda/${product.slug}`}
-          className="relative h-36 w-36 shrink-0 overflow-hidden sm:h-44 sm:w-44 md:h-52 md:w-52 lg:h-60 lg:w-60"
+          className="relative h-36 w-36 shrink-0 overflow-hidden rounded-xl sm:h-44 sm:w-44 md:h-52 md:w-52 lg:h-60 lg:w-60"
         >
           {currentImage ? (
             <Image
@@ -235,7 +235,7 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
               <p className="text-xs text-neutral-400 line-through sm:text-sm">
                 {formatPrice(product.base_price)}
               </p>
-              <span className="bg-[#C9A84C] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:text-[11px]">
+              <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:text-[11px]">
                 {product.discount_percent}% OFF
               </span>
             </div>
@@ -270,7 +270,7 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
       <TiltCard
         max={8}
         glare={false}
-        className="relative aspect-square w-full rounded-none bg-neutral-50"
+        className="relative aspect-square w-full rounded-xl bg-neutral-50"
       >
         <Link href={`/tienda/${product.slug}`} className="relative block h-full w-full">
           {currentImage ? (
@@ -354,7 +354,7 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
           )}
 
           {productHasDiscount && !isOutOfStock && (
-            <div className="absolute right-2 top-2 z-10 bg-[#C9A84C] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm sm:right-3 sm:top-3 sm:px-3 sm:py-1 sm:text-xs">
+            <div className="absolute right-2 top-2 z-10 rounded-full bg-[#C9A84C] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm sm:right-3 sm:top-3 sm:px-3 sm:py-1 sm:text-xs">
               {product.discount_percent}% OFF
             </div>
           )}

@@ -8,6 +8,7 @@ import Breadcrumb from "@/components/shared/Breadcrumb"
 import type { LinkType, TextPosition } from "@/lib/supabase/landing-slots"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
+import ImageLightbox from "@/app/components/shared/ImageLightbox"
 
 type LandingSlot = {
   key: string
@@ -65,6 +66,7 @@ type SlotCardProps = {
 
 function SlotCard({ slot, onUpdate }: SlotCardProps) {
   const [uploading, setUploading] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentUrl, setCurrentUrl] = useState(slot.url)
@@ -304,12 +306,19 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
         style={{ aspectRatio: slot.section === "hero" ? "16/9" : "2/3" }}
       >
         {hasImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={currentUrl}
-            alt={slot.label}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            aria-label="Ampliar imagen"
+            className="absolute inset-0 cursor-zoom-in"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={currentUrl}
+              alt={slot.label}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </button>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-neutral-400">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8" aria-hidden>
@@ -321,6 +330,10 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
           </div>
         )}
       </div>
+
+      {lightboxOpen && hasImage && (
+        <ImageLightbox images={[currentUrl]} onClose={() => setLightboxOpen(false)} />
+      )}
 
       {/* Label + saved indicator */}
       <div className="flex items-center justify-between gap-2">

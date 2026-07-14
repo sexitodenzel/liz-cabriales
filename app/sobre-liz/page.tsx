@@ -133,11 +133,84 @@ const PILLARS = [
 ] as const
 
 const TIMELINE = [
-  { year: "2018", title: "Apertura de la academia", description: "Nace la Academia Liz Cabriales en Tampico." },
-  { year: "2020", title: "Primera marca distribuida", description: "Comienza la distribución oficial de productos profesionales." },
-  { year: "2022", title: "100ª alumna certificada", description: "Celebramos un centenar de profesionales formadas." },
-  { year: "2024", title: "15+ marcas profesionales", description: "La curaduría más completa de productos de uñas en México." },
-  { year: "2025", title: "E-commerce nacional", description: "Lanzamiento de la tienda en línea con envíos a todo el país." },
+  {
+    year: "2019",
+    title: "Primeros Pasos",
+    description:
+      "Se imparte el primer curso oficial de capacitación profesional y, en paralelo, se consolida la alianza con la primera marca de distribución, marcando el inicio de nuestro compromiso con las y los profesionales de Tampico.",
+  },
+  {
+    year: "2020",
+    title: "Rompiendo Fronteras: El Primer Máster Internacional",
+    description:
+      "Frente a la crisis global, nos convertimos en la primera academia en Tampico en certificar el área con estrictos protocolos de desinfección. Lejos de detenernos, marcamos un hito al traer a nuestro primer Máster de nivel internacional, elevando el nivel técnico de la zona con seguridad absoluta.",
+  },
+  {
+    year: "2021",
+    title: "El Año del Crecimiento Compartido",
+    description:
+      "Vivimos un año histórico al romper récord de asistentes en talleres altamente valorados. Con el firme propósito de impulsar la economía local, brindamos cursos 100% gratuitos enfocados en los mejores perfiles laborales, elevando el nivel técnico y asegurando el crecimiento profesional de nuestra comunidad.",
+  },
+  {
+    year: "2022",
+    title: "Consolidación y Galardón como la Mejor Organización",
+    description:
+      "Hicimos historia en la primera Certificación UINS Novel, donde fuimos reconocidos con el primer lugar como la mejor organización. Este gran logro no solo premió la logística, sino el amor impregnado en cada detalle, nuestro trato profundamente humano y el empoderamiento que inspiramos en cada uno de los asistentes.",
+  },
+  {
+    year: "2023",
+    title: "Instalaciones Propias y Consolidación Internacional",
+    description: "Un año de crecimiento exponencial y saltos definitivos:",
+    bullets: [
+      {
+        label: "Sede Fija:",
+        text: "Se inaugura oficialmente la infraestructura de la Academia y Distribuidora Liz Cabriales.",
+      },
+      {
+        label: "Año de Másters Internacionales:",
+        text: 'La academia eleva el estándar formativo de la zona trayendo a grandes referentes como León Cabriales ("el máster de los masters") y al nail trainer internacional Willy Álvarez.',
+      },
+      {
+        label: "The Ultimate Nail Camp:",
+        text: "Se lleva a cabo este magno evento de entrenamiento intensivo, posicionando a la marca como líder en eventos educativos de alto rendimiento.",
+      },
+    ],
+  },
+  {
+    year: "2024",
+    title: "Revolución Técnica y Especialización Europea",
+    description:
+      "La academia se transforma en el referente de capacitación avanzada y clínica en la región gracias a hitos como:",
+    bullets: [
+      {
+        label: "Presencia Internacional:",
+        text: "Se recibe por primera vez desde Ucrania a la reconocida Pdga. Oksana Makarova, elevando el nivel de formación clínica.",
+      },
+      {
+        label: "Innovación en Nail Art:",
+        text: "Lanzamiento de cursos con las tendencias mundiales más exigentes, incluyendo Flores Camaleón y Cartoon 3D Nivel Avanzado.",
+      },
+      {
+        label: "Especialización Quiropódica y Podal:",
+        text: "Introducción de técnicas revolucionarias y necesarias para el cuidado de la salud, como Reflexología Podal, Reconstrucción Ungueal, Ortonixia (corrección de uñas) y tratamiento avanzado de Onicocriptosis (uñas encarnadas).",
+      },
+    ],
+  },
+  {
+    year: "2025",
+    title: "El Año de la Conexión Global",
+    description: "Un año marcado por la conexión con la élite mundial del sector:",
+    bullets: [
+      {
+        label: "Hub Internacional:",
+        text: "Se recibe por primera vez a referentes internacionales y nacionales de peso como la Master Anna Shevchenko (Ucrania), Dorty Girón Ceballos (Guatemala), Lic. Martín Dávila y Lic. Karina Rojas (Bolivia), así como a los expertos Pdgo. Armando Calderón, Cardone, Danny Art, Diana Gómez, Ángela Juárez, entre muchos otros grandes másters.",
+      },
+      {
+        label: "Seminario de Marca:",
+        text: "Se celebra con éxito el primer Seminario Quiro Aesthetic Pedicure 2025, consolidando una metodología propia que fusiona la estética con la podología clínica.",
+      },
+    ],
+  },
 ] as const
 
 const TESTIMONIALS: Testimonial[] = [
@@ -403,32 +476,94 @@ export default async function SobreLizPage() {
         </div>
 
         <div className="relative">
-          <div
-            className="pointer-events-none absolute left-0 right-0 top-[7px] hidden h-px bg-[#c9a84c]/30 lg:block"
-            aria-hidden
-          />
-          <ol className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 lg:grid lg:snap-none lg:grid-cols-5 lg:gap-6 lg:overflow-visible lg:pb-0">
-            {TIMELINE.map((item) => (
-              <li
-                key={item.year}
-                className="relative min-w-[230px] shrink-0 snap-start lg:min-w-0"
-              >
-                <span
-                  className="block h-3.5 w-3.5 rounded-full border-2 border-white bg-[#c9a84c] shadow-[0_0_0_1px_rgba(201,168,76,0.5)]"
-                  aria-hidden
-                />
-                <p
-                  className="mt-5 text-[28px] font-medium leading-none text-[#a8862f]"
-                  style={{ fontFamily: "var(--font-playfair), serif" }}
+          <ol className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {TIMELINE.map((item, index) => {
+              // Serpentina (S): las filas impares se leen de derecha a izquierda
+              const perRow = 3
+              const row = Math.floor(index / perRow)
+              const colInRow = index % perRow
+              const visualCol = row % 2 === 0 ? colInRow : perRow - 1 - colInRow
+              const colStart = ["lg:col-start-1", "lg:col-start-2", "lg:col-start-3"][visualCol]
+              const rowStart = ["lg:row-start-1", "lg:row-start-2", "lg:row-start-3"][row]
+              // Flecha hacia la siguiente tarjeta siguiendo el recorrido de la S
+              const isLast = index === TIMELINE.length - 1
+              const staysInRow = Math.floor((index + 1) / perRow) === row
+              const arrow = isLast
+                ? null
+                : staysInRow
+                  ? row % 2 === 0
+                    ? "right"
+                    : "left"
+                  : "down"
+              const arrowPos =
+                arrow === "right"
+                  ? "top-1/2 -right-5 -translate-y-1/2"
+                  : arrow === "left"
+                    ? "top-1/2 -left-5 -translate-y-1/2"
+                    : "left-1/2 -bottom-5 -translate-x-1/2"
+              const arrowRotate =
+                arrow === "right" ? "" : arrow === "left" ? "rotate-180" : "rotate-90"
+              return (
+                <li
+                  key={item.year}
+                  className={`relative flex flex-col rounded-2xl border border-[#c9a84c]/15 bg-white/50 p-5 sm:p-6 ${colStart} ${rowStart}`}
                 >
-                  {item.year}
-                </p>
-                <h3 className="mt-3 text-[15px] font-semibold text-[#111]">{item.title}</h3>
-                <p className="mt-2 text-[13.5px] leading-[1.6] text-[#5a5a5a]">
-                  {item.description}
-                </p>
-              </li>
-            ))}
+                  {arrow ? (
+                    <span
+                      className={`pointer-events-none absolute z-10 hidden text-[#c9a84c] lg:block ${arrowPos}`}
+                      aria-hidden
+                    >
+                      <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={arrowRotate}
+                      >
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                      </svg>
+                    </span>
+                  ) : null}
+                  <div className="mb-3 flex items-center gap-3">
+                    <span
+                      className="block h-3 w-3 shrink-0 rounded-full border-2 border-white bg-[#c9a84c] shadow-[0_0_0_1px_rgba(201,168,76,0.5)]"
+                      aria-hidden
+                    />
+                    <p
+                      className="text-[26px] font-medium leading-none text-[#a8862f]"
+                      style={{ fontFamily: "var(--font-playfair), serif" }}
+                    >
+                      {item.year}
+                    </p>
+                  </div>
+                  <h3 className="text-[16px] font-semibold text-[#111]">{item.title}</h3>
+                  <p className="mt-2 text-[13.5px] leading-[1.6] text-[#5a5a5a]">
+                    {item.description}
+                  </p>
+                  {"bullets" in item && item.bullets ? (
+                    <ul className="mt-3 flex flex-col gap-2">
+                      {item.bullets.map((bullet) => (
+                        <li
+                          key={bullet.label}
+                          className="relative pl-4 text-[13.5px] leading-[1.6] text-[#5a5a5a]"
+                        >
+                          <span
+                            className="absolute left-0 top-[8px] block h-1.5 w-1.5 rounded-full bg-[#c9a84c]"
+                            aria-hidden
+                          />
+                          <span className="font-semibold text-[#111]">{bullet.label}</span>{" "}
+                          {bullet.text}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </li>
+              )
+            })}
           </ol>
         </div>
       </section>

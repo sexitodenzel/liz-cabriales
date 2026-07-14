@@ -97,6 +97,7 @@ export default function ProductFilterSortBar({
   return (
     <>
       <div
+        data-nav-collapse-guard
         className={`navbar-follow-collapse sticky top-[var(--navbar-actual-h)] z-20 -mx-[var(--site-px)] bg-ivory px-[var(--site-px)] py-1.5 transition-opacity duration-200 ${
           isCartOpen ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
@@ -147,10 +148,10 @@ export default function ProductFilterSortBar({
             <button
               type="button"
               onClick={openFilterPanel}
-              className={`${storeToolbarTriggerClassName} ${
+              className={`${storeToolbarTriggerClassName} rounded-full border bg-white px-4 py-2 ${
                 activeFilterCount > 0 || filterPanelOpen
-                  ? "text-[#a8862f]"
-                  : `text-[#0a0a0a] ${storeGoldHoverGlow}`
+                  ? "border-[#C9A84C] text-[#a8862f]"
+                  : `border-neutral-200 text-[#0a0a0a] hover:border-[#C9A84C] ${storeGoldHoverGlow}`
               }`}
               aria-expanded={filterPanelOpen}
               aria-haspopup="dialog"

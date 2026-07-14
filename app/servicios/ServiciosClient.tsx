@@ -982,10 +982,17 @@ export default function ServiciosClient({
                         }`}
                       >
                         <div className="flex items-start justify-between gap-4">
-                          <button
-                            type="button"
+                          <div
+                            role="button"
+                            tabIndex={0}
                             onClick={() => handleServiceCardClick(s)}
-                            className="min-w-0 flex-1 text-left"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault()
+                                handleServiceCardClick(s)
+                              }
+                            }}
+                            className="min-w-0 flex-1 cursor-pointer text-left"
                           >
                             <h2
                               className={`font-[family-name:var(--font-playfair),serif] text-lg md:text-xl ${
@@ -1034,7 +1041,7 @@ export default function ServiciosClient({
                             <p className="mt-4 font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
                               {formatPrice(s.price)}
                             </p>
-                          </button>
+                          </div>
 
                           <button
                             type="button"

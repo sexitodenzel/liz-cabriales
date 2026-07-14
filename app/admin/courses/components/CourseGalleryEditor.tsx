@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import ImageUploader from "@/app/admin/components/ImageUploader"
+import ImageLightbox from "@/app/components/shared/ImageLightbox"
 import type { CourseGalleryItem } from "@/lib/supabase/courses"
 
 export type LocalGalleryItem = {
@@ -48,6 +49,15 @@ type Props = {
 
 export default function CourseGalleryEditor({ items, onChange, onError }: Props) {
   const [videoUrl, setVideoUrl] = useState("")
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
+  // URLs de solo las imágenes (los videos no entran al lightbox).
+  const imageUrls = items.filter((i) => i.type === "image").map((i) => i.url)
+  function imagePos(tempId: string): number {
+    return items
+      .filter((i) => i.type === "image")
+      .findIndex((i) => i.tempId === tempId)
+  }
 
   function addImage(url: string) {
     onChange([
@@ -123,12 +133,19 @@ export default function CourseGalleryEditor({ items, onChange, onError }: Props)
                     className="h-16 w-24 rounded-md object-cover"
                   />
                 ) : item.type === "image" ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.url}
-                    alt=""
-                    className="h-16 w-24 rounded-md object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setLightboxIndex(imagePos(item.tempId))}
+                    aria-label="Ampliar imagen"
+                    className="cursor-zoom-in"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.url}
+                      alt=""
+                      className="h-16 w-24 rounded-md bg-neutral-100 object-contain"
+                    />
+                  </button>
                 ) : (
                   <div className="flex h-16 w-24 flex-col items-center justify-center gap-1 rounded-md bg-[#1a1a1a] text-white/50">
                     <svg
@@ -264,6 +281,14 @@ export default function CourseGalleryEditor({ items, onChange, onError }: Props)
         <p className="mt-1 text-[11px] text-[#9a9a9a]">
           La galería aparece en el sitio público cuando el curso ya pasó.
         </p>
+      )}
+
+      {lightboxIndex !== null && lightboxIndex >= 0 && imageUrls.length > 0 && (
+        <ImageLightbox
+          images={imageUrls}
+          startIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
       )}
     </div>
   )

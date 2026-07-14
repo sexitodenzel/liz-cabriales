@@ -156,6 +156,40 @@ html {
     transform: translate3d(0, -56px, 0);
   }
 
+  /* Barra sticky DESPEGADA del navbar (vive en el flujo, sobre su hero o arriba
+     del todo): Navbar.tsx marca html.lc-nav-guard-free. Sin transition, la barra
+     descansa en su sitio al instante en vez de arrastrar la transición de 480ms
+     del colapso (si no, al frenar arriba seguía deslizándose ~0.1s). Solo se
+     marca con el transform ya en ~0, así que el snap no produce salto. Pegada
+     bajo el navbar mantiene su transición para viajar junto a él sin abrir
+     hueco. */
+  html.lc-nav-guard-free [data-nav-collapse-guard] {
+    transition: none;
+  }
+
+  /* Escudo anti-rendija: 20px de ivory sobre el borde superior de la barra
+     guard. Si las transitions de navbar y barra se desfasan 1-2 frames en un
+     cambio brusco de dirección, la rendija muestra este ivory y no el
+     contenido. Solo aplica PEGADA (docked): en reposo queda oculto bajo el
+     navbar opaco. Despegada (guard-free) se apaga — arriba de la barra puede
+     haber breadcrumb/hero a <20px (tienda nuevos/ofertas/mas-vendidos) y lo
+     taparía. El SSR arranca con lc-nav-guard-free en <html> (layout.tsx) para
+     que tampoco tape nada antes de que Navbar.tsx hidrate y corrija. */
+  [data-nav-collapse-guard]::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -20px;
+    height: 20px;
+    background: var(--color-ivory);
+  }
+
+  html.lc-nav-guard-free [data-nav-collapse-guard]::before {
+    content: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     #site-navbar,
     .navbar-follow-collapse {
