@@ -21,6 +21,8 @@ export type CourseFormInitialValues = {
   short_description: string
   description: string
   instructor_id: string
+  co_instructor_ids: string[]
+  co_organizer_ids: string[]
   price: string
   capacity: string
   level: CourseLevel
@@ -141,6 +143,23 @@ export default function CourseForm({
     }))
   }
 
+  type PeopleField = "co_instructor_ids" | "co_organizer_ids"
+
+  function addPerson(field: PeopleField, id: string) {
+    if (!id) return
+    setValues((prev) => {
+      if (id === prev.instructor_id || prev[field].includes(id)) return prev
+      return { ...prev, [field]: [...prev[field], id] }
+    })
+  }
+
+  function removePerson(field: PeopleField, id: string) {
+    setValues((prev) => ({
+      ...prev,
+      [field]: prev[field].filter((x) => x !== id),
+    }))
+  }
+
   function addImage(url: string) {
     setLocalImages((prev) => {
       const isFirst = prev.length === 0
@@ -179,6 +198,12 @@ export default function CourseForm({
       short_description: values.short_description.trim() || null,
       description: values.description.trim(),
       instructor_id: values.instructor_id,
+      co_instructor_ids: values.co_instructor_ids.filter(
+        (id) => id && id !== values.instructor_id
+      ),
+      co_organizer_ids: values.co_organizer_ids.filter(
+        (id) => id && id !== values.instructor_id
+      ),
       price: Number(values.price),
       capacity: Number(values.capacity),
       level: values.level,
@@ -268,6 +293,68 @@ export default function CourseForm({
     "block text-xs font-medium uppercase tracking-wider text-[#6b6b6b]"
   const checkboxCls = "h-4 w-4 rounded border-[#d8d8d8]"
 
+  function renderPeoplePicker(
+    field: PeopleField,
+    label: string,
+    addLabel: string,
+    help: string
+  ) {
+    const selected = values[field]
+    return (
+      <div>
+        <label className={labelCls}>{label}</label>
+        {selected.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {selected.map((id) => {
+              const inst = instructors.find((i) => i.id === id)
+              if (!inst) return null
+              return (
+                <span
+                  key={id}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e8dcb0] bg-[#faf6ea] py-1 pl-3 pr-1.5 text-sm text-[#3a3a3a]"
+                >
+                  {inst.name}
+                  {inst.title && (
+                    <span className="text-[#a8893a]">· {inst.title}</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removePerson(field, id)}
+                    aria-label={`Quitar a ${inst.name}`}
+                    className="grid h-5 w-5 place-items-center rounded-full text-[#a8893a] transition-colors hover:bg-[#e8dcb0]"
+                  >
+                    ×
+                  </button>
+                </span>
+              )
+            })}
+          </div>
+        )}
+        <select
+          value=""
+          onChange={(e) => {
+            addPerson(field, e.target.value)
+            e.target.value = ""
+          }}
+          className={`${inputCls} mt-2`}
+        >
+          <option value="">{addLabel}</option>
+          {instructors
+            .filter(
+              (i) => i.id !== values.instructor_id && !selected.includes(i.id)
+            )
+            .map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.name}
+                {i.title ? ` · ${i.title}` : ""}
+              </option>
+            ))}
+        </select>
+        <p className="mt-1 text-[11px] text-[#9a9a9a]">{help}</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
       <header className="border-b border-[#ececec] px-6 py-4 flex items-center justify-between">
@@ -347,7 +434,7 @@ export default function CourseForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className={labelCls}>Instructor</label>
+              <label className={labelCls}>Instructor principal</label>
               <select
                 required
                 value={values.instructor_id}
@@ -380,6 +467,22 @@ export default function CourseForm({
               </select>
             </div>
           </div>
+
+          {/* Maestros adicionales — para cursos con varios ponentes */}
+          {renderPeoplePicker(
+            "co_instructor_ids",
+            "Maestros adicionales (opcional)",
+            "+ Agregar maestro…",
+            "Salen como tarjetas extra en la página del curso, después del instructor principal. Útil para Master class o seminarios con varios ponentes."
+          )}
+
+          {/* Organizadores adicionales — junto a Liz en "Organiza e imparte" */}
+          {renderPeoplePicker(
+            "co_organizer_ids",
+            "Organizadores adicionales (opcional)",
+            "+ Agregar organizador…",
+            "Salen en la sección «Organiza e imparte», junto a Liz Cabriales. Para cursos co-organizados (p. ej. con Mildred Sainz)."
+          )}
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div>

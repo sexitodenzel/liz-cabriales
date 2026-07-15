@@ -1,5 +1,5 @@
-import Image from "next/image"
 import Link from "next/link"
+import SmoothImage from "@/app/components/shared/SmoothImage"
 import { getNailArtPosts } from "@/lib/supabase/nail-art"
 import type { NailArtPost } from "@/lib/supabase/nail-art"
 import Breadcrumb from "@/components/shared/Breadcrumb"
@@ -44,11 +44,11 @@ function NailArtCard({ post }: { post: NailArtPost }) {
   return (
     <Link href={`/nail-art/${post.slug}`} className="group flex flex-col gap-4">
       <div className="relative overflow-hidden rounded-2xl bg-neutral-100" style={{ aspectRatio: "3/4" }}>
-        <Image
+        <SmoothImage
           src={coverImage}
           alt={post.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover group-hover:scale-105"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
       </div>

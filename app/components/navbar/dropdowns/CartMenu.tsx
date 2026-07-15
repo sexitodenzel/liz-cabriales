@@ -315,7 +315,7 @@ export default function CartMenu() {
         <button
           type="button"
           onClick={closeCart}
-          aria-label="Cerrar carrito"
+          aria-label="Cerrar bolsa"
           className="flex items-center justify-center rounded-full p-1 text-neutral-400 transition-colors hover:text-[#1a1a1a]"
         >
           <X className="h-5 w-5" />

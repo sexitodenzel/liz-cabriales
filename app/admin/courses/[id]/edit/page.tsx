@@ -60,6 +60,8 @@ export default async function EditCoursePage({ params }: Props) {
     short_description: c.short_description ?? "",
     description: c.description,
     instructor_id: c.instructor_id,
+    co_instructor_ids: c.co_instructors.map((i) => i.id),
+    co_organizer_ids: c.co_organizers.map((i) => i.id),
     price: String(c.price),
     capacity: String(c.capacity),
     level: c.level,

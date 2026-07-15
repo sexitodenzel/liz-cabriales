@@ -87,9 +87,28 @@ export default function BrandsMegaMenu({
                 <Link
                   href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
                   onClick={onClose}
-                  className="block text-[14px] text-neutral-700 hover:text-[#c9a84c] transition-colors"
+                  className="group flex items-center gap-2.5 text-[14px] text-neutral-700 hover:text-[#c9a84c] transition-colors"
                 >
-                  {brand.name}
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+                    {brand.logo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={brand.logo_url}
+                        alt=""
+                        aria-hidden
+                        className="h-full w-full object-contain p-0.5"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden
+                        className="text-[11px] font-semibold uppercase text-neutral-400"
+                      >
+                        {brand.name.charAt(0)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="truncate">{brand.name}</span>
                 </Link>
               </li>
             ))}

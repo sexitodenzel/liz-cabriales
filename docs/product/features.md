@@ -5,7 +5,7 @@
 El ecommerce maneja tres categorías de productos:
 - Productos para uñas
 - Ciertos productos para pestañas
-- Productos de podología
+- Productos de quiropodia
 
 ### Funcionalidades del cliente
 

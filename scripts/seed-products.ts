@@ -81,7 +81,7 @@ const CATEGORIES: CategorySeed[] = [
   { name: "Esmaltes y Colores",      slug: "esmaltes-colores" },
   { name: "Geles y Acrílicos",       slug: "geles-acrilicos" },
   { name: "Herramientas y Equipos",  slug: "herramientas-equipos" },
-  { name: "Podología",               slug: "podologia" },
+  { name: "Quiropodia",              slug: "quiropodia" },
   { name: "Pestañas",                slug: "pestanas" },
   { name: "Insumos y Accesorios",    slug: "insumos-accesorios" },
 ]
@@ -114,11 +114,11 @@ const PRODUCTS: ProductSeed[] = [
   { name: "Set brochas nail art 5 piezas",       brand: "Nghia",                 category_slug: "herramientas-equipos", base_price: 290 },
   { name: "Alicates para cutícula",              brand: "Nghia",                 category_slug: "herramientas-equipos", base_price: 180 },
 
-  // Podología
-  { name: "Fixonic 5.0 tratamiento Onicomicosis", brand: "Clear ZaI",           category_slug: "podologia", base_price: 320 },
-  { name: "Kit Quiropodia básico",               brand: "Podocare",              category_slug: "podologia", base_price: 550 },
-  { name: "Plantillas pedicure profesional",     brand: "Podocare",              category_slug: "podologia", base_price: 95 },
-  { name: "Crema podológica reparadora",         brand: "Podocare",              category_slug: "podologia", base_price: 140 },
+  // Quiropodia
+  { name: "Fixonic 5.0 tratamiento Onicomicosis", brand: "Clear ZaI",           category_slug: "quiropodia", base_price: 320 },
+  { name: "Kit Quiropodia básico",               brand: "Podocare",              category_slug: "quiropodia", base_price: 550 },
+  { name: "Plantillas pedicure profesional",     brand: "Podocare",              category_slug: "quiropodia", base_price: 95 },
+  { name: "Crema quiropódica reparadora",        brand: "Podocare",              category_slug: "quiropodia", base_price: 140 },
 
   // Insumos y Accesorios
   { name: "Removedor acetona premium",           brand: "Mia Secret",            category_slug: "insumos-accesorios", base_price: 85 },

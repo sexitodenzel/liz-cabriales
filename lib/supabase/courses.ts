@@ -81,6 +81,8 @@ export type CourseGalleryItem = {
 
 export type CourseWithInstructor = CourseRow & {
   instructor: InstructorRow | null
+  co_instructors: InstructorRow[]
+  co_organizers: InstructorRow[]
   images: CourseImage[]
 }
 
@@ -170,6 +172,17 @@ type RawCourseRow = {
   course_images?: RawCourseImage[] | null
 }
 
+function mapInstructor(ins: RawInstructor): InstructorRow {
+  return {
+    id: ins.id,
+    name: ins.name,
+    title: ins.title ?? null,
+    bio: ins.bio ?? null,
+    photo_url: ins.photo_url ?? null,
+    created_at: ins.created_at,
+  }
+}
+
 function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
   const ins = unwrap(row.instructors)
   const rawImages = Array.isArray(row.course_images) ? row.course_images : []
@@ -212,18 +225,83 @@ function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
       row.public_capacity == null ? null : Number(row.public_capacity),
     created_at: row.created_at,
     updated_at: row.updated_at,
-    instructor: ins
-      ? {
-          id: ins.id,
-          name: ins.name,
-          title: ins.title ?? null,
-          bio: ins.bio ?? null,
-          photo_url: ins.photo_url ?? null,
-          created_at: ins.created_at,
-        }
-      : null,
+    instructor: ins ? mapInstructor(ins) : null,
+    co_instructors: [],
+    co_organizers: [],
     images,
   }
+}
+
+type CourseInstructorGroups = {
+  masters: InstructorRow[]
+  organizers: InstructorRow[]
+}
+
+/**
+ * Trae los instructores adicionales (maestros y organizadores) de uno o varios
+ * cursos, ordenados por posición. Resiliente: si la tabla puente aún no existe
+ * (migración sin correr) devuelve un mapa vacío en vez de romper la lectura.
+ */
+async function fetchCoInstructorsMap(
+  courseIds: string[]
+): Promise<Map<string, CourseInstructorGroups>> {
+  const map = new Map<string, CourseInstructorGroups>()
+  if (courseIds.length === 0) return map
+
+  const { data, error } = await supabaseAdmin
+    .from("course_instructors")
+    .select(
+      "course_id, position, role, instructors ( id, name, title, bio, photo_url, created_at )"
+    )
+    .in("course_id", courseIds)
+    .order("position", { ascending: true })
+
+  if (error || !data) return map
+
+  for (const raw of data as unknown as Array<{
+    course_id: string
+    role: string | null
+    instructors: RawInstructor | RawInstructor[] | null
+  }>) {
+    const ins = unwrap(raw.instructors)
+    if (!ins) continue
+    const groups = map.get(raw.course_id) ?? { masters: [], organizers: [] }
+    if (raw.role === "organizer") groups.organizers.push(mapInstructor(ins))
+    else groups.masters.push(mapInstructor(ins))
+    map.set(raw.course_id, groups)
+  }
+  return map
+}
+
+/** Rellena co_instructors y co_organizers de un curso (excluye al principal). */
+async function attachCoInstructors(
+  course: CourseWithInstructor
+): Promise<CourseWithInstructor> {
+  const map = await fetchCoInstructorsMap([course.id])
+  const groups = map.get(course.id) ?? { masters: [], organizers: [] }
+  const notPrimary = (i: InstructorRow) => i.id !== course.instructor_id
+  return {
+    ...course,
+    co_instructors: groups.masters.filter(notPrimary),
+    co_organizers: groups.organizers.filter(notPrimary),
+  }
+}
+
+/** Versión en lote de attachCoInstructors: una sola consulta para varios cursos. */
+async function attachCoInstructorsMany(
+  courses: CourseWithInstructor[]
+): Promise<CourseWithInstructor[]> {
+  if (courses.length === 0) return courses
+  const map = await fetchCoInstructorsMap(courses.map((c) => c.id))
+  return courses.map((course) => {
+    const groups = map.get(course.id) ?? { masters: [], organizers: [] }
+    const notPrimary = (i: InstructorRow) => i.id !== course.instructor_id
+    return {
+      ...course,
+      co_instructors: groups.masters.filter(notPrimary),
+      co_organizers: groups.organizers.filter(notPrimary),
+    }
+  })
 }
 
 async function getPaidCountsForCourses(
@@ -270,7 +348,7 @@ const COURSE_COLUMNS = `
   allow_online_registration, show_price_public, show_capacity_public,
   public_registered_count, public_capacity,
   created_at, updated_at,
-  instructors ( id, name, title, bio, photo_url, created_at ),
+  instructors!courses_instructor_id_fkey ( id, name, title, bio, photo_url, created_at ),
   course_images ( id, image_url, is_cover, position, created_at )
 `
 
@@ -315,7 +393,7 @@ async function loadPublishedCourses(): Promise<Result<CourseWithStats[]>> {
   }
 
   const rows = (data ?? []) as unknown as RawCourseRow[]
-  const courses = rows.map(mapCourseRow)
+  const courses = await attachCoInstructorsMany(rows.map(mapCourseRow))
   const paidMap = await getPaidCountsForCourses(courses.map((c) => c.id))
 
   const withStats = courses.map((c) => attachStats(c, paidMap.get(c.id) ?? 0))
@@ -351,7 +429,9 @@ export async function getCourseById(
     }
   }
 
-  const course = mapCourseRow(data as unknown as RawCourseRow)
+  const course = await attachCoInstructors(
+    mapCourseRow(data as unknown as RawCourseRow)
+  )
   const paidMap = await getPaidCountsForCourses([course.id])
   return {
     data: attachStats(course, paidMap.get(course.id) ?? 0),
@@ -600,7 +680,7 @@ export async function getAdminCourses(): Promise<Result<CourseWithStats[]>> {
   }
 
   const rows = (data ?? []) as unknown as RawCourseRow[]
-  const courses = rows.map(mapCourseRow)
+  const courses = await attachCoInstructorsMany(rows.map(mapCourseRow))
   const paidMap = await getPaidCountsForCourses(courses.map((c) => c.id))
 
   const withStats = courses.map((c) => attachStats(c, paidMap.get(c.id) ?? 0))
@@ -650,6 +730,78 @@ function normalizeCoursePayload(
   return payload
 }
 
+/**
+ * Reemplaza por completo los instructores adicionales de un curso (maestros y
+ * organizadores). Excluye al principal y deduplica (si un id viene en ambas
+ * listas, gana 'organizer'), para no romper la PK ni mostrar dobles.
+ * Listas vacías dejan el curso sin adicionales.
+ */
+async function syncCourseCoInstructors(
+  courseId: string,
+  primaryInstructorId: string | null,
+  masterIds: string[],
+  organizerIds: string[]
+): Promise<SupabaseError | null> {
+  const cleanOrganizers = organizerIds
+    .filter((id) => id && id !== primaryInstructorId)
+    .filter((id, i, arr) => arr.indexOf(id) === i)
+  const cleanMasters = masterIds
+    .filter((id) => id && id !== primaryInstructorId)
+    .filter((id, i, arr) => arr.indexOf(id) === i)
+    .filter((id) => !cleanOrganizers.includes(id))
+
+  const { error: delError } = await supabaseAdmin
+    .from("course_instructors")
+    .delete()
+    .eq("course_id", courseId)
+  if (delError) return { message: delError.message, code: delError.code }
+
+  const rows = [
+    ...cleanMasters.map((instructor_id, position) => ({
+      course_id: courseId,
+      instructor_id,
+      role: "master",
+      position,
+    })),
+    ...cleanOrganizers.map((instructor_id, position) => ({
+      course_id: courseId,
+      instructor_id,
+      role: "organizer",
+      position,
+    })),
+  ]
+  if (rows.length === 0) return null
+
+  const { error: insError } = await supabaseAdmin
+    .from("course_instructors")
+    .insert(rows)
+  if (insError) return { message: insError.message, code: insError.code }
+  return null
+}
+
+async function fetchCourseRow(
+  id: string
+): Promise<Result<CourseWithInstructor>> {
+  const { data, error } = await supabaseAdmin
+    .from("courses")
+    .select(COURSE_COLUMNS)
+    .eq("id", id)
+    .single()
+  if (error || !data) {
+    return {
+      data: null,
+      error: {
+        message: error?.message ?? "No se pudo leer el curso",
+        code: error?.code,
+      },
+    }
+  }
+  const course = await attachCoInstructors(
+    mapCourseRow(data as unknown as RawCourseRow)
+  )
+  return { data: course, error: null }
+}
+
 export async function createCourse(
   input: CreateCourseInput
 ): Promise<Result<CourseWithInstructor>> {
@@ -658,7 +810,7 @@ export async function createCourse(
   const { data, error } = await supabaseAdmin
     .from("courses")
     .insert(payload)
-    .select(COURSE_COLUMNS)
+    .select("id, instructor_id")
     .single()
 
   if (error || !data) {
@@ -671,7 +823,21 @@ export async function createCourse(
     }
   }
 
-  return { data: mapCourseRow(data as unknown as RawCourseRow), error: null }
+  const created = data as { id: string; instructor_id: string }
+  if (
+    input.co_instructor_ids !== undefined ||
+    input.co_organizer_ids !== undefined
+  ) {
+    const syncError = await syncCourseCoInstructors(
+      created.id,
+      created.instructor_id,
+      input.co_instructor_ids ?? [],
+      input.co_organizer_ids ?? []
+    )
+    if (syncError) return { data: null, error: syncError }
+  }
+
+  return fetchCourseRow(created.id)
 }
 
 export async function updateCourse(
@@ -685,7 +851,7 @@ export async function updateCourse(
     .from("courses")
     .update(payload)
     .eq("id", id)
-    .select(COURSE_COLUMNS)
+    .select("id, instructor_id")
     .single()
 
   if (error || !data) {
@@ -698,7 +864,21 @@ export async function updateCourse(
     }
   }
 
-  return { data: mapCourseRow(data as unknown as RawCourseRow), error: null }
+  const updated = data as { id: string; instructor_id: string }
+  if (
+    input.co_instructor_ids !== undefined ||
+    input.co_organizer_ids !== undefined
+  ) {
+    const syncError = await syncCourseCoInstructors(
+      updated.id,
+      updated.instructor_id,
+      input.co_instructor_ids ?? [],
+      input.co_organizer_ids ?? []
+    )
+    if (syncError) return { data: null, error: syncError }
+  }
+
+  return fetchCourseRow(updated.id)
 }
 
 /**

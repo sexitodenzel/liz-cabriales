@@ -2,13 +2,19 @@
 
 import { useState, useMemo } from "react"
 import Image from "next/image"
+import SmoothImage from "@/app/components/shared/SmoothImage"
 import Link from "next/link"
 import { LayoutGrid, List, SlidersHorizontal } from "lucide-react"
 import Breadcrumb, { type BreadcrumbItem } from "@/components/shared/Breadcrumb"
 import ImageLightbox from "@/app/components/shared/ImageLightbox"
 import CourseFilterPanel from "./CourseFilterPanel"
 import { useCourseViewMode, type CourseViewMode } from "./useCourseViewMode"
-import type { CourseWithStats } from "@/lib/supabase/courses"
+import {
+  storeGoldHoverGlow,
+  storeToolbarIconClassName,
+  storeToolbarTriggerClassName,
+} from "@/app/tienda/components/store-button-styles"
+import type { CourseWithStats, InstructorRow } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 
 type Props = {
@@ -53,6 +59,87 @@ function formatPrice(value: number): string {
 
 function initials(name: string): string {
   return name.split(" ").slice(0, 2).map((s) => s[0]).join("")
+}
+
+/** Todas las personas del curso (principal + maestros + organizadores), sin repetir. */
+function coursePeople(course: CourseWithStats): InstructorRow[] {
+  const all = [
+    ...(course.instructor ? [course.instructor] : []),
+    ...course.co_instructors,
+    ...course.co_organizers,
+  ]
+  const seen = new Set<string>()
+  return all.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)))
+}
+
+/** Fila de bolitas apiladas + nombres, compartida entre grid y lista. */
+function PeopleAvatars({
+  people,
+  variant,
+}: {
+  people: InstructorRow[]
+  variant: "grid" | "list"
+}) {
+  if (people.length === 0) return null
+  const dim = variant === "list" ? "h-5 w-5" : "h-[18px] w-[18px]"
+  const fs = variant === "list" ? "text-[9px]" : "text-[8px]"
+  const fallbackCls =
+    variant === "list"
+      ? "bg-[#c9a84c]/80 text-white"
+      : "bg-[#c9a84c]/25 text-[#8a6d26]"
+  const MAX = 4
+  const shown = people.slice(0, MAX)
+  const extra = people.length - shown.length
+  const label =
+    people.length === 1
+      ? people[0].name
+      : people.map((p) => p.name).join(", ")
+
+  return (
+    <div
+      className={`flex items-center gap-2 ${
+        variant === "list"
+          ? "text-[10px] font-medium uppercase tracking-[0.1em] text-[#6b6b6b]"
+          : "text-[11px] text-[#6b6b6b]"
+      }`}
+    >
+      <div className="flex shrink-0 items-center">
+        {shown.map((p, i) => (
+          <span
+            key={p.id}
+            className={`relative ${dim} shrink-0 overflow-hidden rounded-full ring-2 ring-white ${
+              i > 0 ? "-ml-1" : ""
+            }`}
+            title={p.name}
+          >
+            {p.photo_url ? (
+              <SmoothImage
+                src={p.photo_url}
+                alt={p.name}
+                fill
+                className="object-cover"
+                sizes={variant === "list" ? "20px" : "18px"}
+              />
+            ) : (
+              <span
+                className={`flex h-full w-full items-center justify-center ${fs} font-semibold ${fallbackCls}`}
+              >
+                {initials(p.name)}
+              </span>
+            )}
+          </span>
+        ))}
+        {extra > 0 && (
+          <span
+            className={`relative -ml-1 flex ${dim} shrink-0 items-center justify-center rounded-full ring-2 ring-white ${fs} font-semibold ${fallbackCls}`}
+          >
+            +{extra}
+          </span>
+        )}
+      </div>
+      <span className="truncate">{label}</span>
+    </div>
+  )
 }
 
 function isCoursePast(dateStr: string): boolean {
@@ -166,7 +253,7 @@ function CourseCard({
       >
         <div className="relative aspect-[4/3] w-32 shrink-0 overflow-hidden rounded-lg bg-[#eee] sm:w-44 md:w-52">
           {cover ? (
-            <Image
+            <SmoothImage
               src={cover}
               alt={course.title}
               fill
@@ -196,26 +283,7 @@ function CourseCard({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 py-1">
-          {course.instructor && (
-            <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.1em] text-[#6b6b6b]">
-              {course.instructor.photo_url ? (
-                <div className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full">
-                  <Image
-                    src={course.instructor.photo_url}
-                    alt={course.instructor.name}
-                    fill
-                    className="object-cover"
-                    sizes="20px"
-                  />
-                </div>
-              ) : (
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#c9a84c]/80 text-[9px] font-semibold text-white">
-                  {initials(course.instructor.name)}
-                </span>
-              )}
-              <span className="truncate">{course.instructor.name}</span>
-            </div>
-          )}
+          <PeopleAvatars people={coursePeople(course)} variant="list" />
           <h2
             className="line-clamp-2 text-[17px] font-medium leading-snug text-[#1a1a1a] sm:text-[19px]"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
@@ -242,7 +310,7 @@ function CourseCard({
       className="group flex h-full cursor-pointer flex-col"
     >
       {/* Image / Slider */}
-      <div className="relative aspect-[9/10] overflow-hidden rounded-xl bg-[#eee]">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[#eee]">
         {slideImages.length > 0 ? (
           <>
             {slideImages.map((url, i) => (
@@ -352,29 +420,34 @@ function CourseCard({
           {cardDescription(course)}
         </p>
 
-        {course.instructor && (
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#6b6b6b]">
-            {course.instructor.photo_url ? (
-              <div className="relative h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full">
-                <Image
-                  src={course.instructor.photo_url}
-                  alt={course.instructor.name}
-                  fill
-                  className="object-cover"
-                  sizes="18px"
-                />
-              </div>
-            ) : (
-              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[#c9a84c]/25 text-[8px] font-semibold text-[#8a6d26]">
-                {initials(course.instructor.name)}
+        {/* Chips dorados: diploma + highlights */}
+        {(course.diploma_included ||
+          (course.highlights && course.highlights.length > 0)) && (
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {course.diploma_included && (
+              <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-2.5 py-[3px] text-[10.5px] font-medium tracking-[0.03em] text-[#a8893a]">
+                Diploma incluido
               </span>
             )}
-            <span className="truncate">{course.instructor.name}</span>
+            {course.highlights?.slice(0, 3).map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-2.5 py-[3px] text-[10.5px] font-medium tracking-[0.03em] text-[#a8893a]"
+              >
+                {chip}
+              </span>
+            ))}
           </div>
         )}
 
-        {/* Fila inferior anclada al fondo: ubicación ↔ precio */}
-        <div className="mt-auto flex items-center gap-2 pt-3 text-[12.5px] text-[#3a3a3a]">
+        {/* Grupo de personas del curso, anclado al fondo para que las bolitas
+            queden a la misma altura entre tarjetas aunque cambien los chips. */}
+        <div className="mt-auto pt-3">
+          <PeopleAvatars people={coursePeople(course)} variant="grid" />
+        </div>
+
+        {/* Fila inferior: ubicación ↔ precio */}
+        <div className="mt-2 flex items-center gap-2 text-[12.5px] text-[#3a3a3a]">
           <span className="flex min-w-0 items-center gap-1.5">
             <PinIcon />
             <span className="truncate">{course.location}</span>
@@ -514,7 +587,7 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
           <div className="flex shrink-0 items-center gap-3">
             {/* Toggle grid / lista */}
             <div
-              className="inline-flex items-center rounded-full border border-[#ececec] p-0.5"
+              className="inline-flex items-center rounded-full border border-neutral-200 p-0.5"
               role="group"
               aria-label="Cambiar vista de eventos"
             >
@@ -523,26 +596,26 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
                 onClick={() => setViewMode("grid")}
                 aria-label="Vista en cuadrícula"
                 aria-pressed={viewMode === "grid"}
-                className={`inline-flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+                className={`${storeToolbarIconClassName} ${
                   viewMode === "grid"
-                    ? "bg-[#1a1a1a] text-white"
-                    : "text-[#6b6b6b] hover:text-[#8a6d26]"
+                    ? "bg-[#0a0a0a] text-white"
+                    : `text-neutral-500 ${storeGoldHoverGlow}`
                 }`}
               >
-                <LayoutGrid className="h-3.5 w-3.5" strokeWidth={2} />
+                <LayoutGrid className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("list")}
                 aria-label="Vista en lista"
                 aria-pressed={viewMode === "list"}
-                className={`inline-flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+                className={`${storeToolbarIconClassName} ${
                   viewMode === "list"
-                    ? "bg-[#1a1a1a] text-white"
-                    : "text-[#6b6b6b] hover:text-[#8a6d26]"
+                    ? "bg-[#0a0a0a] text-white"
+                    : `text-neutral-500 ${storeGoldHoverGlow}`
                 }`}
               >
-                <List className="h-3.5 w-3.5" strokeWidth={2} />
+                <List className="h-3.5 w-3.5" />
               </button>
             </div>
 
@@ -552,16 +625,16 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
               onClick={() => setFilterDrawerOpen(true)}
               aria-haspopup="dialog"
               aria-expanded={filterDrawerOpen}
-              className={`inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-[13px] tracking-wide transition-colors ${
-                activeFilterCount > 0
-                  ? "border-[#c9a84c] text-[#8a6d26]"
-                  : "border-[#ececec] text-[#3a3a3a] hover:border-[#c9a84c]"
+              className={`${storeToolbarTriggerClassName} rounded-full border bg-white px-4 py-2 ${
+                activeFilterCount > 0 || filterDrawerOpen
+                  ? "border-[#C9A84C] text-[#8a6d26]"
+                  : `border-neutral-200 text-[#0a0a0a] hover:border-[#C9A84C] ${storeGoldHoverGlow}`
               }`}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2} />
               Filtrar
               {activeFilterCount > 0 && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a84c] px-1 text-[10px] font-bold text-[#0a0a0a]">
+                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C9A84C] px-1 text-[10px] font-bold text-[#0a0a0a]">
                   {activeFilterCount}
                 </span>
               )}

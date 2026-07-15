@@ -232,6 +232,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     let guardEl: HTMLElement | null = null
     // Borde inferior del navbar EXPANDIDO (sin transform) = --navbar-actual-h.
     let navbarBottom = readNavbarBottom()
+    // Línea de dock del guard: su `top` sticky resuelto en px. Las barras de
+    // filtros pegan justo bajo el navbar (top = --navbar-actual-h) y el
+    // sidebar de curso 24px más abajo (+1.5rem); leer el computed style del
+    // propio guard soporta ambos sin hardcodear el respiro aquí.
+    let guardDockTop = navbarBottom
 
     const setCollapsed = (collapsed: boolean) => {
       document.documentElement.classList.toggle("lc-nav-collapsed", collapsed)
@@ -260,11 +265,15 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       const collapsed =
         !inTopZone && root.classList.contains("lc-nav-collapsed")
 
-      // ¿La barra sticky de la página (data-nav-collapse-guard) ya tocó el
-      // navbar y está pegada bajo él? Solo leemos layout mientras seguimos
+      // ¿El sticky guard de la página (data-nav-collapse-guard) ya llegó a su
+      // línea de dock y está pegado? Solo leemos layout mientras seguimos
       // expandidos (colapsados sabemos que está pegada → sin reflow por frame).
       if (!collapsed && (!guardEl || !guardEl.isConnected)) {
         guardEl = document.querySelector<HTMLElement>("[data-nav-collapse-guard]")
+        if (guardEl) {
+          const dockTop = parseFloat(getComputedStyle(guardEl).top)
+          guardDockTop = Number.isFinite(dockTop) ? dockTop : navbarBottom
+        }
       }
       let guardTop = Number.POSITIVE_INFINITY
       if (!collapsed && guardEl && guardEl.isConnected) {
@@ -286,7 +295,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         collapsed ||
         !guardEl ||
         !guardEl.isConnected ||
-        guardTop <= navbarBottom + 1
+        guardTop <= guardDockTop + 1
 
       // DESPEGADA: la barra vive en el flujo, sobre su hero (o arriba del todo),
       // no bajo el navbar. Ahí NO debe arrastrar la transición de 480ms del
@@ -321,6 +330,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       lastY = window.scrollY
       acc = 0
       navbarBottom = readNavbarBottom()
+      // El `top` del guard cambia con el breakpoint (64px ↔ 104px): forzar
+      // re-query para re-medir su línea de dock.
+      guardEl = null
       if (!mq.matches) setCollapsed(false)
     }
     window.addEventListener("scroll", update, { passive: true })
@@ -423,13 +435,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         const response = await fetch("/api/brands")
         if (!response.ok) return
         const json = (await response.json()) as {
-          data?: Array<{ name: string; slug: string }>
+          data?: Array<{ name: string; slug: string; logo_url?: string | null }>
         }
         if (!isMounted || !Array.isArray(json.data)) return
         setBrandMenuItems(
           json.data.map((brand) => ({
             name: brand.name,
             slug: brand.slug,
+            logo_url: brand.logo_url ?? null,
           }))
         )
       } catch {
@@ -592,7 +605,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   openCart()
                 }
               }}
-              aria-label="Carrito"
+              aria-label="Bolsa"
             >
               <span className="relative shrink-0">
                 <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.75} />
@@ -751,7 +764,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                         openCart()
                       }
                     }}
-                    aria-label="Carrito"
+                    aria-label="Bolsa"
                   >
                     <span className="relative shrink-0">
                       <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />

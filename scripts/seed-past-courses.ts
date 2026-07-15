@@ -675,11 +675,11 @@ const COURSES: SeedCourse[] = [
       "Curso impartido por Dulce Blanquet con el tema de Manicura Exprés y Aplicación de uñas Soft Gel.",
   },
   {
-    title: "Podología: Onicocriptosis y Reconstrucción Ungueal (Fixonic 5.0)",
+    title: "Quiropodia: Onicocriptosis y Reconstrucción Ungueal (Fixonic 5.0)",
     instructor: "Martín Dávila",
     start: "2025-09-23",
     description:
-      "Capacitación especializada de Podología, Onicocriptosis y reconstrucción ungueal con el sistema de Fixonic 5.0, por el Lic. Martín Dávila C. y la Lic. Karina Rojas Gtz.",
+      "Capacitación especializada de Quiropodia, Onicocriptosis y reconstrucción ungueal con el sistema de Fixonic 5.0, por el Lic. Martín Dávila C. y la Lic. Karina Rojas Gtz.",
   },
   {
     title: "ROCK LAB · Mix Nail Art",

@@ -57,6 +57,6 @@ Sin definir. Se diseñará con apoyo de IA considerando vista de agenda/calendar
 
 1. ¿Las citas grupales tienen precio diferente o cada persona paga su parte individualmente?
 2. ¿Cuántas personas máximo pueden venir en una cita grupal?
-3. ¿Un cliente puede reservar más de un servicio en la misma cita (por ejemplo uñas + podología)?
+3. ¿Un cliente puede reservar más de un servicio en la misma cita (por ejemplo uñas + quiropodia)?
 4. ¿Quieres que alguien pueda comprar un producto y reservar una cita en el mismo checkout, o son flujos completamente separados?
 5. ¿El login aparece al final del flujo (antes de confirmar) o al inicio?

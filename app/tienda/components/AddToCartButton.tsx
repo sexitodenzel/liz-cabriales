@@ -32,7 +32,7 @@ type Props = {
   onVariantChange?: (variantId: string) => void
   /** Oculta el bloque de precio (úsalo cuando el padre ya lo muestra). */
   hidePrice?: boolean
-  /** Texto del botón en estado idle. Default: "Agregar al carrito". */
+  /** Texto del botón en estado idle. Default: "Agregar a la bolsa". */
   idleLabel?: string
 }
 
@@ -181,7 +181,7 @@ export default function AddToCartButton({
           ? "Agregando..."
           : swapKey === "added"
             ? "Agregado"
-            : (idleLabel ?? "Agregar al carrito")
+            : (idleLabel ?? "Agregar a la bolsa")
 
   const iconButtonClassName = className ?? storeIconButtonClassName
 
@@ -194,10 +194,10 @@ export default function AddToCartButton({
       aria-disabled={!canAdd || isAdding}
       aria-label={
         justAdded
-          ? "Agregado al carrito"
+          ? "Agregado a la bolsa"
           : isAdding
-            ? "Agregando al carrito"
-            : "Agregar al carrito"
+            ? "Agregando a la bolsa"
+            : "Agregar a la bolsa"
       }
       title={!canAdd ? "Presentación sin inventario disponible" : undefined}
     >

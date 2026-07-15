@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
+
+import SmoothImage from "@/app/components/shared/SmoothImage"
 
 import { resolveSobreLizBrandPhoto } from "@/lib/sobre-liz/brand-photo"
 import Button from "@/app/components/ui/Button"
@@ -189,7 +190,7 @@ export default function BrandDescription({ photoUrl }: Props) {
                 />
                 <div className="relative overflow-hidden rounded-card bg-neutral-100 shadow-[0_18px_50px_rgba(20,20,20,0.18)]">
                   <div className="relative aspect-[4/5] w-full">
-                    <Image
+                    <SmoothImage
                       src={MAIN_PHOTO}
                       alt="Liz Cabriales — fundadora de la academia"
                       fill
@@ -212,7 +213,7 @@ export default function BrandDescription({ photoUrl }: Props) {
               {/* Small photo top-right */}
               <div className="relative col-span-4 row-span-3 overflow-hidden rounded-card bg-neutral-100 shadow-[0_10px_30px_rgba(20,20,20,0.12)]">
                 <div className="relative h-full w-full">
-                  <Image
+                  <SmoothImage
                     src={COLLAGE_PHOTOS[0].src}
                     alt={COLLAGE_PHOTOS[0].alt}
                     fill
@@ -225,7 +226,7 @@ export default function BrandDescription({ photoUrl }: Props) {
               {/* Small photo middle-right */}
               <div className="relative col-span-4 row-span-3 overflow-hidden rounded-card bg-neutral-100 shadow-[0_10px_30px_rgba(20,20,20,0.12)]">
                 <div className="relative h-full w-full">
-                  <Image
+                  <SmoothImage
                     src={COLLAGE_PHOTOS[1].src}
                     alt={COLLAGE_PHOTOS[1].alt}
                     fill

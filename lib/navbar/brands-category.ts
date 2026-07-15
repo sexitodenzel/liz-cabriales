@@ -5,6 +5,7 @@ export const BRANDS_CATEGORY_SLUG = "marcas"
 export type BrandMenuItem = {
   name: string
   slug: string
+  logo_url?: string | null
 }
 
 export function buildBrandsCategory(

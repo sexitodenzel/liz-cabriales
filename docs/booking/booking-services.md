@@ -22,7 +22,7 @@ Los precios y duraciones de cada servicio están sin definir — los establece L
 - [ ] Duración de cada servicio
 - [ ] Precio de cada servicio
 - [ ] ¿Qué servicios de pestañas ofrece exactamente?
-- [ ] ¿Hay servicios de podología además de pedicure?
+- [ ] ¿Hay servicios de quiropodia además de pedicure?
 - [ ] ¿Hay límite de servicios combinables en una cita?
 - [ ] ¿Hay buffer de tiempo entre citas (limpieza, preparación)?
 - [ ] ¿Todos los profesionales ofrecen todos los servicios o hay especialización?
@@ -35,7 +35,7 @@ Los precios y duraciones de cada servicio están sin definir — los establece L
 2. ¿Cuánto dura cada servicio aproximadamente?
 3. ¿Cuál es el precio de cada servicio?
 4. ¿Qué servicios de pestañas ofreces (lifting, extensiones, otro)?
-5. ¿Ofreces servicios de podología además de pedicure?
+5. ¿Ofreces servicios de quiropodia además de pedicure?
 6. Si una clienta combina dos servicios, ¿hay algún límite o restricción?
 7. ¿Dejas tiempo entre cita y cita para preparar el área?
 8. ¿Todas tus profesionales hacen todos los servicios o cada una tiene especialidad?

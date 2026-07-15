@@ -1,7 +1,7 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
+import SmoothImage from "@/app/components/shared/SmoothImage"
 import type { CourseWithStats } from "@/lib/supabase/courses"
 import SectionCarousel from "./SectionCarousel"
 
@@ -53,11 +53,11 @@ export default function CoursesCarousel({ courses }: Props) {
             >
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-100">
                 {course.cover_image ? (
-                  <Image
+                  <SmoothImage
                     src={course.cover_image}
                     alt={course.title}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                    className="object-cover group-hover:scale-[1.03]"
                     sizes="256px"
                   />
                 ) : (
@@ -82,7 +82,7 @@ export default function CoursesCarousel({ courses }: Props) {
                 </div>
                 <div className="flex items-center gap-1.5">
                   {instructorPhoto ? (
-                    <Image
+                    <SmoothImage
                       src={instructorPhoto}
                       alt={instructorName}
                       width={18}

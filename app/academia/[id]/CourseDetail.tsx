@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import SmoothImage from "@/app/components/shared/SmoothImage"
 import type { CourseWithStats, CourseGalleryItem } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 import { buildWhatsAppHref } from "@/lib/constants/contact"
+import { navSticky } from "@/lib/nav-sticky"
 import {
   buildGoogleCalendarUrl,
   downloadICS,
@@ -23,6 +25,7 @@ type Props = {
   pendingRegistrationId: string | null
   minDeposit: number
   gallery: CourseGalleryItem[]
+  lizPhotoUrl: string | null
 }
 
 const LEVEL_LABEL: Record<CourseLevel, string> = {
@@ -97,24 +100,6 @@ function GoogleCalendarLogo() {
       <rect x="9" y="17" width="30" height="14" fill="#fff" />
       <text x="24" y="28.5" fontSize="12" fontWeight="700" fill="#1a73e8"
         textAnchor="middle" fontFamily="Arial, sans-serif">31</text>
-    </svg>
-  )
-}
-
-function PhoneIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z" />
-    </svg>
-  )
-}
-
-function MailIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" />
     </svg>
   )
 }
@@ -266,6 +251,7 @@ export default function CourseDetail({
   pendingRegistrationId,
   minDeposit,
   gallery,
+  lizPhotoUrl,
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
@@ -426,7 +412,7 @@ export default function CourseDetail({
                       : "border-transparent opacity-60 hover:opacity-90"
                   }`}
                 >
-                  <Image
+                  <SmoothImage
                     src={url}
                     alt={`Imagen ${i + 1}`}
                     width={108}
@@ -475,23 +461,68 @@ export default function CourseDetail({
               </div>
             </section>
 
-            {/* Organizer */}
-            <section className="mb-11">
+            {/* Instructor — última sección: SIN margin inferior. Es grid item
+                (crea BFC), así que un mb-11 aquí no colapsa y sumaría 44px al
+                alto de la columna izquierda; el sticky de la derecha se alinea
+                al fondo de esa columna y quedaría 44px por debajo de la base de
+                la cajita de maestro invitado ("se pasaba"). El aire inferior lo
+                da el pb-20 del contenedor. */}
+            <section>
               <h2
                 className="mb-1 text-[28px] font-medium tracking-tight text-[#1a1a1a]"
                 style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
               >
-                Organizador
+                Respaldado por
               </h2>
               <div className="mb-5 h-0.5 w-9 bg-[#c9a84c]" />
 
-              {course.instructor ? (
-                <div className="flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5">
-                  {course.instructor.photo_url ? (
-                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border-[1.5px] border-[#c9a84c]">
-                      <Image
-                        src={course.instructor.photo_url}
-                        alt={course.instructor.name}
+              {/* Organiza — Academia Liz Cabriales */}
+              <div className="flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5">
+                {lizPhotoUrl ? (
+                  <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border border-[#e0e0e0]">
+                    <SmoothImage
+                      src={lizPhotoUrl}
+                      alt="Liz Cabriales"
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
+                  </div>
+                ) : (
+                  <span className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] bg-white">
+                    <Image
+                      src="/images/logo.png"
+                      alt="Academia Liz Cabriales"
+                      width={38}
+                      height={38}
+                      className="h-[38px] w-[38px] object-contain"
+                    />
+                  </span>
+                )}
+                <div>
+                  <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#a8893a]">
+                    Organiza e imparte
+                  </div>
+                  <div className="text-[15px] font-semibold text-[#1a1a1a]">
+                    Liz Cabriales
+                  </div>
+                  <div className="text-[12px] text-[#6b6b6b]">
+                    Fundadora · Academia Liz Cabriales
+                  </div>
+                </div>
+              </div>
+
+              {/* Co-organizadores (opcional) — junto a Liz */}
+              {course.co_organizers.map((org) => (
+                <div
+                  key={org.id}
+                  className="mt-3 flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5"
+                >
+                  {org.photo_url ? (
+                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border border-[#e0e0e0]">
+                      <SmoothImage
+                        src={org.photo_url}
+                        alt={org.name}
                         fill
                         className="object-cover"
                         sizes="56px"
@@ -499,44 +530,81 @@ export default function CourseDetail({
                     </div>
                   ) : (
                     <div
-                      className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#c9a84c] bg-[#f5efdc] text-xl font-semibold italic text-[#a8893a]"
+                      className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] bg-[#f5efdc] text-xl font-semibold italic text-[#a8893a]"
                       style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
                     >
-                      {initials(course.instructor.name)}
+                      {initials(org.name)}
                     </div>
                   )}
                   <div>
-                    <div className="mb-0.5 text-[15px] font-semibold text-[#1a1a1a]">
-                      {course.instructor.name}
+                    <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#a8893a]">
+                      {org.title || "Organiza"}
                     </div>
-                    <div className="mb-2 text-[11px] uppercase tracking-[0.16em] text-[#6b6b6b]">
-                      {course.instructor.title || "Instructor(a)"} · Academia Liz Cabriales
+                    <div className="text-[15px] font-semibold text-[#1a1a1a]">
+                      {org.name}
                     </div>
-                    {course.instructor.bio && (
-                      <p className="mb-3 text-[13px] leading-relaxed text-[#3a3a3a]">
-                        {course.instructor.bio}
+                    {org.bio && (
+                      <p className="mt-1.5 text-[13px] leading-relaxed text-[#3a3a3a]">
+                        {org.bio}
                       </p>
                     )}
-                    <div className="flex flex-wrap gap-4 text-[13px] text-[#3a3a3a]">
-                      <span className="flex items-center gap-1.5 text-[#9a9a9a]">
-                        <PhoneIcon /> +52 833 159 7446
-                      </span>
-                      <span className="flex items-center gap-1.5 text-[#9a9a9a]">
-                        <MailIcon /> contacto@lizcabriales.mx
-                      </span>
-                    </div>
                   </div>
                 </div>
-              ) : (
-                <div className="rounded-[10px] border border-[#ececec] bg-white p-5 text-[13px] text-[#6b6b6b]">
-                  Academia Liz Cabriales
-                </div>
-              )}
+              ))}
+
+              {/* Maestros invitados — secundarios (principal + adicionales) */}
+              {[course.instructor, ...course.co_instructors]
+                .filter((g): g is NonNullable<typeof g> => Boolean(g))
+                .map((guest) => (
+                  <div
+                    key={guest.id}
+                    className="mt-3 flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5"
+                  >
+                    {guest.photo_url ? (
+                      <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border border-[#e0e0e0]">
+                        <SmoothImage
+                          src={guest.photo_url}
+                          alt={guest.name}
+                          fill
+                          className="object-cover"
+                          sizes="56px"
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] bg-[#f5efdc] text-xl font-semibold italic text-[#a8893a]"
+                        style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+                      >
+                        {initials(guest.name)}
+                      </div>
+                    )}
+                    <div>
+                      <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#a8893a]">
+                        {guest.title || "Maestro invitado"}
+                      </div>
+                      <div className="text-[15px] font-semibold text-[#1a1a1a]">
+                        {guest.name}
+                      </div>
+                      {guest.bio && (
+                        <p className="mt-1.5 text-[13px] leading-relaxed text-[#3a3a3a]">
+                          {guest.bio}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
             </section>
           </div>
 
-          {/* ── Sidebar ──────────────────────────────────────────────── */}
-          <aside className="navbar-follow-collapse sticky top-[calc(var(--navbar-actual-h,64px)+1.5rem)] self-start rounded-xl border border-[#ececec] bg-[#fafafa] p-7">
+          {/* ── Sidebar ──────────────────────────────────────────────────
+              Receta "plain" (ver lib/nav-sticky): sticky sin follow. Con el
+              hero tan alto, seguir el colapso obligaba a guard + park y esas
+              dos transiciones de 480ms se pisaban ("se pasaba" la última
+              cajita). Sin transform no hay salto; al colapsar solo queda algo
+              más de aire arriba del card. La columna izquierda termina SIN
+              margin (ver su última <section>) para que el fondo del sticky
+              caiga a ras de la cajita de maestro invitado. */}
+          <aside {...navSticky("plain", "rounded-xl border border-[#ececec] bg-[#fafafa] p-7")}>
             {/* Date block */}
             <div className="mb-5 border-b border-[#ececec] pb-5">
               <div className="flex items-center gap-[18px]">

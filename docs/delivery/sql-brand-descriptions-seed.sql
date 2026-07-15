@@ -9,7 +9,7 @@
 -- existente — si tienes descripciones editadas a mano que quieras conservar,
 -- comenta los UPDATE correspondientes.
 
-UPDATE brands SET description = 'Marca mexicana especializada en instrumentos profesionales para manicura y pedicura — alicates para cutícula, pedicura y podología — fabricados con acero inoxidable de origen Pakistán y garantía de un año.' WHERE name = 'aashta';
+UPDATE brands SET description = 'Marca mexicana especializada en instrumentos profesionales para manicura y pedicura — alicates para cutícula, pedicura y quiropodia — fabricados con acero inoxidable de origen Pakistán y garantía de un año.' WHERE name = 'aashta';
 
 -- [oficial]
 UPDATE brands SET description = 'Acry Love es una marca profesional especializada en productos de alta calidad para el cuidado y estilismo de uñas, que incluye polvos acrílicos, monómeros, geles, geles de construcción (rubber) y herramientas de manicura. Se enfoca en ofrecer insumos duraderos y de fácil aplicación para manicuristas profesionales.' WHERE name = 'Acry Love';
@@ -87,7 +87,7 @@ UPDATE brands SET description = 'Marca alemana líder mundial en cuidado de la p
 
 UPDATE brands SET description = 'Marca mexicana líder en productos y capacitación para aplicación de uñas, con más de 25 años de experiencia. Ofrece geles polimerizados de nueva generación, polvos acrílicos, gel de color, tips, pinceles y monómeros — catálogo desarrollado con conciencia de la salud del aplicador y del cliente.' WHERE name = 'Organic';
 
-UPDATE brands SET description = 'Línea de instrumental podológico para tratamiento profesional de uñas encarnadas, callos y patologías de los pies. Herramientas de acero inoxidable quirúrgico para podología clínica y pedicura especializada.' WHERE name = 'Ortopod';
+UPDATE brands SET description = 'Línea de instrumental quiropódico para tratamiento profesional de uñas encarnadas, callos y patologías de los pies. Herramientas de acero inoxidable quirúrgico para quiropodia clínica y pedicura especializada.' WHERE name = 'Ortopod';
 
 -- [oficial]
 UPDATE brands SET description = 'Peyco es una marca especializada en el desarrollo de soluciones funcionales para el cuidado diario, la higiene y la protección de los pies, diseñada para profesionales y clientes que buscan una prevención efectiva y un confort inmediato. Su misión es ofrecer productos de la más alta calidad y uso práctico diario, garantizando una protección integral contra bacterias y hongos, el control efectivo de la sudoración y una hidratación profunda que devuelve la tersura a la piel. Con un enfoque centrado en la bioseguridad del día a día y el cuidado preventivo, Peyco se ha consolidado como una marca sumamente confiable y en constante crecimiento dentro del sector del bienestar y la salud podológica.' WHERE name = 'Peyco';
@@ -98,7 +98,7 @@ UPDATE brands SET description = 'Podocare es una marca líder y de grado clínic
 -- [oficial]
 UPDATE brands SET description = 'Samia es una marca prémium de alta especialidad en herramientas para el esculpido de uñas, respaldada por la experiencia y firma del reconocido Master Maximiliano Cortez. Su misión es ofrecer herramientas profesionales de la más alta gama, garantizando un control absoluto del producto, un manejo fluido del acrílico y la máxima durabilidad en el uso diario para que los salones y manicuristas logren estructuras perfectas y acabados de nivel de competencia. Con un enfoque en la excelencia de sus cerdas y el diseño ergonómico de su línea, Samia se ha consolidado como una marca de gran estatus y en constante crecimiento, convirtiéndose en el aliado imprescindible de las profesionales que buscan el estándar de calidad de un gran master.' WHERE name = 'Samia';
 
-UPDATE brands SET description = 'Marca global líder en herramientas profesionales para manicura, pedicura y podología, presente en 90 países. Fabricación con acero inoxidable grado médico y afilado manual que garantiza durabilidad excepcional — operan instalación propia con maquinaria de EE. UU., Alemania, Italia y Japón.' WHERE name = 'Staleks Pro';
+UPDATE brands SET description = 'Marca global líder en herramientas profesionales para manicura, pedicura y quiropodia, presente en 90 países. Fabricación con acero inoxidable grado médico y afilado manual que garantiza durabilidad excepcional — operan instalación propia con maquinaria de EE. UU., Alemania, Italia y Japón.' WHERE name = 'Staleks Pro';
 
 UPDATE brands SET description = 'Marca 100% mexicana líder en material para uñas. Outlet más grande de México en productos para nail art — gel pasta para diseños 3D, geles cat eye, polygel, polvos acrílicos, tips, bases y top coats.' WHERE name = 'Studio Nails';
 

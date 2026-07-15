@@ -4,7 +4,7 @@
 
 Plataforma web integral para la academia/salón Liz Cabriales que combina tres sistemas:
 
-1. **Ecommerce** — tienda online de productos para uñas, pestañas y podología. Ventas a nivel nacional.
+1. **Ecommerce** — tienda online de productos para uñas, pestañas y quiropodia. Ventas a nivel nacional.
 2. **Sistema de citas** — reserva de servicios del salón (local). Pago adelantado al reservar.
 3. **Gestión de cursos presenciales** — inscripción, pago y control de asistencia. Todo presencial, no hay cursos online.
 

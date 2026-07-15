@@ -92,7 +92,12 @@
       "PowerShell($c = Get-Content 'C:\\\\Users\\\\migue\\\\.claude\\\\settings.json' -Raw | ConvertFrom-Json; \"async = \" + $c.hooks.Notification[0].hooks[0].async; \"---\"; $c.hooks.Notification[0].hooks[0].command)",
       "Skill(code-review)",
       "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 30)",
-      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 20)"
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -First 20)",
+      "mcp__ide__getDiagnostics",
+      "PowerShell(npx eslint app/components/navbar/Navbar.tsx \"app/academia/[id]/CourseDetail.tsx\" app/tienda/components/ProductHero.tsx lib/hooks/use-nav-follow-parked.ts)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/academia\" -UseBasicParsing -TimeoutSec 10; Write-Output \"STATUS: $\\($r.StatusCode\\)\" } catch { Write-Output \"NO SERVER: $\\($_.Exception.Message\\)\" })",
+      "PowerShell($paths = @\\(\"C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\", \"C:\\\\Program Files \\(x86\\)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\", \"$env:LOCALAPPDATA\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\"\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { Write-Output \"FOUND: $p\" } })",
+      "PowerShell(npm *)"
     ]
   }
 }

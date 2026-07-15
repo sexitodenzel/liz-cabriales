@@ -27,6 +27,16 @@ export const createCourseSchema = z
       .nullable(),
     description: z.string().trim().min(1, "La descripción es requerida"),
     instructor_id: uuid,
+    co_instructor_ids: z
+      .array(uuid)
+      .max(12, "Máximo 12 maestros adicionales")
+      .optional()
+      .default([]),
+    co_organizer_ids: z
+      .array(uuid)
+      .max(8, "Máximo 8 organizadores")
+      .optional()
+      .default([]),
     price: z.coerce.number().min(0, "El precio no puede ser negativo"),
     capacity: z.coerce.number().int().min(1, "El cupo debe ser al menos 1"),
     level: courseLevelSchema,
@@ -72,6 +82,14 @@ export const updateCourseSchema = z.object({
   short_description: z.string().trim().max(300).optional().nullable(),
   description: z.string().trim().min(1).optional(),
   instructor_id: uuid.optional(),
+  co_instructor_ids: z
+    .array(uuid)
+    .max(12, "Máximo 12 maestros adicionales")
+    .optional(),
+  co_organizer_ids: z
+    .array(uuid)
+    .max(8, "Máximo 8 organizadores")
+    .optional(),
   price: z.coerce.number().min(0).optional(),
   capacity: z.coerce.number().int().min(1).optional(),
   level: courseLevelSchema.optional(),

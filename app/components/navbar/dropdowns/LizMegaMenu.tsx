@@ -2,8 +2,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
+
+import SmoothImage from "@/app/components/shared/SmoothImage"
 
 import {
   resolveSobreLizBrandPhoto,
@@ -120,12 +121,12 @@ export default function LizMegaMenu({
             }`}
           >
             <div className="relative aspect-[4/5] w-full">
-              <Image
+              <SmoothImage
                 src={featureImage}
                 alt="Liz Cabriales"
                 fill
                 sizes="320px"
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                className="object-cover group-hover:scale-[1.03]"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent px-5 pb-5 pt-12">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#c9a84c]">

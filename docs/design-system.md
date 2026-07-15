@@ -85,6 +85,8 @@ Pendiente de definir con Liz (ver [`design-notes.md`](./ux/design-notes.md)). Po
 
 - Container: `.site-container` (vars `--site-max-w: 1600px`, `--site-px: clamp(1.5rem, 3vw, 3.5rem)` — respiro lateral estándar que escala con el ancho; 24px móvil → 56px en pantallas anchas)
 - Navbar height: `--navbar-actual-h` estática (64px mobile, 104px ≥1200px vía media query en `globals.css`); colapso binario por dirección de scroll (bajar colapsa, subir expande): Navbar.tsx togglea `html.lc-nav-collapsed` y CSS transiciona el transform; clase `.navbar-follow-collapse` en stickies que lo siguen; el hero de home se dimensiona con `--home-hero-inset` (altura colapsada del navbar) para que al colapsar no quede franja blanca abajo
+- Guard del colapso: el sticky marcado `data-nav-collapse-guard` bloquea el colapso hasta estar pegado a su línea de dock — que es su propio `top` resuelto (computed style), así sirve tanto para barras pegadas al navbar (`top: var(--navbar-actual-h)`) como para el sidebar de curso que ancla 24px más abajo. Sin guard, el `-56px` del follow levanta al sticky fuera de sitio mientras aún va en el flujo (bug del primer scroll en `/academia/[id]`)
+- Follow con fin de recorrido (sidebars de curso/producto): al agotar su columna el sticky se estaciona en el borde inferior y viaja con el contenido; el hook `useNavFollowParked` (`lib/hooks/use-nav-follow-parked.ts`) le pone `.lc-follow-parked` y el transform vuelve a 0 con la misma transición para que no descanse 56px arriba del borde
 - Footer "telón": altura `--footer-stage-h`
 
 ### Auth (login / registrar) — Hermès-style

@@ -77,7 +77,7 @@ export default function RetryPaymentButton({
               await repopulateCartFromOrder(order)
             } catch {
               setRetryError(
-                "No pudimos copiar los productos al carrito. Intenta agregarlos manualmente."
+                "No pudimos copiar los productos a la bolsa. Intenta agregarlos manualmente."
               )
               return
             }

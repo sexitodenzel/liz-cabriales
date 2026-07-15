@@ -156,6 +156,17 @@ html {
     transform: translate3d(0, -56px, 0);
   }
 
+  /* Follow con FIN DE RECORRIDO (sidebar de curso/producto): al agotar el
+     scroll de su columna el sticky se estaciona en el borde inferior y viaja
+     con el contenido; ahí el -56px lo dejaría descansando 56px arriba del
+     borde de la columna (y lo levantaba sobre el hero mientras aún iba en el
+     flujo). use-nav-follow-parked marca .lc-follow-parked cuando el layout ya
+     lo arrastra por encima de su línea top y el transform vuelve a 0 con la
+     MISMA transición (se re-alinea deslizándose con la página en movimiento). */
+  html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
+    transform: translate3d(0, 0, 0);
+  }
+
   /* Barra sticky DESPEGADA del navbar (vive en el flujo, sobre su hero o arriba
      del todo): Navbar.tsx marca html.lc-nav-guard-free. Sin transition, la barra
      descansa en su sitio al instante en vez de arrastrar la transición de 480ms
@@ -404,6 +415,33 @@ body {
 
 .animate-fade-up {
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* =====================================
+   TRANSICIÓN DE ENTRADA ENTRE PÁGINAS
+   (app/template.tsx — re-monta y re-anima en cada navegación)
+===================================== */
+
+@keyframes lc-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* fill-mode `none` a propósito: al terminar, el wrapper vuelve a su estilo
+   natural (sin opacity<1 ni transform), así NO queda un containing block que
+   rompa las barras sticky (navbar-follow-collapse) ni el #site-footer-stage
+   fixed. La ventana de riesgo es solo mientras corre la animación, arriba del
+   scroll, donde las stickies aún no están pegadas. */
+@media (prefers-reduced-motion: no-preference) {
+  .lc-page-enter {
+    animation: lc-page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }
 
 /* =====================================

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
+import SmoothImage from "@/app/components/shared/SmoothImage"
 
 const INSTAGRAM_URL = "https://www.instagram.com/liz_cabriales/"
 
@@ -89,12 +89,12 @@ function PostCard({ post }: { post: InstagramPost }) {
       style={{ aspectRatio: "4 / 5" }}
       aria-label={post.caption ?? "Post de Instagram"}
     >
-      <Image
+      <SmoothImage
         src={imgSrc}
         alt={post.caption ?? ""}
         fill
         sizes="(max-width: 768px) 50vw, 25vw"
-        className="object-cover transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+        className="object-cover group-hover:scale-[1.04]"
         loading="lazy"
       />
 

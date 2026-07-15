@@ -1,6 +1,6 @@
-import Image from "next/image"
 import Link from "next/link"
 
+import SmoothImage from "@/app/components/shared/SmoothImage"
 import SectionHeader from "@/app/components/ui/SectionHeader"
 import { ArrowRightIcon } from "@/app/components/ui/icons"
 
@@ -48,12 +48,12 @@ export default function AcademiaEventos() {
         {CARDS.map((card) => (
           <Link key={card.href} href={card.href} className="group block">
             <div className="relative aspect-[16/10] overflow-hidden rounded-card bg-neutral-100">
-              <Image
+              <SmoothImage
                 src={card.image}
                 alt={card.alt}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+                className="object-cover group-hover:scale-[1.04]"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />

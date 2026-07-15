@@ -4,7 +4,7 @@
 
 Plataforma web para **Liz Cabriales**, una academia y salón de uñas en México. El sistema centraliza tres operaciones del negocio:
 
-1. **Ecommerce de productos** — venta nacional de productos para uñas, pestañas y podología (prioridad #1)
+1. **Ecommerce de productos** — venta nacional de productos para uñas, pestañas y quiropodia (prioridad #1)
 2. **Cursos y talleres presenciales** — inscripción, pago y control de asistencia
 3. **Sistema de citas** — reserva y pago de servicios del salón
 

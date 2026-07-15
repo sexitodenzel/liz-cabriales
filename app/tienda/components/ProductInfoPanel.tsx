@@ -115,14 +115,16 @@ export default function ProductInfoPanel({
     : null
 
   return (
-    <div className="w-full">
-      <h1 className="text-[clamp(1.75rem,2.8vw,2.6rem)] font-semibold uppercase tracking-[0.14em] text-[#0a0a0a]">
+    // justify-center: el aside (min-height = alto de la 1a imagen) estira este
+    // wrapper y el contenido queda centrado al centro vertical de la imagen.
+    <div className="flex w-full flex-col justify-center">
+      <h1 className="text-[clamp(1.5rem,2.2vw,2.1rem)] font-semibold uppercase leading-[1.25] tracking-[0.12em] text-[#0a0a0a]">
         {product.name}
       </h1>
-      <div className="mt-4 h-px w-full bg-neutral-900/85" />
+      <div className="mt-3 h-px w-full bg-neutral-900/85" />
 
       {tagline ? (
-        <p className="mt-8 line-clamp-3 text-[16px] leading-7 text-[#0a0a0a]">
+        <p className="mt-5 line-clamp-3 text-[15px] leading-[1.65] text-[#0a0a0a]">
           {tagline}
         </p>
       ) : null}
@@ -130,143 +132,146 @@ export default function ProductInfoPanel({
       <button
         type="button"
         onClick={() => openAccordionSection("descripcion")}
-        className="mt-4 cursor-pointer text-sm text-neutral-700 underline decoration-neutral-400 underline-offset-4 transition-colors hover:text-[#0a0a0a]"
+        className="mt-3 cursor-pointer self-start text-sm text-neutral-700 underline decoration-neutral-400 underline-offset-4 transition-colors hover:text-[#0a0a0a]"
       >
         Más información
       </button>
 
-      {refLabel ? (
-        <p className="mt-10 text-xs uppercase tracking-[0.18em] text-neutral-400">
-          Ref. {refLabel}
-        </p>
-      ) : null}
+      {/* Bloque de compra: ref + precio + variantes. */}
+      <div className="mt-6">
+        {refLabel ? (
+          <p className="text-xs uppercase tracking-[0.18em] text-neutral-400">
+            Ref. {refLabel}
+          </p>
+        ) : null}
 
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <span className="text-[22px] font-medium text-[#0a0a0a]">
-          {formatPrice(displayPrice)}
-          <span className="ml-1 text-xs font-normal text-neutral-500">MXN</span>
-        </span>
-        <button
-          type="button"
-          onClick={() => wishlist.toggle(product.slug)}
-          aria-label={isFavorited ? "Quitar de favoritos" : "Agregar a favoritos"}
-          aria-pressed={isFavorited}
-          className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-neutral-700 transition-colors hover:text-[#0a0a0a]"
-        >
-          <Heart
-            className="h-5 w-5"
-            strokeWidth={1.5}
-            fill={isFavorited ? "currentColor" : "none"}
-            style={isFavorited ? { color: "#0a0a0a" } : undefined}
-          />
-        </button>
-      </div>
+        <div className="mt-3 flex items-center justify-between gap-4">
+          <span className="text-[22px] font-medium text-[#0a0a0a]">
+            {formatPrice(displayPrice)}
+            <span className="ml-1 text-xs font-normal text-neutral-500">MXN</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => wishlist.toggle(product.slug)}
+            aria-label={isFavorited ? "Quitar de favoritos" : "Agregar a favoritos"}
+            aria-pressed={isFavorited}
+            className="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-neutral-700 transition-colors hover:text-[#0a0a0a]"
+          >
+            <Heart
+              className="h-5 w-5"
+              strokeWidth={1.5}
+              fill={isFavorited ? "currentColor" : "none"}
+              style={isFavorited ? { color: "#0a0a0a" } : undefined}
+            />
+          </button>
+        </div>
 
-      {hasColors ? (
-        <div className="mt-6">
-          <div className="flex flex-wrap items-center gap-3">
-            {visibleSwatches.map((v) => {
+        {hasColors ? (
+          <div className="mt-4">
+            <div className="flex flex-wrap items-center gap-3">
+              {visibleSwatches.map((v) => {
+                const isSelected = v.id === selectedVariant?.id
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => handleSelectVariant(v.id)}
+                    aria-label={v.color_name ?? v.variant_name}
+                    className={`relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-transform sm:h-9 sm:w-9 ${
+                      isSelected
+                        ? "ring-2 ring-neutral-900 ring-offset-2"
+                        : "ring-1 ring-neutral-300 ring-offset-0 hover:scale-105"
+                    } h-11 w-11`}
+                    style={{ backgroundColor: v.color_hex ?? "#e5e5e5" }}
+                  >
+                    <span className="sr-only">{v.color_name ?? v.variant_name}</span>
+                  </button>
+                )
+              })}
+              {overflowSwatches.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setDrawerOpen(true)}
+                  className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-neutral-300 px-4 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50 sm:h-9"
+                >
+                  +{overflowSwatches.length}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {hasSizes ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {sizeLabels.map((label) => {
+              const isSelected = label === selectedSize
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => handleSelectSize(label)}
+                  className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-full border px-4 text-xs font-medium transition-colors ${
+                    isSelected
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-300 text-neutral-700 hover:border-neutral-500"
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        ) : null}
+
+        {hasFallbackPills ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {activeVariants.map((v) => {
               const isSelected = v.id === selectedVariant?.id
               return (
                 <button
                   key={v.id}
                   type="button"
                   onClick={() => handleSelectVariant(v.id)}
-                  aria-label={v.color_name ?? v.variant_name}
-                  className={`relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-transform sm:h-9 sm:w-9 ${
+                  disabled={v.stock <= 0}
+                  className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-full border px-4 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 ${
                     isSelected
-                      ? "ring-2 ring-neutral-900 ring-offset-2"
-                      : "ring-1 ring-neutral-300 ring-offset-0 hover:scale-105"
-                  } h-11 w-11`}
-                  style={{ backgroundColor: v.color_hex ?? "#e5e5e5" }}
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-300 text-neutral-700 hover:border-neutral-500"
+                  }`}
                 >
-                  <span className="sr-only">{v.color_name ?? v.variant_name}</span>
+                  {v.variant_name}
+                  {v.stock <= 0 ? " (agotado)" : ""}
                 </button>
               )
             })}
-            {overflowSwatches.length > 0 ? (
-              <button
-                type="button"
-                onClick={() => setDrawerOpen(true)}
-                className="inline-flex h-11 cursor-pointer items-center justify-center rounded-full border border-neutral-300 px-4 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-50 sm:h-9"
-              >
-                +{overflowSwatches.length}
-              </button>
+          </div>
+        ) : null}
+
+        {(hasColors || isLimited) && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            {selectedVariant ? (
+              <div className="flex items-center gap-2 text-sm text-neutral-700">
+                {selectedColorHex ? (
+                  <span
+                    className="inline-block h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: selectedColorHex }}
+                  />
+                ) : null}
+                <span className="uppercase tracking-[0.1em] text-neutral-600">
+                  {selectedVariant.color_name ?? selectedVariant.variant_name}
+                </span>
+              </div>
+            ) : <span />}
+            {isLimited ? (
+              <span className="rounded-sm border border-neutral-300 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-700">
+                Edición limitada
+              </span>
             ) : null}
           </div>
-        </div>
-      ) : null}
+        )}
+      </div>
 
-      {hasSizes ? (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {sizeLabels.map((label) => {
-            const isSelected = label === selectedSize
-            return (
-              <button
-                key={label}
-                type="button"
-                onClick={() => handleSelectSize(label)}
-                className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-full border px-4 text-xs font-medium transition-colors ${
-                  isSelected
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-300 text-neutral-700 hover:border-neutral-500"
-                }`}
-              >
-                {label}
-              </button>
-            )
-          })}
-        </div>
-      ) : null}
-
-      {hasFallbackPills ? (
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          {activeVariants.map((v) => {
-            const isSelected = v.id === selectedVariant?.id
-            return (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => handleSelectVariant(v.id)}
-                disabled={v.stock <= 0}
-                className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-full border px-4 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 ${
-                  isSelected
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-300 text-neutral-700 hover:border-neutral-500"
-                }`}
-              >
-                {v.variant_name}
-                {v.stock <= 0 ? " (agotado)" : ""}
-              </button>
-            )
-          })}
-        </div>
-      ) : null}
-
-      {(hasColors || isLimited) && (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          {selectedVariant ? (
-            <div className="flex items-center gap-2 text-sm text-neutral-700">
-              {selectedColorHex ? (
-                <span
-                  className="inline-block h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: selectedColorHex }}
-                />
-              ) : null}
-              <span className="uppercase tracking-[0.1em] text-neutral-600">
-                {selectedVariant.color_name ?? selectedVariant.variant_name}
-              </span>
-            </div>
-          ) : <span />}
-          {isLimited ? (
-            <span className="rounded-sm border border-neutral-300 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-700">
-              Edición limitada
-            </span>
-          ) : null}
-        </div>
-      )}
-
-      <div className="mt-8">
+      <div className="mt-6">
         <AddToCartButton
           productId={product.id}
           productSlug={product.slug}
@@ -281,7 +286,6 @@ export default function ProductInfoPanel({
           selectedVariantId={selectedVariant?.id ?? null}
           onVariantChange={handleSelectVariant}
           hidePrice
-          idleLabel="Añadir al carrito"
           className={storeHeroAddToCartClassName}
         />
       </div>

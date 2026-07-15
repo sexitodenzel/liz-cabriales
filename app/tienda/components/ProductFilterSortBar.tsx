@@ -81,7 +81,13 @@ export default function ProductFilterSortBar({
   const hasFilterPanel = showFilter && Boolean(filterPanel)
 
   useEffect(() => {
-    if (isCartOpen) setFilterPanelOpen(false)
+    if (!isCartOpen) return
+
+    const timeoutId = window.setTimeout(() => {
+      setFilterPanelOpen(false)
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
   }, [isCartOpen])
 
   const openFilterPanel = () => {
@@ -112,7 +118,7 @@ export default function ProductFilterSortBar({
           <div className="flex shrink-0 items-center gap-3">
             {onViewModeChange && (
               <div
-                className="inline-flex items-center rounded-full border border-neutral-200 p-0.5 md:h-[22px] md:p-0"
+                className="inline-flex items-center rounded-full border border-neutral-200 p-0.5"
                 role="group"
                 aria-label="Cambiar vista de productos"
               >
@@ -127,7 +133,7 @@ export default function ProductFilterSortBar({
                       : `text-neutral-500 ${storeGoldHoverGlow}`
                   }`}
                 >
-                  <LayoutGrid className="h-3.5 w-3.5 md:h-2.5 md:w-2.5" />
+                  <LayoutGrid className="h-3.5 w-3.5" />
                 </button>
                 <button
                   type="button"
@@ -140,7 +146,7 @@ export default function ProductFilterSortBar({
                       : `text-neutral-500 ${storeGoldHoverGlow}`
                   }`}
                 >
-                  <List className="h-3.5 w-3.5 md:h-2.5 md:w-2.5" />
+                  <List className="h-3.5 w-3.5" />
                 </button>
               </div>
             )}
@@ -150,7 +156,7 @@ export default function ProductFilterSortBar({
               onClick={openFilterPanel}
               className={`${storeToolbarTriggerClassName} rounded-full border bg-white px-4 py-2 ${
                 activeFilterCount > 0 || filterPanelOpen
-                  ? "border-[#C9A84C] text-[#a8862f]"
+                  ? "border-[#C9A84C] text-[#8a6d26]"
                   : `border-neutral-200 text-[#0a0a0a] hover:border-[#C9A84C] ${storeGoldHoverGlow}`
               }`}
               aria-expanded={filterPanelOpen}

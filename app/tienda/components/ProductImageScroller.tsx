@@ -7,6 +7,8 @@ import { Pagination } from "swiper/modules"
 import "swiper/css"
 import "swiper/css/pagination"
 
+import ImageLightbox from "@/app/components/shared/ImageLightbox"
+
 type Props = {
   images: string[]
   alt: string
@@ -21,7 +23,11 @@ function dotClass(active: boolean): string {
 export default function ProductImageScroller({ images, alt }: Props) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [loaded, setLoaded] = useState<Record<number, boolean>>({})
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const figureRefs = useRef<Array<HTMLElement | null>>([])
+
+  const openLightbox = useCallback((idx: number) => setLightboxIndex(idx), [])
+  const closeLightbox = useCallback(() => setLightboxIndex(null), [])
 
   const markLoaded = useCallback((idx: number) => {
     setLoaded((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }))
@@ -78,7 +84,7 @@ export default function ProductImageScroller({ images, alt }: Props) {
   }, [])
 
   if (images.length === 0) {
-    return <div className="aspect-[4/5] w-full rounded-lg bg-neutral-100" />
+    return <div className="aspect-[4/5] w-full rounded-xl bg-neutral-100" />
   }
 
   return (
@@ -86,7 +92,19 @@ export default function ProductImageScroller({ images, alt }: Props) {
       {/* Mobile: horizontal swiper */}
       <div className="md:hidden">
         {images.length === 1 ? (
-          <div className="relative aspect-square w-full overflow-hidden bg-white">
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Ver imagen completa"
+            onClick={() => openLightbox(0)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                openLightbox(0)
+              }
+            }}
+            className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+          >
             <Image
               src={images[0]!}
               alt={alt}
@@ -107,7 +125,19 @@ export default function ProductImageScroller({ images, alt }: Props) {
           >
             {images.map((src, i) => (
               <SwiperSlide key={src}>
-                <div className="relative aspect-square w-full overflow-hidden bg-white">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Ver imagen completa"
+                  onClick={() => openLightbox(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      openLightbox(i)
+                    }
+                  }}
+                  className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+                >
                   <Image
                     src={src}
                     alt={alt}
@@ -153,7 +183,17 @@ export default function ProductImageScroller({ images, alt }: Props) {
               key={src}
               ref={(el) => setRef(el, idx)}
               data-idx={idx}
-              className="relative aspect-square w-full overflow-hidden bg-white"
+              role="button"
+              tabIndex={0}
+              aria-label="Ver imagen completa"
+              onClick={() => openLightbox(idx)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  openLightbox(idx)
+                }
+              }}
+              className="group relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
               style={idx === images.length - 1 ? undefined : { marginBottom: "8px" }}
             >
               <Image
@@ -165,6 +205,23 @@ export default function ProductImageScroller({ images, alt }: Props) {
                 priority={idx === 0}
                 onLoad={() => markLoaded(idx)}
               />
+              <span className="pointer-events-none absolute bottom-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4"
+                  aria-hidden
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                  <path d="M11 8v6M8 11h6" />
+                </svg>
+              </span>
             </figure>
           ))}
         </div>
@@ -192,6 +249,15 @@ export default function ProductImageScroller({ images, alt }: Props) {
           border-color: #0a0a0a;
         }
       `}</style>
+
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={images}
+          startIndex={lightboxIndex}
+          alt={alt}
+          onClose={closeLightbox}
+        />
+      )}
     </div>
   )
 }

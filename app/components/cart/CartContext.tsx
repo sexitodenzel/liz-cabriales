@@ -66,7 +66,7 @@ async function requestCartSnapshot(
   const json = (await response.json()) as CartApiResponse
 
   if (!response.ok || !json.data) {
-    throw new Error(json.error?.message ?? "No se pudo sincronizar el carrito")
+    throw new Error(json.error?.message ?? "No se pudo sincronizar la bolsa")
   }
 
   return json.data

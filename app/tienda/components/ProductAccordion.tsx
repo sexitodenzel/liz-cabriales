@@ -84,7 +84,7 @@ export default function ProductAccordion({
   return (
     <section id="producto-acordeon" className="mt-20">
       <h2 className="text-center text-lg font-semibold uppercase tracking-[0.24em] text-[#0a0a0a]">
-        Informaciones de producto
+        Información del producto
       </h2>
       <div className="mt-10 border-t border-neutral-200">
         {SECTIONS.map((section) => {

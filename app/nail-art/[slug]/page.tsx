@@ -1,6 +1,6 @@
-import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import SmoothImage from "@/app/components/shared/SmoothImage"
 import { getNailArtPostBySlug } from "@/lib/supabase/nail-art"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
@@ -44,7 +44,7 @@ export default async function NailArtDetailPage({ params }: Props) {
 
           {/* Imagen de portada */}
           <div className="relative overflow-hidden rounded-2xl bg-neutral-100" style={{ aspectRatio: "3/4" }}>
-            <Image
+            <SmoothImage
               src={post.cover_image || pickPlaceholder(post.slug)}
               alt={post.title}
               fill
@@ -87,7 +87,7 @@ export default async function NailArtDetailPage({ params }: Props) {
                           href={`/tienda/${lp.product.slug}`}
                           className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-100 transition-opacity hover:opacity-80"
                         >
-                          <Image
+                          <SmoothImage
                             src={thumbUrl || `https://picsum.photos/seed/${lp.product.slug}/64/64`}
                             alt={lp.product.name}
                             fill

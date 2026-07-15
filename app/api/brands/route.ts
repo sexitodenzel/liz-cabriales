@@ -16,6 +16,7 @@ export async function GET() {
   const data = result.data.map((brand) => ({
     name: brand.name,
     slug: brand.slug,
+    logo_url: brand.logo_url ?? null,
   }))
 
   return NextResponse.json({ data, error: null })

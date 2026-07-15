@@ -50,7 +50,7 @@ export default async function CheckoutPage() {
               href="/carrito"
               className="inline-flex items-center justify-center border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]"
             >
-              Volver al carrito
+              Volver a la bolsa
             </Link>
             <Link
               href="/tienda"

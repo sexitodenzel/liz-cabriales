@@ -1,7 +1,8 @@
 "use client"
 
-import Image from "next/image"
 import { useCallback, useEffect, useRef, useState } from "react"
+
+import SmoothImage from "@/app/components/shared/SmoothImage"
 
 import { createClient } from "@/lib/supabase/client"
 import { useCart } from "@/app/components/cart/CartContext"
@@ -321,7 +322,7 @@ export default function ShopByNailPolishColors() {
             <div className="px-6 pb-6 pt-10">
               {selected.imageSrc ? (
                 <div className="relative mx-auto mb-4 aspect-[3/4] w-full max-w-[220px]">
-                  <Image
+                  <SmoothImage
                     src={selected.imageSrc}
                     alt={selected.productTitle ?? selected.name}
                     fill
@@ -361,7 +362,7 @@ export default function ShopByNailPolishColors() {
                   className="rounded-full bg-neutral-900 px-8 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white shadow-md transition hover:bg-neutral-800"
                   onClick={handleAddToCart}
                 >
-                  {isLoggedIn ? "Ver en tienda" : "Añadir al carrito"}
+                  {isLoggedIn ? "Ver en tienda" : "Agregar a la bolsa"}
                 </button>
               </div>
             </div>

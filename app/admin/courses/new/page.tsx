@@ -14,6 +14,8 @@ const EMPTY_VALUES: CourseFormInitialValues = {
   short_description: "",
   description: "",
   instructor_id: "",
+  co_instructor_ids: [],
+  co_organizer_ids: [],
   price: "",
   capacity: "",
   level: "beginner",

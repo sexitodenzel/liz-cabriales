@@ -1,11 +1,12 @@
 "use client"
 
-import Image from "next/image"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Autoplay, Pagination } from "swiper/modules"
 
 import "swiper/css"
 import "swiper/css/pagination"
+
+import SmoothImage from "@/app/components/shared/SmoothImage"
 
 export type Testimonial = {
   id: string
@@ -54,7 +55,7 @@ export default function TestimonialsCarousel({ items }: Props) {
               </blockquote>
               <figcaption className="mt-6 flex items-center gap-3.5 border-t border-[#c9a84c]/15 pt-5">
                 <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-neutral-100">
-                  <Image
+                  <SmoothImage
                     src={t.photo}
                     alt={t.name}
                     fill

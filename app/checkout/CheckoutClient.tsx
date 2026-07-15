@@ -48,7 +48,7 @@ function formatMXN(value: number) {
 }
 
 function getCheckoutErrorMessage(code?: string, fallback?: string): string {
-  if (code === "CART_EMPTY") return "Tu carrito esta vacio. Agrega productos antes de continuar."
+  if (code === "CART_EMPTY") return "Tu bolsa esta vacia. Agrega productos antes de continuar."
   if (code === "OUT_OF_STOCK") return "Uno o mas productos ya no tienen stock suficiente."
   if (code === "UNAUTHORIZED") return "Tu sesion ya no es valida. Inicia sesion de nuevo."
   if (code === "VALIDATION_ERROR") return "Revisa los campos marcados en rojo."
@@ -757,7 +757,7 @@ function ShippingStep(p: ShippingProps) {
                 <p className="text-[12px] font-semibold text-[#1a1a1a]">
                   {p.errorCode === "OUT_OF_STOCK" ? "Stock insuficiente"
                     : p.errorCode === "UNAUTHORIZED" ? "Sesión expirada"
-                    : p.errorCode === "CART_EMPTY" ? "Carrito vacío"
+                    : p.errorCode === "CART_EMPTY" ? "Bolsa vacía"
                     : p.errorCode === "VALIDATION_ERROR" ? "Faltan datos o hay errores en el formulario"
                     : "No se pudo crear la orden"}
                 </p>
@@ -872,14 +872,14 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
         { label: "Pedidos", href: "/perfil/pedidos" },
         { label: "Mi pedido", href: `/orden/${fromOrderId}` },
         {
-          label: "Carrito",
+          label: "Bolsa",
           href: `/carrito?from=order&orderId=${fromOrderId}`,
         },
         { label: "Checkout" },
       ]
     : [
         { label: "Inicio", href: "/" },
-        { label: "Carrito", href: "/carrito" },
+        { label: "Bolsa", href: "/carrito" },
         { label: "Checkout" },
       ]
 

@@ -76,7 +76,7 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
             Opciones disponibles
           </h2>
           <p className="mt-2 text-sm text-neutral-600">
-            Puedes reintentar el pago con la misma orden o volver al carrito
+            Puedes reintentar el pago con la misma orden o volver a la bolsa
             para revisar tus productos.
           </p>
 
@@ -95,13 +95,13 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
               </div>
             </div>
 
-            {/* Volver al carrito */}
+            {/* Volver a la bolsa */}
             <div className="rounded-2xl border border-neutral-200 bg-[#fcfbf8] p-4">
               <p className="text-sm font-semibold text-[#0a0a0a]">
                 Crear una nueva orden
               </p>
               <p className="mt-1 text-sm text-neutral-600">
-                Regresa al carrito para revisar tus productos y crear una orden
+                Regresa a la bolsa para revisar tus productos y crear una orden
                 nueva.
               </p>
               <div className="mt-4">
@@ -109,7 +109,7 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
                   href="/carrito"
                   className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
                 >
-                  Volver al carrito
+                  Volver a la bolsa
                 </Link>
               </div>
             </div>

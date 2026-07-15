@@ -1,6 +1,7 @@
-import Image from "next/image"
 import Link from "next/link"
 import type { Metadata } from "next"
+
+import SmoothImage from "@/app/components/shared/SmoothImage"
 
 import EventsGallery, { type EventGalleryItem } from "./components/EventsGallery"
 import SobreLizStats from "./components/SobreLizStats"
@@ -126,7 +127,7 @@ const PILLARS = [
   {
     title: "Servicios",
     description:
-      "Salón con servicios de manicure, pedicure, podología y arte de uñas atendido por masters certificadas por la academia.",
+      "Salón con servicios de manicure, pedicure, quiropodia y arte de uñas atendido por masters certificadas por la academia.",
     href: "/servicios",
     cta: "Reservar cita",
   },
@@ -207,7 +208,7 @@ const TIMELINE = [
       },
       {
         label: "Seminario de Marca:",
-        text: "Se celebra con éxito el primer Seminario Quiro Aesthetic Pedicure 2025, consolidando una metodología propia que fusiona la estética con la podología clínica.",
+        text: "Se celebra con éxito el primer Seminario Quiro Aesthetic Pedicure 2025, consolidando una metodología propia que fusiona la estética con la quiropodia clínica.",
       },
     ],
   },
@@ -249,7 +250,7 @@ const TESTIMONIALS: Testimonial[] = [
   {
     id: "t-5",
     name: "Karen Villa",
-    course: "Podología básica",
+    course: "Quiropodia básica",
     quote:
       "El respaldo de las marcas y el material de práctica hicieron toda la diferencia. Recomiendo la academia totalmente.",
     photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
@@ -354,7 +355,7 @@ export default async function SobreLizPage() {
           <div className="mx-auto w-full max-w-[420px]">
             <div className="relative rounded-2xl bg-gradient-to-br from-[#f0dfa8] via-[#c9a84c] to-[#8f6f2f] p-[3px] shadow-[0_18px_50px_rgba(168,134,47,0.22)]">
               <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[13px] bg-neutral-100">
-                <Image
+                <SmoothImage
                   src={heroPhoto}
                   alt="Liz Cabriales"
                   fill

@@ -12,6 +12,7 @@ import {
   type ReviewEligibility,
 } from "@/lib/supabase/course-reviews"
 import { getMinDeposit } from "@/lib/utils"
+import { getLandingSlots } from "@/lib/supabase/landing-slots"
 
 import CourseDetail from "./CourseDetail"
 import CourseReviews from "./CourseReviews"
@@ -31,10 +32,12 @@ function isCoursePast(dateStr: string): boolean {
 
 export default async function AcademiaDetallePage({ params }: Props) {
   const { id } = await params
-  const [result, galleryRes] = await Promise.all([
+  const [result, galleryRes, slots] = await Promise.all([
     getCourseById(id),
     getCourseGallery(id),
+    getLandingSlots(),
   ])
+  const lizPhotoUrl = slots.brand_photo?.trim() || null
 
   if (!result.data || !result.data.is_published) {
     return (
@@ -108,6 +111,7 @@ export default async function AcademiaDetallePage({ params }: Props) {
         pendingRegistrationId={pendingRegistrationId}
         minDeposit={minDeposit}
         gallery={galleryRes.data ?? []}
+        lizPhotoUrl={lizPhotoUrl}
       />
       {isPast && (
         <div className="site-container">

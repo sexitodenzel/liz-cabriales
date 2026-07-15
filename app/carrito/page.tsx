@@ -43,9 +43,9 @@ export default function CartPage() {
         { label: "Mi cuenta", href: "/perfil" },
         { label: "Pedidos", href: "/perfil/pedidos" },
         { label: "Mi pedido", href: `/orden/${fromOrderId}` },
-        { label: "Carrito" },
+        { label: "Bolsa" },
       ]
-    : [{ label: "Inicio", href: "/" }, { label: "Carrito" }]
+    : [{ label: "Inicio", href: "/" }, { label: "Bolsa" }]
 
   const isEmpty = items.length === 0
 
@@ -59,7 +59,7 @@ export default function CartPage() {
         <section className="min-w-0 flex-1">
           <header className="mb-4">
             <h1 className="text-[15px] font-semibold text-[#1a1a1a]">
-              Carrito ({itemCount} {itemCount === 1 ? "artículo" : "artículos"})
+              Bolsa ({itemCount} {itemCount === 1 ? "artículo" : "artículos"})
             </h1>
           </header>
 
@@ -67,8 +67,8 @@ export default function CartPage() {
             <div className="mb-4 flex items-start justify-between gap-3 border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               <span>
                 {removedCount === 1
-                  ? "1 producto de tu carrito ya no está disponible y fue eliminado automáticamente."
-                  : `${removedCount} productos de tu carrito ya no están disponibles y fueron eliminados automáticamente.`}
+                  ? "1 producto de tu bolsa ya no está disponible y fue eliminado automáticamente."
+                  : `${removedCount} productos de tu bolsa ya no están disponibles y fueron eliminados automáticamente.`}
               </span>
               <button
                 type="button"
@@ -88,7 +88,7 @@ export default function CartPage() {
               </div>
               <div>
                 <p className="text-[14px] font-medium text-neutral-600">
-                  Tu carrito está vacío
+                  Tu bolsa está vacía
                 </p>
                 <p className="mt-1 text-[12px] text-neutral-400">
                   Agrega productos para comenzar

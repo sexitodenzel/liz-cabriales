@@ -12,6 +12,7 @@ import type {
   ServiceWithOptions,
 } from "@/lib/supabase/appointments"
 import { professionalMatchesServiceFilters } from "@/lib/professionalFilters"
+import { navSticky } from "@/lib/nav-sticky"
 import ServiceOptionsPicker, {
   buildServiceSelections,
   resolveServiceOptions,
@@ -870,7 +871,7 @@ export default function ServiciosClient({
   return (
     <div className="min-h-screen bg-[var(--background)]">
       {/* Wizard toolbar + progress */}
-      <header className="sticky top-[var(--site-chrome-bottom)] z-30 border-b border-neutral-200/60 bg-[var(--background)]/95 backdrop-blur-md">
+      <header {...navSticky("follow", "z-30 border-b border-neutral-200/60 bg-[var(--background)]/95 backdrop-blur-md")}>
         <div className="site-container">
           <div className="flex items-center justify-between py-2.5">
             <button
@@ -1554,11 +1555,11 @@ export default function ServiciosClient({
           </div>
 
           {step < 4 ? (
-            <div className="sticky top-[calc(var(--site-chrome-bottom)+5.5rem)] hidden w-72 shrink-0 lg:block xl:w-80">
+            <div {...navSticky("follow-below", "hidden w-72 shrink-0 lg:block xl:w-80")}>
               <BookingSummary {...summaryProps} />
             </div>
           ) : (
-            <aside className="sticky top-[calc(var(--site-chrome-bottom)+5.5rem)] hidden lg:col-span-4 lg:block">
+            <aside {...navSticky("follow-below", "hidden lg:col-span-4 lg:block")}>
               <BookingSummary {...summaryProps} />
             </aside>
           )}

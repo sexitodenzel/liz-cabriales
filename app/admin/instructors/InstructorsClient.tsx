@@ -32,9 +32,11 @@ const EMPTY_EDIT: EditState = {
 
 const TITLE_SUGGESTIONS = [
   "Máster",
+  "Máster internacional",
+  "Podóloga",
+  "Podólogo",
+  "Pedicurista",
   "Educadora certificada",
-  "Instructora",
-  "Instructor",
 ]
 
 export default function InstructorsClient({
@@ -320,7 +322,7 @@ export default function InstructorsClient({
                       prev ? { ...prev, title: e.target.value } : prev
                     )
                   }
-                  placeholder="Ej. Máster, Educadora certificada…"
+                  placeholder="Ej. Máster internacional, Podóloga, Dr.…"
                   className={inputCls}
                 />
                 <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -341,8 +343,9 @@ export default function InstructorsClient({
                   ))}
                 </div>
                 <p className="mt-1.5 text-[11px] text-[#9a9a9a]">
-                  Sale debajo del nombre en el curso. Si lo dejas vacío, se
-                  muestra “Instructor(a)”.
+                  Es el label pequeño que sale arriba del nombre en el curso
+                  (p. ej. “Podólogo”). Si lo dejas vacío, se muestra “Maestro
+                  invitado”.
                 </p>
               </div>
 

@@ -39,11 +39,13 @@ export const storeCheckoutDetailButtonClassName = [
   "px-5 py-3 text-sm",
 ].join(" ")
 
-// Botón cuadrado negro sólido tipo Chanel para la página de detalle.
+// Botón principal de la página de detalle: pill negro sólido — hermano del
+// storeCheckoutDetailButtonClassName (mismo rounded-full/negro) con la
+// escala y tracking del hero.
 export const storeHeroAddToCartClassName = [
-  "inline-flex w-full items-center justify-center bg-neutral-900 px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-white",
+  "inline-flex w-full items-center justify-center rounded-full border border-neutral-900 bg-neutral-900 px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-white",
   "transition-all duration-200 ease-out hover:bg-neutral-800 active:scale-[0.98] active:duration-75",
-  "disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-white",
+  "disabled:cursor-not-allowed disabled:border-neutral-200 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:active:scale-100",
 ].join(" ")
 
 // Default "iluminar dorado" hover effect for interactive elements in the store
@@ -54,13 +56,13 @@ export const storeGoldHoverGlow =
 // Toolbar icon buttons (grid/list switcher, etc.) — click feedback baked in.
 // Consumer adds its own active-state colors; pair inactive state with storeGoldHoverGlow.
 export const storeToolbarIconClassName = [
-  "inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full md:h-[18px] md:w-[18px]",
+  "inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full",
   "transition-all duration-200 ease-out active:scale-90 active:duration-75",
 ].join(" ")
 
 // Text + icon trigger button (Filtrar / Ordenar) — click feedback baked in.
 // Consumer adds its own active-state colors; pair inactive state with storeGoldHoverGlow.
 export const storeToolbarTriggerClassName = [
-  "inline-flex cursor-pointer items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em]",
+  "inline-flex cursor-pointer items-center gap-2 text-[13px] tracking-wide",
   "transition-all duration-200 ease-out active:scale-95 active:duration-75",
 ].join(" ")

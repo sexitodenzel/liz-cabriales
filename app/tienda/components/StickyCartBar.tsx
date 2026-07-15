@@ -1,7 +1,8 @@
 "use client"
 
-import Image from "next/image"
 import { useEffect, useState, type RefObject } from "react"
+
+import SmoothImage from "@/app/components/shared/SmoothImage"
 
 import type { ProductWithVariants, ProductVariant } from "@/lib/supabase/products"
 import { applyDiscount } from "@/lib/tienda/discount"
@@ -73,7 +74,7 @@ export default function StickyCartBar({ product, selectedVariant, triggerRef }: 
         >
           {image ? (
             <div className="relative h-10 w-10 shrink-0 overflow-hidden bg-neutral-100 sm:h-12 sm:w-12">
-              <Image
+              <SmoothImage
                 src={image}
                 alt={product.name}
                 fill
