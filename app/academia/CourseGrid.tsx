@@ -634,20 +634,6 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
 
   return (
     <>
-      {/* ── Hero (flujo normal, scrollea) ──────────────────────────── */}
-      <header className="mb-6">
-        <h1
-          className="text-[clamp(32px,4.5vw,48px)] font-medium leading-[1.05] tracking-[-0.02em] text-[#111]"
-          style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-        >
-          Eventos
-        </h1>
-        <div className="mt-4 h-0.5 w-14 rounded-sm bg-[#c6a75e]" aria-hidden />
-        <p className="mt-4 max-w-[42ch] text-[14px] leading-relaxed text-[#6b6b6b]">
-          Talleres presenciales, cupos reducidos y práctica con modelo.
-        </p>
-      </header>
-
       {/* ── Barra de control sticky (receta de /tienda) ────────────
           top ESTÁTICO + .navbar-follow-collapse: la barra viaja en la MISMA
           transition de transform que el navbar (GPU), así que no puede

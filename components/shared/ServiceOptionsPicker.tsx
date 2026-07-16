@@ -49,8 +49,8 @@ function OptionChip({
         compact ? "text-xs" : "text-sm"
       } ${
         selected
-          ? "border-[#c6a75e] bg-[#c6a75e]/15 font-medium text-[#111]"
-          : "border-neutral-200 bg-white text-neutral-700 hover:border-[#c6a75e]/50"
+          ? "border-neutral-900 bg-neutral-900 font-medium text-white"
+          : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
       }`}
     >
       {option.label}
@@ -132,7 +132,7 @@ function SubindexCheckbox({ checked }: { checked: boolean }) {
       aria-hidden
       className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
         checked
-          ? "border-[#c6a75e] bg-[#c6a75e] text-[#111]"
+          ? "border-neutral-900 bg-neutral-900 text-white"
           : "border-neutral-300 bg-white"
       }`}
     >
@@ -176,15 +176,15 @@ function SubindexList({
 
   return (
     <div
-      className="mt-4 border-t border-[#c6a75e]/20 pt-4"
+      className="mt-4 border-t border-neutral-200 pt-4"
       onClick={(e) => e.stopPropagation()}
     >
       {serviceName && (
-        <p className="mb-3 text-sm font-medium italic text-neutral-700">
+        <p className="mb-3 text-sm font-medium text-[#0a0a0a]">
           {serviceName}
         </p>
       )}
-      <ul className="space-y-2 border-l-2 border-[#c6a75e]/40 pl-4">
+      <ul className="space-y-2 border-l-2 border-neutral-200 pl-4">
         {options.map((opt) => {
           const active = selectedOptionIds.includes(opt.id)
           const checkboxId = `service-option-${serviceId}-${opt.id}`
@@ -194,8 +194,8 @@ function SubindexList({
                 htmlFor={checkboxId}
                 className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
                   active
-                    ? "bg-[#c6a75e]/15 font-medium text-[#111]"
-                    : "text-neutral-700 hover:bg-neutral-50 hover:text-[#c6a75e]"
+                    ? "bg-neutral-100 font-medium text-[#0a0a0a]"
+                    : "text-neutral-700 hover:bg-neutral-50 hover:text-[#0a0a0a]"
                 }`}
               >
                 <span className="flex min-w-0 flex-1 items-center gap-3">
@@ -207,10 +207,10 @@ function SubindexList({
                     className="sr-only"
                   />
                   <SubindexCheckbox checked={active} />
-                  <span className="italic">{opt.label}</span>
+                  <span>{opt.label}</span>
                 </span>
                 {opt.price_delta > 0 && (
-                  <span className="shrink-0 text-sm font-medium tabular-nums text-[#c6a75e]">
+                  <span className="shrink-0 text-sm font-medium tabular-nums text-[#0a0a0a]">
                     +{formatPrice(opt.price_delta)}
                   </span>
                 )}
@@ -253,7 +253,7 @@ export default function ServiceOptionsPicker({
 
   return (
     <div
-      className={`space-y-3 rounded-lg border border-[#c6a75e]/25 bg-[#fdfaf3] ${
+      className={`space-y-3 rounded-lg border border-neutral-200 bg-white ${
         compact ? "p-3" : "p-4"
       }`}
       onClick={(e) => e.stopPropagation()}

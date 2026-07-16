@@ -48,6 +48,7 @@ export async function DELETE(
 
     revalidateTag("services", "max")
     revalidatePath("/servicios")
+    revalidatePath("/servicios/agendar")
 
     return NextResponse.json({ data: { ok: true }, error: null })
   } catch (err) {

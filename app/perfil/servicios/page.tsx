@@ -21,7 +21,7 @@ export default async function PerfilServiciosPage() {
       {appointments.length === 0 ? (
         <p className="text-sm text-neutral-600">
           No tienes citas activas. Agenda en{" "}
-          <Link href="/servicios" className="font-medium text-[var(--gold)] underline">
+          <Link href="/servicios/agendar" className="font-medium text-[var(--gold)] underline">
             servicios
           </Link>
           .

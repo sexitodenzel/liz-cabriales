@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
 
     revalidateTag("professionals", "max")
     revalidatePath("/servicios")
+    revalidatePath("/servicios/agendar")
 
     return NextResponse.json(
       { data: { professional: result.data }, error: null },

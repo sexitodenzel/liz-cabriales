@@ -37,7 +37,7 @@ export default function ServicesSection({ services }: Props) {
           </h2>
         </div>
         <Link
-          href="/servicios"
+          href="/servicios/agendar"
           className="hidden text-sm font-medium text-[#a8862f] hover:underline sm:block"
         >
           Agendar cita →
@@ -67,7 +67,10 @@ export default function ServicesSection({ services }: Props) {
               </p>
             </div>
 
-            <Link href="/servicios" className={`${storeInlineButtonClassName} shrink-0`}>
+            <Link
+              href={`/servicios/agendar?servicio=${encodeURIComponent(service.id)}`}
+              className={`${storeInlineButtonClassName} shrink-0`}
+            >
               Agendar
             </Link>
           </div>
@@ -75,7 +78,7 @@ export default function ServicesSection({ services }: Props) {
       </div>
 
       <div className="mt-4 sm:hidden">
-        <Link href="/servicios" className="text-sm font-medium text-[#a8862f] hover:underline">
+        <Link href="/servicios/agendar" className="text-sm font-medium text-[#a8862f] hover:underline">
           Agendar cita →
         </Link>
       </div>

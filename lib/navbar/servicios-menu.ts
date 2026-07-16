@@ -43,12 +43,12 @@ export function buildServiciosMenuGroups(
 export const AGENDAR_MENU_CATEGORY: TiendaCategory = {
   label: "Agendar",
   slug: "agendar",
-  href: "/servicios",
+  href: "/servicios/agendar",
   subcategories: [
-    { label: "Ver disponibilidad", href: "/servicios" },
-    { label: "Agenda tu cita", href: "/servicios" },
-    { label: "Elegir profesional", href: "/servicios" },
-    { label: "Consultar horarios", href: "/servicios" },
+    { label: "Ver disponibilidad", href: "/servicios/agendar" },
+    { label: "Agenda tu cita", href: "/servicios/agendar" },
+    { label: "Elegir profesional", href: "/servicios/agendar" },
+    { label: "Consultar horarios", href: "/servicios/agendar" },
   ],
 }
 
@@ -56,10 +56,10 @@ export function serviciosMenuToCategories(groups: ServiciosMenuGroup[]): TiendaC
   const filterCategories = groups.map((group) => ({
     label: group.name,
     slug: group.slug,
-    href: `/servicios?categoria=${encodeURIComponent(group.slug)}`,
+    href: `/servicios/agendar?categoria=${encodeURIComponent(group.slug)}`,
     subcategories: group.services.map((service) => ({
       label: service.name,
-      href: `/servicios?servicio=${encodeURIComponent(service.id)}`,
+      href: `/servicios/agendar?servicio=${encodeURIComponent(service.id)}`,
     })),
   }))
 

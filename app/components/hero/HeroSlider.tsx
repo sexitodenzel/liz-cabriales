@@ -25,7 +25,7 @@ const HERO_COURSE_CTA_LABEL = "Inscríbete ahora"
 function buildHref(type: string, value: string): string | undefined {
   if (type === "product" && value) return `/tienda/${value}`
   if (type === "course" && value) return `/academia/${value}`
-  if (type === "services") return "/servicios"
+  if (type === "services") return "/servicios/agendar"
   if (type === "custom" && value) return value
   return undefined
 }

@@ -98,7 +98,7 @@ export default async function CitaPage({ params, searchParams }: Props) {
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/servicios"
+              href="/servicios/agendar"
               className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c6a75e] hover:text-[#0a0a0a]"
             >
               Agendar una cita

@@ -74,6 +74,7 @@ export async function PATCH(
 
     revalidateTag("professionals", "max")
     revalidatePath("/servicios")
+    revalidatePath("/servicios/agendar")
 
     return NextResponse.json({
       data: { professional: result.data },
@@ -116,6 +117,7 @@ export async function DELETE(
 
     revalidateTag("professionals", "max")
     revalidatePath("/servicios")
+    revalidatePath("/servicios/agendar")
 
     return NextResponse.json({ data: { ok: true }, error: null })
   } catch (err) {

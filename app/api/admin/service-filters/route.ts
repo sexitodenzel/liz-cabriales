@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
 
     revalidateTag("services", "max")
     revalidatePath("/servicios")
+    revalidatePath("/servicios/agendar")
 
     return NextResponse.json(
       { data: { filter: result.data }, error: null },

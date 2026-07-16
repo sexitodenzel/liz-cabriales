@@ -8,15 +8,19 @@
  *   rendija con el contenido asomándose detrás)
  *     · SÍ → "follow"        pegada al navbar, viaja con él (transform GPU).
  *            "follow-below"   igual, 5.5rem más abajo (debajo de otra barra
- *                             sticky, p.ej. el header del wizard de servicios).
+ *                             sticky alta, p.ej. header con título).
+ *            "follow-below-sm" igual, 3.75rem más abajo (debajo de una barra
+ *                             corta, p.ej. breadcrumbs del wizard de servicios).
  *     · NO → "plain"          sidebar que solo debe quedarse visible; el hueco
  *                             que deja el navbar al colapsar es aire aceptable.
  *                             (Sin follow no hay salto ni necesita guard/park.)
  *
  * Modificadores:
- *   · guard: true → SOLO si hay un HERO alto ENCIMA de la barra. Evita que el
- *                   navbar colapse antes de que la barra dockee (si no, abre un
- *                   hueco con el hero asomándose). Marca data-nav-collapse-guard,
+ *   · guard: true → si hay contenido ENCIMA de la barra (hero, título de paso)
+ *                   que aún scrollea cuando el header superior ya dockeó.
+ *                   Evita que el navbar colapse antes de que ESTA barra dockee
+ *                   (si no, follow-collapse la traslada -56px en flujo y abre
+ *                   hueco / recorta el título). Marca data-nav-collapse-guard,
  *                   que el motor de colapso de Navbar.tsx lee genéricamente.
  *   · park       → si la barra agota su columna y al final el -56px la deja
  *                  descansando 56px arriba del borde, usa el hook
@@ -34,12 +38,18 @@
  *    (no la construyas con template strings) o el `top-[...]` no se generará.
  */
 
-export type NavStickyRecipe = "follow" | "follow-below" | "plain"
+export type NavStickyRecipe =
+  | "follow"
+  | "follow-below"
+  | "follow-below-sm"
+  | "plain"
 
 const RECIPE_CLASS: Record<NavStickyRecipe, string> = {
   follow: "navbar-follow-collapse sticky top-[var(--navbar-actual-h)]",
   "follow-below":
     "navbar-follow-collapse sticky top-[calc(var(--navbar-actual-h)+5.5rem)]",
+  "follow-below-sm":
+    "navbar-follow-collapse sticky top-[calc(var(--navbar-actual-h)+3.75rem)]",
   plain: "sticky self-start top-[calc(var(--navbar-actual-h,64px)+1.5rem)]",
 }
 

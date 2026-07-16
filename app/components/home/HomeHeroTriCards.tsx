@@ -39,7 +39,7 @@ const LEFT: Card = {
 }
 
 const RIGHT: Card = {
-  href: "/servicios",
+  href: "/servicios/agendar",
   eyebrow: "Cabina",
   title: "Agenda tu cita",
   subtitle: "Tratamientos faciales y estética.",

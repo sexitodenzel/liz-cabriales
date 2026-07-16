@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-
 import { createClient } from "@/lib/supabase/client"
 import type {
   AppointmentRecord,
@@ -13,6 +12,7 @@ import type {
 } from "@/lib/supabase/appointments"
 import { professionalMatchesServiceFilters } from "@/lib/professionalFilters"
 import { navSticky } from "@/lib/nav-sticky"
+import { useNavFollowParked } from "@/lib/hooks/use-nav-follow-parked"
 import ServiceOptionsPicker, {
   buildServiceSelections,
   resolveServiceOptions,
@@ -48,9 +48,10 @@ type Props = {
 const STEP_LABELS: Record<Step, string> = {
   1: "Servicios",
   2: "Profesional",
-  3: "Fecha y hora",
-  4: "Confirmación",
+  3: "Hora",
+  4: "Confirmar",
 }
+const TOTAL_STEPS = 4
 
 const DEFAULT_FILTERS: ServiceFilterRow[] = [
   { id: "manos", name: "Manos", slug: "manos", sort_order: 1, is_active: true },
@@ -58,9 +59,9 @@ const DEFAULT_FILTERS: ServiceFilterRow[] = [
 ]
 
 const SELECTED_CARD =
-  "border-2 border-[#c6a75e] bg-white shadow-[0_4px_12px_rgba(201,168,76,0.12)] ring-1 ring-[#c6a75e]/20"
+  "border-2 border-neutral-900 bg-white"
 const DEFAULT_CARD =
-  "border border-neutral-200/80 bg-white hover:border-[#c6a75e]/40"
+  "border border-neutral-200/80 bg-white hover:border-neutral-400"
 
 function formatPrice(v: number): string {
   return new Intl.NumberFormat("es-MX", {
@@ -126,23 +127,6 @@ function groupSlotsByPeriod(slots: Slot[]) {
 const QUICK_PICK_DAYS = 30
 const CALENDAR_HORIZON_DAYS = 90
 
-function IconArrowLeft() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 12H5M12 5l-7 7 7 7" />
-    </svg>
-  )
-}
-
 function IconX() {
   return (
     <svg
@@ -157,23 +141,6 @@ function IconX() {
     >
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
-
-function IconCheck() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="20 6 9 17 4 12" />
     </svg>
   )
 }
@@ -257,16 +224,18 @@ function StepHeading({
   subtitle,
 }: {
   title: string
-  subtitle: string
+  subtitle?: string
 }) {
   return (
     <header className="mb-6 md:mb-8">
-      <h1 className="font-[family-name:var(--font-playfair),serif] text-[clamp(28px,4vw,40px)] font-medium leading-tight tracking-[-0.02em] text-[#111]">
+      <h1 className="text-[clamp(1.5rem,2.4vw,2rem)] font-semibold leading-tight tracking-[-0.02em] text-[#0a0a0a]">
         {title}
       </h1>
-      <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-neutral-500">
-        {subtitle}
-      </p>
+      {subtitle ? (
+        <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-neutral-500">
+          {subtitle}
+        </p>
+      ) : null}
     </header>
   )
 }
@@ -295,8 +264,8 @@ function SlotGrid({
             onClick={() => onSelect(slot)}
             className={`rounded-lg border py-3 text-[13px] font-medium transition-all duration-200 ${
               active
-                ? "border-[#c6a75e] bg-[#c6a75e] text-[#111] shadow-sm"
-                : "border-neutral-200/80 bg-white text-[#111] hover:border-[#c6a75e]/50"
+                ? "border-neutral-900 bg-neutral-900 text-white shadow-sm"
+                : "border-neutral-200/80 bg-white text-[#111] hover:border-neutral-400"
             }`}
           >
             {formatTimeLabel(slot.start_time)}
@@ -318,6 +287,9 @@ export default function ServiciosClient({
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  // Evita el gotcha de "park": al llegar al fondo con navbar colapsado, el
+  // -56px del follow devuelve a 0 cuando la card se estaciona en su columna.
+  const summaryParkRef = useNavFollowParked<HTMLElement>()
 
   const [transferAccountNumber, setTransferAccountNumber] = useState(
     initialTransferAccountNumber
@@ -340,7 +312,8 @@ export default function ServiciosClient({
   const [slotsError, setSlotsError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [activeCategory, setActiveCategory] = useState("all")
+  const [activeCategory, setActiveCategory] = useState("")
+  const categoryClickLockRef = useRef(false)
   const [descExpandedId, setDescExpandedId] = useState<string | null>(null)
   const [optionsExpandedId, setOptionsExpandedId] = useState<string | null>(
     null
@@ -425,10 +398,80 @@ export default function ServiciosClient({
     [filters]
   )
 
-  const filteredServices = useMemo(() => {
-    if (activeCategory === "all") return services
-    return services.filter((s) => s.filter_slug === activeCategory)
-  }, [services, activeCategory])
+  // Servicios agrupados por categoría: todas visibles, apiladas con su título.
+  const servicesByCategory = useMemo(() => {
+    const categorizedSlugs = new Set(availableCategories.map((c) => c.slug))
+    const groups = availableCategories
+      .map((cat) => ({
+        slug: cat.slug,
+        name: cat.name,
+        services: services.filter((s) => s.filter_slug === cat.slug),
+      }))
+      .filter((g) => g.services.length > 0)
+    const uncategorized = services.filter(
+      (s) => !s.filter_slug || !categorizedSlugs.has(s.filter_slug)
+    )
+    if (uncategorized.length > 0) {
+      groups.push({ slug: "otros", name: "Otros servicios", services: uncategorized })
+    }
+    return groups
+  }, [availableCategories, services])
+
+  const scrollToCategory = useCallback((slug: string) => {
+    const el = document.getElementById(`cat-${slug}`)
+    if (!el) return
+    el.scrollIntoView({ behavior: "smooth", block: "start" })
+  }, [])
+
+  const onCategoryClick = useCallback(
+    (slug: string) => {
+      setActiveCategory(slug)
+      categoryClickLockRef.current = true
+      scrollToCategory(slug)
+      window.setTimeout(() => {
+        categoryClickLockRef.current = false
+      }, 900)
+    },
+    [scrollToCategory]
+  )
+
+  // Arranca resaltando la primera categoría (p. ej. Reflexología).
+  useEffect(() => {
+    if (!activeCategory && servicesByCategory.length > 0) {
+      setActiveCategory(servicesByCategory[0].slug)
+    }
+  }, [activeCategory, servicesByCategory])
+
+  // Scroll-spy: el tab activo sigue la sección visible mientras se hace scroll.
+  useEffect(() => {
+    if (step !== 1) return
+    const els = servicesByCategory
+      .map((g) => document.getElementById(`cat-${g.slug}`))
+      .filter((el): el is HTMLElement => Boolean(el))
+    if (els.length === 0) return
+
+    const visibility = new Map<string, number>()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          visibility.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0)
+        }
+        if (categoryClickLockRef.current) return
+        let bestId = ""
+        let bestRatio = 0
+        for (const [id, ratio] of visibility) {
+          if (ratio > bestRatio) {
+            bestRatio = ratio
+            bestId = id
+          }
+        }
+        if (bestId) setActiveCategory(bestId.replace("cat-", ""))
+      },
+      { root: null, rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.1, 0.25, 0.5, 1] }
+    )
+    for (const el of els) observer.observe(el)
+    return () => observer.disconnect()
+  }, [servicesByCategory, step])
 
   useEffect(() => {
     const categoria = searchParams.get("categoria")?.trim()
@@ -436,6 +479,7 @@ export default function ServiciosClient({
 
     if (categoria && availableCategories.some((f) => f.slug === categoria)) {
       setActiveCategory(categoria)
+      window.setTimeout(() => scrollToCategory(categoria), 120)
     }
 
     if (!servicioId) return
@@ -444,12 +488,13 @@ export default function ServiciosClient({
 
     if (service.filter_slug) {
       setActiveCategory(service.filter_slug)
+      window.setTimeout(() => scrollToCategory(service.filter_slug!), 120)
     }
     setSelectedServiceIds([servicioId])
     if (service.options.length > 0) {
       setOptionsExpandedId(servicioId)
     }
-  }, [searchParams, availableCategories, services])
+  }, [searchParams, availableCategories, services, scrollToCategory])
 
   const selectedProfessional = professionals.find(
     (p) => p.id === selectedProfessionalId
@@ -459,8 +504,6 @@ export default function ServiciosClient({
     selectedProfessionalId === "any"
       ? "cualquier profesional"
       : (selectedProfessional?.name ?? "cualquier profesional")
-
-  const progressPct = (step / 4) * 100
 
   const toggleService = (id: string) => {
     setSelectedServiceIds((prev) => {
@@ -689,6 +732,7 @@ export default function ServiciosClient({
 
   const handleBack = () => {
     if (step > 1) setStep((s) => (s - 1) as Step)
+    else router.push("/servicios")
   }
 
   const skipStepScrollRef = useRef(true)
@@ -761,7 +805,7 @@ export default function ServiciosClient({
       } catch {
         // noop
       }
-      router.push("/login?redirect=/servicios")
+      router.push("/login?redirect=/servicios/agendar")
       return
     }
 
@@ -869,45 +913,51 @@ export default function ServiciosClient({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      {/* Wizard toolbar + progress */}
-      <header {...navSticky("follow", "z-30 border-b border-neutral-200/60 bg-[var(--background)]/95 backdrop-blur-md")}>
+    <div className="min-h-screen bg-white">
+      <header {...navSticky("follow", "z-30 bg-white/95 backdrop-blur-md")}>
         <div className="site-container">
-          <div className="flex items-center justify-between py-2.5">
+          <div className="flex items-center gap-4 py-3">
             <button
               type="button"
               onClick={handleBack}
-              disabled={step === 1}
-              aria-label="Volver"
-              className="flex h-9 w-9 items-center justify-center text-[#c6a75e] transition-opacity hover:opacity-70 disabled:opacity-30"
+              className="shrink-0 text-[13px] font-medium text-neutral-500 transition-colors hover:text-[#0a0a0a]"
             >
-              <IconArrowLeft />
+              Volver
             </button>
 
+            <div
+              className="min-w-0 flex-1"
+              role="status"
+              aria-label={`Paso ${step} de ${TOTAL_STEPS}: ${STEP_LABELS[step]}`}
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex flex-1 gap-1" aria-hidden>
+                  {Array.from({ length: TOTAL_STEPS }, (_, i) => {
+                    const n = (i + 1) as Step
+                    const filled = n <= step
+                    return (
+                      <span
+                        key={n}
+                        className={`h-0.5 flex-1 rounded-full ${
+                          filled ? "bg-[#0a0a0a]" : "bg-neutral-200"
+                        }`}
+                      />
+                    )
+                  })}
+                </div>
+                <span className="shrink-0 text-[12px] tabular-nums text-neutral-400">
+                  {step}/{TOTAL_STEPS}
+                </span>
+              </div>
+            </div>
+
             <Link
-              href="/"
+              href="/servicios"
               aria-label="Cerrar"
-              className="flex h-9 w-9 items-center justify-center text-[#c6a75e] transition-colors hover:text-red-600 active:text-red-600"
+              className="flex h-9 w-9 shrink-0 items-center justify-center text-neutral-500 transition-colors hover:text-[#0a0a0a]"
             >
               <IconX />
             </Link>
-          </div>
-
-          <div className="pb-3">
-            <div className="mb-2 flex items-end justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e]">
-                Paso {String(step).padStart(2, "0")} / 04
-              </span>
-              <span className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
-                {STEP_LABELS[step]}
-              </span>
-            </div>
-            <div className="h-[2px] w-full overflow-hidden bg-neutral-200/60">
-              <div
-                className="h-full bg-[#c6a75e] transition-all duration-700 ease-out"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
           </div>
         </div>
       </header>
@@ -925,175 +975,188 @@ export default function ServiciosClient({
           >
             {step === 1 && (
               <div>
-                <StepHeading
-                  title="Seleccionar servicios"
-                  subtitle="Elige uno o varios servicios para tu visita al estudio."
-                />
+                <StepHeading title="Seleccionar servicios" />
 
-                {availableCategories.length > 0 && (
-                  <div className="mb-8 flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden">
-                    <button
-                      type="button"
-                      onClick={() => setActiveCategory("all")}
-                      className={`shrink-0 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all ${
-                        activeCategory === "all"
-                          ? "bg-[#111] text-white"
-                          : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c6a75e]/50"
-                      }`}
+                {servicesByCategory.length > 1 && (
+                  <div
+                    {...navSticky(
+                      "follow-below-sm",
+                      "z-20 mb-6 bg-white pb-3 pt-1",
+                      { guard: true },
+                    )}
+                  >
+                    <div
+                      className="flex flex-wrap gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+                      role="tablist"
+                      aria-label="Categorías de servicio"
                     >
-                      Todos
-                    </button>
-                    {availableCategories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setActiveCategory(cat.slug)}
-                        className={`shrink-0 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all ${
-                          activeCategory === cat.slug
-                            ? "bg-[#111] text-white"
-                            : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c6a75e]/50"
-                        }`}
-                      >
-                        {cat.name}
-                      </button>
-                    ))}
+                      {servicesByCategory.map((group) => {
+                        const active = activeCategory === group.slug
+                        return (
+                          <button
+                            key={group.slug}
+                            type="button"
+                            role="tab"
+                            aria-selected={active}
+                            onClick={() => onCategoryClick(group.slug)}
+                            className={`inline-flex h-9 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border px-4 text-xs font-medium uppercase tracking-wide transition-colors ${
+                              active
+                                ? "border-neutral-900 bg-neutral-900 text-white"
+                                : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
+                            }`}
+                          >
+                            {group.name}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
 
-                <div className="space-y-3">
-                  {filteredServices.map((s) => {
-                    const selected = selectedServiceIds.includes(s.id)
-                    const descExpanded = descExpandedId === s.id
-                    const optionsExpanded = optionsExpandedId === s.id
-                    const longDesc =
-                      s.description && s.description.length > 120
-                    const hasSubOptions = s.options.length > 0
-                    const showSubindex = hasSubOptions && optionsExpanded
-                    const missingOption = servicesMissingOptions.has(s.id)
+                {servicesByCategory.length === 0 && (
+                  <p className="py-8 text-center text-sm text-neutral-500">
+                    No hay servicios disponibles.
+                  </p>
+                )}
 
-                    return (
-                      <div
-                        key={s.id}
-                        className={`group w-full rounded-lg p-6 text-left transition-all duration-200 md:p-8 ${
-                          missingOption
-                            ? "border-2 border-[#c6a75e]/70 bg-white ring-1 ring-[#c6a75e]/20"
-                            : selected
-                              ? SELECTED_CARD
-                              : DEFAULT_CARD
-                        }`}
+                <div className="space-y-12">
+                  {servicesByCategory.map((group) => (
+                    <section
+                      key={group.slug}
+                      id={`cat-${group.slug}`}
+                      className="scroll-mt-52"
+                      aria-labelledby={`cat-${group.slug}-heading`}
+                    >
+                      <h2
+                        id={`cat-${group.slug}-heading`}
+                        className="mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => handleServiceCardClick(s)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault()
-                                handleServiceCardClick(s)
+                        {group.name}
+                      </h2>
+                      <ul className="divide-y divide-neutral-200/80 border-y border-neutral-200/80">
+                        {group.services.map((s) => {
+                          const selected = selectedServiceIds.includes(s.id)
+                          const descExpanded = descExpandedId === s.id
+                          const optionsExpanded = optionsExpandedId === s.id
+                          const longDesc =
+                            s.description && s.description.length > 120
+                          const hasSubOptions = s.options.length > 0
+                          const showSubindex = hasSubOptions && optionsExpanded
+                          const missingOption = servicesMissingOptions.has(s.id)
+
+                          return (
+                            <li
+                              key={s.id}
+                              className={
+                                missingOption
+                                  ? "bg-red-50/60"
+                                  : selected
+                                    ? "bg-neutral-50/80"
+                                    : undefined
                               }
-                            }}
-                            className="min-w-0 flex-1 cursor-pointer text-left"
-                          >
-                            <h2
-                              className={`font-[family-name:var(--font-playfair),serif] text-lg md:text-xl ${
-                                selected
-                                  ? "text-gold"
-                                  : "text-[#111] group-hover:text-gold"
-                              }`}
                             >
-                              {s.name}
-                            </h2>
-                            <p className="mt-1 text-[11px] uppercase tracking-[0.1em] text-neutral-500">
-                              {formatDuration(s.duration_min)}
-                              {hasSubOptions && (
-                                <span className="ml-2 normal-case tracking-normal text-[#c6a75e]">
-                                  · Toca para ver opciones
-                                </span>
-                              )}
-                            </p>
-                            {s.description && (
-                              <div
-                                className="mt-3"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <p
-                                  className={`text-sm leading-relaxed text-neutral-600 ${
-                                    descExpanded ? "" : "line-clamp-2"
-                                  }`}
-                                >
-                                  {s.description}
-                                </p>
-                                {longDesc && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setDescExpandedId(
-                                        descExpanded ? null : s.id
-                                      )
+                              <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => handleServiceCardClick(s)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault()
+                                      handleServiceCardClick(s)
                                     }
-                                    className="mt-1 text-xs font-medium text-[#111] transition-colors hover:text-[#c6a75e]"
-                                  >
-                                    {descExpanded ? "Ver menos" : "Ver más"}
-                                  </button>
-                                )}
+                                  }}
+                                  className="min-w-0 cursor-pointer text-left"
+                                >
+                                  <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
+                                    {s.name}
+                                  </h3>
+                                  <p className="mt-1 text-[13px] text-[#8a8a8a]">
+                                    {formatDuration(s.duration_min)}
+                                    {hasSubOptions && (
+                                      <span className="text-neutral-500">
+                                        {" "}
+                                        · Toca para ver opciones
+                                      </span>
+                                    )}
+                                  </p>
+                                  {s.description && (
+                                    <div
+                                      className="mt-2"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <p
+                                        className={`max-w-[52ch] text-[13px] leading-relaxed text-[#6b6b6b] ${
+                                          descExpanded ? "" : "line-clamp-2"
+                                        }`}
+                                      >
+                                        {s.description}
+                                      </p>
+                                      {longDesc && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setDescExpandedId(
+                                              descExpanded ? null : s.id,
+                                            )
+                                          }
+                                          className="mt-1 text-[12px] font-medium text-[#111] underline decoration-neutral-400 underline-offset-4 hover:text-[#0a0a0a]"
+                                        >
+                                          {descExpanded
+                                            ? "Ver menos"
+                                            : "Ver más"}
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+                                  <p className="mt-2 text-[15px] font-semibold text-[#111]">
+                                    {formatPrice(s.price)}
+                                  </p>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => toggleService(s.id)}
+                                  className={`inline-flex shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-[12px] font-semibold transition-colors ${
+                                    selected
+                                      ? "border border-[#111] bg-[#111] text-white"
+                                      : "border border-neutral-300 bg-white text-[#111] hover:border-[#111]"
+                                  }`}
+                                  aria-label={
+                                    selected
+                                      ? `Quitar ${s.name}`
+                                      : `Añadir ${s.name}`
+                                  }
+                                >
+                                  {selected ? "Añadido" : "Añadir"}
+                                </button>
                               </div>
-                            )}
-                            <p className="mt-4 font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
-                              {formatPrice(s.price)}
-                            </p>
-                          </div>
 
-                          <button
-                            type="button"
-                            onClick={() => toggleService(s.id)}
-                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all ${
-                              selected
-                                ? "border-[#111] bg-[#111] text-white"
-                                : "border-neutral-300 text-neutral-500 group-hover:border-[#c6a75e]"
-                            }`}
-                            aria-label={
-                              selected
-                                ? `Quitar ${s.name}`
-                                : `Seleccionar ${s.name}`
-                            }
-                          >
-                            {selected ? (
-                              <IconCheck />
-                            ) : (
-                              <span className="text-xl leading-none">+</span>
-                            )}
-                          </button>
-                        </div>
-
-                        {showSubindex && (
-                          <>
-                            <ServiceOptionsPicker
-                              serviceId={s.id}
-                              serviceName={s.name}
-                              options={s.options}
-                              selectedOptionIds={
-                                selectedOptionsByService[s.id] ?? []
-                              }
-                              onChange={handleServiceOptionsChange}
-                              variant="subindex"
-                            />
-                            {missingOption && (
-                              <p className="mt-3 text-xs font-medium text-red-600">
-                                Elige al menos una opción para continuar.
-                              </p>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )
-                  })}
-
-                  {filteredServices.length === 0 && (
-                    <p className="py-8 text-center text-sm text-neutral-500">
-                      No hay servicios en esta categoría.
-                    </p>
-                  )}
+                              {showSubindex && (
+                                <div className="pb-5">
+                                  <ServiceOptionsPicker
+                                    serviceId={s.id}
+                                    serviceName={s.name}
+                                    options={s.options}
+                                    selectedOptionIds={
+                                      selectedOptionsByService[s.id] ?? []
+                                    }
+                                    onChange={handleServiceOptionsChange}
+                                    variant="subindex"
+                                  />
+                                  {missingOption && (
+                                    <p className="mt-3 text-xs font-medium text-red-600">
+                                      Elige al menos una opción para continuar.
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </section>
+                  ))}
                 </div>
               </div>
             )}
@@ -1105,7 +1168,7 @@ export default function ServiciosClient({
                   subtitle="Nuestro equipo está listo para atenderte. Elige a quien prefieras o déjanos asignar según disponibilidad."
                 />
 
-                <div className="mx-auto max-w-3xl space-y-3">
+                <div className="space-y-3">
                   {eligibleProfessionals.length > 0 && (
                     <div
                       className={`flex cursor-pointer items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
@@ -1113,12 +1176,13 @@ export default function ServiciosClient({
                           ? SELECTED_CARD
                           : DEFAULT_CARD
                       }`}
+                      onClick={() => setSelectedProfessionalId("any")}
                     >
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[#c6a75e]">
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
                         <IconShuffle />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-[family-name:var(--font-playfair),serif] text-lg text-[#111]">
+                        <p className="text-lg font-semibold text-[#0a0a0a]">
                           Sin preferencia
                         </p>
                         <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-neutral-500">
@@ -1127,11 +1191,14 @@ export default function ServiciosClient({
                       </div>
                       <button
                         type="button"
-                        onClick={() => setSelectedProfessionalId("any")}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedProfessionalId("any")
+                        }}
                         className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
                           selectedProfessionalId === "any"
-                            ? "border-[#c6a75e] bg-[#c6a75e] text-[#111]"
-                            : "border-neutral-300 text-neutral-600 hover:border-[#c6a75e]"
+                            ? "border-neutral-900 bg-neutral-900 text-white"
+                            : "border-neutral-300 text-neutral-600 hover:border-neutral-900"
                         }`}
                       >
                         {selectedProfessionalId === "any"
@@ -1149,51 +1216,55 @@ export default function ServiciosClient({
                     </p>
                   ) : (
                     eligibleProfessionals.map((p) => {
-                    const selected = selectedProfessionalId === p.id
-                    return (
-                      <div
-                        key={p.id}
-                        className={`flex items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
-                          selected ? SELECTED_CARD : DEFAULT_CARD
-                        }`}
-                      >
-                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-neutral-100">
-                          {p.photo_url ? (
-                            <img
-                              src={p.photo_url}
-                              alt={p.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-neutral-500">
-                              {getInitials(p.name)}
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-[family-name:var(--font-playfair),serif] text-lg text-[#111]">
-                            {p.name}
-                          </p>
-                          {p.bio && (
-                            <p className="mt-1 line-clamp-2 text-sm text-neutral-500">
-                              {p.bio}
-                            </p>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedProfessionalId(p.id)}
-                          className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
-                            selected
-                              ? "border-[#c6a75e] bg-[#c6a75e] text-[#111]"
-                              : "border-neutral-300 text-neutral-600 hover:border-[#c6a75e]"
+                      const selected = selectedProfessionalId === p.id
+                      return (
+                        <div
+                          key={p.id}
+                          className={`flex cursor-pointer items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
+                            selected ? SELECTED_CARD : DEFAULT_CARD
                           }`}
+                          onClick={() => setSelectedProfessionalId(p.id)}
                         >
-                          {selected ? "Seleccionado" : "Seleccionar"}
-                        </button>
-                      </div>
-                    )
-                  })
+                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-neutral-100">
+                            {p.photo_url ? (
+                              <img
+                                src={p.photo_url}
+                                alt={p.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-neutral-500">
+                                {getInitials(p.name)}
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-lg font-semibold text-[#0a0a0a]">
+                              {p.name}
+                            </p>
+                            {p.bio && (
+                              <p className="mt-1 line-clamp-2 text-sm text-neutral-500">
+                                {p.bio}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedProfessionalId(p.id)
+                            }}
+                            className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                              selected
+                                ? "border-neutral-900 bg-neutral-900 text-white"
+                                : "border-neutral-300 text-neutral-600 hover:border-neutral-900"
+                            }`}
+                          >
+                            {selected ? "Seleccionado" : "Seleccionar"}
+                          </button>
+                        </div>
+                      )
+                    })
                   )}
                 </div>
               </div>
@@ -1225,7 +1296,7 @@ export default function ServiciosClient({
                           className={`flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-xl border transition-all duration-200 ${
                             active
                               ? "border-[#111] bg-[#111] text-white shadow-md"
-                              : "border-neutral-200/80 bg-white text-[#111] hover:border-[#c6a75e]/50"
+                              : "border-neutral-200/80 bg-white text-[#111] hover:border-neutral-400"
                           }`}
                         >
                           <span
@@ -1250,7 +1321,7 @@ export default function ServiciosClient({
                   <button
                     type="button"
                     onClick={() => setFullCalendarOpen(true)}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#111] transition-all hover:border-[#c6a75e] hover:bg-[#fdfaf3] hover:text-[#c6a75e]"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#111] transition-all hover:border-neutral-900 hover:bg-neutral-50"
                   >
                     <IconCalendar />
                     Ver calendario completo
@@ -1555,11 +1626,24 @@ export default function ServiciosClient({
           </div>
 
           {step < 4 ? (
-            <div {...navSticky("follow-below", "hidden w-72 shrink-0 lg:block xl:w-80")}>
+            <aside
+              ref={summaryParkRef}
+              {...navSticky(
+                "follow-below-sm",
+                // Debajo del header de pasos; mismo sticky que otras secciones.
+                "z-10 hidden w-[340px] shrink-0 lg:block xl:w-[380px]",
+              )}
+            >
               <BookingSummary {...summaryProps} />
-            </div>
+            </aside>
           ) : (
-            <aside {...navSticky("follow-below", "hidden lg:col-span-4 lg:block")}>
+            <aside
+              ref={summaryParkRef}
+              {...navSticky(
+                "follow-below-sm",
+                "z-10 hidden lg:col-span-4 lg:block",
+              )}
+            >
               <BookingSummary {...summaryProps} />
             </aside>
           )}

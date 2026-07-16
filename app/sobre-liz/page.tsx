@@ -128,7 +128,7 @@ const PILLARS = [
     title: "Servicios",
     description:
       "Salón con servicios de manicure, pedicure, quiropodia y arte de uñas atendido por masters certificadas por la academia.",
-    href: "/servicios",
+    href: "/servicios/agendar",
     cta: "Reservar cita",
   },
 ] as const
@@ -602,35 +602,40 @@ export default async function SobreLizPage() {
 
       {/* ── CTA ── */}
       <section className="site-container pb-24">
-        <div className="rounded-3xl bg-[#111] px-8 py-14 text-center text-white lg:px-16 lg:py-20">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c6a75e]">
-            Únete a la comunidad
-          </p>
-          <h2
-            className="mx-auto max-w-2xl font-medium leading-[1.1] tracking-[-0.01em]"
-            style={{
-              fontFamily: "var(--font-playfair), serif",
-              fontSize: "clamp(28px, 3.6vw, 44px)",
-            }}
-          >
-            Piensa en grande, cree en tu talento y{" "}
-            <em className="italic text-[#c6a75e]">atrévete a lograrlo con nosotros.</em>
-          </h2>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/academia"
-              className="inline-flex items-center gap-2 rounded-full bg-[#c6a75e] px-8 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-white"
+        <div className="group rounded-3xl bg-[#111] px-8 py-14 lg:px-16 lg:py-20">
+          <div className="max-w-2xl">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/45 transition-colors duration-300 group-hover:text-[#c6a75e]">
+              Próximo paso
+            </p>
+            <h2
+              className="font-medium leading-[1.08] tracking-[-0.01em] text-white"
+              style={{
+                fontFamily: "var(--font-playfair), serif",
+                fontSize: "clamp(28px, 3.6vw, 44px)",
+              }}
             >
-              Ver próximos cursos
-            </Link>
-            <Link
-              href={SOCIAL.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/30 px-8 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-white/10"
-            >
-              Síguenos en Instagram
-            </Link>
+              Piensa en grande, cree en tu talento y atrévete a lograrlo con nosotros.
+            </h2>
+            <div
+              className="mt-5 h-0.5 w-16 rounded-sm bg-white/25 transition-colors duration-300 group-hover:bg-[#c6a75e]"
+              aria-hidden
+            />
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                href="/academia"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#111] transition-colors hover:bg-white/90"
+              >
+                Ver próximos cursos
+              </Link>
+              <Link
+                href={SOCIAL.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-white/30 px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-white/10"
+              >
+                Síguenos en Instagram
+              </Link>
+            </div>
           </div>
         </div>
       </section>
