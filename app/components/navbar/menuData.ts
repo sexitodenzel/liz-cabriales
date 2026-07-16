@@ -2,6 +2,8 @@
    DATOS DEL MENU
    ========================================= */
 
+import { COURSE_EVENT_TYPES, EVENT_TYPE_LABEL } from "@/app/academia/event-types"
+
 export type MenuItem = {
   label: string
   href: string
@@ -137,12 +139,6 @@ export const tiendaCategories: TiendaCategory[] = [
     subcategories: [],
   },
   {
-    label: "Cursos",
-    slug: "cursos",
-    href: "/academia",
-    subcategories: [],
-  },
-  {
     label: "Electrónicos",
     slug: "electronicos",
     href: "/tienda?categoria=electronicos",
@@ -174,39 +170,42 @@ export const tiendaCategories: TiendaCategory[] = [
   },
 ]
 
+// Taxonomía REAL de la academia. Las columnas reflejan lo que /academia puede
+// filtrar de verdad (CourseGrid lee estos parámetros de la URL al montar):
+// vista de calendario, orden por eventos pasados, nivel y tipo de evento.
+// Los tipos salen de event-types.ts (fuente única de verdad) para no divergir.
+// Se conserva el nombre `cursosCategories` y la forma TiendaCategory[] porque
+// también alimenta el drawer móvil (MobileDrawer) y el megamenú de academia.
 export const cursosCategories: TiendaCategory[] = [
   {
-    label: "Cursos",
-    slug: "cursos",
+    label: "Explorar",
+    slug: "explorar",
     href: "/academia",
     subcategories: [
-      { label: "Todos los cursos",   href: "/academia" },
-      { label: "Curso básico",       href: "/academia" },
-      { label: "Intermedio",         href: "/academia" },
-      { label: "Masterclass",        href: "/academia" },
-      { label: "Especialización",    href: "/academia" },
+      { label: "Todos los eventos", href: "/academia" },
+      { label: "Calendario",        href: "/academia?vista=calendario" },
+      { label: "Eventos pasados",   href: "/academia?sort=pasados" },
     ],
   },
   {
-    label: "Próximos eventos",
-    slug: "proximos-eventos",
+    label: "Por nivel",
+    slug: "nivel",
     href: "/academia",
     subcategories: [
-      { label: "Ver calendario",     href: "/academia" },
-      { label: "Cómo inscribirme",   href: "/academia#como-inscribirme" },
-      { label: "Precios y horarios", href: "/academia" },
+      { label: "Principiante", href: "/academia?nivel=principiante" },
+      { label: "Intermedio",   href: "/academia?nivel=intermedio" },
+      { label: "Avanzado",     href: "/academia?nivel=avanzado" },
+      { label: "Abierto",      href: "/academia?nivel=abierto" },
     ],
   },
   {
-    label: "Modalidades",
-    slug: "modalidades",
+    label: "Por tipo de evento",
+    slug: "tipo",
     href: "/academia",
-    subcategories: [
-      { label: "Presencial",         href: "/academia" },
-      { label: "En línea",           href: "/academia" },
-      { label: "Individual",         href: "/academia" },
-      { label: "Grupal",             href: "/academia" },
-    ],
+    subcategories: COURSE_EVENT_TYPES.map((type) => ({
+      label: EVENT_TYPE_LABEL[type],
+      href: `/academia?tipo=${type}`,
+    })),
   },
 ]
 

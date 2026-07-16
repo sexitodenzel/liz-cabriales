@@ -104,7 +104,7 @@ function ShippingStep(p: ShippingProps) {
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false)
   // Returns input class — red only when field has error AND user hasn't touched it yet
   const inp = (field?: string) =>
-    `w-full border px-3 py-2.5 text-[13px] text-[#1a1a1a] outline-none transition-colors placeholder:text-neutral-400 focus:border-[#c9a84c] ${
+    `w-full border px-3 py-2.5 text-[13px] text-[#1a1a1a] outline-none transition-colors placeholder:text-neutral-400 focus:border-[#c6a75e] ${
       field && p.fieldErrors[field] ? "border-red-300 bg-red-50" : "border-neutral-200 bg-white"
     }`
 
@@ -184,7 +184,7 @@ function ShippingStep(p: ShippingProps) {
         ) : isLocalDelivery ? (
           <p className="text-[12px] font-medium text-[#1a1a1a]">Pagas al repartidor</p>
         ) : shippingIsFree ? (
-          <p className="text-[12px] font-semibold text-[#c9a84c]">Gratis</p>
+          <p className="text-[12px] font-semibold text-[#c6a75e]">Gratis</p>
         ) : (
           <p className="text-[12px] text-neutral-500">Por cotizar</p>
         )}
@@ -193,7 +193,7 @@ function ShippingStep(p: ShippingProps) {
         <p className="text-[14px] font-semibold text-[#1a1a1a]">
           {shippingPending ? "Pagas hoy" : "Total"}
         </p>
-        <p className="text-[14px] font-semibold tabular-nums text-[#c9a84c]">{formatMXN(p.orderTotal)}</p>
+        <p className="text-[14px] font-semibold tabular-nums text-[#c6a75e]">{formatMXN(p.orderTotal)}</p>
       </div>
       {shippingPending && (
         <p className="mt-2 text-[11px] leading-[1.5] text-neutral-500">
@@ -238,7 +238,7 @@ function ShippingStep(p: ShippingProps) {
           ) : isLocalDelivery ? (
             <p className="font-medium text-[#1a1a1a]">Pagas al repartidor</p>
           ) : shippingIsFree ? (
-            <p className="font-medium text-[#c9a84c]">Gratis</p>
+            <p className="font-medium text-[#c6a75e]">Gratis</p>
           ) : (
             <p className="text-neutral-500">Por cotizar</p>
           )}
@@ -304,7 +304,7 @@ function ShippingStep(p: ShippingProps) {
               <button
                 type="button"
                 onClick={p.onCancelPendingOrder}
-                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
               >
                 Cancelar y volver
               </button>
@@ -336,7 +336,7 @@ function ShippingStep(p: ShippingProps) {
               <button
                 type="button"
                 onClick={p.onCancelPendingOrder}
-                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 text-[11px] uppercase tracking-[0.1em] text-[#1a1a1a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
               >
                 Cancelar y editar pedido
               </button>
@@ -466,7 +466,7 @@ function ShippingStep(p: ShippingProps) {
                       <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3.5">
                         <div className="flex items-start justify-between gap-3">
                           <p className="text-[13px] font-semibold text-[#1a1a1a]">{PICKUP_LOCATION_NAME}</p>
-                          <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[#c9a84c]">
+                          <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[#c6a75e]">
                             Gratis
                           </p>
                         </div>
@@ -700,7 +700,7 @@ function ShippingStep(p: ShippingProps) {
             {/* Factura */}
             <div className="border-b border-neutral-200 px-0 py-4 lg:px-0">
               <p className="mb-3 text-[10px] uppercase tracking-[0.15em] text-neutral-500">Facturación</p>
-              <label className="flex cursor-pointer items-start gap-3 border border-neutral-200 p-3.5 transition-colors has-[:checked]:border-[#c9a84c] has-[:checked]:bg-neutral-50">
+              <label className="flex cursor-pointer items-start gap-3 border border-neutral-200 p-3.5 transition-colors has-[:checked]:border-[#c6a75e] has-[:checked]:bg-neutral-50">
                 <input
                   type="checkbox"
                   checked={p.requiresInvoice}
@@ -708,7 +708,7 @@ function ShippingStep(p: ShippingProps) {
                     p.setRequiresInvoice(e.target.checked)
                     if (!e.target.checked) { p.setRfc(""); p.setRazonSocial(""); p.setInvoiceEmail(""); p.setConstanciaFile(null) }
                   }}
-                  className="mt-0.5 h-4 w-4 accent-[#c9a84c]"
+                  className="mt-0.5 h-4 w-4 accent-[#c6a75e]"
                 />
                 <span>
                   <span className="block text-[13px] font-semibold text-[#1a1a1a]">Requiero factura (CFDI)</span>
@@ -741,7 +741,7 @@ function ShippingStep(p: ShippingProps) {
                         <button type="button" onClick={() => p.setConstanciaFile(null)} className="ml-2 shrink-0 text-[11px] text-neutral-400 hover:text-[#1a1a1a]">Quitar</button>
                       </div>
                     ) : (
-                      <label className="flex w-full cursor-pointer items-center justify-center border border-dashed border-neutral-300 bg-neutral-50 py-3 text-[12px] text-neutral-500 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]">
+                      <label className="flex w-full cursor-pointer items-center justify-center border border-dashed border-neutral-300 bg-neutral-50 py-3 text-[12px] text-neutral-500 transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]">
                         Seleccionar archivo
                         <input type="file" accept=".pdf,image/*" className="hidden" onChange={(e) => p.setConstanciaFile(e.target.files?.[0] ?? null)} />
                       </label>

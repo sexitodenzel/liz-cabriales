@@ -51,7 +51,7 @@ export default async function OrdenPage({ params, searchParams }: Props) {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/tienda"
-              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c6a75e] hover:text-[#0a0a0a]"
             >
               Ir a la tienda
             </Link>
@@ -209,7 +209,7 @@ export default async function OrdenPage({ params, searchParams }: Props) {
             {order.shipping_payment_url && (
               <a
                 href={order.shipping_payment_url}
-                className="mt-4 inline-flex items-center justify-center rounded-full bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#b8962f]"
+                className="mt-4 inline-flex items-center justify-center rounded-full bg-[#c6a75e] px-6 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#b8962f]"
               >
                 Pagar envío con MercadoPago
               </a>

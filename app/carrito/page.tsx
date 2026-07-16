@@ -171,7 +171,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex shrink-0 flex-col items-end justify-between self-start">
-                    <p className="text-[13px] font-semibold tabular-nums text-[#c9a84c]">
+                    <p className="text-[13px] font-semibold tabular-nums text-[#c6a75e]">
                       {formatMXN(item.price * item.quantity)}
                     </p>
                     <button
@@ -194,7 +194,7 @@ export default function CartPage() {
 
             <div className="flex items-center justify-between">
               <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal:</p>
-              <p className="text-[14px] font-semibold tabular-nums text-[#c9a84c]">
+              <p className="text-[14px] font-semibold tabular-nums text-[#c6a75e]">
                 <SlidingNumber value={subtotal} format={formatMXN} />
               </p>
             </div>
@@ -215,7 +215,7 @@ export default function CartPage() {
               </Link>
               <Link
                 href="/tienda"
-                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 bg-white text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]"
+                className="inline-flex h-9 w-full items-center justify-center rounded-full border border-neutral-300 bg-white text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
               >
                 Continuar explorando
               </Link>

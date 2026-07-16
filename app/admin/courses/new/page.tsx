@@ -19,6 +19,7 @@ const EMPTY_VALUES: CourseFormInitialValues = {
   price: "",
   capacity: "",
   level: "beginner",
+  event_type: "curso",
   start_date: "",
   end_date: "",
   start_time: "",

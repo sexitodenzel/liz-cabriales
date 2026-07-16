@@ -25,6 +25,7 @@ type CategoryItem = {
 export type StoreFilterPanelConfig = {
   categories: CategoryItem[]
   brands: string[]
+  brandLogosByName?: Record<string, string | null>
   abrasivityLevels: readonly AbrasivityLevel[]
   categoryCounts: Record<string, number>
   brandCounts: Record<string, number>
@@ -113,11 +114,13 @@ function OptionRow({
   selected,
   onClick,
   count,
+  leading,
 }: {
   label: string
   selected: boolean
   onClick: () => void
   count?: number
+  leading?: ReactNode
 }) {
   return (
     <button
@@ -146,6 +149,7 @@ function OptionRow({
           <polyline points="2.5,6.5 5,9 9.5,3.5" />
         </svg>
       </span>
+      {leading}
       <span className={`flex-1 ${selected ? "font-semibold" : "font-normal"}`}>
         {label}
         {count !== undefined && (
@@ -153,6 +157,36 @@ function OptionRow({
         )}
       </span>
     </button>
+  )
+}
+
+function BrandLogoMark({
+  name,
+  logoUrl,
+}: {
+  name: string
+  logoUrl?: string | null
+}) {
+  return (
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt=""
+          aria-hidden
+          className="h-full w-full object-contain p-0.5"
+          loading="lazy"
+        />
+      ) : (
+        <span
+          aria-hidden
+          className="text-[11px] font-semibold uppercase text-neutral-400"
+        >
+          {name.charAt(0)}
+        </span>
+      )}
+    </span>
   )
 }
 
@@ -320,6 +354,12 @@ export default function StoreFilterPanel({
                       label={brand}
                       selected={filters.selectedBrands.includes(brand)}
                       count={filters.brandCounts[brand] ?? 0}
+                      leading={
+                        <BrandLogoMark
+                          name={brand}
+                          logoUrl={filters.brandLogosByName?.[brand] ?? null}
+                        />
+                      }
                       onClick={() => toggleBrand(brand)}
                     />
                   ))
@@ -500,7 +540,7 @@ export default function StoreFilterPanel({
                   value={filters.search}
                   onChange={(event) => filters.onSearchChange(event.target.value)}
                   placeholder="Buscar producto..."
-                  className="w-full rounded-full border border-neutral-200 px-4 py-2.5 text-sm text-neutral-800 outline-none focus:border-[#C9A84C]"
+                  className="w-full rounded-full border border-neutral-200 px-4 py-2.5 text-sm text-neutral-800 outline-none focus:border-[#c6a75e]"
                 />
               </AccordionSection>
             </>

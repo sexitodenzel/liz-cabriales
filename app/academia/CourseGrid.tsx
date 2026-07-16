@@ -1,21 +1,31 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Image from "next/image"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import Link from "next/link"
-import { LayoutGrid, List, SlidersHorizontal } from "lucide-react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { ArrowUpRight, CalendarDays, LayoutGrid, List, SlidersHorizontal } from "lucide-react"
 import Breadcrumb, { type BreadcrumbItem } from "@/components/shared/Breadcrumb"
 import ImageLightbox from "@/app/components/shared/ImageLightbox"
 import CourseFilterPanel from "./CourseFilterPanel"
+import CourseCalendar, {
+  CalendarMonthControls,
+  initialMonthCursor,
+  shiftMonthCursor,
+  todayMonthCursor,
+  type MonthCursor,
+} from "./CourseCalendar"
+import { COURSE_EVENT_TYPES, EVENT_TYPE_LABEL, normalizeEventType } from "./event-types"
 import { useCourseViewMode, type CourseViewMode } from "./useCourseViewMode"
 import {
   storeGoldHoverGlow,
+  storeIconButtonClassName,
   storeToolbarIconClassName,
-  storeToolbarTriggerClassName,
 } from "@/app/tienda/components/store-button-styles"
+import { EASE_OUT } from "@/lib/ease"
 import type { CourseWithStats, InstructorRow } from "@/lib/supabase/courses"
-import type { CourseLevel } from "@/types"
+import type { CourseEventType, CourseLevel } from "@/types"
 
 type Props = {
   courses: CourseWithStats[]
@@ -34,6 +44,14 @@ const LEVEL_LABEL: Record<CourseLevel, string> = {
   intermediate: "Intermedio",
   advanced: "Avanzado",
   open: "Abierto",
+}
+
+// Slug de la URL (?nivel=) → etiqueta usada por el estado de filtro.
+const NIVEL_SLUG_TO_LABEL: Record<string, string> = {
+  principiante: "Principiante",
+  intermedio: "Intermedio",
+  avanzado: "Avanzado",
+  abierto: "Abierto",
 }
 
 const MONTHS_SHORT = [
@@ -85,8 +103,8 @@ function PeopleAvatars({
   const fs = variant === "list" ? "text-[9px]" : "text-[8px]"
   const fallbackCls =
     variant === "list"
-      ? "bg-[#c9a84c]/80 text-white"
-      : "bg-[#c9a84c]/25 text-[#8a6d26]"
+      ? "bg-[#c6a75e]/80 text-white"
+      : "bg-[#c6a75e]/25 text-[#8a6d26]"
   const MAX = 4
   const shown = people.slice(0, MAX)
   const extra = people.length - shown.length
@@ -152,7 +170,7 @@ function isCoursePast(dateStr: string): boolean {
 // Icons
 function PinIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a84c"
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c6a75e"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
       <path d="M12 22s7-7.5 7-13a7 7 0 1 0-14 0c0 5.5 7 13 7 13Z" />
       <circle cx="12" cy="9" r="2.5" />
@@ -228,8 +246,8 @@ function CourseCard({
 
   // Nodo de precio/estado compartido entre grid y lista.
   const metaNode = past ? (
-    <span className="ml-auto text-[12.5px] text-[#6b6b6b] transition-colors group-hover:text-[#8a6d26]">
-      Ver detalle
+    <span aria-label="Ver detalle" className={`ml-auto ${storeIconButtonClassName}`}>
+      <ArrowUpRight className="h-[18px] w-[18px]" strokeWidth={1.75} />
     </span>
   ) : isFull && course.allow_online_registration ? (
     <span className="ml-auto text-[12px] font-semibold text-red-600">Lleno</span>
@@ -238,68 +256,121 @@ function CourseCard({
       {formatPrice(course.price)}
     </span>
   ) : (
-    <span className="ml-auto text-[12.5px] text-[#6b6b6b] transition-colors group-hover:text-[#8a6d26]">
-      Ver detalle
+    <span aria-label="Ver detalle" className={`ml-auto ${storeIconButtonClassName}`}>
+      <ArrowUpRight className="h-[18px] w-[18px]" strokeWidth={1.75} />
     </span>
   )
 
-  // ── Variante LISTA (fila horizontal, como /tienda) ──────────────────────
+  // Chips dorados: tipo especial + diploma + highlights (grid y lista).
+  const eventType = normalizeEventType(course.event_type)
+  const chipsNode =
+    eventType !== "curso" ||
+    course.diploma_included ||
+    (course.highlights && course.highlights.length > 0) ? (
+      <div className="flex flex-wrap gap-1.5">
+        {eventType !== "curso" && (
+          <span className="rounded-full border border-[#dcc98a] bg-[#f3ead0] px-2.5 py-[3px] text-[10.5px] font-semibold tracking-[0.02em] text-[#7a5f21]">
+            {EVENT_TYPE_LABEL[eventType]}
+          </span>
+        )}
+        {course.diploma_included && (
+          <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-2.5 py-[3px] text-[10.5px] font-medium tracking-[0.03em] text-[#c6a75e]">
+            Diploma incluido
+          </span>
+        )}
+        {course.highlights?.slice(0, 3).map((chip) => (
+          <span
+            key={chip}
+            className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-2.5 py-[3px] text-[10.5px] font-medium tracking-[0.03em] text-[#c6a75e]"
+          >
+            {chip}
+          </span>
+        ))}
+      </div>
+    ) : null
+
+  // ── Variante LISTA (fila editorial, sin cards) ─────────────────────────
   if (layout === "list") {
     const cover = slideImages[0]
     return (
-      <Link
-        href={`/academia/${course.id}`}
-        className="group flex cursor-pointer gap-4 overflow-hidden rounded-xl border border-[#f0f0f0] bg-white p-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-all duration-200 hover:-translate-y-[2px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] sm:gap-5 sm:p-4"
-      >
-        <div className="relative aspect-[4/3] w-32 shrink-0 overflow-hidden rounded-lg bg-[#eee] sm:w-44 md:w-52">
-          {cover ? (
-            <SmoothImage
-              src={cover}
-              alt={course.title}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-              sizes="(max-width: 640px) 128px, (max-width: 1024px) 176px, 208px"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-wider text-[#9a9a9a]">
-              Sin imagen
+      <>
+        <Link
+          href={`/academia/${course.id}`}
+          className="group flex cursor-pointer gap-4 py-5 sm:gap-6 sm:py-6"
+        >
+          <div className="relative aspect-[3/4] w-32 shrink-0 overflow-hidden rounded-xl bg-[#eee] sm:w-40 md:w-48">
+            {cover ? (
+              <SmoothImage
+                src={cover}
+                alt={course.title}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                sizes="(max-width: 640px) 128px, (max-width: 1024px) 160px, 192px"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-wider text-[#9a9a9a]">
+                Sin imagen
+              </div>
+            )}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/45" />
+            <span className="pointer-events-none absolute left-2 top-2 z-20 rounded-full border border-white/10 bg-[#141414]/60 px-2.5 py-[3px] text-[9px] font-semibold uppercase tracking-[0.14em] text-[#e2c06f] backdrop-blur-md [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
+              {LEVEL_LABEL[course.level]}
+            </span>
+            <div className="pointer-events-none absolute bottom-2 left-2 z-20 flex items-baseline gap-1 text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
+              <span
+                className="text-[18px] font-semibold leading-none"
+                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+              >
+                {day}
+              </span>
+              <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#e2c06f]">
+                {month}
+              </span>
             </div>
-          )}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/45" />
-          <span className="absolute left-2 top-2 rounded-full border border-white/10 bg-[#141414]/60 px-2.5 py-[3px] text-[9px] font-semibold uppercase tracking-[0.14em] text-[#e2c06f] backdrop-blur-md [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
-            {LEVEL_LABEL[course.level]}
-          </span>
-          <div className="absolute bottom-2 left-2 flex items-baseline gap-1 text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
-            <span
-              className="text-[18px] font-semibold leading-none"
-              style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-            >
-              {day}
-            </span>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#e2c06f]">
-              {month}
-            </span>
+            {/* Zoom: abre lightbox sin navegar al curso (igual que cuadrícula). */}
+            {slideImages.length > 0 && (
+              <button
+                type="button"
+                onClick={openLightbox}
+                aria-label="Ampliar imagen"
+                className="absolute inset-0 z-10 cursor-zoom-in"
+              />
+            )}
           </div>
-        </div>
 
-        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 py-1">
-          <PeopleAvatars people={coursePeople(course)} variant="list" />
-          <h2
-            className="line-clamp-2 text-[17px] font-medium leading-snug text-[#1a1a1a] sm:text-[19px]"
-            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-          >
-            {course.title}
-          </h2>
-          <p className="line-clamp-2 text-[13px] leading-relaxed text-[#6b6b6b]">
-            {cardDescription(course)}
-          </p>
-          <div className="mt-1 flex items-center gap-1.5 text-[12.5px] text-[#3a3a3a]">
-            <PinIcon />
-            <span className="truncate">{course.location}</span>
-            {metaNode}
+          <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-0.5 sm:py-1">
+            <div className="flex flex-col gap-2">
+              <h2
+                className="line-clamp-2 text-[17px] font-medium leading-snug text-[#1a1a1a] transition-colors group-hover:text-[#8a6d26] sm:text-[19px]"
+                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+              >
+                {course.title}
+              </h2>
+              <p className="line-clamp-3 max-w-xl text-[13px] leading-relaxed text-[#6b6b6b]">
+                {cardDescription(course)}
+              </p>
+              {chipsNode}
+            </div>
+            <div className="flex flex-col gap-2">
+              <PeopleAvatars people={coursePeople(course)} variant="list" />
+              <div className="flex items-center gap-1.5 text-[12.5px] text-[#3a3a3a]">
+                <PinIcon />
+                <span className="truncate">{course.location}</span>
+                {metaNode}
+              </div>
+            </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+
+        {lightboxOpen && slideImages.length > 0 && (
+          <ImageLightbox
+            images={slideImages}
+            startIndex={0}
+            alt={course.title}
+            onClose={() => setLightboxOpen(false)}
+          />
+        )}
+      </>
     )
   }
 
@@ -420,25 +491,8 @@ function CourseCard({
           {cardDescription(course)}
         </p>
 
-        {/* Chips dorados: diploma + highlights */}
-        {(course.diploma_included ||
-          (course.highlights && course.highlights.length > 0)) && (
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {course.diploma_included && (
-              <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-2.5 py-[3px] text-[10.5px] font-medium tracking-[0.03em] text-[#a8893a]">
-                Diploma incluido
-              </span>
-            )}
-            {course.highlights?.slice(0, 3).map((chip) => (
-              <span
-                key={chip}
-                className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-2.5 py-[3px] text-[10.5px] font-medium tracking-[0.03em] text-[#a8893a]"
-              >
-                {chip}
-              </span>
-            ))}
-          </div>
-        )}
+        {/* Chips dorados: tipo especial + diploma + highlights */}
+        {chipsNode && <div className="mt-2.5">{chipsNode}</div>}
 
         {/* Grupo de personas del curso, anclado al fondo para que las bolitas
             queden a la misma altura entre tarjetas aunque cambien los chips. */}
@@ -473,14 +527,37 @@ function CourseCard({
 
 export default function CourseGrid({ courses, breadcrumbItems }: Props) {
   const { viewMode, setViewMode } = useCourseViewMode()
+  const reducedMotion = useReducedMotion()
   const [query, setQuery] = useState("")
   const [level, setLevel] = useState("Todos")
+  const [type, setType] = useState("Todos")
   const [sort, setSort] = useState<SortOption>("Eventos programados")
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [page, setPage] = useState(1)
+  const [calCursor, setCalCursor] = useState<MonthCursor>(() =>
+    initialMonthCursor(courses)
+  )
+
+  // Filtros iniciales desde la URL (enlaces del megamenú de academia). Se leen
+  // tras montar para no romper la hidratación (mismo patrón que useCourseViewMode).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const vista = params.get("vista")
+    if (vista === "calendario") setViewMode("calendar")
+    else if (vista === "lista") setViewMode("list")
+    if (params.get("sort") === "pasados") setSort("Eventos pasados")
+    const nivel = params.get("nivel")
+    if (nivel && NIVEL_SLUG_TO_LABEL[nivel]) setLevel(NIVEL_SLUG_TO_LABEL[nivel])
+    const tipo = params.get("tipo")
+    if (tipo && COURSE_EVENT_TYPES.includes(tipo as CourseEventType)) {
+      setType(EVENT_TYPE_LABEL[tipo as CourseEventType])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const activeFilterCount =
     (level !== "Todos" ? 1 : 0) +
+    (type !== "Todos" ? 1 : 0) +
     (query.trim() ? 1 : 0) +
     (sort !== "Eventos programados" ? 1 : 0)
 
@@ -501,10 +578,26 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
       .map((l) => ({ name: l, n: counts[l] ?? 0 }))
   }, [scopeList])
 
+  const typePills = useMemo(() => {
+    const counts: Record<string, number> = { Todos: scopeList.length }
+    scopeList.forEach((c) => {
+      const lbl = EVENT_TYPE_LABEL[normalizeEventType(c.event_type)]
+      counts[lbl] = (counts[lbl] ?? 0) + 1
+    })
+    return ["Todos", ...COURSE_EVENT_TYPES.map((t) => EVENT_TYPE_LABEL[t])]
+      .filter((l) => l === "Todos" || (counts[l] ?? 0) > 0)
+      .map((l) => ({ name: l, n: counts[l] ?? 0 }))
+  }, [scopeList])
+
   const filtered = useMemo(() => {
     let list = scopeList.slice()
     if (level !== "Todos") {
       list = list.filter((c) => LEVEL_LABEL[c.level] === level)
+    }
+    if (type !== "Todos") {
+      list = list.filter(
+        (c) => EVENT_TYPE_LABEL[normalizeEventType(c.event_type)] === type
+      )
     }
     if (query.trim()) {
       const q = query.toLowerCase()
@@ -519,7 +612,7 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
       list.sort((a, b) => b.start_date.localeCompare(a.start_date))
     }
     return list
-  }, [scopeList, level, query, sort])
+  }, [scopeList, level, type, query, sort])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
   const pageList = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
@@ -527,12 +620,14 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
   function handleSort(s: SortOption) {
     setSort(s)
     setLevel("Todos")
+    setType("Todos")
     setPage(1)
   }
 
   function clearAll() {
     setQuery("")
     setLevel("Todos")
+    setType("Todos")
     setSort("Eventos programados")
     setPage(1)
   }
@@ -540,25 +635,18 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
   return (
     <>
       {/* ── Hero (flujo normal, scrollea) ──────────────────────────── */}
-      <div className="mb-3 flex items-baseline gap-4">
+      <header className="mb-6">
         <h1
-          className="text-[34px] font-medium leading-none tracking-tight text-[#c9a84c] sm:text-[44px]"
+          className="text-[clamp(32px,4.5vw,48px)] font-medium leading-[1.05] tracking-[-0.02em] text-[#111]"
           style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
         >
           Eventos
         </h1>
-        <span
-          className="text-lg italic text-[#6b6b6b]"
-          style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-        >
-          temporada 2026
-        </span>
-      </div>
-
-      <p className="mb-5 max-w-[560px] text-sm text-[#6b6b6b]">
-        <span className="mr-3 inline-block h-px w-7 bg-[#c9a84c] align-middle" />
-        Talleres presenciales con educadoras certificadas. Cupos reducidos, práctica con modelo y diploma al egreso.
-      </p>
+        <div className="mt-4 h-0.5 w-14 rounded-sm bg-[#c6a75e]" aria-hidden />
+        <p className="mt-4 max-w-[42ch] text-[14px] leading-relaxed text-[#6b6b6b]">
+          Talleres presenciales, cupos reducidos y práctica con modelo.
+        </p>
+      </header>
 
       {/* ── Barra de control sticky (receta de /tienda) ────────────
           top ESTÁTICO + .navbar-follow-collapse: la barra viaja en la MISMA
@@ -577,15 +665,58 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
         className="navbar-follow-collapse sticky top-[var(--navbar-actual-h)] z-20 -mx-[var(--site-px)] mb-6 bg-ivory px-[var(--site-px)] py-2"
       >
         {/* Todo a la altura del breadcrumb: breadcrumb + toggle vista + Filtrar */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           {breadcrumbItems && breadcrumbItems.length > 0 ? (
-            <Breadcrumb items={breadcrumbItems} className="mb-0" />
+            <Breadcrumb items={breadcrumbItems} className="mb-0 min-w-0" />
           ) : (
             <span />
           )}
 
-          <div className="flex shrink-0 items-center gap-3">
-            {/* Toggle grid / lista */}
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            {/* Filtrar → Drawer. Mismo pill que Hoy/flechas; ícono a la derecha. */}
+            <AnimatePresence initial={false}>
+              {viewMode !== "calendar" && (
+                <motion.div
+                  key="filtrar"
+                  initial={reducedMotion ? false : { opacity: 0, x: 6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={reducedMotion ? undefined : { opacity: 0, x: 6 }}
+                  transition={{ duration: 0.22, ease: EASE_OUT }}
+                  className="inline-flex items-center rounded-full border border-neutral-200 p-0.5"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setFilterDrawerOpen(true)}
+                    aria-haspopup="dialog"
+                    aria-expanded={filterDrawerOpen}
+                    className={`${storeToolbarIconClassName} h-7 w-auto gap-1.5 px-2.5 text-[11px] font-medium tracking-wide ${
+                      activeFilterCount > 0 || filterDrawerOpen
+                        ? "bg-[#0a0a0a] text-white"
+                        : `text-neutral-500 ${storeGoldHoverGlow}`
+                    }`}
+                  >
+                    Filtrar
+                    <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                    {activeFilterCount > 0 && (
+                      <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-[#0a0a0a]">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Hoy/←/→ en sticky (móvil y desktop) junto al toggle de vista */}
+            {viewMode === "calendar" && (
+              <CalendarMonthControls
+                onToday={() => setCalCursor(todayMonthCursor())}
+                onPrev={() => setCalCursor((c) => shiftMonthCursor(c, -1))}
+                onNext={() => setCalCursor((c) => shiftMonthCursor(c, 1))}
+              />
+            )}
+
+            {/* Toggle grid / lista / calendario */}
             <div
               className="inline-flex items-center rounded-full border border-neutral-200 p-0.5"
               role="group"
@@ -617,28 +748,20 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
               >
                 <List className="h-3.5 w-3.5" />
               </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("calendar")}
+                aria-label="Vista de calendario"
+                aria-pressed={viewMode === "calendar"}
+                className={`${storeToolbarIconClassName} ${
+                  viewMode === "calendar"
+                    ? "bg-[#0a0a0a] text-white"
+                    : `text-neutral-500 ${storeGoldHoverGlow}`
+                }`}
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+              </button>
             </div>
-
-            {/* Filtrar → Drawer (orden, búsqueda y nivel) */}
-            <button
-              type="button"
-              onClick={() => setFilterDrawerOpen(true)}
-              aria-haspopup="dialog"
-              aria-expanded={filterDrawerOpen}
-              className={`${storeToolbarTriggerClassName} rounded-full border bg-white px-4 py-2 ${
-                activeFilterCount > 0 || filterDrawerOpen
-                  ? "border-[#C9A84C] text-[#8a6d26]"
-                  : `border-neutral-200 text-[#0a0a0a] hover:border-[#C9A84C] ${storeGoldHoverGlow}`
-              }`}
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2} />
-              Filtrar
-              {activeFilterCount > 0 && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C9A84C] px-1 text-[10px] font-bold text-[#0a0a0a]">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -653,60 +776,90 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
         levelPills={levelPills}
         level={level}
         onLevelChange={(name) => { setLevel(name); setPage(1) }}
+        typePills={typePills}
+        type={type}
+        onTypeChange={(name) => { setType(name); setPage(1) }}
         search={query}
         onSearchChange={(value) => { setQuery(value); setPage(1) }}
         onClearAll={clearAll}
       />
 
-      {/* ── Grid / Lista ───────────────────────────────────────────── */}
-      {pageList.length === 0 ? (
-        <div className="flex h-40 items-center justify-center text-[#6b6b6b]">
-          No encontramos eventos para esa búsqueda.
-        </div>
-      ) : viewMode === "list" ? (
-        <div className="flex flex-col gap-4">
-          {pageList.map((course) => (
-            <CourseCard key={course.id} course={course} layout="list" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {pageList.map((course) => (
-            <CourseCard key={course.id} course={course} layout="grid" />
-          ))}
-        </div>
-      )}
+      {/* ── Calendario / Grid / Lista (crossfade como lc-page-enter) ─ */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={viewMode}
+          initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reducedMotion ? undefined : { opacity: 0, y: -6 }}
+          transition={{ duration: 0.32, ease: EASE_OUT }}
+        >
+          {viewMode === "calendar" ? (
+            <CourseCalendar
+              courses={courses}
+              cursor={calCursor}
+              onCursorChange={setCalCursor}
+            />
+          ) : (
+            <>
+              {pageList.length === 0 ? (
+                <div className="flex h-40 items-center justify-center text-[#6b6b6b]">
+                  No encontramos eventos para esa búsqueda.
+                </div>
+              ) : viewMode === "list" ? (
+                <div className="flex flex-col divide-y divide-[#e8e4dc]">
+                  {pageList.map((course) => (
+                    <CourseCard key={course.id} course={course} layout="list" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {pageList.map((course) => (
+                    <CourseCard key={course.id} course={course} layout="grid" />
+                  ))}
+                </div>
+              )}
 
-      {/* ── Pagination ─────────────────────────────────────────────── */}
-      <div className="mt-12 flex justify-center gap-1.5">
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-          className="grid h-9 min-w-[36px] place-items-center rounded-full border border-[#ececec] bg-white px-2.5 text-[13px] text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#8a6d26] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          ‹
-        </button>
-        {Array.from({ length: totalPages }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setPage(i + 1)}
-            className={`grid h-9 min-w-[36px] place-items-center rounded-full border px-2.5 text-[13px] transition-all ${
-              page === i + 1
-                ? "border-[#c9a84c] bg-[#c9a84c] text-[#0a0a0a]"
-                : "border-[#ececec] bg-white text-[#3a3a3a] hover:border-[#c9a84c] hover:text-[#8a6d26]"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-          className="grid h-9 min-w-[36px] place-items-center rounded-full border border-[#ececec] bg-white px-2.5 text-[13px] text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#8a6d26] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          ›
-        </button>
-      </div>
+              {/* ── Pagination ─────────────────────────────────────────── */}
+              <div className="mt-12 flex items-center justify-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                  aria-label="Página anterior"
+                  className={`${storeToolbarIconClassName} text-neutral-500 disabled:cursor-not-allowed disabled:opacity-40 ${storeGoldHoverGlow}`}
+                >
+                  <ChevSmLeft />
+                </button>
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    type="button"
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    aria-label={`Página ${i + 1}`}
+                    aria-current={page === i + 1 ? "page" : undefined}
+                    className={`${storeToolbarIconClassName} min-w-[28px] text-[13px] ${
+                      page === i + 1
+                        ? "bg-[#0a0a0a] text-white"
+                        : `text-neutral-500 ${storeGoldHoverGlow}`
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={page === totalPages}
+                  onClick={() => setPage(page + 1)}
+                  aria-label="Página siguiente"
+                  className={`${storeToolbarIconClassName} text-neutral-500 disabled:cursor-not-allowed disabled:opacity-40 ${storeGoldHoverGlow}`}
+                >
+                  <ChevSmRight />
+                </button>
+              </div>
+            </>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </>
   )
 }

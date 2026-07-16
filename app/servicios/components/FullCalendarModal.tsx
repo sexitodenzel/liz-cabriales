@@ -252,7 +252,7 @@ export default function FullCalendarModal({
               }
             >
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c9a84c]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c6a75e]">
                   Calendario
                 </p>
                 <p className="font-[family-name:var(--font-playfair),serif] text-2xl text-[#111]">
@@ -264,7 +264,7 @@ export default function FullCalendarModal({
                   type="button"
                   onClick={goPrevMonth}
                   disabled={!canGoPrevMonth}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition-colors hover:border-[#c9a84c] hover:bg-[#fdfaf3] hover:text-[#111] disabled:cursor-not-allowed disabled:opacity-35"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition-colors hover:border-[#c6a75e] hover:bg-[#fdfaf3] hover:text-[#111] disabled:cursor-not-allowed disabled:opacity-35"
                   aria-label="Mes anterior"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -273,7 +273,7 @@ export default function FullCalendarModal({
                   type="button"
                   onClick={goNextMonth}
                   disabled={!canGoNextMonth}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition-colors hover:border-[#c9a84c] hover:bg-[#fdfaf3] hover:text-[#111] disabled:cursor-not-allowed disabled:opacity-35"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition-colors hover:border-[#c6a75e] hover:bg-[#fdfaf3] hover:text-[#111] disabled:cursor-not-allowed disabled:opacity-35"
                   aria-label="Mes siguiente"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -335,9 +335,9 @@ export default function FullCalendarModal({
                           : isSelected
                             ? "bg-[#111] font-semibold text-white shadow-md"
                             : isToday
-                              ? "border border-[#c9a84c] font-medium text-[#c9a84c] hover:bg-[#fdfaf3]"
+                              ? "border border-[#c6a75e] font-medium text-[#c6a75e] hover:bg-[#fdfaf3]"
                               : cell.inMonth
-                                ? "text-[#111] hover:bg-[#c9a84c]/15 hover:text-[#111]"
+                                ? "text-[#111] hover:bg-[#c6a75e]/15 hover:text-[#111]"
                                 : "text-neutral-300 hover:bg-neutral-50"
                       }`}
                       initial={
@@ -394,7 +394,7 @@ export default function FullCalendarModal({
                 <button
                   type="button"
                   onClick={() => handleSelect(todayStr)}
-                  className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#c9a84c] transition-colors hover:text-[#a8893a]"
+                  className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:text-[#c6a75e]"
                 >
                   Ir a hoy
                 </button>

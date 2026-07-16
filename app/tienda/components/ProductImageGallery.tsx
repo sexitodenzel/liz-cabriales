@@ -91,7 +91,7 @@ export default function ProductImageGallery({ images, alt }: Props) {
       <div className="space-y-3">
         {/* Main image container */}
         <div
-          className="group relative aspect-[4/5] w-full cursor-zoom-in select-none overflow-hidden rounded-xl bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+          className="group relative aspect-[4/5] w-full cursor-zoom-in select-none overflow-hidden rounded-xl bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a75e]"
           role="button"
           tabIndex={0}
           aria-label="Ver imagen completa"
@@ -222,7 +222,7 @@ export default function ProductImageGallery({ images, alt }: Props) {
                 }
                 className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
                   index === activeIndex
-                    ? "border-[#c9a84c]"
+                    ? "border-[#c6a75e]"
                     : "border-transparent hover:border-neutral-300"
                 }`}
                 aria-label={`Ver imagen ${index + 1}`}

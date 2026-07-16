@@ -4,24 +4,18 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Search, ShoppingBag, X, Heart, User } from "lucide-react"
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef } from "react"
 import { getSearchDestination } from "@/lib/search-navigation"
 import { tiendaCategories, cursosCategories } from "./menuData"
 import CartMenu from "./dropdowns/CartMenu"
-import DesktopMegaMenu from "./dropdowns/DesktopMegaMenu"
+import AcademiaMegaMenu from "./dropdowns/AcademiaMegaMenu"
+import TiendaMegaMenu from "./dropdowns/TiendaMegaMenu"
 import ServiciosMegaMenu from "./dropdowns/ServiciosMegaMenu"
 import BrandsMegaMenu from "./dropdowns/BrandsMegaMenu"
 import LizMegaMenu from "./dropdowns/LizMegaMenu"
 import MobileDrawer from "./MobileDrawer"
 import MobileSearchOverlay from "./MobileSearchOverlay"
-import {
-  withRecentProductsCategory,
-  type RecentProductMenuItem,
-} from "@/lib/navbar/recent-products"
-import {
-  withBrandsCategory,
-  type BrandMenuItem,
-} from "@/lib/navbar/brands-category"
+import { type BrandMenuItem } from "@/lib/navbar/brands-category"
 import {
   type SearchSuggestionBrand,
   type SearchSuggestionCategory,
@@ -53,17 +47,16 @@ function readNavbarBottom(): number {
 }
 
 const DESKTOP_NAV_ITEMS = [
-  { label: "Tienda" as const, href: "/tienda" },
-  { label: "Academia" as const, href: "/academia" },
-  { label: "Servicios" as const, href: "/servicios" },
-  { label: "Marcas" as const, href: "/tienda" },
-  { label: "Conócenos" as const, href: "/sobre-liz" },
+  { label: "Tienda" as const, href: "/tienda", menu: "Tienda" as const },
+  { label: "Servicios" as const, href: "/servicios", menu: "Servicios" as const },
+  { label: "Academia" as const, href: "/academia", menu: "Academia" as const },
+  { label: "Marcas" as const, href: "/tienda", menu: "Marcas" as const },
+  { label: "Conócenos" as const, href: "/sobre-liz", menu: "Conócenos" as const },
 ] as const
 
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
-  const [recentProducts, setRecentProducts] = useState<RecentProductMenuItem[]>([])
   const [brandMenuItems, setBrandMenuItems] = useState<BrandMenuItem[]>([])
   const [suggestionProducts, setSuggestionProducts] = useState<SearchSuggestionProduct[]>([])
   const [suggestionBrands, setSuggestionBrands] = useState<SearchSuggestionBrand[]>([])
@@ -388,45 +381,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => window.clearTimeout(timer)
   }, [mobileSearchOpen, isCompactDesktop])
 
-  // Mobile drawer: incluye marcas como categoría dentro de Tienda (comportamiento existente).
-  const tiendaMenuCategories = useMemo(
-    () =>
-      withBrandsCategory(
-        withRecentProductsCategory(tiendaCategories, recentProducts),
-        brandMenuItems
-      ),
-    [recentProducts, brandMenuItems]
-  )
-
-  // Desktop megamenu de Tienda: sin marcas (marcas tiene su propio megamenu).
-  const tiendaDesktopCategories = useMemo(
-    () => withRecentProductsCategory(tiendaCategories, recentProducts),
-    [recentProducts]
-  )
-
-  useEffect(() => {
-    let isMounted = true
-    async function loadRecentProducts() {
-      try {
-        const response = await fetch("/api/products/recent")
-        if (!response.ok) return
-        const json = (await response.json()) as {
-          data?: Array<{ name: string; slug: string }>
-        }
-        if (!isMounted || !Array.isArray(json.data)) return
-        setRecentProducts(
-          json.data.map((product) => ({
-            name: product.name,
-            slug: product.slug,
-          }))
-        )
-      } catch {
-        /* ignore */
-      }
-    }
-    void loadRecentProducts()
-    return () => { isMounted = false }
-  }, [])
+  // Tienda no incluye marcas ni en desktop ni en el drawer móvil: Marcas es su
+  // propia entrada de primer nivel (con su megamenú en desktop y su panel con
+  // logos en el drawer).
+  const tiendaDesktopCategories = tiendaCategories
 
   useEffect(() => {
     let isMounted = true
@@ -526,7 +484,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   }
 
   const iconBtnBase =
-    "inline-flex h-10 w-10 shrink-0 cursor-pointer items-center text-black transition-all duration-200 ease-out hover:scale-110 hover:text-[#c9a84c] active:scale-90 active:duration-75 sm:h-11 sm:w-11"
+    "inline-flex h-10 w-10 shrink-0 cursor-pointer items-center text-black transition-all duration-200 ease-out hover:scale-110 hover:text-[#c6a75e] active:scale-90 active:duration-75 sm:h-11 sm:w-11"
   const showCompactToolbar = isCompactDesktop
 
   return (
@@ -610,7 +568,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
               <span className="relative shrink-0">
                 <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.75} />
                 {cartBadgeCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a84c] px-1 text-[10px] text-white">
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c6a75e] px-1 text-[10px] text-white">
                     <SlidingNumber value={cartBadgeCount} />
                   </span>
                 )}
@@ -691,7 +649,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                         }
                       }}
                       tabIndex={mobileSearchOpen || searchQuery.length > 0 ? 0 : -1}
-                      className={`inline-flex shrink-0 items-center justify-center text-neutral-900 transition-opacity duration-150 ease-out hover:text-[#c9a84c] ${
+                      className={`inline-flex shrink-0 items-center justify-center text-neutral-900 transition-opacity duration-150 ease-out hover:text-[#c6a75e] ${
                         mobileSearchOpen || searchQuery.length > 0
                           ? "opacity-100 pointer-events-auto"
                           : "opacity-0 pointer-events-none"
@@ -769,7 +727,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                     <span className="relative shrink-0">
                       <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
                       {cartBadgeCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c9a84c] px-1 text-[10px] text-white">
+                        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c6a75e] px-1 text-[10px] text-white">
                           <SlidingNumber value={cartBadgeCount} />
                         </span>
                       )}
@@ -784,7 +742,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             <nav ref={navRef} className="relative flex items-center justify-center gap-0">
               <span
                 aria-hidden
-                className={`pointer-events-none absolute -bottom-1 h-[1.5px] bg-[#c9a84c] duration-150 ease-out ${
+                className={`pointer-events-none absolute -bottom-1 h-[1.5px] bg-[#c6a75e] duration-150 ease-out ${
                   navBarAnimate === "grow"
                     ? "transition-[width]"
                     : "transition-[left,width]"
@@ -794,7 +752,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   width: navBarStyle.visible ? navBarStyle.width : 0,
                 }}
               />
-              {DESKTOP_NAV_ITEMS.map(({ label, href }) => (
+              {DESKTOP_NAV_ITEMS.map(({ label, href, menu }) => (
                 <Link
                   key={label}
                   ref={(el) => {
@@ -802,10 +760,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                     else navLinkRefs.current.delete(label)
                   }}
                   href={href}
-                  onMouseEnter={() => handleNavMouseEnter(label)}
-                  onFocus={() => handleNavMouseEnter(label)}
+                  onMouseEnter={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
+                  onFocus={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
                   className={`relative inline-flex items-center justify-center px-2 whitespace-nowrap text-center text-[13px] font-medium uppercase tracking-[0.14em] transition-colors lg:px-3 lg:text-[14px] lg:tracking-[0.16em] ${
-                    activeMenu === label ? "text-[#c9a84c]" : "text-[#1a1a1a] hover:text-[#c9a84c]"
+                    activeMenu === label ? "text-[#c6a75e]" : "text-[#1a1a1a] hover:text-[#c6a75e]"
                   }`}
                 >
                   {label}
@@ -818,7 +776,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         <CartMenu />
 
         {/* ===== DESKTOP MEGAMENUS ===== */}
-        <DesktopMegaMenu
+        <TiendaMegaMenu
           isOpen={activeMenu === "Tienda"}
           categories={tiendaDesktopCategories}
           sectionHref="/tienda"
@@ -826,11 +784,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
         />
-        <DesktopMegaMenu
+        <AcademiaMegaMenu
           isOpen={activeMenu === "Academia"}
           categories={cursosCategories}
-          sectionHref="/academia"
-          sectionLabel="cursos"
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
         />
@@ -856,7 +812,8 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         isLoggedIn={isLoggedIn}
-        tiendaCategories={tiendaMenuCategories}
+        tiendaCategories={tiendaDesktopCategories}
+        brands={brandMenuItems}
       />
 
       <MobileSearchOverlay

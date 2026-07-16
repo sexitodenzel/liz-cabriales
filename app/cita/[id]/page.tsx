@@ -99,7 +99,7 @@ export default async function CitaPage({ params, searchParams }: Props) {
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/servicios"
-              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c6a75e] hover:text-[#0a0a0a]"
             >
               Agendar una cita
             </Link>
@@ -259,7 +259,7 @@ export default async function CitaPage({ params, searchParams }: Props) {
               )}
               <Link
                 href="/servicios"
-                className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
+                className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
               >
                 Volver a citas
               </Link>

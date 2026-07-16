@@ -107,7 +107,7 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
               <div className="mt-4">
                 <Link
                   href="/carrito"
-                  className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
+                  className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
                 >
                   Volver a la bolsa
                 </Link>
@@ -128,7 +128,7 @@ export default async function OrdenErrorPage({ params, searchParams }: Props) {
                   href="https://wa.me/528332183399"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
+                  className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
                 >
                   Contactar por WhatsApp
                 </a>

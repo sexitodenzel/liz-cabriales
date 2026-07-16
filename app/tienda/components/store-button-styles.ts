@@ -8,7 +8,7 @@ export const storeCardButtonClassName = [
 ].join(" ")
 
 export const storeIconButtonClassName = [
-  "shrink-0 cursor-pointer p-0.5 text-neutral-900 transition-all duration-200 ease-out hover:scale-110 hover:text-[#C9A84C] hover:drop-shadow-[0_0_6px_rgba(201,168,76,0.55)] active:scale-90 active:duration-75",
+  "shrink-0 cursor-pointer p-0.5 text-neutral-900 transition-all duration-200 ease-out hover:scale-110 hover:text-[#c6a75e] hover:drop-shadow-[0_0_6px_rgba(201,168,76,0.55)] active:scale-90 active:duration-75",
   "disabled:cursor-not-allowed disabled:text-neutral-300 disabled:hover:scale-100 disabled:hover:text-neutral-300 disabled:hover:drop-shadow-none disabled:active:scale-100",
 ].join(" ")
 
@@ -51,7 +51,7 @@ export const storeHeroAddToCartClassName = [
 // Default "iluminar dorado" hover effect for interactive elements in the store
 // (color shift + soft gold drop-shadow glow). Pair with click feedback below.
 export const storeGoldHoverGlow =
-  "hover:text-[#C9A84C] hover:drop-shadow-[0_0_6px_rgba(201,168,76,0.55)]"
+  "hover:text-[#c6a75e] hover:drop-shadow-[0_0_6px_rgba(201,168,76,0.55)]"
 
 // Toolbar icon buttons (grid/list switcher, etc.) — click feedback baked in.
 // Consumer adds its own active-state colors; pair inactive state with storeGoldHoverGlow.

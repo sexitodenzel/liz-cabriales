@@ -262,7 +262,7 @@ ${escapeHtml(data.shippingAddress)}${
           <tr>
             <td style="padding:24px 0 0;text-align:center;">
               <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://lizcabriales.com"}/perfil/pedidos"
-                style="display:inline-block;padding:12px 26px;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#0a0a0a;background-color:#C9A84C;text-decoration:none;border-radius:999px;">
+                style="display:inline-block;padding:12px 26px;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#0a0a0a;background-color:#c6a75e;text-decoration:none;border-radius:999px;">
                 Ver mis pedidos
               </a>
             </td>
@@ -272,7 +272,7 @@ ${escapeHtml(data.shippingAddress)}${
           <tr>
             <td style="padding:20px 0 0;text-align:center;font-size:13px;color:#5a5a5a;line-height:1.6;">
               ¿Dudas? Escríbenos por WhatsApp al
-              <a href="https://wa.me/528332183399" style="color:#C9A84C;font-weight:600;text-decoration:none;">
+              <a href="https://wa.me/528332183399" style="color:#c6a75e;font-weight:600;text-decoration:none;">
                 833 218 3399
               </a>.
             </td>

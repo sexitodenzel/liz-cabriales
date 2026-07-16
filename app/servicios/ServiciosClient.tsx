@@ -58,9 +58,9 @@ const DEFAULT_FILTERS: ServiceFilterRow[] = [
 ]
 
 const SELECTED_CARD =
-  "border-2 border-[#c9a84c] bg-white shadow-[0_4px_12px_rgba(201,168,76,0.12)] ring-1 ring-[#c9a84c]/20"
+  "border-2 border-[#c6a75e] bg-white shadow-[0_4px_12px_rgba(201,168,76,0.12)] ring-1 ring-[#c6a75e]/20"
 const DEFAULT_CARD =
-  "border border-neutral-200/80 bg-white hover:border-[#c9a84c]/40"
+  "border border-neutral-200/80 bg-white hover:border-[#c6a75e]/40"
 
 function formatPrice(v: number): string {
   return new Intl.NumberFormat("es-MX", {
@@ -295,8 +295,8 @@ function SlotGrid({
             onClick={() => onSelect(slot)}
             className={`rounded-lg border py-3 text-[13px] font-medium transition-all duration-200 ${
               active
-                ? "border-[#c9a84c] bg-[#c9a84c] text-[#111] shadow-sm"
-                : "border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
+                ? "border-[#c6a75e] bg-[#c6a75e] text-[#111] shadow-sm"
+                : "border-neutral-200/80 bg-white text-[#111] hover:border-[#c6a75e]/50"
             }`}
           >
             {formatTimeLabel(slot.start_time)}
@@ -879,7 +879,7 @@ export default function ServiciosClient({
               onClick={handleBack}
               disabled={step === 1}
               aria-label="Volver"
-              className="flex h-9 w-9 items-center justify-center text-[#c9a84c] transition-opacity hover:opacity-70 disabled:opacity-30"
+              className="flex h-9 w-9 items-center justify-center text-[#c6a75e] transition-opacity hover:opacity-70 disabled:opacity-30"
             >
               <IconArrowLeft />
             </button>
@@ -887,7 +887,7 @@ export default function ServiciosClient({
             <Link
               href="/"
               aria-label="Cerrar"
-              className="flex h-9 w-9 items-center justify-center text-[#c9a84c] transition-colors hover:text-red-600 active:text-red-600"
+              className="flex h-9 w-9 items-center justify-center text-[#c6a75e] transition-colors hover:text-red-600 active:text-red-600"
             >
               <IconX />
             </Link>
@@ -895,7 +895,7 @@ export default function ServiciosClient({
 
           <div className="pb-3">
             <div className="mb-2 flex items-end justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c]">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e]">
                 Paso {String(step).padStart(2, "0")} / 04
               </span>
               <span className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
@@ -904,7 +904,7 @@ export default function ServiciosClient({
             </div>
             <div className="h-[2px] w-full overflow-hidden bg-neutral-200/60">
               <div
-                className="h-full bg-[#c9a84c] transition-all duration-700 ease-out"
+                className="h-full bg-[#c6a75e] transition-all duration-700 ease-out"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -938,7 +938,7 @@ export default function ServiciosClient({
                       className={`shrink-0 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all ${
                         activeCategory === "all"
                           ? "bg-[#111] text-white"
-                          : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
+                          : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c6a75e]/50"
                       }`}
                     >
                       Todos
@@ -951,7 +951,7 @@ export default function ServiciosClient({
                         className={`shrink-0 rounded-full px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all ${
                           activeCategory === cat.slug
                             ? "bg-[#111] text-white"
-                            : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
+                            : "border border-neutral-200/80 bg-white text-[#111] hover:border-[#c6a75e]/50"
                         }`}
                       >
                         {cat.name}
@@ -976,7 +976,7 @@ export default function ServiciosClient({
                         key={s.id}
                         className={`group w-full rounded-lg p-6 text-left transition-all duration-200 md:p-8 ${
                           missingOption
-                            ? "border-2 border-[#c9a84c]/70 bg-white ring-1 ring-[#c9a84c]/20"
+                            ? "border-2 border-[#c6a75e]/70 bg-white ring-1 ring-[#c6a75e]/20"
                             : selected
                               ? SELECTED_CARD
                               : DEFAULT_CARD
@@ -1007,7 +1007,7 @@ export default function ServiciosClient({
                             <p className="mt-1 text-[11px] uppercase tracking-[0.1em] text-neutral-500">
                               {formatDuration(s.duration_min)}
                               {hasSubOptions && (
-                                <span className="ml-2 normal-case tracking-normal text-[#c9a84c]">
+                                <span className="ml-2 normal-case tracking-normal text-[#c6a75e]">
                                   · Toca para ver opciones
                                 </span>
                               )}
@@ -1032,7 +1032,7 @@ export default function ServiciosClient({
                                         descExpanded ? null : s.id
                                       )
                                     }
-                                    className="mt-1 text-xs font-medium text-[#111] transition-colors hover:text-[#c9a84c]"
+                                    className="mt-1 text-xs font-medium text-[#111] transition-colors hover:text-[#c6a75e]"
                                   >
                                     {descExpanded ? "Ver menos" : "Ver más"}
                                   </button>
@@ -1050,7 +1050,7 @@ export default function ServiciosClient({
                             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all ${
                               selected
                                 ? "border-[#111] bg-[#111] text-white"
-                                : "border-neutral-300 text-neutral-500 group-hover:border-[#c9a84c]"
+                                : "border-neutral-300 text-neutral-500 group-hover:border-[#c6a75e]"
                             }`}
                             aria-label={
                               selected
@@ -1114,7 +1114,7 @@ export default function ServiciosClient({
                           : DEFAULT_CARD
                       }`}
                     >
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[#c9a84c]">
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[#c6a75e]">
                         <IconShuffle />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -1130,8 +1130,8 @@ export default function ServiciosClient({
                         onClick={() => setSelectedProfessionalId("any")}
                         className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
                           selectedProfessionalId === "any"
-                            ? "border-[#c9a84c] bg-[#c9a84c] text-[#111]"
-                            : "border-neutral-300 text-neutral-600 hover:border-[#c9a84c]"
+                            ? "border-[#c6a75e] bg-[#c6a75e] text-[#111]"
+                            : "border-neutral-300 text-neutral-600 hover:border-[#c6a75e]"
                         }`}
                       >
                         {selectedProfessionalId === "any"
@@ -1185,8 +1185,8 @@ export default function ServiciosClient({
                           onClick={() => setSelectedProfessionalId(p.id)}
                           className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
                             selected
-                              ? "border-[#c9a84c] bg-[#c9a84c] text-[#111]"
-                              : "border-neutral-300 text-neutral-600 hover:border-[#c9a84c]"
+                              ? "border-[#c6a75e] bg-[#c6a75e] text-[#111]"
+                              : "border-neutral-300 text-neutral-600 hover:border-[#c6a75e]"
                           }`}
                         >
                           {selected ? "Seleccionado" : "Seleccionar"}
@@ -1225,7 +1225,7 @@ export default function ServiciosClient({
                           className={`flex h-20 w-16 shrink-0 flex-col items-center justify-center rounded-xl border transition-all duration-200 ${
                             active
                               ? "border-[#111] bg-[#111] text-white shadow-md"
-                              : "border-neutral-200/80 bg-white text-[#111] hover:border-[#c9a84c]/50"
+                              : "border-neutral-200/80 bg-white text-[#111] hover:border-[#c6a75e]/50"
                           }`}
                         >
                           <span
@@ -1250,7 +1250,7 @@ export default function ServiciosClient({
                   <button
                     type="button"
                     onClick={() => setFullCalendarOpen(true)}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#111] transition-all hover:border-[#c9a84c] hover:bg-[#fdfaf3] hover:text-[#c9a84c]"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#111] transition-all hover:border-[#c6a75e] hover:bg-[#fdfaf3] hover:text-[#c6a75e]"
                   >
                     <IconCalendar />
                     Ver calendario completo
@@ -1346,7 +1346,7 @@ export default function ServiciosClient({
                             <p key={s.id} className="font-medium text-[#111]">
                               {s.name}
                               {opts.length > 0 && (
-                                <span className="ml-1 text-sm font-normal text-[#c9a84c]">
+                                <span className="ml-1 text-sm font-normal text-[#c6a75e]">
                                   · {opts.map((o) => o.label).join(" · ")}
                                 </span>
                               )}
@@ -1362,7 +1362,7 @@ export default function ServiciosClient({
                       <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
                         Total
                       </p>
-                      <p className="font-[family-name:var(--font-playfair),serif] text-2xl text-[#c9a84c]">
+                      <p className="font-[family-name:var(--font-playfair),serif] text-2xl text-[#c6a75e]">
                         {formatPrice(totalPrice)}
                       </p>
                     </div>
@@ -1385,7 +1385,7 @@ export default function ServiciosClient({
                     </h3>
                     <div className="rounded-lg border border-neutral-200/60 bg-white p-6 md:p-8">
                       <div className="flex items-start gap-4">
-                        <span className="text-[#c9a84c]">ℹ</span>
+                        <span className="text-[#c6a75e]">ℹ</span>
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-[#111]">
                             Antes de confirmar tu cita
@@ -1397,7 +1397,7 @@ export default function ServiciosClient({
                           <ul className="mt-4 space-y-4 text-sm leading-relaxed text-neutral-600">
                             <li className="flex gap-3">
                               <span
-                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a84c]"
+                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c6a75e]"
                                 aria-hidden
                               />
                               <span>
@@ -1410,7 +1410,7 @@ export default function ServiciosClient({
                             </li>
                             <li className="flex gap-3">
                               <span
-                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a84c]"
+                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c6a75e]"
                                 aria-hidden
                               />
                               <span>
@@ -1427,7 +1427,7 @@ export default function ServiciosClient({
                             </li>
                             <li className="flex gap-3">
                               <span
-                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a84c]"
+                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c6a75e]"
                                 aria-hidden
                               />
                               <span>
@@ -1441,7 +1441,7 @@ export default function ServiciosClient({
                             </li>
                             <li className="flex gap-3">
                               <span
-                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a84c]"
+                                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c6a75e]"
                                 aria-hidden
                               />
                               <span>
@@ -1487,7 +1487,7 @@ export default function ServiciosClient({
                           if (phoneError) setPhoneError(null)
                         }}
                         placeholder="10 dígitos"
-                        className={`w-full max-w-sm border-0 border-b bg-transparent py-3 text-sm text-[#111] outline-none placeholder:text-neutral-400 focus:border-[#c9a84c] ${
+                        className={`w-full max-w-sm border-0 border-b bg-transparent py-3 text-sm text-[#111] outline-none placeholder:text-neutral-400 focus:border-[#c6a75e] ${
                           phoneError
                             ? "border-red-400"
                             : "border-neutral-200"
@@ -1519,7 +1519,7 @@ export default function ServiciosClient({
                           onChange={(e) => setNotes(e.target.value)}
                           placeholder="Alergias, preferencias o solicitudes especiales…"
                           rows={3}
-                          className="w-full resize-none border-0 border-b border-neutral-200 bg-transparent py-3 text-sm text-[#111] outline-none placeholder:text-neutral-400 focus:border-[#c9a84c]"
+                          className="w-full resize-none border-0 border-b border-neutral-200 bg-transparent py-3 text-sm text-[#111] outline-none placeholder:text-neutral-400 focus:border-[#c6a75e]"
                         />
                       ) : (
                         <div className="flex items-center justify-between gap-4">

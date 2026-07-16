@@ -15,6 +15,7 @@ import {
 import RegisterModal from "@/components/courses/RegisterModal"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import RichText from "@/components/shared/RichText"
+import ImageLightbox from "@/app/components/shared/ImageLightbox"
 import CourseGallery from "./CourseGallery"
 
 type Props = {
@@ -105,7 +106,7 @@ function GoogleCalendarLogo() {
 }
 
 const shareIconClass =
-  "grid h-9 w-9 place-items-center rounded-full border border-[#ececec] bg-white text-[#6b6b6b] transition-all hover:border-[#c9a84c] hover:text-[#a8893a]"
+  "grid h-9 w-9 place-items-center rounded-full border border-[#ececec] bg-white text-[#6b6b6b] transition-all hover:border-[#c6a75e] hover:text-[#c6a75e]"
 
 function FacebookGlyph() {
   return (
@@ -205,7 +206,7 @@ function ShareButtons({ shareText }: { shareText: string }) {
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex w-full justify-between">
       <button type="button" title="Compartir en Facebook" aria-label="Compartir en Facebook"
         onClick={() => shareTo("facebook")} className={shareIconClass}>
         <FacebookGlyph />
@@ -225,7 +226,7 @@ function ShareButtons({ shareText }: { shareText: string }) {
       <button type="button" title={copied ? "¡Enlace copiado!" : "Copiar enlace"}
         aria-label={copied ? "Enlace copiado" : "Copiar enlace"}
         onClick={copyLink}
-        className={`${shareIconClass} ${copied ? "border-[#c9a84c] text-[#a8893a]" : ""}`}>
+        className={`${shareIconClass} ${copied ? "border-[#c6a75e] text-[#c6a75e]" : ""}`}>
         {copied ? <CheckGlyph /> : <LinkGlyph />}
       </button>
     </div>
@@ -255,6 +256,7 @@ export default function CourseDetail({
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const allImages =
     course.images.length > 0
@@ -329,17 +331,33 @@ export default function CourseDetail({
                   />
                 ))}
 
+                {/* Zona de zoom: bajo flechas/dots (z-20). Abre la imagen completa. */}
+                <button
+                  type="button"
+                  onClick={() => setLightboxOpen(true)}
+                  aria-label="Ampliar imagen"
+                  className="absolute inset-0 z-10 cursor-zoom-in"
+                />
+
                 {allImages.length > 1 && (
                   <>
                     <button
-                      onClick={() => setActiveIdx((idx) => (idx - 1 + allImages.length) % allImages.length)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveIdx((idx) => (idx - 1 + allImages.length) % allImages.length)
+                      }}
                       aria-label="Imagen anterior"
                       className="absolute left-3 top-1/2 z-20 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/60 sm:left-5 sm:h-10 sm:w-10"
                     >
                       <ChevronIcon dir="left" />
                     </button>
                     <button
-                      onClick={() => setActiveIdx((idx) => (idx + 1) % allImages.length)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveIdx((idx) => (idx + 1) % allImages.length)
+                      }}
                       aria-label="Siguiente imagen"
                       className="absolute right-3 top-1/2 z-20 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/60 sm:right-5 sm:h-10 sm:w-10"
                     >
@@ -350,7 +368,11 @@ export default function CourseDetail({
                       {allImages.map((_, i) => (
                         <button
                           key={i}
-                          onClick={() => setActiveIdx(i)}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveIdx(i)
+                          }}
                           aria-label={`Ir a imagen ${i + 1}`}
                           className={`rounded-full transition-all duration-300 ${
                             i === activeIdx
@@ -370,9 +392,9 @@ export default function CourseDetail({
             )}
 
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.55)_0%,rgba(0,0,0,0.25)_50%,rgba(0,0,0,0.55)_100%)]" />
-            <div className="absolute inset-0 z-10 flex flex-col justify-end px-5 py-5 sm:px-14 sm:py-12 text-white">
-              <div className="mb-2 sm:mb-3.5 flex items-center gap-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.22em] sm:tracking-[0.28em] text-[#c9a84c]">
-                <span className="h-px w-5 sm:w-7 bg-[#c9a84c]" />
+            <div className="pointer-events-none absolute inset-0 z-[11] flex flex-col justify-end px-5 py-5 sm:px-14 sm:py-12 text-white">
+              <div className="mb-2 sm:mb-3.5 flex items-center gap-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.22em] sm:tracking-[0.28em] text-[#c6a75e]">
+                <span className="h-px w-5 sm:w-7 bg-[#c6a75e]" />
                 {isPast ? "Edición realizada · " : ""}
                 {LEVEL_LABEL[course.level]} · {dayName} {day} {monthFull} {year}
               </div>
@@ -391,7 +413,7 @@ export default function CourseDetail({
               </p>
               {isPast && course.show_capacity_public && (
                 <div className="mt-4 flex items-center gap-2 text-[13px] text-white/90">
-                  <span className="inline-block h-2 w-2 rounded-full bg-[#c9a84c]" />
+                  <span className="inline-block h-2 w-2 rounded-full bg-[#c6a75e]" />
                   Este evento ya se realizó · {course.public_confirmed_count} asistentes
                 </div>
               )}
@@ -408,7 +430,7 @@ export default function CourseDetail({
                   aria-label={`Ver imagen ${i + 1}`}
                   className={`relative flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                     i === activeIdx
-                      ? "border-[#c9a84c] opacity-100"
+                      ? "border-[#c6a75e] opacity-100"
                       : "border-transparent opacity-60 hover:opacity-90"
                   }`}
                 >
@@ -437,23 +459,23 @@ export default function CourseDetail({
               >
                 {isPast ? "Sobre la edición" : "Sobre el taller"}
               </h2>
-              <div className="mb-5 h-0.5 w-9 bg-[#c9a84c]" />
+              <div className="mb-5 h-0.5 w-9 bg-[#c6a75e]" />
               <RichText text={course.description} />
 
               {/* Chips / distintivos */}
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#a8893a]">
+                <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#c6a75e]">
                   {LEVEL_LABEL[course.level]}
                 </span>
                 {course.diploma_included && (
-                  <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#a8893a]">
+                  <span className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#c6a75e]">
                     Diploma incluido
                   </span>
                 )}
                 {course.highlights.map((chip) => (
                   <span
                     key={chip}
-                    className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#a8893a]"
+                    className="rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-3.5 py-[6px] text-[12px] font-medium tracking-[0.04em] text-[#c6a75e]"
                   >
                     {chip}
                   </span>
@@ -474,7 +496,7 @@ export default function CourseDetail({
               >
                 Respaldado por
               </h2>
-              <div className="mb-5 h-0.5 w-9 bg-[#c9a84c]" />
+              <div className="mb-5 h-0.5 w-9 bg-[#c6a75e]" />
 
               {/* Organiza — Academia Liz Cabriales */}
               <div className="flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5">
@@ -500,7 +522,7 @@ export default function CourseDetail({
                   </span>
                 )}
                 <div>
-                  <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#a8893a]">
+                  <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#c6a75e]">
                     Organiza e imparte
                   </div>
                   <div className="text-[15px] font-semibold text-[#1a1a1a]">
@@ -530,14 +552,14 @@ export default function CourseDetail({
                     </div>
                   ) : (
                     <div
-                      className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] bg-[#f5efdc] text-xl font-semibold italic text-[#a8893a]"
+                      className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] bg-[#f5efdc] text-xl font-semibold italic text-[#c6a75e]"
                       style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
                     >
                       {initials(org.name)}
                     </div>
                   )}
                   <div>
-                    <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#a8893a]">
+                    <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#c6a75e]">
                       {org.title || "Organiza"}
                     </div>
                     <div className="text-[15px] font-semibold text-[#1a1a1a]">
@@ -572,14 +594,14 @@ export default function CourseDetail({
                       </div>
                     ) : (
                       <div
-                        className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] bg-[#f5efdc] text-xl font-semibold italic text-[#a8893a]"
+                        className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full border border-[#e0e0e0] bg-[#f5efdc] text-xl font-semibold italic text-[#c6a75e]"
                         style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
                       >
                         {initials(guest.name)}
                       </div>
                     )}
                     <div>
-                      <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#a8893a]">
+                      <div className="mb-0.5 text-[10px] uppercase tracking-[0.18em] text-[#c6a75e]">
                         {guest.title || "Maestro invitado"}
                       </div>
                       <div className="text-[15px] font-semibold text-[#1a1a1a]">
@@ -638,7 +660,7 @@ export default function CourseDetail({
                     title="Apple Calendar"
                     aria-label="Agregar a Apple Calendar"
                     onClick={() => downloadICS(calendarEvent)}
-                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c9a84c] hover:bg-[#fdfaf0]"
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c6a75e] hover:bg-[#fdfaf0]"
                   >
                     <AppleLogo />
                   </button>
@@ -647,7 +669,7 @@ export default function CourseDetail({
                     title="Outlook"
                     aria-label="Agregar a Outlook"
                     onClick={() => downloadICS(calendarEvent)}
-                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c9a84c] hover:bg-[#fdfaf0]"
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c6a75e] hover:bg-[#fdfaf0]"
                   >
                     <OutlookLogo />
                   </button>
@@ -657,7 +679,7 @@ export default function CourseDetail({
                     rel="noreferrer"
                     title="Google Calendar"
                     aria-label="Agregar a Google Calendar"
-                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c9a84c] hover:bg-[#fdfaf0]"
+                    className="flex flex-1 items-center justify-center rounded-[10px] border border-[#ececec] bg-white p-2.5 transition-all hover:border-[#c6a75e] hover:bg-[#fdfaf0]"
                   >
                     <GoogleCalendarLogo />
                   </a>
@@ -679,14 +701,9 @@ export default function CourseDetail({
 
             {/* Share */}
             <div className="mb-5 border-b border-[#ececec] pb-5">
-              <div className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
+              <div className="mb-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
                 Compartir
               </div>
-              <p className="mb-3 text-[12.5px] leading-relaxed text-[#6b6b6b]">
-                {isPast
-                  ? "Comparte el recuerdo con tu comunidad."
-                  : "Comparte este evento con tu comunidad."}
-              </p>
               <ShareButtons
                 shareText={
                   isPast
@@ -721,7 +738,7 @@ export default function CourseDetail({
                     href={whatsAppHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex w-full flex-col items-center rounded-[10px] bg-[#c9a84c] px-5 py-4 text-center text-[14px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(201,168,76,0.3)] transition-all hover:bg-[#a8893a] hover:shadow-[0_6px_18px_rgba(201,168,76,0.45)] active:translate-y-px"
+                    className="flex w-full flex-col items-center rounded-[10px] bg-[#1a1a1a] px-5 py-4 text-center text-[14px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(0,0,0,0.18)] transition-all hover:bg-black hover:shadow-[0_6px_18px_rgba(0,0,0,0.28)] active:translate-y-px"
                   >
                     {isFull ? "Consultar disponibilidad" : "Pedir información"}
                     <span className="mt-1 block text-[11px] font-normal tracking-[0.14em] opacity-85">
@@ -734,7 +751,7 @@ export default function CourseDetail({
                       {course.public_confirmed_count} de {course.public_display_capacity} lugares · quedan {remaining}
                       <div className="mt-2 h-1 overflow-hidden rounded-full bg-[#eee]">
                         <div
-                          className="h-full rounded-full bg-[#c9a84c] transition-all duration-500"
+                          className="h-full rounded-full bg-[#c6a75e] transition-all duration-500"
                           style={{ width: `${enrolledPct}%` }}
                         />
                       </div>
@@ -749,7 +766,7 @@ export default function CourseDetail({
                 <>
                   <button
                     onClick={() => setModalOpen(true)}
-                    className="flex w-full flex-col items-center rounded-[10px] bg-[#c9a84c] px-5 py-4 text-[14px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(201,168,76,0.3)] transition-all hover:bg-[#a8893a] hover:shadow-[0_6px_18px_rgba(201,168,76,0.45)] active:translate-y-px"
+                    className="flex w-full flex-col items-center rounded-[10px] bg-[#c6a75e] px-5 py-4 text-[14px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(201,168,76,0.3)] transition-all hover:bg-[#c6a75e] hover:shadow-[0_6px_18px_rgba(201,168,76,0.45)] active:translate-y-px"
                   >
                     Registrar
                     {course.show_price_public && (
@@ -765,7 +782,7 @@ export default function CourseDetail({
                       {course.public_confirmed_count} de {course.public_display_capacity} lugares · quedan {remaining}
                       <div className="mt-2 h-1 overflow-hidden rounded-full bg-[#eee]">
                         <div
-                          className="h-full rounded-full bg-[#c9a84c] transition-all duration-500"
+                          className="h-full rounded-full bg-[#c6a75e] transition-all duration-500"
                           style={{ width: `${enrolledPct}%` }}
                         />
                       </div>
@@ -799,6 +816,15 @@ export default function CourseDetail({
           isAuthenticated={isAuthenticated}
           pendingRegistrationId={pendingRegistrationId}
           onClose={() => setModalOpen(false)}
+        />
+      )}
+
+      {lightboxOpen && allImages.length > 0 && (
+        <ImageLightbox
+          images={allImages}
+          startIndex={activeIdx}
+          alt={course.title}
+          onClose={() => setLightboxOpen(false)}
         />
       )}
     </>

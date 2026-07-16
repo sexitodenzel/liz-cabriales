@@ -19,6 +19,7 @@ import {
 import { usePathname } from "next/navigation"
 import { tiendaCategories, cursosCategories } from "./menuData"
 import type { TiendaCategory } from "./menuData"
+import type { BrandMenuItem } from "@/lib/navbar/brands-category"
 import { formatFreeShippingThreshold } from "@/lib/constants/shipping"
 import { Drawer } from "@/app/components/ui/motion/drawer"
 
@@ -29,6 +30,17 @@ type DrawerView =
   | { kind: "section"; section: SectionKey }
   | { kind: "category"; section: SectionKey; categorySlug: string }
   | { kind: "nail-art" }
+  | { kind: "marcas" }
+  | { kind: "conocenos" }
+
+const CONOCENOS_LINKS: Array<{ label: string; href: string }> = [
+  { label: "Su historia",        href: "/sobre-liz#sobre-liz" },
+  { label: "Galería de eventos", href: "/sobre-liz#eventos" },
+  { label: "Blog",               href: "/blog" },
+  { label: "Academia",           href: "/academia" },
+  { label: "Distribuidora",      href: "/tienda" },
+  { label: "Servicios",          href: "/servicios" },
+]
 
 type NailArtTile = {
   id: string
@@ -37,11 +49,37 @@ type NailArtTile = {
   cover_image: string | null
 }
 
+type AcademiaCourse = {
+  id: string
+  title: string
+  cover: string | null
+  start_date: string
+  level: "beginner" | "intermediate" | "advanced" | "open"
+}
+
+const COURSE_LEVEL_LABEL: Record<AcademiaCourse["level"], string> = {
+  beginner: "Principiante",
+  intermediate: "Intermedio",
+  advanced: "Avanzado",
+  open: "Abierto",
+}
+
+const MONTHS_SHORT = [
+  "ENE", "FEB", "MAR", "ABR", "MAY", "JUN",
+  "JUL", "AGO", "SEP", "OCT", "NOV", "DIC",
+]
+
+function parseDateBadge(dateStr: string): { day: number; month: string } {
+  const [, m, d] = dateStr.split("-").map(Number)
+  return { day: d, month: MONTHS_SHORT[m - 1] }
+}
+
 type Props = {
   isOpen: boolean
   onClose: () => void
   isLoggedIn: boolean
   tiendaCategories?: TiendaCategory[]
+  brands?: BrandMenuItem[]
 }
 
 const SECTIONS: Array<{
@@ -51,14 +89,16 @@ const SECTIONS: Array<{
   data: TiendaCategory[]
 }> = [
   { key: "Tienda",    href: "/tienda",    sectionLabel: "toda la tienda", data: tiendaCategories },
-  { key: "Academia",  href: "/academia",  sectionLabel: "cursos",         data: cursosCategories },
   { key: "Servicios", href: "/servicios", sectionLabel: "servicios",      data: [] as TiendaCategory[] },
+  { key: "Academia",  href: "/academia",  sectionLabel: "cursos",         data: cursosCategories },
 ]
 
 const viewKey = (v: DrawerView): string => {
   if (v.kind === "root") return "root"
   if (v.kind === "section") return `section:${v.section}`
   if (v.kind === "category") return `category:${v.section}:${v.categorySlug}`
+  if (v.kind === "conocenos") return "conocenos"
+  if (v.kind === "marcas") return "marcas"
   return "nail-art"
 }
 
@@ -67,12 +107,14 @@ export default function MobileDrawer({
   onClose,
   isLoggedIn,
   tiendaCategories: tiendaMenuCategories = tiendaCategories,
+  brands = [],
 }: Props) {
   const pathname = usePathname()
   const [stack, setStack] = useState<DrawerView[]>([{ kind: "root" }])
   const [activeIndex, setActiveIndex] = useState(0)
   const [pendingIndex, setPendingIndex] = useState<number | null>(null)
   const [nailArtPosts, setNailArtPosts] = useState<NailArtTile[] | null>(null)
+  const [academiaCourses, setAcademiaCourses] = useState<AcademiaCourse[] | null>(null)
   const [serviciosMenuCategories, setServiciosMenuCategories] = useState<TiendaCategory[] | null>(null)
   const [mounted, setMounted] = useState(false)
   const prevPathname = useRef(pathname)
@@ -134,6 +176,12 @@ export default function MobileDrawer({
         .then((json) => setNailArtPosts(Array.isArray(json?.data) ? json.data : []))
         .catch(() => setNailArtPosts([]))
     }
+    if (view.kind === "section" && view.section === "Academia" && academiaCourses === null) {
+      void fetch("/api/navbar/academia-courses")
+        .then((r) => (r.ok ? r.json() : { data: [] }))
+        .then((json) => setAcademiaCourses(Array.isArray(json?.data) ? json.data : []))
+        .catch(() => setAcademiaCourses([]))
+    }
   }
 
   const pop = () => {
@@ -188,6 +236,8 @@ export default function MobileDrawer({
                 <RootPanel
                   onPushSection={(section) => push({ kind: "section", section })}
                   onPushNailArt={() => push({ kind: "nail-art" })}
+                  onPushMarcas={() => push({ kind: "marcas" })}
+                  onPushConocenos={() => push({ kind: "conocenos" })}
                   onClose={onClose}
                   isLoggedIn={isLoggedIn}
                 />
@@ -195,6 +245,7 @@ export default function MobileDrawer({
               {view.kind === "section" && (
                 <SectionPanel
                   section={findSection(view.section)}
+                  academiaCourses={academiaCourses}
                   onBack={pop}
                   onClose={onClose}
                   onPushCategory={(slug) =>
@@ -220,6 +271,16 @@ export default function MobileDrawer({
                   onClose={onClose}
                 />
               )}
+              {view.kind === "marcas" && (
+                <MarcasPanel
+                  brands={brands}
+                  onBack={pop}
+                  onClose={onClose}
+                />
+              )}
+              {view.kind === "conocenos" && (
+                <ConocenosPanel onBack={pop} onClose={onClose} />
+              )}
             </div>
           )
         })}
@@ -228,13 +289,13 @@ export default function MobileDrawer({
       {/* Social row */}
       <div className="shrink-0 flex items-center justify-around border-t border-neutral-200 px-4 py-5 md:px-6 lg:py-6">
         <a href="https://instagram.com/liz_cabriales" target="_blank" rel="noopener noreferrer" aria-label="Instagram" onClick={onClose}>
-          <Instagram className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c9a84c]" />
+          <Instagram className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c6a75e]" />
         </a>
         <a href="https://www.facebook.com/profile.php?id=100008326095757" target="_blank" rel="noopener noreferrer" aria-label="Facebook" onClick={onClose}>
-          <Facebook className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c9a84c]" />
+          <Facebook className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c6a75e]" />
         </a>
         <a href="https://wa.me/528332183399" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" onClick={onClose}>
-          <MessageCircle className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c9a84c]" />
+          <MessageCircle className="h-5 w-5 text-neutral-400 transition-colors hover:text-[#c6a75e]" />
         </a>
       </div>
     </Drawer>
@@ -248,11 +309,13 @@ export default function MobileDrawer({
 type RootPanelProps = {
   onPushSection: (section: SectionKey) => void
   onPushNailArt: () => void
+  onPushMarcas: () => void
+  onPushConocenos: () => void
   onClose: () => void
   isLoggedIn: boolean
 }
 
-function RootPanel({ onPushSection, onPushNailArt, onClose, isLoggedIn }: RootPanelProps) {
+function RootPanel({ onPushSection, onPushNailArt, onPushMarcas, onPushConocenos, onClose, isLoggedIn }: RootPanelProps) {
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       {/* Nav sections */}
@@ -282,16 +345,27 @@ function RootPanel({ onPushSection, onPushNailArt, onClose, isLoggedIn }: RootPa
           <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
         </button>
 
-        <Link
-          href="/sobre-liz"
-          onClick={onClose}
+        <button
+          type="button"
+          onClick={onPushMarcas}
+          className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+        >
+          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
+            Marcas
+          </span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
+        </button>
+
+        <button
+          type="button"
+          onClick={onPushConocenos}
           className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
         >
           <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#a8862f] lg:text-[14px]">
             Conócenos
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-[#a8862f]" />
-        </Link>
+        </button>
       </div>
 
       {/* Utility section */}
@@ -349,14 +423,14 @@ function RootPanel({ onPushSection, onPushNailArt, onClose, isLoggedIn }: RootPa
               <Link
                 href="/terminos-y-condiciones"
                 onClick={onClose}
-                className="shrink-0 transition-colors hover:text-[#c9a84c]"
+                className="shrink-0 transition-colors hover:text-[#c6a75e]"
               >
                 Términos
               </Link>
               <Link
                 href="/aviso-de-privacidad"
                 onClick={onClose}
-                className="shrink-0 text-right transition-colors hover:text-[#c9a84c]"
+                className="shrink-0 text-right transition-colors hover:text-[#c6a75e]"
               >
                 Aviso de privacidad
               </Link>
@@ -370,21 +444,32 @@ function RootPanel({ onPushSection, onPushNailArt, onClose, isLoggedIn }: RootPa
 
 type SectionPanelProps = {
   section: { key: SectionKey; href: string; sectionLabel: string; data: TiendaCategory[] }
+  academiaCourses: AcademiaCourse[] | null
   onBack: () => void
   onClose: () => void
   onPushCategory: (categorySlug: string) => void
 }
 
-function SectionPanel({ section, onBack, onClose, onPushCategory }: SectionPanelProps) {
+function SectionPanel({ section, academiaCourses, onBack, onClose, onPushCategory }: SectionPanelProps) {
+  // Placeholders etiquetados para Servicios: primeros servicios (o categorías)
+  // que llenan el espacio hasta que existan fotos reales.
+  const servicioTiles =
+    section.key === "Servicios"
+      ? (section.data.flatMap((c) => c.subcategories.map((s) => s.label)).length > 0
+          ? section.data.flatMap((c) => c.subcategories.map((s) => s.label))
+          : section.data.map((c) => c.label)
+        ).slice(0, 4)
+      : []
+
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       <PanelHeader title={section.key} onBack={onBack} />
 
-      <div className="flex-1">
+      <div className="flex flex-1 flex-col">
         <Link
           href={section.href}
           onClick={onClose}
-          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c9a84c] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
+          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver {section.sectionLabel}</span>
         </Link>
@@ -418,7 +503,109 @@ function SectionPanel({ section, onBack, onClose, onPushCategory }: SectionPanel
             </button>
           )
         })}
+
+        {/* Espacio vivo: flyers de próximos cursos (Academia) o placeholders de
+            servicios (Servicios), ajustados al ancho del drawer. */}
+        {section.key === "Academia" && (
+          <div className="mt-2 px-3 pb-5 pt-3 md:px-4">
+            <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+              Próximos eventos
+            </p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+              {academiaCourses === null
+                ? Array.from({ length: 2 }).map((_, i) => <MobileTileSkeleton key={i} />)
+                : academiaCourses.map((course) => (
+                    <CourseFlyerTile key={course.id} course={course} onClose={onClose} />
+                  ))}
+            </div>
+          </div>
+        )}
+
+        {section.key === "Servicios" && servicioTiles.length > 0 && (
+          <div className="mt-2 px-3 pb-5 pt-3 md:px-4">
+            <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+              Nuestros servicios
+            </p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+              {servicioTiles.map((label) => (
+                <ServicioPlaceholderTile key={label} label={label} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+    </div>
+  )
+}
+
+function CourseFlyerTile({
+  course,
+  onClose,
+}: {
+  course: AcademiaCourse
+  onClose: () => void
+}) {
+  const { day, month } = parseDateBadge(course.start_date)
+  return (
+    <Link
+      href={`/academia/${course.id}`}
+      onClick={onClose}
+      className="group flex flex-col gap-2"
+    >
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-sm bg-neutral-100">
+        {course.cover ? (
+          <Image
+            src={course.cover}
+            alt={course.title}
+            fill
+            sizes="(max-width: 640px) 40vw, 180px"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+        ) : null}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/45" />
+        <span className="absolute left-1.5 top-1.5 rounded-full bg-[#141414]/55 px-2 py-[3px] text-[8px] font-semibold uppercase tracking-[0.14em] text-[#e2c06f] backdrop-blur-md">
+          {COURSE_LEVEL_LABEL[course.level]}
+        </span>
+        <span className="absolute bottom-1.5 left-1.5 flex items-baseline gap-1 text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
+          <span
+            className="text-[15px] font-semibold leading-none"
+            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+          >
+            {day}
+          </span>
+          <span className="text-[8px] font-semibold uppercase tracking-[0.16em] text-[#e2c06f]">
+            {month}
+          </span>
+        </span>
+      </div>
+      <span className="line-clamp-2 text-[12px] font-medium leading-snug text-[#1a1a1a]">
+        {course.title}
+      </span>
+    </Link>
+  )
+}
+
+function ServicioPlaceholderTile({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="relative flex aspect-[3/4] w-full items-end overflow-hidden rounded-sm bg-neutral-100">
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-100 to-neutral-200" />
+        <span className="absolute right-1.5 top-1.5 rounded-full bg-white/80 px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-[0.1em] text-neutral-600">
+          Próximamente
+        </span>
+        <p className="relative z-10 p-2 text-[11px] font-medium leading-snug text-neutral-600 line-clamp-2">
+          {label}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function MobileTileSkeleton() {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="aspect-[3/4] w-full animate-pulse rounded-sm bg-neutral-100" />
+      <div className="h-3 w-3/4 animate-pulse rounded-sm bg-neutral-100" />
     </div>
   )
 }
@@ -438,7 +625,7 @@ function CategoryPanel({ category, onBack, onClose }: CategoryPanelProps) {
         <Link
           href={category.href}
           onClick={onClose}
-          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c9a84c] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
+          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver todo en {category.label}</span>
         </Link>
@@ -518,7 +705,7 @@ function NailArtPanel({ posts, onBack, onClose }: NailArtPanelProps) {
           className="group flex flex-col gap-2"
         >
           <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-sm bg-[#f1ece4]">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c]">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e]">
               Ver todo
             </span>
           </div>
@@ -536,6 +723,104 @@ function TileSkeleton() {
     <div className="flex flex-col gap-2">
       <div className="aspect-[3/4] w-full animate-pulse rounded-sm bg-neutral-100" />
       <div className="h-3 w-3/4 animate-pulse rounded-sm bg-neutral-100" />
+    </div>
+  )
+}
+
+type MarcasPanelProps = {
+  brands: BrandMenuItem[]
+  onBack: () => void
+  onClose: () => void
+}
+
+function MarcasPanel({ brands, onBack, onClose }: MarcasPanelProps) {
+  const sortedBrands = [...brands].sort((a, b) =>
+    a.name.localeCompare(b.name, "es", { sensitivity: "base" })
+  )
+
+  return (
+    <div className="flex min-h-full min-w-0 flex-col">
+      <PanelHeader title="Marcas" onBack={onBack} />
+
+      <div className="flex-1">
+        <Link
+          href="/tienda"
+          onClick={onClose}
+          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
+        >
+          <span>Ver toda la tienda</span>
+        </Link>
+
+        {sortedBrands.length === 0 ? (
+          <p className="px-4 py-6 text-[13px] text-neutral-500 md:px-6">
+            Cargando marcas…
+          </p>
+        ) : (
+          <ul className="grid grid-cols-2 gap-x-3 gap-y-1 px-3 pb-6 pt-2 md:px-4">
+            {sortedBrands.map((brand) => (
+              <li key={brand.slug}>
+                <Link
+                  href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
+                  onClick={onClose}
+                  className="group flex items-center gap-2.5 rounded-sm px-1 py-2 text-[13px] text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-[#c6a75e]"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-neutral-200">
+                    {brand.logo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={brand.logo_url}
+                        alt=""
+                        aria-hidden
+                        className="h-full w-full object-contain p-0.5"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden
+                        className="text-[12px] font-semibold uppercase text-neutral-400"
+                      >
+                        {brand.name.charAt(0)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="min-w-0 truncate">{brand.name}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ConocenosPanel({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
+  return (
+    <div className="flex min-h-full min-w-0 flex-col">
+      <PanelHeader title="Conócenos" onBack={onBack} />
+
+      <div className="flex-1">
+        <Link
+          href="/sobre-liz"
+          onClick={onClose}
+          className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
+        >
+          <span>Ver toda la página</span>
+        </Link>
+
+        {CONOCENOS_LINKS.map((link) => (
+          <Link
+            key={link.label}
+            href={link.href}
+            onClick={onClose}
+            className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 transition-colors hover:bg-neutral-50 lg:py-[18px]"
+          >
+            <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-[#1a1a1a] lg:text-[14px]">
+              {link.label}
+            </span>
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }

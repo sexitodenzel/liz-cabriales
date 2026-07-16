@@ -206,7 +206,7 @@ export default function EventsGallery({
             >
               {title}
             </h2>
-            <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c9a84c]" aria-hidden />
+            <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
             {description && (
               <p className="mt-5 max-w-xl text-[15px] leading-[1.6] text-[#6b6b6b]">
                 {description}
@@ -226,8 +226,8 @@ export default function EventsGallery({
                   onClick={() => setYear(y)}
                   className={`rounded-full border px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors ${
                     isActive
-                      ? "border-[#c9a84c] bg-[#c9a84c] text-white"
-                      : "border-[#c9a84c]/40 text-[#a8862f] hover:bg-[#c9a84c]/10"
+                      ? "border-[#c6a75e] bg-[#c6a75e] text-white"
+                      : "border-[#c6a75e]/40 text-[#a8862f] hover:bg-[#c6a75e]/10"
                   }`}
                 >
                   {y === ALL_YEARS ? "Todos" : y}
@@ -252,7 +252,7 @@ export default function EventsGallery({
                 {(item.caption || item.date) && (
                   <div className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 pb-4 pt-10 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                     {item.date && (
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c]">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e]">
                         {item.date}
                       </p>
                     )}
@@ -260,14 +260,14 @@ export default function EventsGallery({
                       <p className="mt-1 text-[13px] leading-snug text-white">{item.caption}</p>
                     )}
                     {item.href && (
-                      <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c9a84c]">
+                      <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c6a75e]">
                         Ver curso →
                       </p>
                     )}
                   </div>
                 )}
 
-                <div className="absolute left-0 top-0 h-0.5 w-0 bg-[#c9a84c] transition-all duration-500 group-hover:w-full" />
+                <div className="absolute left-0 top-0 h-0.5 w-0 bg-[#c6a75e] transition-all duration-500 group-hover:w-full" />
               </>
             )
 
@@ -276,13 +276,13 @@ export default function EventsGallery({
                 {item.href ? (
                   <Link
                     href={item.href}
-                    className="group relative block w-full overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
+                    className="group relative block w-full overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a75e]"
                   >
                     {media}
                   </Link>
                 ) : (
                   <button
-                    className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
+                    className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a75e]"
                     onClick={() =>
                       handleOpen({
                         url: item.url,

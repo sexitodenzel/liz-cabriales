@@ -158,7 +158,7 @@ function SlideContent({
       {shouldShowSlideTitle(slide) && (
         <>
           <h2 className={titleClass}>{slide.cta_subtext}</h2>
-          <div className="mb-3 mt-3 h-0.5 w-12 rounded-sm bg-[#c9a84c]" aria-hidden />
+          <div className="mb-3 mt-3 h-0.5 w-12 rounded-sm bg-[#c6a75e]" aria-hidden />
         </>
       )}
       {shouldShowSlideSubtitle(slide) && (

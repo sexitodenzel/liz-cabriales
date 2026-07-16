@@ -40,7 +40,7 @@ function XIcon() {
 
 function ClockIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c9a84c"
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c6a75e"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
     </svg>
@@ -191,7 +191,7 @@ export default function RegisterModal({
 
             {/* Price badge */}
             {course.show_price_public && (
-              <div className="whitespace-nowrap rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-4 py-[6px] text-[14px] font-semibold tracking-[0.02em] text-[#a8893a]">
+              <div className="whitespace-nowrap rounded-full border border-[#e8dcb0] bg-[#f5efdc] px-4 py-[6px] text-[14px] font-semibold tracking-[0.02em] text-[#c6a75e]">
                 {formatPrice(course.price)}
               </div>
             )}
@@ -201,7 +201,7 @@ export default function RegisterModal({
               <button
                 onClick={() => setQty(Math.max(1, qty - 1))}
                 disabled={qty <= 1}
-                className="flex h-9 w-9 items-center justify-center border-none bg-white text-base text-[#3a3a3a] transition-colors hover:bg-[#f5efdc] hover:text-[#a8893a] disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-9 w-9 items-center justify-center border-none bg-white text-base text-[#3a3a3a] transition-colors hover:bg-[#f5efdc] hover:text-[#c6a75e] disabled:cursor-not-allowed disabled:opacity-30"
               >
                 −
               </button>
@@ -211,7 +211,7 @@ export default function RegisterModal({
               <button
                 onClick={() => setQty(Math.min(maxQty, qty + 1))}
                 disabled={qty >= maxQty}
-                className="flex h-9 w-9 items-center justify-center border-none bg-white text-base text-[#3a3a3a] transition-colors hover:bg-[#f5efdc] hover:text-[#a8893a] disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-9 w-9 items-center justify-center border-none bg-white text-base text-[#3a3a3a] transition-colors hover:bg-[#f5efdc] hover:text-[#c6a75e] disabled:cursor-not-allowed disabled:opacity-30"
               >
                 +
               </button>
@@ -255,14 +255,14 @@ export default function RegisterModal({
           <button
             onClick={handleClose}
             disabled={loading}
-            className="rounded-lg border border-[#ececec] bg-white px-[22px] py-3 text-[13px] font-medium text-[#3a3a3a] transition-all hover:border-[#c9a84c] hover:text-[#a8893a] disabled:opacity-50"
+            className="rounded-lg border border-[#ececec] bg-white px-[22px] py-3 text-[13px] font-medium text-[#3a3a3a] transition-all hover:border-[#c6a75e] hover:text-[#c6a75e] disabled:opacity-50"
           >
             Cerrar
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading || maxQty === 0}
-            className="rounded-lg bg-[#c9a84c] px-[22px] py-3 text-[13px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(201,168,76,0.3)] transition-all hover:bg-[#a8893a] hover:shadow-[0_6px_18px_rgba(201,168,76,0.45)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-[#c6a75e] px-[22px] py-3 text-[13px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(201,168,76,0.3)] transition-all hover:bg-[#c6a75e] hover:shadow-[0_6px_18px_rgba(201,168,76,0.45)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading
               ? "Procesando…"

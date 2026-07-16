@@ -156,8 +156,8 @@ export default function ProductFilterSortBar({
               onClick={openFilterPanel}
               className={`${storeToolbarTriggerClassName} rounded-full border bg-white px-4 py-2 ${
                 activeFilterCount > 0 || filterPanelOpen
-                  ? "border-[#C9A84C] text-[#8a6d26]"
-                  : `border-neutral-200 text-[#0a0a0a] hover:border-[#C9A84C] ${storeGoldHoverGlow}`
+                  ? "border-[#c6a75e] text-[#8a6d26]"
+                  : `border-neutral-200 text-[#0a0a0a] hover:border-[#c6a75e] ${storeGoldHoverGlow}`
               }`}
               aria-expanded={filterPanelOpen}
               aria-haspopup="dialog"
@@ -165,7 +165,7 @@ export default function ProductFilterSortBar({
               <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2} />
               {hasFilterPanel ? "Filtrar" : "Ordenar"}
               {activeFilterCount > 0 && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#C9A84C] px-1 text-[10px] font-bold text-[#0a0a0a]">
+                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c6a75e] px-1 text-[10px] font-bold text-[#0a0a0a]">
                   {activeFilterCount}
                 </span>
               )}

@@ -65,6 +65,7 @@ export default async function EditCoursePage({ params }: Props) {
     price: String(c.price),
     capacity: String(c.capacity),
     level: c.level,
+    event_type: c.event_type,
     start_date: c.start_date,
     end_date: c.end_date ?? "",
     start_time: c.start_time.slice(0, 5),

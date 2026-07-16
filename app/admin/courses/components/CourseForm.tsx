@@ -12,7 +12,8 @@ import CourseGalleryEditor, {
   toLocalGalleryItems,
 } from "./CourseGalleryEditor"
 import type { InstructorRow, CourseImage, CourseGalleryItem } from "@/lib/supabase/courses"
-import type { CourseLevel } from "@/types"
+import type { CourseEventType, CourseLevel } from "@/types"
+import { COURSE_EVENT_TYPES, EVENT_TYPE_LABEL } from "@/app/academia/event-types"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
@@ -26,6 +27,7 @@ export type CourseFormInitialValues = {
   price: string
   capacity: string
   level: CourseLevel
+  event_type: CourseEventType
   start_date: string
   end_date: string
   start_time: string
@@ -62,6 +64,9 @@ const LEVEL_OPTIONS: { value: CourseLevel; label: string }[] = [
   { value: "advanced", label: "Avanzado" },
   { value: "open", label: "Abierto" },
 ]
+
+const EVENT_TYPE_OPTIONS: { value: CourseEventType; label: string }[] =
+  COURSE_EVENT_TYPES.map((value) => ({ value, label: EVENT_TYPE_LABEL[value] }))
 
 const MAX_HIGHLIGHTS = 6
 
@@ -207,6 +212,7 @@ export default function CourseForm({
       price: Number(values.price),
       capacity: Number(values.capacity),
       level: values.level,
+      event_type: values.event_type,
       start_date: values.start_date,
       end_date: values.end_date ? values.end_date : null,
       start_time: values.start_time,
@@ -466,6 +472,28 @@ export default function CourseForm({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Tipo de evento</label>
+            <select
+              value={values.event_type}
+              onChange={(e) =>
+                update("event_type", e.target.value as CourseEventType)
+              }
+              className={inputCls}
+            >
+              {EVENT_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px] text-[#9a9a9a]">
+              Clasifica la clase para el calendario de la academia. “Curso” es lo
+              normal; los demás tipos (taller máster, masterclass, seminario) se
+              resaltan como clases especiales.
+            </p>
           </div>
 
           {/* Maestros adicionales — para cursos con varios ponentes */}

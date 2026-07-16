@@ -11,10 +11,10 @@ import type { OrderStatus } from "@/types"
 import { OrderQuestionTrigger } from "./OrderQuestionModal"
 
 const ticketActionLinkClassName =
-  "cursor-pointer bg-transparent p-0 text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-900 underline underline-offset-[4px] transition-colors hover:text-[#C9A84C] disabled:cursor-not-allowed disabled:opacity-50"
+  "cursor-pointer bg-transparent p-0 text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-900 underline underline-offset-[4px] transition-colors hover:text-[#c6a75e] disabled:cursor-not-allowed disabled:opacity-50"
 
 const ticketActionLinkMutedClassName =
-  "cursor-pointer text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500 underline underline-offset-[4px] transition-colors hover:text-[#C9A84C]"
+  "cursor-pointer text-[11px] font-normal uppercase tracking-[0.16em] text-neutral-500 underline underline-offset-[4px] transition-colors hover:text-[#c6a75e]"
 
 function isSuccessfulOrder(status: OrderStatus): boolean {
   return (

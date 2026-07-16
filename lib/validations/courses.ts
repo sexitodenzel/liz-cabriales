@@ -16,6 +16,14 @@ export const courseLevelSchema = z.enum([
   "open",
 ])
 
+export const courseEventTypeSchema = z.enum([
+  "curso",
+  "taller_master_internacional",
+  "taller_master_nacional",
+  "masterclass",
+  "seminario_tecnico",
+])
+
 export const createCourseSchema = z
   .object({
     title: z.string().trim().min(3, "El título es demasiado corto").max(160),
@@ -40,6 +48,7 @@ export const createCourseSchema = z
     price: z.coerce.number().min(0, "El precio no puede ser negativo"),
     capacity: z.coerce.number().int().min(1, "El cupo debe ser al menos 1"),
     level: courseLevelSchema,
+    event_type: courseEventTypeSchema.optional().default("curso"),
     start_date: dateString,
     end_date: dateString.optional().nullable(),
     start_time: timeString,
@@ -93,6 +102,7 @@ export const updateCourseSchema = z.object({
   price: z.coerce.number().min(0).optional(),
   capacity: z.coerce.number().int().min(1).optional(),
   level: courseLevelSchema.optional(),
+  event_type: courseEventTypeSchema.optional(),
   start_date: dateString.optional(),
   end_date: dateString.optional().nullable(),
   start_time: timeString.optional(),

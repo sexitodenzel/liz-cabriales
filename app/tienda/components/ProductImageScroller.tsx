@@ -103,7 +103,7 @@ export default function ProductImageScroller({ images, alt }: Props) {
                 openLightbox(0)
               }
             }}
-            className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+            className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a75e]"
           >
             <Image
               src={images[0]!}
@@ -136,7 +136,7 @@ export default function ProductImageScroller({ images, alt }: Props) {
                       openLightbox(i)
                     }
                   }}
-                  className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+                  className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a75e]"
                 >
                   <Image
                     src={src}
@@ -193,7 +193,7 @@ export default function ProductImageScroller({ images, alt }: Props) {
                   openLightbox(idx)
                 }
               }}
-              className="group relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a84c]"
+              className="group relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a75e]"
               style={idx === images.length - 1 ? undefined : { marginBottom: "8px" }}
             >
               <Image

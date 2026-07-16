@@ -3,7 +3,7 @@ import Image from "next/image"
 import { Instagram, MessageCircle, Facebook, Mail, MapPin, Clock } from "lucide-react"
 
 const linkClass =
-  "text-neutral-300 transition-colors hover:text-[#c9a84c]"
+  "text-neutral-300 transition-colors hover:text-[#c6a75e]"
 
 export default function Footer({ expanded = false }: { expanded?: boolean }) {
   return (
@@ -47,7 +47,7 @@ export default function Footer({ expanded = false }: { expanded?: boolean }) {
 
           {/* Explorar */}
           <div>
-            <h3 className="text-sm font-semibold text-[#c9a84c]">Explorar</h3>
+            <h3 className="text-sm font-semibold text-[#c6a75e]">Explorar</h3>
             <nav className="mt-4 flex flex-col gap-2 text-sm">
               <Link href="/tienda" className={linkClass}>Tienda</Link>
               <Link href="/academia" className={linkClass}>Academia</Link>
@@ -57,37 +57,37 @@ export default function Footer({ expanded = false }: { expanded?: boolean }) {
 
           {/* Contacto */}
           <div>
-            <h3 className="text-sm font-semibold text-[#c9a84c]">Contacto</h3>
+            <h3 className="text-sm font-semibold text-[#c6a75e]">Contacto</h3>
             <div className="mt-4 flex flex-col gap-2 text-sm">
               <Link
                 href="https://wa.me/528332183399"
                 target="_blank"
-                className="flex items-center gap-2 text-neutral-300 transition-colors hover:text-[#c9a84c]"
+                className="flex items-center gap-2 text-neutral-300 transition-colors hover:text-[#c6a75e]"
               >
-                <MessageCircle className="h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
+                <MessageCircle className="h-3.5 w-3.5 shrink-0 text-[#c6a75e]" />
                 833 218 3399
               </Link>
               <Link
                 href="https://instagram.com/liz_cabriales"
                 target="_blank"
-                className="flex items-center gap-2 text-neutral-300 transition-colors hover:text-[#c9a84c]"
+                className="flex items-center gap-2 text-neutral-300 transition-colors hover:text-[#c6a75e]"
               >
-                <Instagram className="h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
+                <Instagram className="h-3.5 w-3.5 shrink-0 text-[#c6a75e]" />
                 @liz_cabriales
               </Link>
               <Link
                 href="https://www.facebook.com/profile.php?id=100008326095757"
                 target="_blank"
-                className="flex items-center gap-2 text-neutral-300 transition-colors hover:text-[#c9a84c]"
+                className="flex items-center gap-2 text-neutral-300 transition-colors hover:text-[#c6a75e]"
               >
-                <Facebook className="h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
+                <Facebook className="h-3.5 w-3.5 shrink-0 text-[#c6a75e]" />
                 Liz Cabriales
               </Link>
               <Link
                 href="mailto:academializcabriales@gmail.com"
-                className="flex items-center gap-2 text-neutral-300 transition-colors hover:text-[#c9a84c]"
+                className="flex items-center gap-2 text-neutral-300 transition-colors hover:text-[#c6a75e]"
               >
-                <Mail className="h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
+                <Mail className="h-3.5 w-3.5 shrink-0 text-[#c6a75e]" />
                 academializcabriales@gmail.com
               </Link>
             </div>
@@ -95,14 +95,14 @@ export default function Footer({ expanded = false }: { expanded?: boolean }) {
 
           {/* Ubicación y horarios */}
           <div>
-            <h3 className="text-sm font-semibold text-[#c9a84c]">Visítanos</h3>
+            <h3 className="text-sm font-semibold text-[#c6a75e]">Visítanos</h3>
             <div className="mt-4 flex flex-col gap-2 text-sm">
               <div className="flex items-start gap-2 text-neutral-300">
-                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c6a75e]" />
                 <span>Nayarit #204-B, C. Durango Esquina, Unidad Nacional, 89410 Cd Madero, Tamps.</span>
               </div>
               <div className="flex items-start gap-2 text-neutral-300">
-                <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c9a84c]" />
+                <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c6a75e]" />
                 <span>
                   Lunes a Sábado, 10:00 a.m. – 7:00 p.m.
                   <span className="mt-0.5 block">
@@ -116,11 +116,11 @@ export default function Footer({ expanded = false }: { expanded?: boolean }) {
 
         <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-neutral-400">
           <div className="flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-4">
-            <Link href="/aviso-de-privacidad" className="transition-colors hover:text-[#c9a84c]">
+            <Link href="/aviso-de-privacidad" className="transition-colors hover:text-[#c6a75e]">
               Aviso de privacidad
             </Link>
             <span className="hidden text-white/20 sm:inline">·</span>
-            <Link href="/terminos-y-condiciones" className="transition-colors hover:text-[#c9a84c]">
+            <Link href="/terminos-y-condiciones" className="transition-colors hover:text-[#c6a75e]">
               Términos y condiciones
             </Link>
           </div>

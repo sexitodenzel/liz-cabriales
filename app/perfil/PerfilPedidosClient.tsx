@@ -41,10 +41,10 @@ function isSuccessfulOrder(status: OrderStatus): boolean {
 }
 
 const ticketActionLinkClassName =
-  "cursor-pointer bg-transparent p-0 text-[10px] font-normal uppercase tracking-[0.14em] text-neutral-900 underline underline-offset-[3px] transition-colors hover:text-[#C9A84C] disabled:cursor-not-allowed disabled:opacity-50"
+  "cursor-pointer bg-transparent p-0 text-[10px] font-normal uppercase tracking-[0.14em] text-neutral-900 underline underline-offset-[3px] transition-colors hover:text-[#c6a75e] disabled:cursor-not-allowed disabled:opacity-50"
 
 const ticketActionLinkMutedClassName =
-  "cursor-pointer text-[10px] font-normal uppercase tracking-[0.14em] text-neutral-500 underline underline-offset-[3px] transition-colors hover:text-[#C9A84C]"
+  "cursor-pointer text-[10px] font-normal uppercase tracking-[0.14em] text-neutral-500 underline underline-offset-[3px] transition-colors hover:text-[#c6a75e]"
 
 function TicketOrderActions({ order }: { order: OrderForDisplay }) {
   const { addItem, openCart } = useCart()
@@ -195,7 +195,7 @@ function OrderDetail({ order }: { order: OrderForDisplay }) {
           {order.shipping_payment_url && (
             <a
               href={order.shipping_payment_url}
-              className="mt-4 inline-flex items-center justify-center rounded-full bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#b8962f]"
+              className="mt-4 inline-flex items-center justify-center rounded-full bg-[#c6a75e] px-6 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#b8962f]"
             >
               Pagar envio con MercadoPago
             </a>

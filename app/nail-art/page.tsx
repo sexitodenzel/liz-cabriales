@@ -67,7 +67,7 @@ function NailArtCard({ post }: { post: NailArtPost }) {
             {productChips.map((lp) => (
               <span
                 key={lp.id}
-                className="rounded-full border border-[#c9a84c]/40 px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-[#a8862f]"
+                className="rounded-full border border-[#c6a75e]/40 px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-[#a8862f]"
               >
                 {lp.product.name}
               </span>
@@ -103,7 +103,7 @@ export default async function NailArtPage() {
           <h1 className="font-[family-name:var(--font-playfair),serif] text-[clamp(36px,5vw,64px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">
             Nail Art
           </h1>
-          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c9a84c]" aria-hidden />
+          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
         </div>
 
         {posts.length === 0 ? (

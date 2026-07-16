@@ -88,7 +88,7 @@ export default function TicketUpload({ orderId }: Props) {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="w-full rounded-xl border border-dashed border-neutral-300 bg-neutral-50 py-4 text-sm text-neutral-500 transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
+            className="w-full rounded-xl border border-dashed border-neutral-300 bg-neutral-50 py-4 text-sm text-neutral-500 transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
           >
             Seleccionar archivo (JPG, PNG, PDF · máx. 10 MB)
           </button>

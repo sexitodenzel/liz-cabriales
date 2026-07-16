@@ -22,7 +22,7 @@ export default function ProximamentePage() {
       <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
         <Link
           href="/"
-          className="inline-flex items-center justify-center border border-[#c9a84c] px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8862f] transition-colors hover:bg-[#a8862f]/10"
+          className="inline-flex items-center justify-center border border-[#c6a75e] px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8862f] transition-colors hover:bg-[#a8862f]/10"
         >
           Ir al inicio
         </Link>

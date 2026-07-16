@@ -291,7 +291,7 @@ export default function AddToCartButton({
             id={selectId}
             value={selectedVariant?.id ?? ""}
             onChange={(event) => setSelectedId(event.target.value)}
-            className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-800 outline-none transition-colors focus:border-[#C9A84C] focus:ring-1 focus:ring-[#C9A84C]"
+            className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-800 outline-none transition-colors focus:border-[#c6a75e] focus:ring-1 focus:ring-[#c6a75e]"
           >
             {activeVariants.map((variant) => (
               <option key={variant.id} value={variant.id} disabled={variant.stock <= 0}>
@@ -314,7 +314,7 @@ export default function AddToCartButton({
               <span className="text-sm text-neutral-400 line-through">
                 {formatPrice(rawPrice)}
               </span>
-              <span className="bg-[#C9A84C] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+              <span className="bg-[#c6a75e] px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
                 {discountPercent}% OFF
               </span>
             </>

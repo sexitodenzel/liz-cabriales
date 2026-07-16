@@ -1,9 +1,11 @@
 "use client"
 
 import Link from "next/link"
+import { ArrowUpRight } from "lucide-react"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import type { CourseWithStats } from "@/lib/supabase/courses"
 import SectionCarousel from "./SectionCarousel"
+import { storeIconButtonClassName } from "./store-button-styles"
 
 const MONTHS_SHORT = [
   "ENE", "FEB", "MAR", "ABR", "MAY", "JUN",
@@ -51,7 +53,7 @@ export default function CoursesCarousel({ courses }: Props) {
               href={`/academia/${course.id}`}
               className="group flex h-full w-64 flex-none flex-col"
             >
-              <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-100">
+              <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-neutral-100">
                 {course.cover_image ? (
                   <SmoothImage
                     src={course.cover_image}
@@ -65,22 +67,33 @@ export default function CoursesCarousel({ courses }: Props) {
                     LC
                   </div>
                 )}
-                <div className="absolute left-3 top-3 rounded-md border border-white/10 bg-[#141414]/60 px-2 py-1 text-center shadow-[0_2px_8px_rgba(0,0,0,0.25)] backdrop-blur-md">
-                  <p className="text-[9px] font-semibold uppercase tracking-wide text-[#e2c06f] [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
+
+                {/* Chip de nivel (vidrio ahumado, como en /academia) */}
+                <span className="absolute left-3 top-3 z-10 rounded-full bg-[#141414]/55 px-2.5 py-[4px] text-[9px] font-semibold uppercase tracking-[0.16em] text-[#e2c06f] backdrop-blur-md [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
+                  {LEVEL_LABEL[course.level] ?? course.level}
+                </span>
+
+                {/* Badge de fecha con acento dorado */}
+                <div className="absolute right-3 top-3 z-10 flex items-baseline gap-1 rounded-full bg-[#141414]/55 px-2.5 py-[5px] text-white backdrop-blur-md [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
+                  <span
+                    className="text-[14px] font-semibold leading-none"
+                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+                  >
+                    {day}
+                  </span>
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#e2c06f]">
                     {month}
-                  </p>
-                  <p className="text-sm font-semibold leading-none text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">{day}</p>
+                  </span>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 pt-2">
+              <div className="flex flex-1 flex-col gap-2 pt-2">
                 <h3 className="line-clamp-2 min-h-[2lh] text-sm font-semibold leading-snug text-[#0a0a0a]">
                   {course.title}
                 </h3>
-                <div className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
-                  {LEVEL_LABEL[course.level] ?? course.level}
-                </div>
-                <div className="flex items-center gap-1.5">
+
+                {/* Maestro ↔ precio / Ver detalle (misma altura, abajo-derecha) */}
+                <div className="mt-auto flex items-center gap-1.5 pt-1">
                   {instructorPhoto ? (
                     <SmoothImage
                       src={instructorPhoto}
@@ -94,15 +107,15 @@ export default function CoursesCarousel({ courses }: Props) {
                       {initials}
                     </div>
                   )}
-                  <span className="text-[11px] text-neutral-500">{instructorName}</span>
-                </div>
-                <div>
+                  <span className="truncate text-[11px] text-neutral-500">{instructorName}</span>
                   {course.show_price_public ? (
-                    <span className="text-sm font-semibold text-[#C9A84C]">
+                    <span className="ml-auto shrink-0 text-[12px] font-semibold text-[#8a6d26]">
                       {formatPrice(course.price)}
                     </span>
                   ) : (
-                    <span className="text-xs text-neutral-500">Ver detalle</span>
+                    <span aria-label="Ver detalle" className={`ml-auto ${storeIconButtonClassName}`}>
+                      <ArrowUpRight className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                    </span>
                   )}
                 </div>
               </div>

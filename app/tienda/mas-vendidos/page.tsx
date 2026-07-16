@@ -19,7 +19,7 @@ export default async function BestSellersPage() {
       <main className="min-h-screen bg-ivory text-[#0a0a0a]">
         <div className="site-container pt-5 pb-12">
           <h1 className="text-2xl font-semibold">
-            <span className="text-[#c9a84c]">Best</span>{" "}
+            <span className="text-[#8a6d26]">Best</span>{" "}
             <span className="text-[#0a0a0a]">Sellers</span>
           </h1>
           <p className="mt-4 text-sm text-red-600">
@@ -45,7 +45,7 @@ export default async function BestSellersPage() {
 
         <header className="mb-10 space-y-3 border-b border-neutral-200 pb-6">
           <h1 className="text-2xl font-semibold md:text-3xl">
-            <span className="text-[#c9a84c]">Best</span>{" "}
+            <span className="text-[#8a6d26]">Best</span>{" "}
             <span className="text-[#0a0a0a]">Sellers</span>
           </h1>
           <p className="max-w-2xl text-sm text-neutral-500">

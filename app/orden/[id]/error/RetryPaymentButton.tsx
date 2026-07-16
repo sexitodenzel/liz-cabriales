@@ -115,7 +115,7 @@ export default function RetryPaymentButton({
         disabled={isLoading}
         className={
           buttonClassName ??
-          "inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-60"
+          "inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c6a75e] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-60"
         }
       >
         {isLoading ? "Procesando..." : "Reintentar pago"}
@@ -132,7 +132,7 @@ export default function RetryPaymentButton({
           href={blockedUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs font-medium text-[#C9A84C] underline"
+          className="text-xs font-medium text-[#c6a75e] underline"
         >
           Abrir pago manualmente
         </a>

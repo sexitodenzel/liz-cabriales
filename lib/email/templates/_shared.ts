@@ -24,7 +24,7 @@ export function getSupabaseAdmin() {
 }
 
 export const EMAIL_FROM = "Academia Liz Cabriales <notificaciones@lizcabriales.com>"
-export const BRAND_GOLD = "#C9A84C"
+export const BRAND_GOLD = "#c6a75e"
 export const BRAND_BLACK = "#0a0a0a"
 export const BRAND_ORANGE = "#d97706"
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? ""

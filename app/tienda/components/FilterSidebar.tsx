@@ -85,19 +85,19 @@ export default function FilterSidebar({
     muted:       d ? "text-neutral-400"  : "text-neutral-500",
     mutedHover:  d ? "hover:text-neutral-200" : "hover:text-neutral-900",
     border:      d ? "border-white/10"   : "border-neutral-200",
-    borderHover: d ? "hover:border-[#C9A84C]" : "hover:border-[#C9A84C]",
-    rowActive:   "border-[#C9A84C] bg-[#C9A84C]/5",
+    borderHover: d ? "hover:border-[#c6a75e]" : "hover:border-[#c6a75e]",
+    rowActive:   "border-[#c6a75e] bg-[#c6a75e]/5",
     rowInactive: d ? "border-white/10"   : "border-neutral-200",
-    chkActive:   "border-[#C9A84C] bg-[#C9A84C] text-[#0a0a0a]",
+    chkActive:   "border-[#c6a75e] bg-[#c6a75e] text-[#0a0a0a]",
     chkInactive: d ? "border-white/20 bg-white/5 text-transparent" : "border-neutral-300 bg-transparent text-transparent",
-    searchBg:    d ? "border-white/10 bg-white/5 text-neutral-100 placeholder:text-neutral-500 focus:border-[#C9A84C]"
-                   : "border-neutral-200 bg-white text-neutral-800 placeholder:text-neutral-400 focus:border-[#C9A84C]",
-    inputBg:     d ? "border-white/10 bg-white/5 text-neutral-100 focus:border-[#C9A84C]"
-                   : "border-neutral-200 bg-white text-neutral-800 focus:border-[#C9A84C]",
+    searchBg:    d ? "border-white/10 bg-white/5 text-neutral-100 placeholder:text-neutral-500 focus:border-[#c6a75e]"
+                   : "border-neutral-200 bg-white text-neutral-800 placeholder:text-neutral-400 focus:border-[#c6a75e]",
+    inputBg:     d ? "border-white/10 bg-white/5 text-neutral-100 focus:border-[#c6a75e]"
+                   : "border-neutral-200 bg-white text-neutral-800 focus:border-[#c6a75e]",
     sliderTrack: d ? "bg-white/15" : "bg-neutral-200",
-    clearBtn:    d ? "border-white/10 text-neutral-400 hover:border-[#C9A84C] hover:text-neutral-200"
-                   : "border-neutral-200 text-neutral-500 hover:border-[#C9A84C] hover:text-neutral-800",
-    sublink:     d ? "text-neutral-400 hover:text-[#C9A84C]" : "text-neutral-400 hover:text-[#C9A84C]",
+    clearBtn:    d ? "border-white/10 text-neutral-400 hover:border-[#c6a75e] hover:text-neutral-200"
+                   : "border-neutral-200 text-neutral-500 hover:border-[#c6a75e] hover:text-neutral-800",
+    sublink:     d ? "text-neutral-400 hover:text-[#c6a75e]" : "text-neutral-400 hover:text-[#c6a75e]",
     subBorder:   d ? "border-white/10" : "border-neutral-200",
     clearSearch: d ? "" : "text-neutral-400",
   }
@@ -145,7 +145,7 @@ export default function FilterSidebar({
           <span>
             Categorías
             {selectedCategories.length > 0 && (
-              <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-[#C9A84C] align-middle" />
+              <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-[#c6a75e] align-middle" />
             )}
           </span>
           <ChevronDown
@@ -219,7 +219,7 @@ export default function FilterSidebar({
           <span>
             Marcas
             {selectedBrands.length > 0 && (
-              <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-[#C9A84C] align-middle" />
+              <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-[#c6a75e] align-middle" />
             )}
           </span>
           <ChevronDown

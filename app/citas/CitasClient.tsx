@@ -253,7 +253,7 @@ export default function CitasClient({
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               href={`/cita/${activeAppointmentId}`}
-              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+              className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c6a75e] hover:text-[#0a0a0a]"
             >
               Ver mi cita
             </Link>
@@ -310,8 +310,8 @@ export default function CitasClient({
                       onClick={() => toggleService(s.id)}
                       className={`rounded-2xl border p-4 text-left transition-colors ${
                         active
-                          ? "border-[#C9A84C] bg-[#fdf8ea]"
-                          : "border-neutral-200 bg-[#fcfbf8] hover:border-[#C9A84C]/60"
+                          ? "border-[#c6a75e] bg-[#fdf8ea]"
+                          : "border-neutral-200 bg-[#fcfbf8] hover:border-[#c6a75e]/60"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -349,8 +349,8 @@ export default function CitasClient({
                   onClick={() => setSelectedProfessionalId("any")}
                   className={`rounded-2xl border p-4 text-left transition-colors ${
                     selectedProfessionalId === "any"
-                      ? "border-[#C9A84C] bg-[#fdf8ea]"
-                      : "border-neutral-200 bg-[#fcfbf8] hover:border-[#C9A84C]/60"
+                      ? "border-[#c6a75e] bg-[#fdf8ea]"
+                      : "border-neutral-200 bg-[#fcfbf8] hover:border-[#c6a75e]/60"
                   }`}
                 >
                   <p className="text-sm font-semibold">Cualquiera</p>
@@ -365,8 +365,8 @@ export default function CitasClient({
                     onClick={() => setSelectedProfessionalId(p.id)}
                     className={`rounded-2xl border p-4 text-left transition-colors ${
                       selectedProfessionalId === p.id
-                        ? "border-[#C9A84C] bg-[#fdf8ea]"
-                        : "border-neutral-200 bg-[#fcfbf8] hover:border-[#C9A84C]/60"
+                        ? "border-[#c6a75e] bg-[#fdf8ea]"
+                        : "border-neutral-200 bg-[#fcfbf8] hover:border-[#c6a75e]/60"
                     }`}
                   >
                     <p className="text-sm font-semibold">{p.name}</p>
@@ -406,8 +406,8 @@ export default function CitasClient({
                         }}
                         className={`shrink-0 rounded-xl border px-4 py-2 text-center transition-colors ${
                           active
-                            ? "border-[#C9A84C] bg-[#fdf8ea]"
-                            : "border-neutral-200 bg-white hover:border-[#C9A84C]/60"
+                            ? "border-[#c6a75e] bg-[#fdf8ea]"
+                            : "border-neutral-200 bg-white hover:border-[#c6a75e]/60"
                         }`}
                       >
                         <p className="text-[10px] uppercase tracking-wider text-neutral-500">
@@ -458,8 +458,8 @@ export default function CitasClient({
                           onClick={() => setSelectedSlot(slot)}
                           className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
                             active
-                              ? "border-[#C9A84C] bg-[#fdf8ea] font-semibold"
-                              : "border-neutral-200 bg-white hover:border-[#C9A84C]/60"
+                              ? "border-[#c6a75e] bg-[#fdf8ea] font-semibold"
+                              : "border-neutral-200 bg-white hover:border-[#c6a75e]/60"
                           }`}
                         >
                           {formatTimeLabel(slot.start_time)}
@@ -557,7 +557,7 @@ export default function CitasClient({
               type="button"
               onClick={() => setStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s))}
               disabled={step === 1 || submitting}
-              className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-medium text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C] disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-medium text-[#0a0a0a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e] disabled:opacity-50"
             >
               Atrás
             </button>
@@ -571,7 +571,7 @@ export default function CitasClient({
                   (step === 2 && !canAdvanceFromStep2) ||
                   (step === 3 && !canAdvanceFromStep3)
                 }
-                className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center justify-center rounded-full bg-[#0a0a0a] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c6a75e] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Continuar
               </button>
@@ -580,7 +580,7 @@ export default function CitasClient({
                 type="button"
                 onClick={handleReserve}
                 disabled={submitting}
-                className="inline-flex items-center justify-center rounded-full bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#b8962f] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center justify-center rounded-full bg-[#c6a75e] px-6 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#b8962f] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? "Procesando…" : "Reservar y pagar"}
               </button>

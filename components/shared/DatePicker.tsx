@@ -218,14 +218,14 @@ export default function DatePicker({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm text-[#111] outline-none transition-colors hover:border-[#c9a84c]/60 focus:border-[#c9a84c] disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex w-full items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm text-[#111] outline-none transition-colors hover:border-[#c6a75e]/60 focus:border-[#c6a75e] disabled:cursor-not-allowed disabled:opacity-50"
         aria-haspopup="dialog"
         aria-expanded={open}
       >
         <span className={value ? "text-[#111]" : "text-neutral-400"}>
           {value ? formatDisplayDate(value) : placeholder}
         </span>
-        <Calendar className="h-4 w-4 shrink-0 text-[#c9a84c]" aria-hidden />
+        <Calendar className="h-4 w-4 shrink-0 text-[#c6a75e]" aria-hidden />
       </button>
 
       {open && (
@@ -238,14 +238,14 @@ export default function DatePicker({
         >
           <div className="border-b border-neutral-100 px-4 py-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="font-[family-name:var(--font-playfair),serif] text-base tracking-wide text-[#c9a84c]">
+              <p className="font-[family-name:var(--font-playfair),serif] text-base tracking-wide text-[#c6a75e]">
                 {monthLabel}
               </p>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={goPrevMonth}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-200 text-neutral-600 transition-colors hover:border-[#c9a84c] hover:bg-[rgba(201,168,76,0.12)] hover:text-[#111]"
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-200 text-neutral-600 transition-colors hover:border-[#c6a75e] hover:bg-[rgba(201,168,76,0.12)] hover:text-[#111]"
                   aria-label="Mes anterior"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -253,7 +253,7 @@ export default function DatePicker({
                 <button
                   type="button"
                   onClick={goNextMonth}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-200 text-neutral-600 transition-colors hover:border-[#c9a84c] hover:bg-[rgba(201,168,76,0.12)] hover:text-[#111]"
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-neutral-200 text-neutral-600 transition-colors hover:border-[#c6a75e] hover:bg-[rgba(201,168,76,0.12)] hover:text-[#111]"
                   aria-label="Mes siguiente"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -290,9 +290,9 @@ export default function DatePicker({
                       outOfRange
                         ? "cursor-not-allowed text-neutral-300"
                         : isSelected
-                          ? "bg-[#c9a84c] font-semibold text-[#111] shadow-sm"
+                          ? "bg-[#c6a75e] font-semibold text-[#111] shadow-sm"
                           : isToday
-                            ? "border border-[#c9a84c] font-medium text-[#c9a84c]"
+                            ? "border border-[#c6a75e] font-medium text-[#c6a75e]"
                             : cell.inMonth
                               ? "text-[#111] hover:bg-[rgba(201,168,76,0.18)]"
                               : "text-neutral-300 hover:bg-[rgba(201,168,76,0.12)]"
@@ -325,7 +325,7 @@ export default function DatePicker({
                 setViewMonth(today.getMonth())
                 setOpen(false)
               }}
-              className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#c9a84c] transition-colors hover:text-[#a8893a]"
+              className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:text-[#c6a75e]"
             >
               Ir a hoy
             </button>

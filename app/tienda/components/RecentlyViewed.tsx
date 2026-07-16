@@ -101,7 +101,7 @@ export default function RecentlyViewed({ current }: Props) {
               <TiltCard
                 max={8}
                 glare={false}
-                className="relative aspect-square w-full rounded-none bg-neutral-50"
+                className="relative aspect-square w-full overflow-hidden rounded-xl bg-neutral-50"
               >
                 <Link
                   href={`/tienda/${item.slug}`}
@@ -129,7 +129,7 @@ export default function RecentlyViewed({ current }: Props) {
                   {brand}
                 </p>
                 <div className="mt-1 flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-[#C9A84C] sm:text-base">
+                  <p className="text-sm font-semibold text-[#c6a75e] sm:text-base">
                     {formatPrice(item.base_price)}
                   </p>
                   <div className="flex shrink-0 items-center gap-1.5">

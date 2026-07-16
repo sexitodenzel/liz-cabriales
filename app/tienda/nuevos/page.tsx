@@ -19,7 +19,7 @@ export default async function NewProductsPage() {
       <main className="min-h-screen bg-ivory text-[#0a0a0a]">
         <div className="site-container pt-5 pb-12">
           <h1 className="text-2xl font-semibold">
-            <span className="text-[#c9a84c]">Nuevos</span>{" "}
+            <span className="text-[#8a6d26]">Nuevos</span>{" "}
             <span className="text-[#0a0a0a]">Productos</span>
           </h1>
           <p className="mt-4 text-sm text-red-600">

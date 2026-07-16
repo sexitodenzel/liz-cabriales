@@ -49,6 +49,7 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
 | Mejora | Prioridad |
 |---|---|
+| Fotos reales de servicios en el megamenú — hoy `ServiciosMegaMenu` (desktop) y la sección Servicios del `MobileDrawer` muestran tiles placeholder "Próximamente" etiquetados por servicio; solo falta cambiar el fondo neutro por la foto real (posiblemente reusar imágenes de nail art). Bloqueado por fotos de Liz. | Media |
 | Email de Supabase Auth feo y con límite de envíos — configurar Resend como SMTP de Auth | Alta |
 | Google OAuth como opción de login/registro | Media |
 | Checkout — validaciones de dirección, autocomplete con CP, combos estado/ciudad | Alta |
@@ -165,7 +166,7 @@ Cosas que Liz o terceros deben entregar para desbloquear el desarrollo:
 
 - [ ] Credenciales MercadoPago producción (Access Token + Public Key)
 - [ ] Base de datos de productos — visita acordada al negocio
-- [ ] Fotos reales del negocio, productos y cursos
+- [ ] Fotos reales del negocio, productos, cursos y servicios (los tiles del megamenú/drawer de servicios ya esperan estas imágenes)
 - [ ] Logos de marcas en PNG/SVG
 - [ ] Lista de servicios del salón con precio y duración
 - [ ] Lista de cursos activos con fechas, precio y cupo

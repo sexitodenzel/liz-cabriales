@@ -50,7 +50,7 @@ export default function BrandsMegaMenu({
       style={{ maxHeight: "calc(100vh - var(--navbar-actual-h) - 80px)" }}
       className={`
         megamenu-hover-bridge absolute left-0 right-0 top-full z-40 hidden md:block
-        overflow-y-auto bg-white border-t border-neutral-200
+        overflow-y-auto bg-ivory border-t border-neutral-200
         transition-opacity ease-out
         ${isOpen
           ? "opacity-100 pointer-events-auto duration-300"
@@ -58,12 +58,12 @@ export default function BrandsMegaMenu({
         }
       `}
     >
-      <div className="site-container py-10">
+      <div className="site-container pt-6 pb-10">
         <div className="mb-6">
           <Link
             href="/tienda"
             onClick={onClose}
-            className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c] hover:opacity-80 transition-opacity"
+            className="flex w-fit items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e] hover:opacity-80 transition-opacity"
           >
             Ver toda la tienda
           </Link>
@@ -87,7 +87,7 @@ export default function BrandsMegaMenu({
                 <Link
                   href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
                   onClick={onClose}
-                  className="group flex items-center gap-2.5 text-[14px] text-neutral-700 hover:text-[#c9a84c] transition-colors"
+                  className="group flex items-center gap-2.5 text-[14px] text-neutral-700 hover:text-[#c6a75e] transition-colors"
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
                     {brand.logo_url ? (

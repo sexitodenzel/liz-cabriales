@@ -495,7 +495,7 @@ export default function CartMenu() {
         {!isEmpty && <FreeShippingBar amount={subtotal} />}
         <div className="flex items-center justify-between">
           <p className="text-[14px] font-semibold text-[#1a1a1a]">Subtotal:</p>
-          <p className="text-[14px] font-semibold tabular-nums text-[#c9a84c]">
+          <p className="text-[14px] font-semibold tabular-nums text-[#c6a75e]">
             <SlidingNumber value={subtotal} format={formatMXN} />
           </p>
         </div>
@@ -524,7 +524,7 @@ export default function CartMenu() {
               <Link
                 href="/carrito"
                 onClick={closeCart}
-                className="mt-3 block w-full text-center text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-[#c9a84c]"
+                className="mt-3 block w-full text-center text-[11px] uppercase tracking-[0.08em] text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-[#c6a75e]"
               >
                 Ver bolsa
               </Link>

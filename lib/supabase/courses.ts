@@ -1,7 +1,7 @@
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 import { unstable_cache } from "next/cache"
 
-import type { CourseLevel, RegistrationStatus } from "@/types"
+import type { CourseEventType, CourseLevel, RegistrationStatus } from "@/types"
 
 import type {
   CreateCourseInput,
@@ -42,6 +42,7 @@ export type CourseRow = {
   price: number
   capacity: number
   level: CourseLevel
+  event_type: CourseEventType
   start_date: string
   end_date: string | null
   start_time: string
@@ -154,6 +155,7 @@ type RawCourseRow = {
   price: number | string
   capacity: number | string
   level: string
+  event_type: string | null
   start_date: string
   end_date: string | null
   start_time: string
@@ -207,6 +209,7 @@ function mapCourseRow(row: RawCourseRow): CourseWithInstructor {
     price: Number(row.price),
     capacity: Number(row.capacity),
     level: row.level as CourseLevel,
+    event_type: (row.event_type ?? "curso") as CourseEventType,
     start_date: row.start_date,
     end_date: row.end_date,
     start_time: row.start_time,
@@ -344,7 +347,7 @@ function attachStats(
 
 const COURSE_COLUMNS = `
   id, instructor_id, title, short_description, description, cover_image, price, capacity,
-  level, start_date, end_date, start_time, location, diploma_included, highlights, is_published,
+  level, event_type, start_date, end_date, start_time, location, diploma_included, highlights, is_published,
   allow_online_registration, show_price_public, show_capacity_public,
   public_registered_count, public_capacity,
   created_at, updated_at,
@@ -703,6 +706,7 @@ function normalizeCoursePayload(
   if (input.price !== undefined) payload.price = input.price
   if (input.capacity !== undefined) payload.capacity = input.capacity
   if (input.level !== undefined) payload.level = input.level
+  if (input.event_type !== undefined) payload.event_type = input.event_type
   if (input.start_date !== undefined) payload.start_date = input.start_date
   if (input.end_date !== undefined)
     payload.end_date = input.end_date ? input.end_date : null

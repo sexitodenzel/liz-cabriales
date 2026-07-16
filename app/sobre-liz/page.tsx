@@ -305,7 +305,7 @@ export default async function SobreLizPage() {
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_minmax(0,420px)] lg:gap-16">
           <div>
             <p className="mb-4 inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a8862f]">
-              <span className="h-px w-8 bg-[#c9a84c]" /> Sobre Liz
+              <span className="h-px w-8 bg-[#c6a75e]" /> Sobre Liz
             </p>
             <h1
               className="font-medium leading-[0.98] tracking-[-0.02em] text-[#111]"
@@ -320,7 +320,7 @@ export default async function SobreLizPage() {
               <br />
               de las uñas
             </h1>
-            <div className="mt-6 h-0.5 w-20 rounded-sm bg-[#c9a84c]" aria-hidden />
+            <div className="mt-6 h-0.5 w-20 rounded-sm bg-[#c6a75e]" aria-hidden />
 
             <p className="mt-8 max-w-xl text-[16px] leading-[1.7] text-[#2c2c2c]">
               Soy Liz Cabriales, fundadora de la Academia y Distribuidora Profesional de Uñas y Servicio
@@ -345,7 +345,7 @@ export default async function SobreLizPage() {
                 href={SOCIAL.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-[#c9a84c]/60 px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#a8862f] transition-colors hover:bg-[#c9a84c]/10"
+                className="inline-flex items-center gap-2 rounded-full border border-[#c6a75e]/60 px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#a8862f] transition-colors hover:bg-[#c6a75e]/10"
               >
                 Hablar por WhatsApp
               </Link>
@@ -353,7 +353,7 @@ export default async function SobreLizPage() {
           </div>
 
           <div className="mx-auto w-full max-w-[420px]">
-            <div className="relative rounded-2xl bg-gradient-to-br from-[#f0dfa8] via-[#c9a84c] to-[#8f6f2f] p-[3px] shadow-[0_18px_50px_rgba(168,134,47,0.22)]">
+            <div className="relative rounded-2xl bg-gradient-to-br from-[#f0dfa8] via-[#c6a75e] to-[#8f6f2f] p-[3px] shadow-[0_18px_50px_rgba(168,134,47,0.22)]">
               <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[13px] bg-neutral-100">
                 <SmoothImage
                   src={heroPhoto}
@@ -376,7 +376,7 @@ export default async function SobreLizPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="text-[#a8862f] transition-colors hover:text-[#c9a84c]"
+                className="text-[#a8862f] transition-colors hover:text-[#c6a75e]"
               >
                 <InstagramIcon />
               </Link>
@@ -385,7 +385,7 @@ export default async function SobreLizPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
-                className="text-[#a8862f] transition-colors hover:text-[#c9a84c]"
+                className="text-[#a8862f] transition-colors hover:text-[#c6a75e]"
               >
                 <FacebookIcon />
               </Link>
@@ -394,7 +394,7 @@ export default async function SobreLizPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="text-[#a8862f] transition-colors hover:text-[#c9a84c]"
+                className="text-[#a8862f] transition-colors hover:text-[#c6a75e]"
               >
                 <WhatsAppIcon />
               </Link>
@@ -402,7 +402,7 @@ export default async function SobreLizPage() {
                 href={SOCIAL.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[13px] font-semibold tracking-[0.1em] text-[#a8862f] transition-colors hover:text-[#c9a84c]"
+                className="text-[13px] font-semibold tracking-[0.1em] text-[#a8862f] transition-colors hover:text-[#c6a75e]"
               >
                 @liz_cabriales
               </Link>
@@ -428,14 +428,14 @@ export default async function SobreLizPage() {
           >
             Una marca, tres formas de acompañarte
           </h2>
-          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c9a84c]" aria-hidden />
+          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {PILLARS.map((pillar) => (
             <div
               key={pillar.title}
-              className="flex h-full flex-col rounded-2xl border border-[#c9a84c]/20 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(168,134,47,0.12)]"
+              className="flex h-full flex-col rounded-2xl border border-[#c6a75e]/20 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(168,134,47,0.12)]"
             >
               <h3
                 className="text-[24px] font-medium text-[#111]"
@@ -443,13 +443,13 @@ export default async function SobreLizPage() {
               >
                 {pillar.title}
               </h3>
-              <div className="mt-3 h-0.5 w-10 bg-[#c9a84c]" aria-hidden />
+              <div className="mt-3 h-0.5 w-10 bg-[#c6a75e]" aria-hidden />
               <p className="mt-5 flex-1 text-[14.5px] leading-[1.65] text-[#4b4b4b]">
                 {pillar.description}
               </p>
               <Link
                 href={pillar.href}
-                className="mt-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f] transition-colors hover:text-[#c9a84c]"
+                className="mt-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f] transition-colors hover:text-[#c6a75e]"
               >
                 {pillar.cta} →
               </Link>
@@ -473,7 +473,7 @@ export default async function SobreLizPage() {
           >
             De un sueño a una comunidad
           </h2>
-          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c9a84c]" aria-hidden />
+          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
         </div>
 
         <div className="relative">
@@ -507,11 +507,11 @@ export default async function SobreLizPage() {
               return (
                 <li
                   key={item.year}
-                  className={`relative flex flex-col rounded-2xl border border-[#c9a84c]/15 bg-white/50 p-5 sm:p-6 ${colStart} ${rowStart}`}
+                  className={`relative flex flex-col rounded-2xl border border-[#c6a75e]/15 bg-white/50 p-5 sm:p-6 ${colStart} ${rowStart}`}
                 >
                   {arrow ? (
                     <span
-                      className={`pointer-events-none absolute z-10 hidden text-[#c9a84c] lg:block ${arrowPos}`}
+                      className={`pointer-events-none absolute z-10 hidden text-[#c6a75e] lg:block ${arrowPos}`}
                       aria-hidden
                     >
                       <svg
@@ -531,7 +531,7 @@ export default async function SobreLizPage() {
                   ) : null}
                   <div className="mb-3 flex items-center gap-3">
                     <span
-                      className="block h-3 w-3 shrink-0 rounded-full border-2 border-white bg-[#c9a84c] shadow-[0_0_0_1px_rgba(201,168,76,0.5)]"
+                      className="block h-3 w-3 shrink-0 rounded-full border-2 border-white bg-[#c6a75e] shadow-[0_0_0_1px_rgba(201,168,76,0.5)]"
                       aria-hidden
                     />
                     <p
@@ -553,7 +553,7 @@ export default async function SobreLizPage() {
                           className="relative pl-4 text-[13.5px] leading-[1.6] text-[#5a5a5a]"
                         >
                           <span
-                            className="absolute left-0 top-[8px] block h-1.5 w-1.5 rounded-full bg-[#c9a84c]"
+                            className="absolute left-0 top-[8px] block h-1.5 w-1.5 rounded-full bg-[#c6a75e]"
                             aria-hidden
                           />
                           <span className="font-semibold text-[#111]">{bullet.label}</span>{" "}
@@ -584,7 +584,7 @@ export default async function SobreLizPage() {
           >
             Lo que dicen nuestras alumnas
           </h2>
-          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c9a84c]" aria-hidden />
+          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
         </div>
         <TestimonialsCarousel items={TESTIMONIALS} />
       </section>
@@ -603,7 +603,7 @@ export default async function SobreLizPage() {
       {/* ── CTA ── */}
       <section className="site-container pb-24">
         <div className="rounded-3xl bg-[#111] px-8 py-14 text-center text-white lg:px-16 lg:py-20">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c9a84c]">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c6a75e]">
             Únete a la comunidad
           </p>
           <h2
@@ -614,12 +614,12 @@ export default async function SobreLizPage() {
             }}
           >
             Piensa en grande, cree en tu talento y{" "}
-            <em className="italic text-[#c9a84c]">atrévete a lograrlo con nosotros.</em>
+            <em className="italic text-[#c6a75e]">atrévete a lograrlo con nosotros.</em>
           </h2>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/academia"
-              className="inline-flex items-center gap-2 rounded-full bg-[#c9a84c] px-8 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-full bg-[#c6a75e] px-8 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-black transition-colors hover:bg-white"
             >
               Ver próximos cursos
             </Link>

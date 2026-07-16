@@ -219,7 +219,7 @@ function GalleryItem({
   if (item.type === "image") {
     return (
       <button
-        className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
+        className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl bg-[#111] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a75e]"
         onClick={() =>
           onOpen({
             kind: "image",
@@ -245,7 +245,7 @@ function GalleryItem({
         )}
 
         {/* Gold corner accent */}
-        <div className="absolute left-0 top-0 h-0.5 w-0 bg-[#c9a84c] transition-all duration-500 group-hover:w-full" />
+        <div className="absolute left-0 top-0 h-0.5 w-0 bg-[#c6a75e] transition-all duration-500 group-hover:w-full" />
       </button>
     )
   }
@@ -259,7 +259,7 @@ function GalleryItem({
       <div className="aspect-video">
         {thumb ? (
           <button
-            className="group relative h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a84c]"
+            className="group relative h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c6a75e]"
             onClick={() =>
               embed &&
               onOpen({ kind: "video", embed, caption: item.caption })
@@ -276,7 +276,7 @@ function GalleryItem({
 
             {/* Play button */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/30 bg-black/50 pl-1 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:border-[#c9a84c]/60 group-hover:bg-[#c9a84c]/20">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/30 bg-black/50 pl-1 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:border-[#c6a75e]/60 group-hover:bg-[#c6a75e]/20">
                 <PlayIcon />
               </div>
             </div>
@@ -361,7 +361,7 @@ export default function CourseGallery({ items }: { items: CourseGalleryItem[] })
           >
             Lo que aprendimos
           </h2>
-          <div className="mb-4 h-0.5 w-9 bg-[#c9a84c]" />
+          <div className="mb-4 h-0.5 w-9 bg-[#c6a75e]" />
           <p className="text-[14px] leading-relaxed text-[#6b6b6b]">
             Momentos e imágenes de esta edición del taller.
           </p>

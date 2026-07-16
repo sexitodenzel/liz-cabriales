@@ -115,7 +115,7 @@ export default async function InscripcionSuccessPage({
           </p>
           <Link
             href="/academia"
-            className="mt-6 inline-flex rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C9A84C] hover:text-[#0a0a0a]"
+            className="mt-6 inline-flex rounded-full bg-[#0a0a0a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c6a75e] hover:text-[#0a0a0a]"
           >
             Ver cursos
           </Link>
@@ -269,7 +269,7 @@ export default async function InscripcionSuccessPage({
               )}
               <Link
                 href="/academia"
-                className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
+                className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
               >
                 Ver más cursos
               </Link>

@@ -47,12 +47,12 @@ export default function AdminSobreLizPage() {
       }
       const json = await res.json()
       if (!res.ok || json.error) {
-        toast.error(json?.error?.message ?? "No se pudieron cargar los eventos.")
+        toast.error(json?.error?.message ?? "No se pudieron cargar las fotos.")
         return
       }
       setItems(json.data ?? [])
     } catch {
-      toast.error("Error de red al cargar los eventos.")
+      toast.error("Error de red al cargar las fotos.")
     } finally {
       setLoading(false)
     }
@@ -88,12 +88,12 @@ export default function AdminSobreLizPage() {
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        toast.error(json?.error?.message ?? "No se pudo agregar el evento.")
+        toast.error(json?.error?.message ?? "No se pudo agregar la foto.")
         return
       }
       setItems((prev) => [...prev, json.data as LizEventRow])
       setModalOpen(false)
-      toast.success("Evento agregado.")
+      toast.success("Foto agregada.")
     } catch {
       toast.error("Error de red.")
     } finally {
@@ -102,7 +102,7 @@ export default function AdminSobreLizPage() {
   }
 
   async function deleteItem(id: string) {
-    if (!confirm("¿Eliminar este evento de la galería?")) return
+    if (!confirm("¿Eliminar esta foto?")) return
     setBusyId(id)
     try {
       const res = await fetch(`/api/admin/events/${id}`, { method: "DELETE" })
@@ -112,7 +112,7 @@ export default function AdminSobreLizPage() {
         return
       }
       setItems((prev) => prev.filter((row) => row.id !== id))
-      toast.success("Evento eliminado.")
+      toast.success("Foto eliminada.")
     } catch {
       toast.error("Error de red.")
     } finally {
@@ -125,16 +125,23 @@ export default function AdminSobreLizPage() {
       <Breadcrumb
         items={[
           { label: "Admin", href: "/admin" },
-          { label: "Galería de eventos" },
+          { label: "Fotos sueltas" },
         ]}
       />
 
       <header className="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">Galería de eventos</h1>
+        <div className="max-w-2xl">
+          <h1 className="text-2xl font-semibold text-neutral-900">
+            Fotos sueltas <span className="font-normal text-neutral-400">(sin curso)</span>
+          </h1>
           <p className="mt-1 text-sm text-neutral-500">
-            Fotos de masterclasses, talleres y eventos que aparecen en la página
-            &ldquo;Sobre Liz&rdquo;.
+            Fotos individuales que aparecen en la galería de &ldquo;Conócenos&rdquo; y
+            no pertenecen a ningún curso.
+          </p>
+          <p className="mt-2 rounded-lg border border-[#e8dcb0] bg-[#f7f2e3] px-3 py-2 text-[13px] leading-snug text-[#7a5f21]">
+            ¿Un evento con <strong>varias fotos</strong>? No lo subas aquí: créalo como
+            curso pasado en <strong>Cursos</strong> y súbele su galería. Ahí el multi-foto
+            sí funciona y aparece en Conócenos enlazado a la página del curso.
           </p>
         </div>
         <button
@@ -142,14 +149,14 @@ export default function AdminSobreLizPage() {
           onClick={openModal}
           className="rounded-full bg-[#c9a84c] px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#a8893a]"
         >
-          Agregar evento
+          Agregar foto
         </button>
       </header>
 
       <section className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <header className="border-b border-neutral-100 px-4 py-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-            Eventos ({items.length})
+            Fotos ({items.length})
           </h2>
         </header>
 
@@ -157,7 +164,7 @@ export default function AdminSobreLizPage() {
           <p className="px-4 py-6 text-sm text-neutral-500">Cargando...</p>
         ) : items.length === 0 ? (
           <p className="px-4 py-6 text-sm text-neutral-500">
-            Aún no hay eventos. Agrega el primero con el botón de arriba.
+            Aún no hay fotos sueltas. Agrega la primera con el botón de arriba.
           </p>
         ) : (
           <ul className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -177,7 +184,7 @@ export default function AdminSobreLizPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={row.image_url}
-                      alt={row.caption ?? "Evento"}
+                      alt={row.caption ?? "Foto"}
                       className="h-full w-full object-contain"
                       loading="lazy"
                     />
@@ -220,9 +227,9 @@ export default function AdminSobreLizPage() {
             className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-semibold text-neutral-900">Nuevo evento</h2>
+            <h2 className="text-lg font-semibold text-neutral-900">Nueva foto suelta</h2>
             <p className="mt-1 text-sm text-neutral-500">
-              Sube una foto y agrega una descripción y la fecha del evento.
+              Sube una foto y agrega una descripción y la fecha.
             </p>
 
             <form onSubmit={handleCreate} className="mt-5 flex flex-col gap-4">

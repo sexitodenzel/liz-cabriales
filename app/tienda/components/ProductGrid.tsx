@@ -182,6 +182,14 @@ export default function ProductGrid({
     return merged.sort((a, b) => a.localeCompare(b, "es"))
   }, [products, brands])
 
+  const brandLogosByName = useMemo(() => {
+    const logos: Record<string, string | null> = {}
+    for (const brand of brandsWithLogo) {
+      logos[brand.name] = brand.logo_url
+    }
+    return logos
+  }, [brandsWithLogo])
+
   const brandCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     for (const product of products) {
@@ -434,6 +442,7 @@ export default function ProductGrid({
         filterPanel={{
           categories,
           brands: brandsForSidebar,
+          brandLogosByName,
           abrasivityLevels: ABRASIVITY_LEVELS,
           categoryCounts,
           brandCounts,
@@ -470,7 +479,7 @@ export default function ProductGrid({
               <button
                 type="button"
                 onClick={handleClearAll}
-                className="mt-4 rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-700 transition-colors hover:border-[#C9A84C]"
+                className="mt-4 rounded-full border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-700 transition-colors hover:border-[#c6a75e]"
               >
                 Ver todo
               </button>

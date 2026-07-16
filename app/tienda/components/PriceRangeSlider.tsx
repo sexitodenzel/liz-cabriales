@@ -69,7 +69,7 @@ export default function PriceRangeSlider({
           className={`absolute top-1/2 left-0 h-1 w-full -translate-y-1/2 rounded-full ${trackClass}`}
         />
         <div
-          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#C9A84C]"
+          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#c6a75e]"
           style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
         />
         <input

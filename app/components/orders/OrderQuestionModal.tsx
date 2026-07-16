@@ -181,7 +181,7 @@ function OrderQuestionModal({
                 id={productSelectId}
                 value={productId}
                 onChange={(event) => setProductId(event.target.value)}
-                className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-[#0a0a0a] focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/30"
+                className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-[#0a0a0a] focus:border-[#c6a75e] focus:outline-none focus:ring-2 focus:ring-[#c6a75e]/30"
               >
                 <option value="">General — no es sobre un producto</option>
                 {order.items.map((item) => (
@@ -210,7 +210,7 @@ function OrderQuestionModal({
                 rows={5}
                 maxLength={MAX_MESSAGE_LENGTH}
                 placeholder="Hola Liz, tengo una duda sobre…"
-                className="w-full resize-none rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-[#0a0a0a] placeholder:text-neutral-400 focus:border-[#C9A84C] focus:outline-none focus:ring-2 focus:ring-[#C9A84C]/30"
+                className="w-full resize-none rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-[#0a0a0a] placeholder:text-neutral-400 focus:border-[#c6a75e] focus:outline-none focus:ring-2 focus:ring-[#c6a75e]/30"
               />
               <p className="text-right text-[11px] text-neutral-400">
                 {message.trim().length}/{MAX_MESSAGE_LENGTH}
@@ -238,7 +238,7 @@ function OrderQuestionModal({
               <button
                 type="submit"
                 disabled={status === "submitting"}
-                className="inline-flex items-center justify-center rounded-full bg-[#C9A84C] px-6 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#b8962f] disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex items-center justify-center rounded-full bg-[#c6a75e] px-6 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:bg-[#b8962f] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {status === "submitting" ? "Enviando…" : "Enviar mensaje"}
               </button>
@@ -262,7 +262,7 @@ export function OrderQuestionTrigger({
   const [open, setOpen] = useState(false)
 
   const defaultClassName =
-    "inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-5 py-3 text-sm font-medium text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:bg-[#fbf7ee]"
+    "inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-5 py-3 text-sm font-medium text-[#0a0a0a] transition-colors hover:border-[#c6a75e] hover:bg-[#fbf7ee]"
 
   return (
     <>

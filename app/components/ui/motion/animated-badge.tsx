@@ -41,15 +41,15 @@ export interface AnimatedBadgeProps
   contentKey?: string | number
 }
 
-// Tokens adaptados al repo: gold #c9a84c para info/loading,
+// Tokens adaptados al repo: gold #c6a75e para info/loading,
 // emerald/amber/red Tailwind para semánticos.
 const STATUS_CLASS: Record<AnimatedBadgeStatus, string> = {
   neutral: "border-neutral-200 bg-white text-neutral-600",
-  info: "border-[#c9a84c]/30 bg-[#c9a84c]/10 text-[#a8893a]",
+  info: "border-[#c6a75e]/30 bg-[#c6a75e]/10 text-[#c6a75e]",
   success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700",
   warning: "border-amber-500/30 bg-amber-500/10 text-amber-700",
   danger: "border-red-300 bg-red-50 text-red-700",
-  loading: "border-[#c9a84c]/30 bg-[#c9a84c]/10 text-[#a8893a]",
+  loading: "border-[#c6a75e]/30 bg-[#c6a75e]/10 text-[#c6a75e]",
 }
 
 const SIZE_CLASS: Record<AnimatedBadgeSize, string> = {

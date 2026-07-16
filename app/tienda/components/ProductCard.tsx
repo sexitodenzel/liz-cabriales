@@ -140,18 +140,18 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
 
   const priceBlock = productHasDiscount ? (
     <div className="flex flex-wrap items-baseline gap-1.5">
-      <p className="text-sm font-semibold text-[#C9A84C] sm:text-base">
+      <p className="text-sm font-semibold text-[#c6a75e] sm:text-base">
         {formatPrice(discountedPrice)}
       </p>
       <p className="text-[11px] text-neutral-400 line-through sm:text-xs">
         {formatPrice(product.base_price)}
       </p>
-      <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
+      <span className="rounded-full bg-[#c6a75e] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]">
         {product.discount_percent}% OFF
       </span>
     </div>
   ) : (
-    <p className="text-sm font-semibold text-[#C9A84C] sm:text-base">
+    <p className="text-sm font-semibold text-[#c6a75e] sm:text-base">
       {formatPrice(product.base_price)}
     </p>
   )
@@ -229,18 +229,18 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
 
           {productHasDiscount ? (
             <div className="flex items-baseline gap-2">
-              <p className="text-base font-semibold text-[#C9A84C] sm:text-lg md:text-xl">
+              <p className="text-base font-semibold text-[#c6a75e] sm:text-lg md:text-xl">
                 {formatPrice(discountedPrice)}
               </p>
               <p className="text-xs text-neutral-400 line-through sm:text-sm">
                 {formatPrice(product.base_price)}
               </p>
-              <span className="rounded-full bg-[#C9A84C] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:text-[11px]">
+              <span className="rounded-full bg-[#c6a75e] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:text-[11px]">
                 {product.discount_percent}% OFF
               </span>
             </div>
           ) : (
-            <p className="text-base font-semibold text-[#C9A84C] sm:text-lg md:text-xl">
+            <p className="text-base font-semibold text-[#c6a75e] sm:text-lg md:text-xl">
               {formatPrice(product.base_price)}
             </p>
           )}
@@ -354,7 +354,7 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
           )}
 
           {productHasDiscount && !isOutOfStock && (
-            <div className="absolute right-2 top-2 z-10 rounded-full bg-[#C9A84C] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm sm:right-3 sm:top-3 sm:px-3 sm:py-1 sm:text-xs">
+            <div className="absolute right-2 top-2 z-10 rounded-full bg-[#c6a75e] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm sm:right-3 sm:top-3 sm:px-3 sm:py-1 sm:text-xs">
               {product.discount_percent}% OFF
             </div>
           )}

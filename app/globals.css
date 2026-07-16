@@ -14,7 +14,7 @@
   --color-ink-soft: #79736a;
   /* AA sobre marfil/blanco (4.7:1) y con blanco encima (4.9:1); mismo tono */
   --color-gold: #8a6d26;
-  --color-gold-soft: #c9a84c;
+  --color-gold-soft: #c6a75e;
   --color-line: #e9e4da;
   --radius-card: 4px;
 }
@@ -35,7 +35,7 @@
      un pelín de suavidad para que las cards --surface #ffffff sigan resaltando. */
   --background: #fbfbfa;
   --foreground: #1c1a17;
-  --gold: #c9a84c;
+  --gold: #c6a75e;
   /* Tarjetas / superficies que deben resaltar sobre el fondo */
   --surface: #ffffff;
   /* Altura fija del navbar: la usan el carrito y el overlay para alinearse */
@@ -149,6 +149,14 @@ html {
 
   #site-navbar {
     height: 104px;
+    /* Sella la rendija de 1px entre capas GPU: sin esto asoma el FooterStage
+       fijo (#0a0a0a) entre navbar y barra sticky al colapsar / re-expandir. */
+    box-shadow: 0 1px 0 0 var(--color-ivory);
+  }
+
+  /* Misma sella por arriba en barras follow (filtros academia/tienda/blog). */
+  .navbar-follow-collapse {
+    box-shadow: 0 -1px 0 0 var(--color-ivory);
   }
 
   html.lc-nav-collapsed #site-navbar,
@@ -274,6 +282,26 @@ html {
   height: 8px;
 }
 
+/* Fade sutil del panel derecho del mega-menú de Tienda al cambiar categoría */
+@keyframes lc-mega-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.lc-mega-panel-in {
+  animation: lc-mega-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lc-mega-panel-in {
+    animation: none;
+  }
+}
+
 /* Carrito abierto: bloquear scroll del body sin reflow lateral */
 body.cart-scroll-locked {
   overflow: hidden;
@@ -395,7 +423,7 @@ body {
   background: #d8c79a !important;
 }
 .sobre-liz-testimonials .swiper-pagination-bullet-active {
-  background: #c9a84c !important;
+  background: #c6a75e !important;
 }
 
 /* =====================================
@@ -558,7 +586,7 @@ body {
   margin-top: 0;
   border-radius: 9999px;
   background: #ffffff;
-  border: 2px solid #c9a84c;
+  border: 2px solid #c6a75e;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
   cursor: pointer;
   transition: transform 0.12s ease;
@@ -575,7 +603,7 @@ body {
   width: 16px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 2px solid #c9a84c;
+  border: 2px solid #c6a75e;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
   cursor: pointer;
 }

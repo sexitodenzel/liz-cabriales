@@ -108,7 +108,7 @@ export default function RichText({
                   key={j}
                   className="flex gap-2.5 text-[15px] leading-[1.6] text-[#3a3a3a]"
                 >
-                  <span className="mt-[9px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#c9a84c]" />
+                  <span className="mt-[9px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#c6a75e]" />
                   <span>{renderInline(item)}</span>
                 </li>
               ))}

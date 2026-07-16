@@ -40,7 +40,7 @@ export type SearchSuggestionCategory = {
 }
 
 const SEARCH_PRODUCT_PRICE_CLASS =
-  "text-[14px] font-semibold text-[#c9a84c] sm:text-[15px]"
+  "text-[14px] font-semibold text-[#c6a75e] sm:text-[15px]"
 
 function formatPrice(value: number): string {
   return new Intl.NumberFormat("es-MX", {
@@ -88,7 +88,7 @@ export function DesktopCategoriesDropdown({
           <Link
             href="/tienda"
             onClick={onClose}
-            className="block rounded-lg px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-[#c9a84c]"
+            className="block rounded-lg px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-[#c6a75e]"
           >
             Ver todo
           </Link>
@@ -102,7 +102,7 @@ export function DesktopCategoriesDropdown({
                 key={category.id}
                 href={`/tienda?categoria=${category.slug}`}
                 onClick={onClose}
-                className="block rounded-lg px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-[#c9a84c]"
+                className="block rounded-lg px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-[#c6a75e]"
               >
                 {category.name}
               </Link>
@@ -144,7 +144,7 @@ export function SearchSuggestionsContent({
     const compactHeading =
       "mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500"
     const compactLink =
-      "text-[14px] text-neutral-900 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c9a84c] hover:decoration-[#c9a84c]"
+      "text-[14px] text-neutral-900 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]"
 
     if (loading && !hasAny) {
       return <p className="py-6 text-sm text-neutral-500">Buscando...</p>
@@ -212,7 +212,7 @@ export function SearchSuggestionsContent({
         <Link
           href={searchHref}
           onClick={onClose}
-          className="inline-flex text-[12px] font-semibold uppercase tracking-[0.14em] text-neutral-700 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c9a84c] hover:decoration-[#c9a84c]"
+          className="inline-flex text-[12px] font-semibold uppercase tracking-[0.14em] text-neutral-700 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]"
         >
           Ver todos los resultados
         </Link>
@@ -227,7 +227,7 @@ export function SearchSuggestionsContent({
     : "mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500"
 
   const chipClass =
-    "inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[12px] text-neutral-800 transition-colors hover:border-[#c9a84c] hover:text-[#c9a84c]"
+    "inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[12px] text-neutral-800 transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
 
   return (
     <div className={isMobile ? "pb-8 pt-5" : "px-4 py-4"}>
@@ -403,7 +403,7 @@ export function EmptyStatePanel({
     const compactHeading =
       "mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500"
     const compactLink =
-      "text-[14px] text-neutral-900 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c9a84c] hover:decoration-[#c9a84c]"
+      "text-[14px] text-neutral-900 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]"
 
     return (
       <div className="space-y-7 pb-6">
@@ -485,7 +485,7 @@ export function EmptyStatePanel({
                   key={chip.id}
                   href={chip.href}
                   onClick={onClose}
-                  className="truncate text-[13px] text-neutral-800 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c9a84c] hover:decoration-[#c9a84c]"
+                  className="truncate text-[13px] text-neutral-800 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]"
                   title={chip.label}
                 >
                   {chip.label}
@@ -558,7 +558,7 @@ export function EmptyStatePanel({
                   key={chip.id}
                   href={chip.href}
                   onClick={onClose}
-                  className="truncate text-[14px] text-neutral-800 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c9a84c] hover:decoration-[#c9a84c]"
+                  className="truncate text-[14px] text-neutral-800 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]"
                   title={chip.label}
                 >
                   {chip.label}
@@ -627,7 +627,7 @@ export function EmptyStatePanel({
                 key={chip.id}
                 href={chip.href}
                 onClick={onClose}
-                className="inline-flex items-center rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[13px] text-neutral-700 transition-colors hover:border-[#c9a84c] hover:bg-[#fdf8ec] hover:text-[#A8893A]"
+                className="inline-flex items-center rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[13px] text-neutral-700 transition-colors hover:border-[#c6a75e] hover:bg-[#fdf8ec] hover:text-[#c6a75e]"
               >
                 {chip.label}
               </Link>

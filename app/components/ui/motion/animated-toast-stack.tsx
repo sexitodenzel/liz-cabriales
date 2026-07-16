@@ -113,12 +113,12 @@ const STATUS_ICON: Record<ToastStatus, LucideIcon> = {
   error: AlertCircle,
 }
 
-// Tokens adaptados al repo (no shadcn): gold #c9a84c para info/loading,
+// Tokens adaptados al repo (no shadcn): gold #c6a75e para info/loading,
 // emerald/amber/red Tailwind para semánticos.
 const STATUS_CLASS: Record<ToastStatus, string> = {
   neutral: "text-neutral-600 bg-neutral-100",
-  info: "text-[#a8893a] bg-[#c9a84c]/10",
-  loading: "text-[#a8893a] bg-[#c9a84c]/10",
+  info: "text-[#c6a75e] bg-[#c6a75e]/10",
+  loading: "text-[#c6a75e] bg-[#c6a75e]/10",
   success: "text-emerald-700 bg-emerald-500/10",
   error: "text-red-700 bg-red-500/10",
 }
@@ -479,7 +479,7 @@ const ToastItem = memo(function ToastItem({
                   type="button"
                   onClick={() => toast.action?.onClick(toast)}
                   className={cn(
-                    "mt-2 inline-flex h-7 items-center rounded-full bg-[#c9a84c]/10 px-3 text-xs font-medium text-[#a8893a] transition-colors hover:bg-[#c9a84c]/20",
+                    "mt-2 inline-flex h-7 items-center rounded-full bg-[#c6a75e]/10 px-3 text-xs font-medium text-[#c6a75e] transition-colors hover:bg-[#c6a75e]/20",
                     classNames?.action,
                   )}
                 >

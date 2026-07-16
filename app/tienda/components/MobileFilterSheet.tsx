@@ -460,7 +460,7 @@ export default function MobileFilterSheet({
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Buscar producto..."
-              className="w-full rounded-full border border-neutral-200 px-4 py-2.5 text-sm text-neutral-800 outline-none focus:border-[#C9A84C]"
+              className="w-full rounded-full border border-neutral-200 px-4 py-2.5 text-sm text-neutral-800 outline-none focus:border-[#c6a75e]"
             />
           </AccordionSection>
           </div>

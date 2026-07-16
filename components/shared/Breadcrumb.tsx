@@ -8,14 +8,15 @@ export type BreadcrumbItem = {
 function ChevLeftIcon() {
   return (
     <svg
-      width="12"
-      height="12"
+      width="13"
+      height="13"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
+      className="opacity-70"
     >
       <path d="m15 18-6-6 6-6" />
     </svg>
@@ -31,22 +32,29 @@ export default function Breadcrumb({
 }) {
   return (
     <nav
-      className={`flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#6b6b6b] ${className ?? "mb-2"}`}
+      aria-label="Ruta de navegación"
+      className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-[#8a8a8a] ${className ?? "mb-2"}`}
     >
       {items.map((item, index) => {
         const isFirst = index === 0
         const isLast = index === items.length - 1
 
         return (
-          <span key={index} className="flex items-center gap-2">
-            {index > 0 && <span className="text-[#bdbdbd]">/</span>}
+          <span key={index} className="flex items-center gap-x-2">
+            {index > 0 && (
+              <span aria-hidden className="text-[#cfcfcf]">
+                /
+              </span>
+            )}
 
             {isLast ? (
-              <span className="text-[#C6A75E]">{item.label}</span>
+              <span aria-current="page" className="text-[#4a4a4a]">
+                {item.label}
+              </span>
             ) : item.href ? (
               <Link
                 href={item.href}
-                className="flex items-center gap-2 transition-colors hover:text-[#C6A75E]"
+                className="flex items-center gap-1.5 transition-colors hover:text-[#C6A75E]"
               >
                 {isFirst && <ChevLeftIcon />}
                 {item.label}

@@ -220,7 +220,7 @@ export default function ShopByNailPolishColors() {
             </em>
           </h2>
           <div
-            className="mb-[18px] h-0.5 w-16 rounded-sm bg-[#c9a84c]"
+            className="mb-[18px] h-0.5 w-16 rounded-sm bg-[#c6a75e]"
             aria-hidden
           />
           <p className="max-w-[520px] text-[15px] font-normal leading-[1.55] text-[#8a8a8a]">

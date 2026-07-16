@@ -16,6 +16,9 @@ type CourseFilterPanelProps = {
   levelPills: LevelPill[]
   level: string
   onLevelChange: (value: string) => void
+  typePills: LevelPill[]
+  type: string
+  onTypeChange: (value: string) => void
   search: string
   onSearchChange: (value: string) => void
   onClearAll: () => void
@@ -123,6 +126,9 @@ export default function CourseFilterPanel({
   levelPills,
   level,
   onLevelChange,
+  typePills,
+  type,
+  onTypeChange,
   search,
   onSearchChange,
   onClearAll,
@@ -131,6 +137,7 @@ export default function CourseFilterPanel({
 
   const [sortOpen, setSortOpen] = useState(true)
   const [levelOpen, setLevelOpen] = useState(true)
+  const [typeOpen, setTypeOpen] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
 
   useEffect(() => {
@@ -149,6 +156,7 @@ export default function CourseFilterPanel({
     if (!open) return
     setSortOpen(true)
     setLevelOpen(true)
+    setTypeOpen(true)
     setSearchOpen(search.trim().length > 0)
   }, [open, search])
 
@@ -211,6 +219,22 @@ export default function CourseFilterPanel({
         </AccordionSection>
 
         <AccordionSection
+          title="Tipo de evento"
+          open={typeOpen}
+          onToggle={() => setTypeOpen((v) => !v)}
+        >
+          {typePills.map((pill) => (
+            <OptionRow
+              key={pill.name}
+              label={pill.name}
+              selected={pill.name === type}
+              count={pill.n}
+              onClick={() => onTypeChange(pill.name)}
+            />
+          ))}
+        </AccordionSection>
+
+        <AccordionSection
           title="Buscar"
           open={searchOpen}
           onToggle={() => setSearchOpen((v) => !v)}
@@ -220,7 +244,7 @@ export default function CourseFilterPanel({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Buscar un evento..."
-            className="w-full rounded-full border border-neutral-200 px-4 py-2.5 text-sm text-neutral-800 outline-none focus:border-[#C9A84C]"
+            className="w-full rounded-full border border-neutral-200 px-4 py-2.5 text-sm text-neutral-800 outline-none focus:border-[#c6a75e]"
           />
         </AccordionSection>
       </div>

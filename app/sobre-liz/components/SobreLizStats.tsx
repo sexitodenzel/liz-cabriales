@@ -119,7 +119,7 @@ export default function SobreLizStats() {
 
   return (
     <section ref={ref} className="site-container mt-20" aria-label="Estadísticas">
-      <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-y border-[#c9a84c]/30 py-12 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-y border-[#c6a75e]/30 py-12 lg:grid-cols-4">
         {STATS.map((stat, index) => (
           <AnimatedStat
             key={stat.label}

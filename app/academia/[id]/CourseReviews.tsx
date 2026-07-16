@@ -28,8 +28,8 @@ function Star({ filled, className }: { filled: boolean; className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill={filled ? "#c9a84c" : "none"}
-      stroke={filled ? "#c9a84c" : "#d9d9d9"}
+      fill={filled ? "#c6a75e" : "none"}
+      stroke={filled ? "#c6a75e" : "#d9d9d9"}
       strokeWidth="1.6"
       className={className ?? "h-4 w-4"}
       aria-hidden
@@ -96,7 +96,7 @@ function ReviewForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-[#c9a84c]/25 bg-neutral-100 p-6"
+      className="rounded-2xl border border-[#c6a75e]/25 bg-neutral-100 p-6"
     >
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8862f]">
         Participante avalada
@@ -130,7 +130,7 @@ function ReviewForm({
         rows={3}
         maxLength={1000}
         placeholder="¿Qué te pareció el curso? (opcional)"
-        className="mt-4 w-full resize-none rounded-xl border border-[#ececec] bg-white px-4 py-3 text-[14px] text-[#1a1a1a] outline-none placeholder:text-[#9a9a9a] transition-all focus:border-[#c9a84c] focus:shadow-[0_0_0_3px_#f5efdc]"
+        className="mt-4 w-full resize-none rounded-xl border border-[#ececec] bg-white px-4 py-3 text-[14px] text-[#1a1a1a] outline-none placeholder:text-[#9a9a9a] transition-all focus:border-[#c6a75e] focus:shadow-[0_0_0_3px_#f5efdc]"
       />
 
       {error && <p className="mt-2 text-[13px] text-red-600">{error}</p>}
@@ -194,7 +194,7 @@ export default function CourseReviews({
         >
           Lo que dicen las participantes
         </h2>
-        <div className="mb-4 h-0.5 w-9 bg-[#c9a84c]" />
+        <div className="mb-4 h-0.5 w-9 bg-[#c6a75e]" />
         {summary.count > 0 ? (
           <div className="flex items-center gap-3">
             <span
@@ -227,7 +227,7 @@ export default function CourseReviews({
                 <li key={r.id} className="py-5 first:pt-0 last:pb-0">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[#c9a84c]/15 text-[13px] font-semibold text-[#a8862f]">
+                      <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[#c6a75e]/15 text-[13px] font-semibold text-[#a8862f]">
                         {r.author_name[0]?.toUpperCase() ?? "P"}
                       </span>
                       <div>

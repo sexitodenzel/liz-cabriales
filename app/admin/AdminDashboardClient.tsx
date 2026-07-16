@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Image as ImageIcon,
   Megaphone,
+  Newspaper,
   Package,
   ShoppingBag,
   Users,
@@ -77,6 +78,13 @@ const actionCards: ActionCard[] = [
     description: "Edita los slides de la franja negra superior de la tienda.",
     cta: "Editar anuncios",
     icon: Megaphone,
+  },
+  {
+    href: "/admin/blog",
+    title: "Blog",
+    description: "Publica tips, tendencias y contenido para las alumnas.",
+    cta: "Gestionar blog",
+    icon: Newspaper,
   },
 ]
 

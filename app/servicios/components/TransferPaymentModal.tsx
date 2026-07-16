@@ -318,7 +318,7 @@ export default function TransferPaymentModal({
                 </p>
                 <p
                   className={`mt-1 text-lg font-semibold tabular-nums ${
-                    remainingMs <= 0 ? "text-red-600" : "text-[#c9a84c]"
+                    remainingMs <= 0 ? "text-red-600" : "text-[#c6a75e]"
                   }`}
                 >
                   {formatPaymentCountdown(remainingMs)}

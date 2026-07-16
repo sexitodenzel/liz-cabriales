@@ -49,7 +49,7 @@ export default async function AcademiaDetallePage({ params }: Props) {
           </p>
           <Link
             href="/academia"
-            className="mt-6 inline-flex rounded-full bg-[#1a1a1a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c9a84c]"
+            className="mt-6 inline-flex rounded-full bg-[#1a1a1a] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#c6a75e]"
           >
             Ver eventos disponibles
           </Link>

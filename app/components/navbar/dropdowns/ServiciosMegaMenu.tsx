@@ -1,7 +1,6 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 
 import type { TiendaCategory } from "../menuData"
@@ -22,6 +21,7 @@ export default function ServiciosMegaMenu({
   const [contentVisible, setContentVisible] = useState(false)
   const [categories, setCategories] = useState<TiendaCategory[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeSlug, setActiveSlug] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -60,14 +60,41 @@ export default function ServiciosMegaMenu({
     return () => document.removeEventListener("keydown", handleKey)
   }, [isOpen, onClose])
 
+  // Categoría por defecto: la primera con servicios (para que el panel derecho
+  // no abra vacío). Si ninguna tiene, la primera de la lista.
+  const defaultSlug = useMemo(() => {
+    const withSubs = categories.find((c) => c.subcategories.length > 0)
+    return (withSubs ?? categories[0])?.slug ?? null
+  }, [categories])
+
+  useEffect(() => {
+    setActiveSlug(defaultSlug)
+  }, [defaultSlug])
+
+  const activeCat = useMemo(() => {
+    const match = categories.find((c) => c.slug === activeSlug)
+    return match ?? categories.find((c) => c.slug === defaultSlug) ?? null
+  }, [categories, activeSlug, defaultSlug])
+
+  const visibleSubs = activeCat?.subcategories ?? []
+  // Placeholders etiquetados: los servicios de la categoría activa (o la propia
+  // categoría si no tiene servicios). Cuando llegue el contenido de nail art /
+  // fotos de servicios, se cambia el fondo de estos tiles por la imagen real.
+  const tiles = (
+    visibleSubs.length > 0
+      ? visibleSubs.map((sub) => sub.label)
+      : activeCat
+        ? [activeCat.label]
+        : []
+  ).slice(0, 4)
+
   return (
     <div
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      style={{ maxHeight: "calc(100vh - var(--navbar-actual-h) - 80px)" }}
       className={`
         megamenu-hover-bridge absolute left-0 right-0 top-full z-40 hidden md:block
-        overflow-y-auto bg-white border-t border-neutral-200
+        bg-ivory border-t border-neutral-200
         transition-opacity ease-out
         ${isOpen
           ? "opacity-100 pointer-events-auto duration-300"
@@ -75,65 +102,127 @@ export default function ServiciosMegaMenu({
         }
       `}
     >
-      <div className="site-container py-10">
-        <div className="mb-6">
+      <div
+        className={`
+          site-container flex gap-0 pt-6 pb-8
+          transition-opacity duration-300 ease-out
+          ${contentVisible ? "opacity-100" : "opacity-0"}
+        `}
+      >
+        {/* ===== Columna izquierda: categorías de servicio ===== */}
+        <div className="w-60 shrink-0 border-r border-neutral-200 pr-6 lg:w-64">
           <Link
             href="/servicios"
             onClick={onClose}
-            className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#C6A75E] hover:opacity-80 transition-opacity"
+            onMouseEnter={() => setActiveSlug(defaultSlug)}
+            className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e] transition-opacity hover:opacity-80"
           >
             Ver servicios
           </Link>
+
+          {loading ? (
+            <ul className="space-y-1 px-3 py-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <li key={i} className="h-6 animate-pulse rounded-md bg-neutral-100" />
+              ))}
+            </ul>
+          ) : (
+            <ul className="-ml-3">
+              {categories.map((cat) => {
+                const isActive = cat.slug === activeCat?.slug
+                return (
+                  <li key={cat.slug}>
+                    <Link
+                      href={cat.href}
+                      onClick={onClose}
+                      onMouseEnter={() => setActiveSlug(cat.slug)}
+                      onFocus={() => setActiveSlug(cat.slug)}
+                      className={`
+                        block rounded-md px-3 py-[7px] text-[13px] font-medium tracking-wide transition-colors
+                        ${isActive
+                          ? "bg-neutral-100 text-[#c6a75e]"
+                          : "text-[#1a1a1a] hover:text-[#c6a75e]"
+                        }
+                      `}
+                    >
+                      {cat.label}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="space-y-3">
-                <div className="h-3 w-24 animate-pulse rounded-sm bg-neutral-100" />
-                <div className="space-y-2">
-                  {Array.from({ length: 4 }).map((__, j) => (
-                    <div key={j} className="h-3 w-full max-w-[180px] animate-pulse rounded-sm bg-neutral-100" />
+        {/* ===== Panel derecho: servicios + placeholders etiquetados ===== */}
+        <div className="relative min-h-[300px] flex-1 pl-8 lg:pl-12">
+          {activeCat && (
+            <div key={activeCat.slug} className="lc-mega-panel-in flex gap-10">
+              {/* Servicios de la categoría activa */}
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={activeCat.href}
+                  onClick={onClose}
+                  className="mb-6 inline-flex items-center text-[12px] font-semibold uppercase tracking-[0.16em] text-[#c6a75e] transition-opacity hover:opacity-80"
+                >
+                  Ver todo en {activeCat.label}
+                </Link>
+
+                {visibleSubs.length > 0 ? (
+                  <ul className="grid grid-cols-2 gap-x-10 gap-y-3 lg:grid-cols-3">
+                    {visibleSubs.map((sub) => (
+                      <li key={sub.label}>
+                        <Link
+                          href={sub.href}
+                          onClick={onClose}
+                          className="block py-1 text-[14px] text-neutral-700 transition-colors hover:text-[#c6a75e] line-clamp-1"
+                        >
+                          {sub.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="max-w-sm text-[14px] leading-relaxed text-neutral-500">
+                    Agenda tu cita en{" "}
+                    <span className="text-neutral-700">{activeCat.label}</span>.
+                  </p>
+                )}
+              </div>
+
+              {/* Placeholders etiquetados (imágenes pendientes de servicios) */}
+              {tiles.length > 0 && (
+                <div className="grid w-[320px] shrink-0 grid-cols-2 gap-x-4 gap-y-6 border-l border-neutral-200 pl-10">
+                  {tiles.map((label) => (
+                    <ServicePlaceholderTile key={label} label={label} />
                   ))}
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-            {categories.map((cat, idx) => (
-              <div
-                key={cat.slug}
-                className={`
-                  transition-opacity duration-300 ease-out
-                  ${contentVisible ? "opacity-100" : "opacity-0"}
-                `}
-                style={{ transitionDelay: `${idx * 30}ms` }}
-              >
-                <Link
-                  href={cat.href}
-                  onClick={onClose}
-                  className="mb-3 block text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] hover:text-[#C6A75E] transition-colors"
-                >
-                  {cat.label}
-                </Link>
-                <ul className="space-y-2">
-                  {cat.subcategories.map((sub) => (
-                    <li key={`${cat.slug}-${sub.label}`}>
-                      <Link
-                        href={sub.href}
-                        onClick={onClose}
-                        className="block text-[14px] text-neutral-700 hover:text-[#C6A75E] transition-colors line-clamp-2"
-                      >
-                        {sub.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Tile placeholder para el showcase de servicios. Reserva el espacio visual
+ * (mismo formato que el showcase de la tienda) con el nombre del servicio
+ * encima. Cuando lleguen las fotos reales, se sustituye el fondo neutro por
+ * una <SmoothImage> de fondo.
+ */
+function ServicePlaceholderTile({ label }: { label: string }) {
+  return (
+    <div className="w-full">
+      <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-md bg-neutral-100">
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-100 to-neutral-200" />
+        <span className="absolute right-2 top-2 rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-neutral-600">
+          Próximamente
+        </span>
+        <p className="relative z-10 p-2.5 text-[11px] font-medium leading-snug text-neutral-600 line-clamp-2">
+          {label}
+        </p>
       </div>
     </div>
   )

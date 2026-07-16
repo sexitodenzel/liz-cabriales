@@ -131,7 +131,7 @@ export default function MobileSearchOverlay({
                   onClose()
                 }
               }}
-              className="inline-flex shrink-0 items-center justify-center p-1 text-neutral-900 transition-colors hover:text-[#c9a84c]"
+              className="inline-flex shrink-0 items-center justify-center p-1 text-neutral-900 transition-colors hover:text-[#c6a75e]"
               aria-label={query.length > 0 ? "Limpiar búsqueda" : "Cerrar búsqueda"}
             >
               <X className="h-6 w-6" strokeWidth={1.5} />

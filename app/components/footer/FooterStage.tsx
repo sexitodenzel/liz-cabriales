@@ -21,7 +21,10 @@ export default function FooterStage({
   useFooterStageReveal(stageRef, !isStatic)
 
   if (isStatic) {
-    return <Footer />
+    /* Aún en flujo (páginas cortas / reduce-motion) mostramos el wordmark
+       grande "Liz Cabriales Studio": el telón fijo no aplica, pero la sección
+       grandota sí debe aparecer en todas las páginas. */
+    return <Footer expanded />
   }
 
   return (

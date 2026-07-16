@@ -15,6 +15,12 @@ export type CourseLevel =
   | "intermediate"
   | "advanced"
   | "open"
+export type CourseEventType =
+  | "curso"
+  | "taller_master_internacional"
+  | "taller_master_nacional"
+  | "masterclass"
+  | "seminario_tecnico"
 export type RegistrationStatus = "pending" | "paid" | "cancelled"
 export type PaymentStatus = "pending" | "approved" | "rejected" | "refunded"
 export type PaymentProvider = "mercadopago" | "stripe"

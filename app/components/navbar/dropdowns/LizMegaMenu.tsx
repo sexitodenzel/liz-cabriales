@@ -30,6 +30,11 @@ const SECTIONS = [
     href: "/sobre-liz#eventos",
   },
   {
+    label: "Blog",
+    description: "Tendencias, técnicas y nail art",
+    href: "/blog",
+  },
+  {
     label: "Academia",
     description: "Cursos presenciales y certificaciones",
     href: "/academia",
@@ -92,7 +97,7 @@ export default function LizMegaMenu({
       style={{ maxHeight: "calc(100vh - var(--navbar-actual-h) - 80px)" }}
       className={`
         megamenu-hover-bridge absolute left-0 right-0 top-full z-40 hidden md:block
-        overflow-y-auto bg-white border-t border-neutral-200
+        overflow-y-auto bg-ivory border-t border-neutral-200
         transition-opacity ease-out
         ${isOpen
           ? "opacity-100 pointer-events-auto duration-300"
@@ -100,12 +105,12 @@ export default function LizMegaMenu({
         }
       `}
     >
-      <div className="site-container py-10">
+      <div className="site-container pt-6 pb-10">
         <div className="mb-6">
           <Link
             href="/sobre-liz"
             onClick={onClose}
-            className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c] hover:opacity-80 transition-opacity"
+            className="flex w-fit items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e] hover:opacity-80 transition-opacity"
           >
             Ver toda la página
           </Link>
@@ -129,7 +134,7 @@ export default function LizMegaMenu({
                 className="object-cover group-hover:scale-[1.03]"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent px-5 pb-5 pt-12">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#c9a84c]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#c6a75e]">
                   Spotlight
                 </p>
                 <p
@@ -152,12 +157,12 @@ export default function LizMegaMenu({
                 key={section.label}
                 href={section.href}
                 onClick={onClose}
-                className={`group flex flex-col gap-1.5 border-l border-[#c9a84c]/25 pl-5 transition-opacity duration-300 ease-out ${
+                className={`group flex flex-col gap-1.5 border-l border-[#c6a75e]/25 pl-5 transition-opacity duration-300 ease-out ${
                   contentVisible ? "opacity-100" : "opacity-0"
                 }`}
                 style={{ transitionDelay: `${idx * 40}ms` }}
               >
-                <span className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] transition-colors group-hover:text-[#c9a84c]">
+                <span className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] transition-colors group-hover:text-[#c6a75e]">
                   {section.label}
                 </span>
                 <span className="text-[13px] leading-snug text-neutral-500">

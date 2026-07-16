@@ -62,7 +62,7 @@ export default function ServicesSection({ services }: Props) {
               <p className="mt-1.5 text-[11px] uppercase tracking-[0.14em] text-neutral-400">
                 {formatDuration(service.duration_min)}
               </p>
-              <p className="mt-2 text-base font-semibold text-[#C9A84C]">
+              <p className="mt-2 text-base font-semibold text-[#c6a75e]">
                 {formatPrice(service.price)}
               </p>
             </div>

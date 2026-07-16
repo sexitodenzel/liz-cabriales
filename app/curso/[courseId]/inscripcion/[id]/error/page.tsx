@@ -101,7 +101,7 @@ export default async function InscripcionErrorPage({
               <div className="mt-4">
                 <Link
                   href={`/academia/${courseId}`}
-                  className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#C9A84C] hover:text-[#C9A84C]"
+                  className="inline-flex items-center justify-center rounded-full border border-neutral-300 px-5 py-3 text-sm font-semibold text-[#0a0a0a] transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
                 >
                   Ver el curso
                 </Link>

@@ -163,7 +163,7 @@ export default function BookingSummary({
       {selectedServices.length > 0 && (
         <div className="space-y-4 border-b border-neutral-100 px-5 py-5">
           {isConfirmStep && (
-            <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a84c]">
+            <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e]">
               Resumen de tu cita
             </p>
           )}
@@ -185,7 +185,7 @@ export default function BookingSummary({
                   </p>
                 </div>
                 {opts.length > 0 && (
-                  <p className="mt-1 text-xs text-[#c9a84c]">
+                  <p className="mt-1 text-xs text-[#c6a75e]">
                     {opts.map((o) => o.label).join(" · ")}
                   </p>
                 )}
@@ -237,7 +237,7 @@ export default function BookingSummary({
               Total
             </span>
             <span
-              className={`font-[family-name:var(--font-playfair),serif] text-[#c9a84c] ${
+              className={`font-[family-name:var(--font-playfair),serif] text-[#c6a75e] ${
                 isConfirmStep ? "text-4xl leading-none" : "text-xl"
               }`}
             >
@@ -248,7 +248,7 @@ export default function BookingSummary({
 
         {isConfirmStep && (
           <div className="mb-5 flex items-start gap-3 rounded-lg bg-neutral-50 p-4">
-            <span className="text-[#c9a84c]">✓</span>
+            <span className="text-[#c6a75e]">✓</span>
             <p className="text-xs leading-relaxed text-neutral-600">
               Al confirmar, tu reserva quedará en espera. Realiza la transferencia
               del anticipo y envía tu comprobante por WhatsApp.
@@ -272,7 +272,7 @@ export default function BookingSummary({
                 type="button"
                 onClick={onConfirm}
                 disabled={submitting}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#111] py-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all hover:bg-[#c9a84c] hover:text-[#111] disabled:cursor-not-allowed disabled:opacity-35"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#111] py-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-all hover:bg-[#c6a75e] hover:text-[#111] disabled:cursor-not-allowed disabled:opacity-35"
               >
                 {submitting ? (
                   <>
