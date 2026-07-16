@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Check, ChevronDown, Plus } from "lucide-react"
+import { Check, ChevronDown, Plus, User } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type {
   AppointmentRecord,
@@ -13,7 +13,6 @@ import type {
 } from "@/lib/supabase/appointments"
 import { professionalMatchesServiceFilters } from "@/lib/professionalFilters"
 import { navSticky } from "@/lib/nav-sticky"
-import { useNavFollowParked } from "@/lib/hooks/use-nav-follow-parked"
 import ServiceOptionsPicker, {
   buildServiceSelections,
   resolveServiceOptions,
@@ -113,6 +112,11 @@ function getInitials(name: string): string {
     .join("")
     .slice(0, 2)
     .toUpperCase()
+}
+
+function firstName(name: string): string {
+  const part = name.trim().split(/\s+/)[0]
+  return part || name
 }
 
 function groupSlotsByPeriod(slots: Slot[]) {
@@ -246,10 +250,12 @@ function SlotGrid({
   slots,
   selectedSlot,
   onSelect,
+  disabled = false,
 }: {
   slots: Slot[]
   selectedSlot: Slot | null
   onSelect: (slot: Slot) => void
+  disabled?: boolean
 }) {
   if (slots.length === 0) return null
 
@@ -263,8 +269,9 @@ function SlotGrid({
           <button
             key={`${slot.professional_id}-${slot.start_time}`}
             type="button"
+            disabled={disabled}
             onClick={() => onSelect(slot)}
-            className={`rounded-lg border py-3 text-[13px] font-medium transition-all duration-200 ${
+            className={`rounded-lg border py-3 text-[13px] font-medium transition-all duration-200 disabled:cursor-wait ${
               active
                 ? "border-neutral-900 bg-neutral-900 text-white shadow-sm"
                 : "border-neutral-200/80 bg-white text-[#111] hover:border-neutral-400"
@@ -289,10 +296,6 @@ export default function ServiciosClient({
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  // Evita el gotcha de "park": al llegar al fondo con navbar colapsado, el
-  // -56px del follow devuelve a 0 cuando la card se estaciona en su columna.
-  const summaryParkRef = useNavFollowParked<HTMLElement>()
-
   const [transferAccountNumber, setTransferAccountNumber] = useState(
     initialTransferAccountNumber
   )
@@ -325,6 +328,8 @@ export default function ServiciosClient({
   const [phone, setPhone] = useState("")
   const [phoneError, setPhoneError] = useState<string | null>(null)
   const [fullCalendarOpen, setFullCalendarOpen] = useState(false)
+  const [proPickerOpen, setProPickerOpen] = useState(false)
+  const proPickerRef = useRef<HTMLDivElement>(null)
 
   const selectedServices = useMemo(
     () => services.filter((s) => selectedServiceIds.includes(s.id)),
@@ -391,6 +396,14 @@ export default function ServiciosClient({
       setSelectedSlot(null)
     }
   }, [selectedDate, bookableDateSet])
+
+  // Al entrar a fecha/hora: preseleccionar hoy (o el primer día reservable).
+  useEffect(() => {
+    if (step !== 3) return
+    if (selectedDate) return
+    const first = availableDates[0]
+    if (first) setSelectedDate(toDateString(first))
+  }, [step, selectedDate, availableDates])
 
   const filters =
     initialFilters.length > 0 ? initialFilters : DEFAULT_FILTERS
@@ -737,13 +750,15 @@ export default function ServiciosClient({
     else router.push("/servicios")
   }
 
+  // Instantáneo (no smooth): si el scroll anima mientras llegan los
+  // horarios, el sticky del resumen salta al recalcular la columna.
   const skipStepScrollRef = useRef(true)
   useEffect(() => {
     if (skipStepScrollRef.current) {
       skipStepScrollRef.current = false
       return
     }
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    window.scrollTo(0, 0)
   }, [step])
 
   useEffect(() => {
@@ -757,6 +772,22 @@ export default function ServiciosClient({
     )
     if (!stillEligible) setSelectedProfessionalId(null)
   }, [eligibleProfessionals, selectedProfessionalId])
+
+  useEffect(() => {
+    if (!proPickerOpen) return
+    const onPointerDown = (event: MouseEvent | TouchEvent) => {
+      const node = proPickerRef.current
+      if (node && !node.contains(event.target as Node)) {
+        setProPickerOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", onPointerDown)
+    document.addEventListener("touchstart", onPointerDown)
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown)
+      document.removeEventListener("touchstart", onPointerDown)
+    }
+  }, [proPickerOpen])
 
   const hasBlockingAppointment = Boolean(
     modalAppointment &&
@@ -921,13 +952,21 @@ export default function ServiciosClient({
         ? selectedServices[0].name
         : `${selectedServices.length} servicios`
 
+  // En el paso de hora: resumen / Continuar solo con horario elegido.
+  const showBookingChrome =
+    selectedServiceIds.length > 0 && (step !== 3 || selectedSlot !== null)
+  // Móvil paso profesional: sticky Continuar solo tras elegir profesional.
+  const showStickyContinue =
+    showBookingChrome && (step !== 2 || selectedProfessionalId !== null)
+
   return (
     <div
-      className={`min-h-screen bg-white ${
-        selectedServiceIds.length > 0 ? "max-lg:pb-24" : ""
+      className={`min-h-screen bg-ivory ${
+        showStickyContinue ? "max-lg:pb-24" : ""
       }`}
     >
-      <header {...navSticky("follow", "z-30 bg-white/95 backdrop-blur-md")}>
+      {/* follow: abraza el navbar al colapsar (plain dejaba gap arriba). */}
+      <header {...navSticky("follow", "z-30 bg-ivory/95 backdrop-blur-md")}>
         <div className="site-container">
           <div className="flex items-center gap-4 py-3">
             <button
@@ -986,6 +1025,10 @@ export default function ServiciosClient({
           <div
             className={`min-w-0 flex-1 ${step === 4 ? "lg:col-span-8" : ""}`}
           >
+            {/* Mismo fade+subida que app/template.tsx (lc-page-enter).
+                key remonta al cambiar de paso; fill-mode none no deja
+                transform que rompa sticky. */}
+            <div key={step} className="lc-page-enter">
             {step === 1 && (
               <div>
                 <StepHeading title="Seleccionar servicios" />
@@ -994,7 +1037,7 @@ export default function ServiciosClient({
                   <div
                     {...navSticky(
                       "follow-below-sm",
-                      "z-20 mb-6 border-b border-neutral-200/80 bg-white pb-3 pt-1",
+                      "z-20 mb-6 border-b border-neutral-200/80 bg-ivory pb-3 pt-1",
                       { guard: true },
                     )}
                   >
@@ -1042,17 +1085,7 @@ export default function ServiciosClient({
                     >
                       <h2
                         id={`cat-${group.slug}-heading`}
-                        className={
-                          // La barra de chips pegajosa ya rotula la categoría
-                          // activa (scroll-spy), así que el título por grupo es
-                          // redundante y colisiona con la barra al scrollear.
-                          // Se oculta visualmente (queda para lectores de
-                          // pantalla) cuando hay chips; visible si hay 1 sola
-                          // categoría (sin barra de chips).
-                          servicesByCategory.length > 1
-                            ? "sr-only"
-                            : "mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
-                        }
+                        className="mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
                       >
                         {group.name}
                       </h2>
@@ -1352,12 +1385,142 @@ export default function ServiciosClient({
 
             {step === 3 && (
               <div>
-                <StepHeading
-                  title="Seleccionar fecha y hora"
-                  subtitle="Elige el día y horario que mejor se adapte a tu agenda."
+                <StepHeading title="Seleccionar fecha y hora" />
+
+                {/* Feed: profesional (dropdown) + calendario */}
+                <div className="mb-6 flex items-center justify-between gap-2.5">
+                  <div ref={proPickerRef} className="relative shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setProPickerOpen((v) => !v)}
+                      aria-expanded={proPickerOpen}
+                      aria-haspopup="listbox"
+                      className="inline-flex h-11 max-w-[11.5rem] items-center gap-2 rounded-full border border-neutral-200 bg-white py-1.5 pl-1.5 pr-3 text-left transition-colors hover:border-neutral-400 sm:max-w-none"
+                    >
+                      {selectedProfessionalId &&
+                      selectedProfessionalId !== "any" &&
+                      selectedProfessional?.photo_url ? (
+                        <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-neutral-100">
+                          <img
+                            src={selectedProfessional.photo_url}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        </span>
+                      ) : selectedProfessionalId &&
+                        selectedProfessionalId !== "any" &&
+                        selectedProfessional ? (
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-semibold text-neutral-600">
+                          {getInitials(selectedProfessional.name)}
+                        </span>
+                      ) : (
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#ece8f5] text-[#6b5b95]">
+                          <User className="h-4 w-4" strokeWidth={2} aria-hidden />
+                        </span>
+                      )}
+                      <span className="truncate text-[14px] font-medium text-[#0a0a0a]">
+                        {selectedProfessionalId === "any" || !selectedProfessional
+                          ? "Sin preferencia"
+                          : firstName(selectedProfessional.name)}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-neutral-500 transition-transform ${
+                          proPickerOpen ? "rotate-180" : ""
+                        }`}
+                        aria-hidden
+                      />
+                    </button>
+
+                    {proPickerOpen && (
+                      <ul
+                        role="listbox"
+                        className="absolute left-0 top-[calc(100%+6px)] z-20 max-h-64 min-w-[14rem] overflow-y-auto rounded-2xl border border-neutral-200 bg-white py-1 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+                      >
+                        <li role="option" aria-selected={selectedProfessionalId === "any"}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedProfessionalId("any")
+                              setSelectedSlot(null)
+                              setProPickerOpen(false)
+                            }}
+                            className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[14px] transition-colors hover:bg-neutral-50 ${
+                              selectedProfessionalId === "any"
+                                ? "font-semibold text-[#0a0a0a]"
+                                : "text-neutral-700"
+                            }`}
+                          >
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#ece8f5] text-[#6b5b95]">
+                              <User className="h-4 w-4" strokeWidth={2} aria-hidden />
+                            </span>
+                            Sin preferencia
+                          </button>
+                        </li>
+                        {eligibleProfessionals.map((p) => (
+                          <li
+                            key={p.id}
+                            role="option"
+                            aria-selected={selectedProfessionalId === p.id}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedProfessionalId(p.id)
+                                setSelectedSlot(null)
+                                setProPickerOpen(false)
+                              }}
+                              className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[14px] transition-colors hover:bg-neutral-50 ${
+                                selectedProfessionalId === p.id
+                                  ? "font-semibold text-[#0a0a0a]"
+                                  : "text-neutral-700"
+                              }`}
+                            >
+                              <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-neutral-100">
+                                {p.photo_url ? (
+                                  <img
+                                    src={p.photo_url}
+                                    alt=""
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="flex h-full w-full items-center justify-center text-[11px] font-semibold text-neutral-500">
+                                    {getInitials(p.name)}
+                                  </span>
+                                )}
+                              </span>
+                              {p.name}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setFullCalendarOpen(true)}
+                    aria-label="Ver calendario completo"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-[#0a0a0a] transition-colors hover:border-neutral-400"
+                  >
+                    <IconCalendar />
+                  </button>
+                </div>
+
+                <FullCalendarModal
+                  open={fullCalendarOpen}
+                  onClose={() => setFullCalendarOpen(false)}
+                  value={selectedDate}
+                  onChange={(dateStr) => {
+                    setSelectedDate(dateStr)
+                    setSelectedSlot(null)
+                    setFullCalendarOpen(false)
+                  }}
+                  availableDates={bookableDateSet}
+                  minBookableDate={bookableRange.min}
+                  maxBookableDate={bookableRange.max}
                 />
 
-                <div className="mb-10">
+                <div className="mb-8">
                   <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                     Fecha
                   </p>
@@ -1398,43 +1561,22 @@ export default function ServiciosClient({
                       )
                     })}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setFullCalendarOpen(true)}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#111] transition-all hover:border-neutral-900 hover:bg-neutral-50"
-                  >
-                    <IconCalendar />
-                    Ver calendario completo
-                  </button>
-                  <FullCalendarModal
-                    open={fullCalendarOpen}
-                    onClose={() => setFullCalendarOpen(false)}
-                    value={selectedDate}
-                    onChange={(dateStr) => {
-                      setSelectedDate(dateStr)
-                      setSelectedSlot(null)
-                      setFullCalendarOpen(false)
-                    }}
-                    availableDates={bookableDateSet}
-                    minBookableDate={bookableRange.min}
-                    maxBookableDate={bookableRange.max}
-                  />
                 </div>
 
-                <div className="mb-10">
+                {/* Sin margin-bottom final: un mb aquí no colapsa (BFC) y el
+                    sticky del resumen se alinea ese margen más abajo.
+                    Spinner solo en la 1ª carga; al cambiar fecha se mantienen
+                    los slots previos para no encoger la columna (salto sticky). */}
+                <div>
                   <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                     Hora
                   </p>
-                  {!selectedDate ? (
-                    <p className="text-sm text-neutral-500">
-                      Selecciona una fecha para ver los horarios disponibles.
-                    </p>
-                  ) : loadingSlots ? (
-                    <div className="flex items-center gap-2 text-sm text-neutral-500">
+                  {!selectedDate || (loadingSlots && slots.length === 0) ? (
+                    <div className="flex min-h-[14rem] items-center gap-2 text-sm text-neutral-500">
                       <Spinner />
                       Cargando horarios…
                     </div>
-                  ) : slotsError ? (
+                  ) : slotsError && slots.length === 0 ? (
                     <p className="text-sm text-red-600">{slotsError}</p>
                   ) : slots.length === 0 ? (
                     <div className="rounded-lg border border-neutral-200/80 bg-white px-6 py-10 text-center">
@@ -1449,7 +1591,12 @@ export default function ServiciosClient({
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-8">
+                    <div
+                      className={`space-y-8 transition-opacity duration-200 ${
+                        loadingSlots ? "opacity-50" : "opacity-100"
+                      }`}
+                      aria-busy={loadingSlots}
+                    >
                       {morningSlots.length > 0 && (
                         <div>
                           <div className="mb-4 flex items-center gap-2 text-neutral-500">
@@ -1462,6 +1609,7 @@ export default function ServiciosClient({
                             slots={morningSlots}
                             selectedSlot={selectedSlot}
                             onSelect={setSelectedSlot}
+                            disabled={loadingSlots}
                           />
                         </div>
                       )}
@@ -1477,6 +1625,7 @@ export default function ServiciosClient({
                             slots={afternoonSlots}
                             selectedSlot={selectedSlot}
                             onSelect={setSelectedSlot}
+                            disabled={loadingSlots}
                           />
                         </div>
                       )}
@@ -1484,8 +1633,9 @@ export default function ServiciosClient({
                   )}
                 </div>
 
-                {selectedServices.length > 0 && (
-                  <div className="flex flex-col items-center justify-between gap-4 rounded-lg border border-neutral-200/80 bg-white p-6 shadow-sm md:flex-row">
+                {/* Resumen + total (solo desktop; móvil usa sticky Continuar). */}
+                {selectedServices.length > 0 && selectedSlot && (
+                  <div className="hidden items-center justify-between gap-4 rounded-lg border border-neutral-200/80 bg-white p-6 shadow-sm lg:flex lg:flex-row">
                     <div>
                       <div className="space-y-1">
                         {selectedServices.map((s) => {
@@ -1497,7 +1647,7 @@ export default function ServiciosClient({
                             <p key={s.id} className="font-medium text-[#111]">
                               {s.name}
                               {opts.length > 0 && (
-                                <span className="ml-1 text-sm font-normal text-[#c6a75e]">
+                                <span className="ml-1 text-sm font-normal text-neutral-500">
                                   · {opts.map((o) => o.label).join(" · ")}
                                 </span>
                               )}
@@ -1513,7 +1663,7 @@ export default function ServiciosClient({
                       <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
                         Total
                       </p>
-                      <p className="font-[family-name:var(--font-playfair),serif] text-2xl text-[#c6a75e]">
+                      <p className="text-2xl font-semibold text-[#0a0a0a]">
                         {formatPrice(totalPrice)}
                       </p>
                     </div>
@@ -1698,32 +1848,26 @@ export default function ServiciosClient({
               </div>
             )}
 
-            {selectedServiceIds.length > 0 && (
-              <div className="mt-8 lg:hidden">
-                {/* CTA vive en StickyContinueBar; aquí solo el detalle. */}
-                <BookingSummary {...summaryProps} showActions={false} />
-              </div>
-            )}
+            {/* Móvil: sin card resumen; solo StickyContinueBar. */}
+            </div>
           </div>
 
+          {/* Desktop sidebar: plain (sin follow). Barras full-width del
+              wizard sí usan follow para no dejar gap bajo el navbar. */}
           {step < 4 ? (
             <aside
-              ref={summaryParkRef}
               {...navSticky(
-                "follow-below-sm",
-                // Debajo del header de pasos; mismo sticky que otras secciones.
+                "plain",
                 "z-10 hidden w-[340px] shrink-0 lg:block xl:w-[380px]",
               )}
+              style={{ top: "calc(var(--navbar-actual-h, 64px) + 3.75rem)" }}
             >
               <BookingSummary {...summaryProps} />
             </aside>
           ) : (
             <aside
-              ref={summaryParkRef}
-              {...navSticky(
-                "follow-below-sm",
-                "z-10 hidden lg:col-span-4 lg:block",
-              )}
+              {...navSticky("plain", "z-10 hidden lg:col-span-4 lg:block")}
+              style={{ top: "calc(var(--navbar-actual-h, 64px) + 3.75rem)" }}
             >
               <BookingSummary {...summaryProps} />
             </aside>
@@ -1732,7 +1876,7 @@ export default function ServiciosClient({
       </div>
 
       <StickyContinueBar
-        hasSelection={selectedServiceIds.length > 0}
+        hasSelection={showStickyContinue}
         totalPrice={totalPrice}
         formatPrice={formatPrice}
         serviceLabel={stickyServiceLabel}

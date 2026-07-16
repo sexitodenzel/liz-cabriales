@@ -16,10 +16,11 @@ import {
 
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import ImageLightbox from "@/app/components/shared/ImageLightbox"
-import {
-  storeHeroAddToCartClassName,
-  storeInlineButtonClassName,
-} from "@/app/tienda/components/store-button-styles"
+import { storeInlineButtonClassName } from "@/app/tienda/components/store-button-styles"
+
+/** Mismo CTA negro que Continuar en /servicios/agendar (BookingSummary). */
+const bookNowClassName =
+  "inline-flex h-11 w-full items-center justify-center rounded-full bg-[#1a1a1a] text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-black"
 import type {
   ProfessionalRow,
   ServiceFilterRow,
@@ -555,9 +556,8 @@ export default function ServiciosLanding({
           <aside
             {...navSticky(
               "plain",
-              // Ancho cercano a la columna de producto (460px en ProductHero)
-              // para que el CTA no quede más estrecho por el padding del card.
-              "z-10 w-full max-w-[460px] justify-self-stretch rounded-2xl border border-neutral-200/60 bg-white/80 p-5 max-lg:static max-lg:top-auto max-lg:max-w-none lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:justify-self-end lg:p-6"
+              // Mismo chrome que BookingSummary del flujo de reserva.
+              "z-10 w-full max-w-[460px] justify-self-stretch rounded-xl border border-[#ececec] bg-[#fafafa] p-5 max-lg:static max-lg:top-auto max-lg:max-w-none lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:justify-self-end lg:p-6"
             )}
             // La barra de secciones (fixed, altura tabsBarH) vive bajo el navbar;
             // la card se pega DEBAJO de ella para que no le tape el encabezado.
@@ -585,7 +585,7 @@ export default function ServiciosLanding({
               </div>
             </div>
 
-            <div className="mt-3 h-px w-full bg-neutral-900/85" />
+            <div className="mt-3 h-px w-full bg-[#ececec]" />
 
             <div className="mt-5 space-y-4 text-[13px] text-[#5a5a5a]">
               <div>
@@ -642,7 +642,7 @@ export default function ServiciosLanding({
             </div>
 
             <div ref={bookCtaRef} className="mt-8">
-              <Link href="/servicios/agendar" className={storeHeroAddToCartClassName}>
+              <Link href="/servicios/agendar" className={bookNowClassName}>
                 Reservar ahora
               </Link>
             </div>
@@ -946,7 +946,7 @@ export default function ServiciosLanding({
       {/* Sticky móvil bajo tabs (Fotos / Servicios / …) — no pegado al navbar */}
       {mobileBookBar && (
         <div
-          className="navbar-follow-collapse fixed left-0 right-0 z-20 border-b border-neutral-200 bg-white/85 backdrop-blur-md lg:hidden"
+          className="navbar-follow-collapse fixed left-0 right-0 z-20 border-b border-neutral-200 bg-ivory/85 backdrop-blur-md lg:hidden"
           style={{
             top: `calc(var(--navbar-actual-h, 64px) + ${tabsBarH}px)`,
           }}
@@ -982,7 +982,7 @@ export default function ServiciosLanding({
               </button>
               <Link
                 href="/servicios/agendar"
-                className={`${storeHeroAddToCartClassName} h-11 w-auto shrink-0 px-5 py-0 text-[11px] tracking-[0.14em]`}
+                className={`${bookNowClassName} w-auto shrink-0 px-5`}
               >
                 Reservar ahora
               </Link>

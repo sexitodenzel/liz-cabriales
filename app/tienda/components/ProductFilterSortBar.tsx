@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { LayoutGrid, List, SlidersHorizontal, X } from "lucide-react"
 import { useCart } from "@/app/components/cart/CartContext"
-import Breadcrumb, { type BreadcrumbItem } from "@/components/shared/Breadcrumb"
 import StoreFilterPanel, {
   type StoreFilterPanelConfig,
 } from "./StoreFilterPanel"
@@ -34,7 +33,6 @@ type ProductFilterSortBarProps = {
   activeFilterCount?: number
   activeChips?: ActiveFilterChip[]
   filterPanel?: StoreFilterPanelConfig
-  breadcrumbItems?: BreadcrumbItem[]
   viewMode?: ProductViewMode
   onViewModeChange?: (mode: ProductViewMode) => void
 }
@@ -70,7 +68,6 @@ export default function ProductFilterSortBar({
   activeFilterCount = 0,
   activeChips = [],
   filterPanel,
-  breadcrumbItems,
   viewMode = "grid",
   onViewModeChange,
 }: ProductFilterSortBarProps) {
@@ -108,13 +105,7 @@ export default function ProductFilterSortBar({
           isCartOpen ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            {breadcrumbItems && breadcrumbItems.length > 0 ? (
-              <Breadcrumb items={breadcrumbItems} className="mb-0" />
-            ) : null}
-          </div>
-
+        <div className="flex items-center justify-end gap-4">
           <div className="flex shrink-0 items-center gap-3">
             {onViewModeChange && (
               <div

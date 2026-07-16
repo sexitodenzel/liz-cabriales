@@ -1220,7 +1220,7 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
   } as const
 
   return (
-    <main className="min-h-screen bg-white text-[#1a1a1a]">
+    <main className="min-h-screen bg-ivory text-[#1a1a1a]">
       <h1 className="sr-only">Checkout</h1>
       <div className="site-container pt-5">
         <Breadcrumb items={breadcrumbItems} />

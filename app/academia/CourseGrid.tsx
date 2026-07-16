@@ -6,7 +6,6 @@ import SmoothImage from "@/app/components/shared/SmoothImage"
 import Link from "next/link"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { ArrowUpRight, CalendarDays, LayoutGrid, List, SlidersHorizontal } from "lucide-react"
-import Breadcrumb, { type BreadcrumbItem } from "@/components/shared/Breadcrumb"
 import ImageLightbox from "@/app/components/shared/ImageLightbox"
 import CourseFilterPanel from "./CourseFilterPanel"
 import CourseCalendar, {
@@ -29,7 +28,6 @@ import type { CourseEventType, CourseLevel } from "@/types"
 
 type Props = {
   courses: CourseWithStats[]
-  breadcrumbItems?: BreadcrumbItem[]
 }
 
 function cardDescription(course: {
@@ -525,7 +523,7 @@ function CourseCard({
 
 // ── Main grid ──────────────────────────────────────────────────────────────
 
-export default function CourseGrid({ courses, breadcrumbItems }: Props) {
+export default function CourseGrid({ courses }: Props) {
   const { viewMode, setViewMode } = useCourseViewMode()
   const reducedMotion = useReducedMotion()
   const [query, setQuery] = useState("")
@@ -650,14 +648,8 @@ export default function CourseGrid({ courses, breadcrumbItems }: Props) {
         data-nav-collapse-guard
         className="navbar-follow-collapse sticky top-[var(--navbar-actual-h)] z-20 -mx-[var(--site-px)] mb-6 bg-ivory px-[var(--site-px)] py-2"
       >
-        {/* Todo a la altura del breadcrumb: breadcrumb + toggle vista + Filtrar */}
-        <div className="flex items-center justify-between gap-2 sm:gap-4">
-          {breadcrumbItems && breadcrumbItems.length > 0 ? (
-            <Breadcrumb items={breadcrumbItems} className="mb-0 min-w-0" />
-          ) : (
-            <span />
-          )}
-
+        {/* Barra de controles: toggle de vista + Filtrar, alineados a la derecha */}
+        <div className="flex items-center justify-end gap-2 sm:gap-4">
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {/* Filtrar → Drawer. Mismo pill que Hoy/flechas; ícono a la derecha. */}
             <AnimatePresence initial={false}>

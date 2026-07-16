@@ -39,7 +39,7 @@ export default async function OrdenPage({ params, searchParams }: Props) {
 
   if (!result.data) {
     return (
-      <main className="min-h-screen bg-white site-container py-10 text-[#0a0a0a]">
+      <main className="min-h-screen bg-ivory site-container py-10 text-[#0a0a0a]">
         <div className="mx-auto max-w-[720px] rounded-3xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             Mi orden
@@ -74,7 +74,7 @@ export default async function OrdenPage({ params, searchParams }: Props) {
   const awaitingShipping = order.status === "awaiting_shipping_payment"
 
   return (
-    <main className="min-h-screen bg-white text-[#0a0a0a]">
+    <main className="min-h-screen bg-ivory text-[#0a0a0a]">
       <div className="site-container pt-5 pb-10">
         <Breadcrumb
           items={[

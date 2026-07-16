@@ -50,7 +50,7 @@ export default function CartPage() {
   const isEmpty = items.length === 0
 
   return (
-    <main className="min-h-screen bg-white text-[#1a1a1a]">
+    <main className="min-h-screen bg-ivory text-[#1a1a1a]">
       <div className="site-container pt-5">
         <Breadcrumb items={breadcrumbItems} />
       </div>

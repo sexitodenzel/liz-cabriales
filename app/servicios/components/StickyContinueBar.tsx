@@ -17,9 +17,8 @@ type Props = {
 }
 
 /**
- * Barra sticky inferior (móvil): Continuar / Confirmar del resumen.
- * Aparece con selección y se oculta al entrar al footer
- * (misma receta que el sticky de Reservar en /servicios).
+ * Barra sticky inferior (móvil): único CTA Continuar en móvil.
+ * En desktop el aside del resumen ya trae el botón.
  */
 export default function StickyContinueBar({
   hasSelection,
@@ -46,23 +45,15 @@ export default function StickyContinueBar({
         setVisible(false)
         return
       }
-      const footer =
-        document.getElementById("footer-reveal-sentinel") ??
-        document.querySelector("footer")
-      const beforeFooter = footer
-        ? footer.getBoundingClientRect().top > window.innerHeight - 12
-        : true
-      setVisible(beforeFooter)
+      setVisible(true)
     }
     const onScroll = () => {
       if (raf !== null) return
       raf = requestAnimationFrame(check)
     }
-    window.addEventListener("scroll", onScroll, { passive: true })
     window.addEventListener("resize", onScroll)
     check()
     return () => {
-      window.removeEventListener("scroll", onScroll)
       window.removeEventListener("resize", onScroll)
       if (raf !== null) cancelAnimationFrame(raf)
     }
@@ -72,7 +63,7 @@ export default function StickyContinueBar({
 
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-200 bg-ivory/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden"
       role="region"
       aria-label="Continuar reserva"
     >

@@ -498,8 +498,8 @@ export default function CourseDetail({
               </h2>
               <div className="mb-5 h-0.5 w-9 bg-[#c6a75e]" />
 
-              {/* Organiza — Academia Liz Cabriales */}
-              <div className="flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5">
+              {/* Organiza — mismo chrome que el sidebar de fecha (agosto). */}
+              <div className="flex items-center gap-4 rounded-xl border border-[#ececec] bg-[#fafafa] p-6">
                 {lizPhotoUrl ? (
                   <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border border-[#e0e0e0]">
                     <SmoothImage
@@ -538,7 +538,7 @@ export default function CourseDetail({
               {course.co_organizers.map((org) => (
                 <div
                   key={org.id}
-                  className="mt-3 flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5"
+                  className="mt-3 flex items-center gap-4 rounded-xl border border-[#ececec] bg-[#fafafa] p-6"
                 >
                   {org.photo_url ? (
                     <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border border-[#e0e0e0]">
@@ -580,7 +580,7 @@ export default function CourseDetail({
                 .map((guest) => (
                   <div
                     key={guest.id}
-                    className="mt-3 flex items-center gap-4 rounded-[10px] border border-[#ececec] bg-white p-5"
+                    className="mt-3 flex items-center gap-4 rounded-xl border border-[#ececec] bg-[#fafafa] p-6"
                   >
                     {guest.photo_url ? (
                       <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border border-[#e0e0e0]">
@@ -738,12 +738,9 @@ export default function CourseDetail({
                     href={whatsAppHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex w-full flex-col items-center rounded-[10px] bg-[#1a1a1a] px-5 py-4 text-center text-[14px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(0,0,0,0.18)] transition-all hover:bg-black hover:shadow-[0_6px_18px_rgba(0,0,0,0.28)] active:translate-y-px"
+                    className="flex w-full items-center justify-center rounded-full bg-[#1a1a1a] px-5 py-4 text-center text-[14px] font-semibold uppercase tracking-[0.16em] text-white shadow-[0_4px_14px_rgba(0,0,0,0.18)] transition-all hover:bg-black hover:shadow-[0_6px_18px_rgba(0,0,0,0.28)] active:translate-y-px"
                   >
                     {isFull ? "Consultar disponibilidad" : "Pedir información"}
-                    <span className="mt-1 block text-[11px] font-normal tracking-[0.14em] opacity-85">
-                      Te respondemos por WhatsApp
-                    </span>
                   </a>
 
                   {course.show_capacity_public && (

@@ -1,5 +1,6 @@
 import { getPublishedCoursesCached } from "@/lib/supabase/courses"
 import SmoothImage from "@/app/components/shared/SmoothImage"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 import CourseGrid from "./CourseGrid"
 
 export const revalidate = 60
@@ -65,7 +66,7 @@ export default async function AcademiaPage() {
 
   if (!result.data) {
     return (
-      <main className="min-h-screen bg-white px-8 py-16 text-[#1a1a1a]">
+      <main className="min-h-screen bg-ivory px-8 py-16 text-[#1a1a1a]">
         <div className="mx-auto max-w-xl text-center">
           <p className="text-sm text-[#6b6b6b]">
             No pudimos cargar los eventos. Intenta de nuevo mas tarde.
@@ -78,11 +79,12 @@ export default async function AcademiaPage() {
   return (
     <main className="min-h-screen bg-ivory text-[#1a1a1a]">
       <div className="site-container pt-5 pb-20">
-        <HeroBand />
-        <CourseGrid
-          courses={result.data}
-          breadcrumbItems={[{ label: "Inicio", href: "/" }, { label: "Academia" }]}
+        <Breadcrumb
+          items={[{ label: "Inicio", href: "/" }, { label: "Academia" }]}
+          className="mb-4"
         />
+        <HeroBand />
+        <CourseGrid courses={result.data} />
       </div>
     </main>
   )

@@ -64,7 +64,7 @@ export default function StickyCartBar({ product, selectedVariant, triggerRef }: 
   if (!visible) return null
 
   return (
-    <div className="navbar-follow-collapse fixed left-0 right-0 z-40 border-b border-neutral-200 bg-white/85 backdrop-blur-md" style={{ top: "var(--navbar-actual-h, 64px)" }}>
+    <div className="navbar-follow-collapse fixed left-0 right-0 z-40 border-b border-neutral-200 bg-ivory/85 backdrop-blur-md" style={{ top: "var(--navbar-actual-h, 64px)" }}>
       <div className="site-container">
         <div className="mx-auto flex w-full max-w-[1200px] items-center gap-3 py-2.5 sm:gap-4 sm:py-3">
         <button

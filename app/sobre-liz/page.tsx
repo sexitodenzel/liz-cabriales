@@ -299,7 +299,7 @@ export default async function SobreLizPage() {
   const galleryItems = dbItems.length > 0 ? dbItems : EVENT_GALLERY
 
   return (
-    <main id="sobre-liz" className="min-h-screen bg-white text-black">
+    <main id="sobre-liz" className="min-h-screen bg-ivory text-black">
       {/* ── HERO ── */}
       <section className="site-container pt-12 lg:pt-20">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_minmax(0,420px)] lg:gap-16">

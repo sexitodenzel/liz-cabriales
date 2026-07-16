@@ -41,7 +41,7 @@ export default async function AcademiaDetallePage({ params }: Props) {
 
   if (!result.data || !result.data.is_published) {
     return (
-      <main className="min-h-screen bg-white px-8 py-16 text-[#1a1a1a]">
+      <main className="min-h-screen bg-ivory px-8 py-16 text-[#1a1a1a]">
         <div className="mx-auto max-w-xl text-center">
           <h1 className="text-2xl font-semibold">Curso no disponible</h1>
           <p className="mt-3 text-sm text-[#6b6b6b]">
@@ -102,7 +102,7 @@ export default async function AcademiaDetallePage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-white text-[#1a1a1a]">
+    <main className="min-h-screen bg-ivory text-[#1a1a1a]">
       <CourseDetail
         course={course}
         isPast={isPast}

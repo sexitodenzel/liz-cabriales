@@ -75,7 +75,7 @@ export default async function StorePage({
 
   if (categoriesResult.error || productsResult.error) {
     return (
-      <main className="min-h-screen bg-white text-[#0a0a0a]">
+      <main className="min-h-screen bg-ivory text-[#0a0a0a]">
         <div className="site-container pb-12">
           <h1 className="text-2xl font-semibold">Tienda</h1>
           <p className="mt-4 text-sm text-red-600">

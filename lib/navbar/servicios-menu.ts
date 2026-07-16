@@ -39,21 +39,8 @@ export function buildServiciosMenuGroups(
   return groups
 }
 
-/** Columna fija del megamenú — siempre visible junto a los filtros del admin. */
-export const AGENDAR_MENU_CATEGORY: TiendaCategory = {
-  label: "Agendar",
-  slug: "agendar",
-  href: "/servicios/agendar",
-  subcategories: [
-    { label: "Ver disponibilidad", href: "/servicios/agendar" },
-    { label: "Agenda tu cita", href: "/servicios/agendar" },
-    { label: "Elegir profesional", href: "/servicios/agendar" },
-    { label: "Consultar horarios", href: "/servicios/agendar" },
-  ],
-}
-
 export function serviciosMenuToCategories(groups: ServiciosMenuGroup[]): TiendaCategory[] {
-  const filterCategories = groups.map((group) => ({
+  return groups.map((group) => ({
     label: group.name,
     slug: group.slug,
     href: `/servicios/agendar?categoria=${encodeURIComponent(group.slug)}`,
@@ -62,6 +49,4 @@ export function serviciosMenuToCategories(groups: ServiciosMenuGroup[]): TiendaC
       href: `/servicios/agendar?servicio=${encodeURIComponent(service.id)}`,
     })),
   }))
-
-  return [...filterCategories, AGENDAR_MENU_CATEGORY]
 }

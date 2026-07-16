@@ -61,6 +61,16 @@ function useContentSupportsCurtain(
   return supportsCurtain
 }
 
+/** Flujos de reserva/pago: el cliente ya no explora; el footer estorba. */
+function shouldHideFooter(pathname: string): boolean {
+  if (pathname.startsWith("/servicios/agendar")) return true
+  if (pathname.startsWith("/checkout")) return true
+  if (pathname.startsWith("/orden/") || pathname === "/orden") return true
+  if (pathname.startsWith("/cita/") || pathname === "/cita") return true
+  if (pathname.includes("/inscripcion/")) return true
+  return false
+}
+
 export default function SiteCurtainLayout({
   children,
 }: {
@@ -70,13 +80,18 @@ export default function SiteCurtainLayout({
   const prefersReducedMotion = usePrefersReducedMotion()
   const contentRef = useRef<HTMLDivElement>(null)
   const isAdmin = pathname.startsWith("/admin")
+  const hideFooter = isAdmin || shouldHideFooter(pathname)
   const contentSupportsCurtain = useContentSupportsCurtain(
     contentRef,
-    !isAdmin && !prefersReducedMotion,
+    !hideFooter && !prefersReducedMotion,
   )
 
-  if (isAdmin) {
-    return <div id="main-content" className="flex flex-1 flex-col">{children}</div>
+  if (hideFooter) {
+    return (
+      <div id="main-content" className="flex flex-1 flex-col bg-ivory">
+        {children}
+      </div>
+    )
   }
 
   const curtain = !prefersReducedMotion && contentSupportsCurtain
@@ -99,7 +114,7 @@ export default function SiteCurtainLayout({
       >
         <div
           id="main-content"
-          className={`flex flex-1 flex-col bg-white ${curtain ? "pointer-events-auto" : ""}`}
+          className={`flex flex-1 flex-col bg-ivory ${curtain ? "pointer-events-auto" : ""}`}
         >
           <div ref={contentRef} className="flex flex-1 flex-col">
             {children}

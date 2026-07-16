@@ -71,7 +71,7 @@ export default function AccountShell({
     : [{ label: "Inicio", href: "/" }, { label: "Mi cuenta" }]
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white text-[var(--foreground)]">
+    <main className="min-h-screen overflow-x-hidden bg-ivory text-[var(--foreground)]">
       <div className="site-container pt-5">
         <Breadcrumb items={breadcrumbItems} />
       </div>

@@ -24,7 +24,7 @@ import ProductCard from "./ProductCard"
 import ProductFilterSortBar from "./ProductFilterSortBar"
 import StoreDiscoverySections from "./StoreDiscoverySections"
 import { useProductViewMode } from "./useProductViewMode"
-import type { BreadcrumbItem } from "@/components/shared/Breadcrumb"
+import Breadcrumb, { type BreadcrumbItem } from "@/components/shared/Breadcrumb"
 
 type FiltersState = {
   categorySlugs: string[]
@@ -422,6 +422,9 @@ export default function ProductGrid({
 
   return (
     <div>
+      {breadcrumbItems && breadcrumbItems.length > 0 ? (
+        <Breadcrumb items={breadcrumbItems} className="mb-4" />
+      ) : null}
       {singleSelectedBrand ? (
         <BrandHeaderInfo
           brand={singleSelectedBrand}
@@ -436,7 +439,6 @@ export default function ProductGrid({
         showFilter
         activeFilterCount={activeFilterCount}
         activeChips={activeChips}
-        breadcrumbItems={breadcrumbItems}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         filterPanel={{

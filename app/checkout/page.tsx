@@ -34,7 +34,7 @@ export default async function CheckoutPage() {
 
   if (!cartResult.data) {
     return (
-      <main className="min-h-screen bg-white site-container py-10 text-[#0a0a0a]">
+      <main className="min-h-screen bg-ivory site-container py-10 text-[#0a0a0a]">
         <div className="mx-auto max-w-[720px] border border-neutral-200 bg-white p-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
             Finalizar compra

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function AvisoDePrivacidadPage() {
   return (
-    <main className="min-h-screen bg-white site-container pt-5 pb-24 text-[#111]">
+    <main className="min-h-screen bg-ivory site-container pt-5 pb-24 text-[#111]">
       <div className="mx-auto max-w-3xl">
         <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Aviso de privacidad" }]} />
         <h1 className="font-[family-name:var(--font-playfair),serif] text-[clamp(28px,4vw,44px)] font-medium leading-tight tracking-[-0.02em]">

@@ -94,7 +94,7 @@ export default async function NailArtPage() {
   const posts = await getNailArtPosts()
 
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="min-h-screen bg-ivory text-black">
       <div className="site-container pt-5 pb-16">
         <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Nail Art" }]} />
 

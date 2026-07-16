@@ -23,10 +23,12 @@ export default function ServiciosMegaMenu({
   const [loading, setLoading] = useState(true)
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
 
+  // Trae las categorías AL MONTAR (no al abrir): el megamenú está siempre
+  // montado, así que los datos ya están listos antes del primer hover y no se
+  // vuelve a pedir a la red cada vez que se abre (que era la causa del skeleton
+  // en cada hover). Mismo patrón que AcademiaMegaMenu.
   useEffect(() => {
-    if (!isOpen) return
     let isMounted = true
-    setLoading(true)
     void fetch("/api/navbar/servicios-menu")
       .then((res) => (res.ok ? res.json() : null))
       .then((json: { data?: TiendaCategory[] } | null) => {
@@ -42,7 +44,7 @@ export default function ServiciosMegaMenu({
     return () => {
       isMounted = false
     }
-  }, [isOpen])
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -86,7 +88,7 @@ export default function ServiciosMegaMenu({
       : activeCat
         ? [activeCat.label]
         : []
-  ).slice(0, 4)
+  ).slice(0, 2)
 
   return (
     <div
@@ -190,12 +192,17 @@ export default function ServiciosMegaMenu({
                 )}
               </div>
 
-              {/* Placeholders etiquetados (imágenes pendientes de servicios) */}
+              {/* Mismo panel/tamaño que AcademiaMegaMenu (w-[340px], gap-4, 4/5). */}
               {tiles.length > 0 && (
-                <div className="grid w-[320px] shrink-0 grid-cols-2 gap-x-4 gap-y-6 border-l border-neutral-200 pl-10">
-                  {tiles.map((label) => (
-                    <ServicePlaceholderTile key={label} label={label} />
-                  ))}
+                <div className="w-[340px] shrink-0 border-l border-neutral-200 pl-10">
+                  <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
+                    Nuestros servicios
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {tiles.map((label) => (
+                      <ServicePlaceholderTile key={label} label={label} />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -207,23 +214,22 @@ export default function ServiciosMegaMenu({
 }
 
 /**
- * Tile placeholder para el showcase de servicios. Reserva el espacio visual
- * (mismo formato que el showcase de la tienda) con el nombre del servicio
- * encima. Cuando lleguen las fotos reales, se sustituye el fondo neutro por
- * una <SmoothImage> de fondo.
+ * Tile placeholder — misma caja que FlyerCard de AcademiaMegaMenu
+ * (aspect 4/5, rounded-md, título debajo). Cuando lleguen fotos reales,
+ * sustituir el fondo por <SmoothImage>.
  */
 function ServicePlaceholderTile({ label }: { label: string }) {
   return (
-    <div className="w-full">
-      <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-md bg-neutral-100">
+    <div className="group block w-full">
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md bg-neutral-100">
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-100 to-neutral-200" />
-        <span className="absolute right-2 top-2 rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-neutral-600">
+        <span className="absolute left-2 top-2 rounded-full bg-white/80 px-2 py-[3px] text-[9px] font-semibold uppercase tracking-[0.14em] text-neutral-600">
           Próximamente
         </span>
-        <p className="relative z-10 p-2.5 text-[11px] font-medium leading-snug text-neutral-600 line-clamp-2">
-          {label}
-        </p>
       </div>
+      <p className="mt-2 text-[12px] leading-snug text-[#1a1a1a] line-clamp-2">
+        {label}
+      </p>
     </div>
   )
 }

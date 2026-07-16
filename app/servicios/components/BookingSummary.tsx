@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import type { RefObject } from "react"
 
 import type {
   ProfessionalRow,
@@ -36,6 +37,8 @@ type Props = {
   submitting: boolean
   showActions?: boolean
   clientPhone?: string
+  /** Ancla del CTA in-page: el sticky inferior se oculta al llegar aquí. */
+  actionsRef?: RefObject<HTMLDivElement | null>
 }
 
 function IconCalendar() {
@@ -103,6 +106,7 @@ export default function BookingSummary({
   submitting,
   showActions = true,
   clientPhone = "",
+  actionsRef,
 }: Props) {
   const isConfirmStep = step === 4
   const phoneDigits = clientPhone.replace(/\D/g, "").slice(0, 10)
@@ -114,12 +118,13 @@ export default function BookingSummary({
 
   return (
     <div
-      className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200/60 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.04)] max-lg:min-h-0 lg:max-h-[calc(100dvh-var(--navbar-actual-h,64px)-6.5rem)]"
+      // Estilo sidebar academia: bg #fafafa + líneas inset (padding del card).
+      className="flex flex-col overflow-hidden rounded-xl border border-[#ececec] bg-[#fafafa] p-5 max-lg:min-h-0 lg:h-[calc(100dvh-var(--navbar-actual-h,64px)-4.75rem)] lg:max-h-[calc(100dvh-var(--navbar-actual-h,64px)-4.75rem)]"
     >
       {/* Header */}
       {isConfirmStep && selectedProfessional ? (
-        <div className="flex shrink-0 flex-col items-center border-b border-neutral-100 px-6 pb-6 pt-8 text-center">
-          <div className="mb-3 h-16 w-16 overflow-hidden rounded-full border border-neutral-200 bg-neutral-50">
+        <div className="flex shrink-0 flex-col items-center border-b border-[#ececec] pb-5 text-center">
+          <div className="mb-2.5 h-14 w-14 overflow-hidden rounded-full border border-[#ececec] bg-white">
             {selectedProfessional.photo_url ? (
               <img
                 src={selectedProfessional.photo_url}
@@ -132,17 +137,17 @@ export default function BookingSummary({
               </div>
             )}
           </div>
-          <p className="font-[family-name:var(--font-playfair),serif] text-lg text-[#111]">
+          <p className="font-[family-name:var(--font-playfair),serif] text-lg text-[#1a1a1a]">
             {selectedProfessional.name}
           </p>
           {selectedProfessional.bio && (
-            <p className="mt-1 line-clamp-2 text-xs text-neutral-500">
+            <p className="mt-1 line-clamp-2 text-xs text-[#6b6b6b]">
               {selectedProfessional.bio}
             </p>
           )}
         </div>
       ) : (
-        <div className="shrink-0 border-b border-neutral-100 p-5">
+        <div className="shrink-0 border-b border-[#ececec] pb-5">
           <div className="flex items-center gap-3">
             <div className="relative h-11 w-11 shrink-0">
               <Image
@@ -154,10 +159,10 @@ export default function BookingSummary({
               />
             </div>
             <div className="min-w-0">
-              <p className="font-[family-name:var(--font-playfair),serif] text-[16px] leading-tight text-[#111]">
+              <p className="font-[family-name:var(--font-playfair),serif] text-[16px] leading-tight text-[#1a1a1a]">
                 Liz Cabriales
               </p>
-              <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-neutral-500">
+              <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[#6b6b6b]">
                 {PICKUP_LOCATION_ADDRESS}
               </p>
             </div>
@@ -165,27 +170,31 @@ export default function BookingSummary({
         </div>
       )}
 
-      {/* Stack middle — aquí se apilan servicios / fecha */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+      {/* Stack middle */}
+      <div
+        className={`min-h-0 flex-1 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+          isConfirmStep ? "overflow-y-hidden" : "overflow-y-auto"
+        }`}
+      >
         {!hasSelection ? (
-          <p className="py-10 text-center text-[13px] text-neutral-400">
+          <p className="py-10 text-center text-[13px] text-[#6b6b6b]">
             No hay servicios seleccionados
           </p>
         ) : (
-          <div className="space-y-5">
+          <div className={isConfirmStep ? "space-y-3" : "space-y-5"}>
             {isConfirmStep && (
-              <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              <p className="text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
                 Resumen de tu cita
               </p>
             )}
 
             {selectedDate && selectedSlot && (
-              <div className="space-y-2 border-b border-neutral-100 pb-4">
-                <div className="flex items-center gap-2 text-sm text-[#111]">
+              <div className="space-y-2 border-b border-[#ececec] pb-3">
+                <div className="flex items-center gap-2 text-sm text-[#1a1a1a]">
                   <IconCalendar />
                   <span className="capitalize">{prettyDate(selectedDate)}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-[#111]">
+                <div className="flex items-center gap-2 text-sm text-[#1a1a1a]">
                   <IconClock />
                   <span>
                     {formatTimeLabel(selectedSlot.start_time)}
@@ -198,7 +207,7 @@ export default function BookingSummary({
               </div>
             )}
 
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {selectedServices.map((s) => {
                 const opts = resolveServiceOptions(s, selectedOptionsByService)
                 const linePrice =
@@ -208,21 +217,24 @@ export default function BookingSummary({
                   opts.reduce((sum, o) => sum + o.duration_delta, 0)
 
                 return (
-                  <li key={s.id} className="border-b border-neutral-100 pb-4 last:border-0 last:pb-0">
+                  <li
+                    key={s.id}
+                    className="border-b border-[#ececec] pb-3 last:border-0 last:pb-0"
+                  >
                     <div className="flex items-start justify-between gap-3">
-                      <p className="text-[14px] font-semibold leading-snug text-[#111]">
+                      <p className="text-[14px] font-semibold leading-snug text-[#1a1a1a]">
                         {s.name}
                       </p>
-                      <p className="shrink-0 text-[14px] font-semibold text-[#111]">
+                      <p className="shrink-0 text-[14px] font-semibold text-[#1a1a1a]">
                         {formatPrice(linePrice)}
                       </p>
                     </div>
                     {opts.length > 0 && (
-                      <p className="mt-1 text-[12px] text-neutral-500">
+                      <p className="mt-1 text-[12px] text-[#6b6b6b]">
                         {opts.map((o) => o.label).join(" · ")}
                       </p>
                     )}
-                    <p className="mt-1 text-[12px] text-neutral-500">
+                    <p className="mt-1 text-[12px] text-[#6b6b6b]">
                       {formatDuration(lineDuration)} con {profLabel}
                     </p>
                   </li>
@@ -231,32 +243,32 @@ export default function BookingSummary({
             </ul>
 
             {isConfirmStep && formattedPhone && (
-              <div className="border-t border-neutral-100 pt-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+              <div className="border-t border-[#ececec] pt-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#6b6b6b]">
                   Celular
                 </p>
-                <p className="mt-1 text-sm text-[#111]">{formattedPhone}</p>
+                <p className="mt-1 text-sm text-[#1a1a1a]">{formattedPhone}</p>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Footer fijo abajo: total + CTA */}
-      <div className="shrink-0 border-t border-neutral-100 px-5 py-4">
+      {/* Footer: total + CTA */}
+      <div className="shrink-0 border-t border-[#ececec] pt-5">
         <div className="mb-4 flex items-baseline justify-between gap-3">
-          <span className="text-[13px] text-neutral-500">Total</span>
-          <span className="text-[15px] font-semibold text-[#111]">
+          <span className="text-[13px] text-[#6b6b6b]">Total</span>
+          <span className="text-[15px] font-semibold text-[#1a1a1a]">
             {hasSelection ? formatPrice(totalPrice) : "Gratis"}
           </span>
         </div>
 
         {isConfirmStep && (
-          <div className="mb-4 flex items-start gap-3 rounded-xl bg-neutral-50 p-3.5">
-            <span className="text-[#111]" aria-hidden>
+          <div className="mb-4 flex items-start gap-3 rounded-[10px] border border-[#ececec] bg-white p-3.5">
+            <span className="text-[#1a1a1a]" aria-hidden>
               ✓
             </span>
-            <p className="text-xs leading-relaxed text-neutral-600">
+            <p className="text-xs leading-relaxed text-[#6b6b6b]">
               Al confirmar, tu reserva quedará en espera. Realiza la transferencia
               del anticipo y envía tu comprobante por WhatsApp.
             </p>
@@ -264,13 +276,13 @@ export default function BookingSummary({
         )}
 
         {showActions && (
-          <>
+          <div ref={actionsRef}>
             {step < 4 ? (
               <button
                 type="button"
                 onClick={onContinue}
                 disabled={!canContinue}
-                className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-black text-[12px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-[#1a1a1a] text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Continuar
               </button>
@@ -279,7 +291,7 @@ export default function BookingSummary({
                 type="button"
                 onClick={onConfirm}
                 disabled={submitting}
-                className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-black text-[12px] uppercase tracking-[0.1em] text-white transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-[#1a1a1a] text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? (
                   <>
@@ -290,7 +302,7 @@ export default function BookingSummary({
                 )}
               </button>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
