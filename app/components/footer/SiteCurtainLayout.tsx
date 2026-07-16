@@ -85,11 +85,22 @@ export default function SiteCurtainLayout({
      alternar curtain/estático no desmonta la página. */
   return (
     <>
+      {/* En modo curtain la caja de #site-curtain cubre al footer fijo (z-0)
+          incluso donde solo está el spacer transparente, tragándose los clics
+          del footer. pointer-events-none en el contenedor + auto en el
+          contenido real deja pasar los clics solo en la zona del spacer. */}
       <div
         id="site-curtain"
-        className={curtain ? "relative z-[1] flex flex-1 flex-col" : "flex flex-1 flex-col"}
+        className={
+          curtain
+            ? "pointer-events-none relative z-[1] flex flex-1 flex-col"
+            : "flex flex-1 flex-col"
+        }
       >
-        <div id="main-content" className="flex flex-1 flex-col bg-white">
+        <div
+          id="main-content"
+          className={`flex flex-1 flex-col bg-white ${curtain ? "pointer-events-auto" : ""}`}
+        >
           <div ref={contentRef} className="flex flex-1 flex-col">
             {children}
           </div>

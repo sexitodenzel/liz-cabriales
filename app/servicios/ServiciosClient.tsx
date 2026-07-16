@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Check, ChevronDown, Plus } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type {
   AppointmentRecord,
@@ -25,6 +26,7 @@ import {
 
 import BookingSummary from "./components/BookingSummary"
 import FullCalendarModal from "./components/FullCalendarModal"
+import StickyContinueBar from "./components/StickyContinueBar"
 import TransferPaymentModal from "./components/TransferPaymentModal"
 
 type Slot = {
@@ -412,7 +414,7 @@ export default function ServiciosClient({
       (s) => !s.filter_slug || !categorizedSlugs.has(s.filter_slug)
     )
     if (uncategorized.length > 0) {
-      groups.push({ slug: "otros", name: "Otros servicios", services: uncategorized })
+      groups.push({ slug: "otros", name: "Otros", services: uncategorized })
     }
     return groups
   }, [availableCategories, services])
@@ -912,8 +914,19 @@ export default function ServiciosClient({
     clientPhone: phone,
   }
 
+  const stickyServiceLabel =
+    selectedServices.length === 0
+      ? "Tu cita"
+      : selectedServices.length === 1
+        ? selectedServices[0].name
+        : `${selectedServices.length} servicios`
+
   return (
-    <div className="min-h-screen bg-white">
+    <div
+      className={`min-h-screen bg-white ${
+        selectedServiceIds.length > 0 ? "max-lg:pb-24" : ""
+      }`}
+    >
       <header {...navSticky("follow", "z-30 bg-white/95 backdrop-blur-md")}>
         <div className="site-container">
           <div className="flex items-center gap-4 py-3">
@@ -981,7 +994,7 @@ export default function ServiciosClient({
                   <div
                     {...navSticky(
                       "follow-below-sm",
-                      "z-20 mb-6 bg-white pb-3 pt-1",
+                      "z-20 mb-6 border-b border-neutral-200/80 bg-white pb-3 pt-1",
                       { guard: true },
                     )}
                   >
@@ -1029,7 +1042,17 @@ export default function ServiciosClient({
                     >
                       <h2
                         id={`cat-${group.slug}-heading`}
-                        className="mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
+                        className={
+                          // La barra de chips pegajosa ya rotula la categoría
+                          // activa (scroll-spy), así que el título por grupo es
+                          // redundante y colisiona con la barra al scrollear.
+                          // Se oculta visualmente (queda para lectores de
+                          // pantalla) cuando hay chips; visible si hay 1 sola
+                          // categoría (sin barra de chips).
+                          servicesByCategory.length > 1
+                            ? "sr-only"
+                            : "mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
+                        }
                       >
                         {group.name}
                       </h2>
@@ -1055,7 +1078,7 @@ export default function ServiciosClient({
                                     : undefined
                               }
                             >
-                              <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                              <div className="flex items-start justify-between gap-3 py-5 sm:gap-6">
                                 <div
                                   role="button"
                                   tabIndex={0}
@@ -1066,19 +1089,13 @@ export default function ServiciosClient({
                                       handleServiceCardClick(s)
                                     }
                                   }}
-                                  className="min-w-0 cursor-pointer text-left"
+                                  className="min-w-0 flex-1 cursor-pointer text-left"
                                 >
                                   <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
                                     {s.name}
                                   </h3>
                                   <p className="mt-1 text-[13px] text-[#8a8a8a]">
                                     {formatDuration(s.duration_min)}
-                                    {hasSubOptions && (
-                                      <span className="text-neutral-500">
-                                        {" "}
-                                        · Toca para ver opciones
-                                      </span>
-                                    )}
                                   </p>
                                   {s.description && (
                                     <div
@@ -1114,22 +1131,85 @@ export default function ServiciosClient({
                                   </p>
                                 </div>
 
-                                <button
-                                  type="button"
-                                  onClick={() => toggleService(s.id)}
-                                  className={`inline-flex shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-[12px] font-semibold transition-colors ${
+                                {/* + (añadir/quitar) + pestañita si hay opciones */}
+                                <div
+                                  className={`inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-full border transition-colors ${
                                     selected
-                                      ? "border border-[#111] bg-[#111] text-white"
-                                      : "border border-neutral-300 bg-white text-[#111] hover:border-[#111]"
+                                      ? "border-neutral-900 bg-neutral-900 text-white"
+                                      : "border-neutral-300 bg-white text-[#0a0a0a] hover:border-neutral-900"
                                   }`}
-                                  aria-label={
-                                    selected
-                                      ? `Quitar ${s.name}`
-                                      : `Añadir ${s.name}`
-                                  }
                                 >
-                                  {selected ? "Añadido" : "Añadir"}
-                                </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleService(s.id)}
+                                    className={`inline-flex h-11 w-11 items-center justify-center transition-colors ${
+                                      hasSubOptions ? "" : "rounded-full"
+                                    } ${
+                                      selected
+                                        ? "hover:bg-neutral-800"
+                                        : "hover:bg-neutral-50"
+                                    }`}
+                                    aria-label={
+                                      selected
+                                        ? `Quitar ${s.name}`
+                                        : `Añadir ${s.name}`
+                                    }
+                                    aria-pressed={selected}
+                                  >
+                                    {selected ? (
+                                      <Check
+                                        className="h-4 w-4"
+                                        strokeWidth={2.5}
+                                        aria-hidden
+                                      />
+                                    ) : (
+                                      <Plus
+                                        className="h-4 w-4"
+                                        strokeWidth={2.5}
+                                        aria-hidden
+                                      />
+                                    )}
+                                  </button>
+                                  {hasSubOptions && (
+                                    <>
+                                      <span
+                                        className={`w-px self-stretch ${
+                                          selected
+                                            ? "bg-white/25"
+                                            : "bg-neutral-200"
+                                        }`}
+                                        aria-hidden
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setOptionsExpandedId((prev) =>
+                                            prev === s.id ? null : s.id,
+                                          )
+                                        }
+                                        className={`inline-flex h-11 w-9 items-center justify-center transition-colors ${
+                                          selected
+                                            ? "hover:bg-neutral-800"
+                                            : "hover:bg-neutral-50"
+                                        }`}
+                                        aria-label={
+                                          optionsExpanded
+                                            ? `Ocultar opciones de ${s.name}`
+                                            : `Ver opciones de ${s.name}`
+                                        }
+                                        aria-expanded={optionsExpanded}
+                                      >
+                                        <ChevronDown
+                                          className={`h-4 w-4 transition-transform duration-200 ${
+                                            optionsExpanded ? "rotate-180" : ""
+                                          }`}
+                                          strokeWidth={2.25}
+                                          aria-hidden
+                                        />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
                               </div>
 
                               {showSubindex && (
@@ -1620,7 +1700,8 @@ export default function ServiciosClient({
 
             {selectedServiceIds.length > 0 && (
               <div className="mt-8 lg:hidden">
-                <BookingSummary {...summaryProps} />
+                {/* CTA vive en StickyContinueBar; aquí solo el detalle. */}
+                <BookingSummary {...summaryProps} showActions={false} />
               </div>
             )}
           </div>
@@ -1649,6 +1730,17 @@ export default function ServiciosClient({
           )}
         </div>
       </div>
+
+      <StickyContinueBar
+        hasSelection={selectedServiceIds.length > 0}
+        totalPrice={totalPrice}
+        formatPrice={formatPrice}
+        serviceLabel={stickyServiceLabel}
+        onContinue={step < 4 ? handleContinue : handleConfirm}
+        canContinue={canContinue}
+        submitting={submitting}
+        isConfirmStep={step === 4}
+      />
 
       {modalAppointment &&
         (modalAppointment.status === "pending" ||
