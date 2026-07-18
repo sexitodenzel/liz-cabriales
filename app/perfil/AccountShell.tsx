@@ -80,7 +80,7 @@ export default function AccountShell({
         <div className="site-container">
           <div className="grid w-full min-w-0 md:grid-cols-[240px_1fr]">
             <div className="flex items-center justify-between gap-4 py-6 md:justify-start">
-              <h1 className="text-4xl font-medium tracking-tight text-neutral-900">Mi cuenta</h1>
+              <h1 className="font-display text-[clamp(30px,5vw,46px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">Mi cuenta</h1>
               <div className="md:hidden">
                 <PerfilSignOutButton />
               </div>
@@ -157,7 +157,7 @@ export default function AccountShell({
 
             <section className={`min-w-0 pt-6 pb-7 md:pl-8 ${contentClassName ?? ""}`}>
               <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h1 className="text-3xl font-medium leading-tight tracking-tight text-neutral-900">{title}</h1>
+                <h1 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">{title}</h1>
                 {headerAction}
               </div>
               <div className="mt-7 min-w-0">{children}</div>

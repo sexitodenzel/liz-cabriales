@@ -26,6 +26,7 @@ type RawRow = {
   category_id: string
   name: string
   slug: string
+  subcategory?: string | null
   description: string | null
   long_description?: string | null
   application_text?: string | null
@@ -71,6 +72,7 @@ function mapRow(row: RawRow): ProductWithCategory | null {
     category_id: row.category_id,
     name: row.name,
     slug: row.slug,
+    subcategory: row.subcategory ?? null,
     description: row.description ?? null,
     long_description: row.long_description ?? null,
     application_text: row.application_text ?? null,
@@ -111,7 +113,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from("products")
     .select(`
-      id, category_id, name, slug, description, long_description, application_text, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity,
+      id, category_id, name, slug, subcategory, description, long_description, application_text, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity,
       is_featured, is_best_seller, is_active, updated_at, created_at,
       categories ( id, name, slug ),
       product_variants ( id, product_id, sku, variant_name, price, stock, is_active, color_hex, color_name, size_label, is_limited_edition )

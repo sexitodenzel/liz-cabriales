@@ -17,11 +17,15 @@ import {
   X,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { tiendaCategories, cursosCategories } from "./menuData"
+import { tiendaCategories, cursosCategories, categorySlugsOf } from "./menuData"
 import type { TiendaCategory } from "./menuData"
 import type { BrandMenuItem } from "@/lib/navbar/brands-category"
 import { formatFreeShippingThreshold } from "@/lib/constants/shipping"
 import { Drawer } from "@/app/components/ui/motion/drawer"
+import {
+  resolveSobreLizBrandPhoto,
+  SOBRE_LIZ_BRAND_PHOTO_FALLBACK,
+} from "@/lib/sobre-liz/brand-photo"
 
 type SectionKey = "Tienda" | "Academia" | "Servicios"
 
@@ -29,7 +33,6 @@ type DrawerView =
   | { kind: "root" }
   | { kind: "section"; section: SectionKey }
   | { kind: "category"; section: SectionKey; categorySlug: string }
-  | { kind: "nail-art" }
   | { kind: "marcas" }
   | { kind: "conocenos" }
 
@@ -41,13 +44,6 @@ const CONOCENOS_LINKS: Array<{ label: string; href: string }> = [
   { label: "Distribuidora",      href: "/tienda" },
   { label: "Servicios",          href: "/servicios" },
 ]
-
-type NailArtTile = {
-  id: string
-  title: string
-  slug: string
-  cover_image: string | null
-}
 
 type AcademiaCourse = {
   id: string
@@ -98,8 +94,7 @@ const viewKey = (v: DrawerView): string => {
   if (v.kind === "section") return `section:${v.section}`
   if (v.kind === "category") return `category:${v.section}:${v.categorySlug}`
   if (v.kind === "conocenos") return "conocenos"
-  if (v.kind === "marcas") return "marcas"
-  return "nail-art"
+  return "marcas"
 }
 
 export default function MobileDrawer({
@@ -113,7 +108,6 @@ export default function MobileDrawer({
   const [stack, setStack] = useState<DrawerView[]>([{ kind: "root" }])
   const [activeIndex, setActiveIndex] = useState(0)
   const [pendingIndex, setPendingIndex] = useState<number | null>(null)
-  const [nailArtPosts, setNailArtPosts] = useState<NailArtTile[] | null>(null)
   const [academiaCourses, setAcademiaCourses] = useState<AcademiaCourse[] | null>(null)
   const [serviciosMenuCategories, setServiciosMenuCategories] = useState<TiendaCategory[] | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -170,12 +164,6 @@ export default function MobileDrawer({
   const push = (view: DrawerView) => {
     setStack((prev) => [...prev.slice(0, activeIndex + 1), view])
     setPendingIndex(activeIndex + 1)
-    if (view.kind === "nail-art" && nailArtPosts === null) {
-      void fetch("/api/nail-art/list")
-        .then((r) => (r.ok ? r.json() : { data: [] }))
-        .then((json) => setNailArtPosts(Array.isArray(json?.data) ? json.data : []))
-        .catch(() => setNailArtPosts([]))
-    }
     if (view.kind === "section" && view.section === "Academia" && academiaCourses === null) {
       void fetch("/api/navbar/academia-courses")
         .then((r) => (r.ok ? r.json() : { data: [] }))
@@ -235,7 +223,6 @@ export default function MobileDrawer({
               {view.kind === "root" && (
                 <RootPanel
                   onPushSection={(section) => push({ kind: "section", section })}
-                  onPushNailArt={() => push({ kind: "nail-art" })}
                   onPushMarcas={() => push({ kind: "marcas" })}
                   onPushConocenos={() => push({ kind: "conocenos" })}
                   onClose={onClose}
@@ -264,13 +251,6 @@ export default function MobileDrawer({
                   />
                 )
               })()}
-              {view.kind === "nail-art" && (
-                <NailArtPanel
-                  posts={nailArtPosts}
-                  onBack={pop}
-                  onClose={onClose}
-                />
-              )}
               {view.kind === "marcas" && (
                 <MarcasPanel
                   brands={brands}
@@ -308,85 +288,73 @@ export default function MobileDrawer({
 
 type RootPanelProps = {
   onPushSection: (section: SectionKey) => void
-  onPushNailArt: () => void
   onPushMarcas: () => void
   onPushConocenos: () => void
   onClose: () => void
   isLoggedIn: boolean
 }
 
-function RootPanel({ onPushSection, onPushNailArt, onPushMarcas, onPushConocenos, onClose, isLoggedIn }: RootPanelProps) {
+function RootPanel({ onPushSection, onPushMarcas, onPushConocenos, onClose, isLoggedIn }: RootPanelProps) {
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       {/* Nav sections */}
-      <div>
+      <div className="px-1.5 pt-1 md:px-2.5">
         {SECTIONS.map(({ key }) => (
           <button
             key={key}
             type="button"
             onClick={() => onPushSection(key)}
-            className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+            className="flex w-full items-center justify-between rounded-lg px-3 py-[15px] text-left transition-colors hover:bg-neutral-50 lg:py-[17px]"
           >
-            <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
+            <span className="text-[13px] font-medium uppercase tracking-[0.12em] text-[#2a2a2a] lg:text-[14px]">
               {key}
             </span>
-            <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
+            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-300" />
           </button>
         ))}
 
         <button
           type="button"
-          onClick={onPushNailArt}
-          className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
-        >
-          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
-            Nail Art
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
-        </button>
-
-        <button
-          type="button"
           onClick={onPushMarcas}
-          className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+          className="flex w-full items-center justify-between rounded-lg px-3 py-[15px] text-left transition-colors hover:bg-neutral-50 lg:py-[17px]"
         >
-          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
+          <span className="text-[13px] font-medium uppercase tracking-[0.12em] text-[#2a2a2a] lg:text-[14px]">
             Marcas
           </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-neutral-300" />
         </button>
 
         <button
           type="button"
           onClick={onPushConocenos}
-          className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
+          className="flex w-full items-center justify-between rounded-lg px-3 py-[15px] text-left transition-colors hover:bg-neutral-50 lg:py-[17px]"
         >
-          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#a8862f] lg:text-[14px]">
+          <span className="text-[13px] font-medium uppercase tracking-[0.12em] text-[#a8862f] lg:text-[14px]">
             Conócenos
           </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-[#a8862f]" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-[#c6a75e]/60" />
         </button>
       </div>
 
       {/* Utility section */}
-      <div className="flex min-h-0 flex-1 flex-col bg-[#f8f7f5]">
+      <div className="mt-1 flex min-h-0 flex-1 flex-col border-t border-neutral-100 bg-[#faf9f7] pt-1">
         <Link href={isLoggedIn ? "/perfil" : "/login"} onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
-          <User className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
-          <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
+          <User className="h-[18px] w-[18px] shrink-0 text-neutral-400 lg:h-5 lg:w-5" />
+          <span className="min-w-0 break-words text-[12px] font-medium uppercase tracking-[0.1em] text-[#3a3a3a] lg:text-[13px]">
             {isLoggedIn ? "Mi cuenta" : "Iniciar sesión / Registrarse"}
           </span>
         </Link>
 
         <Link href="/wishlist" onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
-          <Heart className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
-          <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
+          <Heart className="h-[18px] w-[18px] shrink-0 text-neutral-400 lg:h-5 lg:w-5" />
+          <span className="min-w-0 break-words text-[12px] font-medium uppercase tracking-[0.1em] text-[#3a3a3a] lg:text-[13px]">
             Wish list
           </span>
         </Link>
 
         <Link href="/servicios" onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
-          <Calendar className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
-          <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
+          <Calendar className="h-[18px] w-[18px] shrink-0 text-neutral-400 lg:h-5 lg:w-5" />
+          <span className="min-w-0 break-words text-[12px] font-medium uppercase tracking-[0.1em] text-[#3a3a3a] lg:text-[13px]">
             Agenda tu cita
           </span>
         </Link>
@@ -396,20 +364,20 @@ function RootPanel({ onPushSection, onPushNailArt, onPushMarcas, onPushConocenos
           target="_blank" rel="noopener noreferrer" onClick={onClose}
           className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]"
         >
-          <MapPin className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
-          <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">
+          <MapPin className="h-[18px] w-[18px] shrink-0 text-neutral-400 lg:h-5 lg:w-5" />
+          <span className="min-w-0 break-words text-[12px] font-medium uppercase tracking-[0.1em] text-[#3a3a3a] lg:text-[13px]">
             Visítanos
           </span>
         </a>
 
         <a href="https://wa.me/528332183399" target="_blank" rel="noopener noreferrer" onClick={onClose} className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
-          <MessageCircle className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
-          <span className="min-w-0 break-words text-[12px] font-semibold uppercase tracking-[0.15em] text-[#1a1a1a] lg:text-[13px]">833 218 3399</span>
+          <MessageCircle className="h-[18px] w-[18px] shrink-0 text-neutral-400 lg:h-5 lg:w-5" />
+          <span className="min-w-0 break-words text-[12px] font-medium uppercase tracking-[0.1em] text-[#3a3a3a] lg:text-[13px]">833 218 3399</span>
         </a>
 
         <div className="flex items-center gap-3 pl-3 pr-3 md:pl-4 md:pr-5 py-4 lg:py-[18px]">
-          <Clock className="h-5 w-5 shrink-0 text-neutral-500 lg:h-[22px] lg:w-[22px]" />
-          <span className="min-w-0 break-words text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1a1a1a] lg:text-[12px]">
+          <Clock className="h-[18px] w-[18px] shrink-0 text-neutral-400 lg:h-5 lg:w-5" />
+          <span className="min-w-0 break-words text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-500 lg:text-[12px]">
             Lun–Sáb 10 a.m.–7 p.m. · Dom 10–2 (días de curso)
           </span>
         </div>
@@ -472,10 +440,13 @@ function SectionPanel({ section, academiaCourses, onBack, onClose, onPushCategor
           className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver {section.sectionLabel}</span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-[#c6a75e]" />
         </Link>
 
         {section.data.map((cat) => {
-          if (cat.subcategories.length === 0) {
+          // En Tienda, incluso sin subcategorías abrimos el panel para mostrar
+          // el preview de 2 productos. En otras secciones, sin subs = link.
+          if (cat.subcategories.length === 0 && section.key !== "Tienda") {
             return (
               <Link
                 key={cat.slug}
@@ -483,7 +454,7 @@ function SectionPanel({ section, academiaCourses, onBack, onClose, onPushCategor
                 onClick={onClose}
                 className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 transition-colors hover:bg-neutral-50 lg:py-[18px]"
               >
-                <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-[#1a1a1a] lg:text-[14px]">
+                <span className="text-[13px] font-medium uppercase tracking-[0.12em] text-[#2a2a2a] lg:text-[14px]">
                   {cat.label}
                 </span>
               </Link>
@@ -496,10 +467,10 @@ function SectionPanel({ section, academiaCourses, onBack, onClose, onPushCategor
               onClick={() => onPushCategory(cat.slug)}
               className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-left transition-colors hover:bg-neutral-50 lg:py-[18px]"
             >
-              <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-[#1a1a1a] lg:text-[14px]">
+              <span className="text-[13px] font-medium uppercase tracking-[0.12em] text-[#2a2a2a] lg:text-[14px]">
                 {cat.label}
               </span>
-              <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-neutral-300" />
             </button>
           )
         })}
@@ -508,7 +479,7 @@ function SectionPanel({ section, academiaCourses, onBack, onClose, onPushCategor
             servicios (Servicios), ajustados al ancho del drawer. */}
         {section.key === "Academia" && (
           <div className="mt-2 px-3 pb-5 pt-3 md:px-4">
-            <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <p className="mb-3 px-1 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400">
               Próximos eventos
             </p>
             <div className="grid grid-cols-2 gap-x-3 gap-y-4">
@@ -522,13 +493,20 @@ function SectionPanel({ section, academiaCourses, onBack, onClose, onPushCategor
         )}
 
         {section.key === "Servicios" && servicioTiles.length > 0 && (
-          <div className="mt-2 px-3 pb-5 pt-3 md:px-4">
-            <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+          <div className="mt-2 pb-5 pt-3">
+            <p className="mb-3 px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400 md:px-5">
               Nuestros servicios
             </p>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+            {/* Carrusel: 2 visibles, se desliza para ver los otros 2.
+                scroll-px iguala el espacio izquierdo de Academia al snappear. */}
+            <div className="scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-1 scroll-px-3 md:px-4 md:scroll-px-4">
               {servicioTiles.map((label) => (
-                <ServicioPlaceholderTile key={label} label={label} />
+                <div
+                  key={label}
+                  className="w-[calc(50%-14px)] shrink-0 snap-start"
+                >
+                  <ServicioPlaceholderTile label={label} />
+                </div>
               ))}
             </div>
           </div>
@@ -610,6 +588,23 @@ function MobileTileSkeleton() {
   )
 }
 
+type ProductPreview = {
+  id: string
+  name: string
+  slug: string
+  image: string | null
+  price: number
+  originalPrice: number
+  discountPercent: number
+}
+
+const drawerPriceFormatter = new Intl.NumberFormat("es-MX", {
+  style: "currency",
+  currency: "MXN",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})
+
 type CategoryPanelProps = {
   category: TiendaCategory
   onBack: () => void
@@ -617,6 +612,33 @@ type CategoryPanelProps = {
 }
 
 function CategoryPanel({ category, onBack, onClose }: CategoryPanelProps) {
+  // Igual que el megamenú de PC: 2 productos destacados de la(s) categoría(s)
+  // reales que agrupa esta entrada del menú.
+  const wantsProducts = category.href.includes("categoria=")
+  const categoriaParam = categorySlugsOf(category).join(",")
+  const [products, setProducts] = useState<ProductPreview[] | null>(null)
+
+  useEffect(() => {
+    if (!wantsProducts) return
+    let cancelled = false
+    setProducts(null)
+    void fetch(
+      `/api/products/by-category?categoria=${encodeURIComponent(categoriaParam)}`
+    )
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((json) => {
+        if (cancelled) return
+        const list = Array.isArray(json?.data) ? json.data : []
+        setProducts(list.slice(0, 2))
+      })
+      .catch(() => {
+        if (!cancelled) setProducts([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [categoriaParam, wantsProducts])
+
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       <PanelHeader title={category.label} onBack={onBack} />
@@ -628,6 +650,7 @@ function CategoryPanel({ category, onBack, onClose }: CategoryPanelProps) {
           className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver todo en {category.label}</span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-[#c6a75e]" />
         </Link>
 
         {category.subcategories.map((sub) => (
@@ -640,8 +663,73 @@ function CategoryPanel({ category, onBack, onClose }: CategoryPanelProps) {
             <span className="text-[13px] text-neutral-700 lg:text-[14px]">{sub.label}</span>
           </Link>
         ))}
+
+        {wantsProducts && (products === null || products.length > 0) && (
+          <div className="mt-2 px-3 pb-5 pt-3 md:px-4">
+            <p className="mb-3 px-1 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400">
+              Destacados
+            </p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+              {products === null
+                ? Array.from({ length: 2 }).map((_, i) => <MobileTileSkeleton key={i} />)
+                : products.map((product) => (
+                    <ProductPreviewTile
+                      key={product.id}
+                      product={product}
+                      onClose={onClose}
+                    />
+                  ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
+  )
+}
+
+function ProductPreviewTile({
+  product,
+  onClose,
+}: {
+  product: ProductPreview
+  onClose: () => void
+}) {
+  return (
+    <Link
+      href={`/tienda/${product.slug}`}
+      onClick={onClose}
+      className="group flex flex-col gap-2"
+    >
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-sm bg-neutral-100">
+        {product.image ? (
+          <Image
+            src={product.image}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 45vw, 180px"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+        ) : null}
+        {product.discountPercent > 0 && (
+          <span className="absolute left-1.5 top-1.5 rounded-full bg-[#c6a75e] px-1.5 py-0.5 text-[9px] font-semibold text-white">
+            -{product.discountPercent}%
+          </span>
+        )}
+      </div>
+      <span className="line-clamp-2 text-[12px] font-medium leading-snug text-[#1a1a1a]">
+        {product.name}
+      </span>
+      <span className="flex items-baseline gap-1.5 text-[12px]">
+        <span className="font-medium text-neutral-800">
+          {drawerPriceFormatter.format(product.price)}
+        </span>
+        {product.discountPercent > 0 && (
+          <span className="text-[11px] text-neutral-400 line-through">
+            {drawerPriceFormatter.format(product.originalPrice)}
+          </span>
+        )}
+      </span>
+    </Link>
   )
 }
 
@@ -653,77 +741,11 @@ function PanelHeader({ title, onBack }: { title: string; onBack: () => void }) {
       className="sticky top-0 z-10 flex w-full items-center gap-2 bg-white px-4 py-[18px] text-left md:px-6 lg:py-[22px]"
       aria-label="Volver"
     >
-      <ChevronLeft className="h-4 w-4 shrink-0 text-neutral-500" />
-      <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-neutral-500 lg:text-[14px]">
+      <ChevronLeft className="h-4 w-4 shrink-0 text-neutral-400" />
+      <span className="text-[13px] font-medium uppercase tracking-[0.12em] text-neutral-500 lg:text-[14px]">
         {title}
       </span>
     </button>
-  )
-}
-
-type NailArtPanelProps = {
-  posts: NailArtTile[] | null
-  onBack: () => void
-  onClose: () => void
-}
-
-function NailArtPanel({ posts, onBack, onClose }: NailArtPanelProps) {
-  const isLoading = posts === null
-  const items = posts ?? []
-  return (
-    <div className="flex min-h-full min-w-0 flex-col">
-      <PanelHeader title="Nail Art" onBack={onBack} />
-      <div className="grid grid-cols-2 gap-x-2 gap-y-4 px-3 py-5 md:px-4">
-        {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => <TileSkeleton key={i} />)
-          : items.slice(0, 5).map((post) => (
-              <Link
-                key={post.id}
-                href={`/nail-art/${post.slug}`}
-                onClick={onClose}
-                className="group flex flex-col gap-2"
-              >
-                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-sm bg-neutral-100">
-                  {post.cover_image ? (
-                    <Image
-                      src={post.cover_image}
-                      alt={post.title}
-                      fill
-                      sizes="(max-width: 640px) 40vw, 200px"
-                      className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                    />
-                  ) : null}
-                </div>
-                <span className="text-[12px] font-medium leading-snug text-[#1a1a1a]">
-                  {post.title}
-                </span>
-              </Link>
-            ))}
-        <Link
-          href="/nail-art"
-          onClick={onClose}
-          className="group flex flex-col gap-2"
-        >
-          <div className="relative flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-sm bg-[#f1ece4]">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e]">
-              Ver todo
-            </span>
-          </div>
-          <span className="text-[12px] font-medium leading-snug text-[#1a1a1a]">
-            Todos los looks
-          </span>
-        </Link>
-      </div>
-    </div>
-  )
-}
-
-function TileSkeleton() {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="aspect-[3/4] w-full animate-pulse rounded-sm bg-neutral-100" />
-      <div className="h-3 w-3/4 animate-pulse rounded-sm bg-neutral-100" />
-    </div>
   )
 }
 
@@ -749,6 +771,7 @@ function MarcasPanel({ brands, onBack, onClose }: MarcasPanelProps) {
           className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver toda la tienda</span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-[#c6a75e]" />
         </Link>
 
         {sortedBrands.length === 0 ? (
@@ -795,17 +818,34 @@ function MarcasPanel({ brands, onBack, onClose }: MarcasPanelProps) {
 }
 
 function ConocenosPanel({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
+  const [featureImage, setFeatureImage] = useState(SOBRE_LIZ_BRAND_PHOTO_FALLBACK)
+
+  useEffect(() => {
+    let isMounted = true
+    void fetch("/api/landing/brand-photo")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { url?: string } | null) => {
+        if (!isMounted || !json?.url) return
+        setFeatureImage(resolveSobreLizBrandPhoto(json.url))
+      })
+      .catch(() => {})
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       <PanelHeader title="Conócenos" onBack={onBack} />
 
-      <div className="flex-1">
+      <div className="flex flex-1 flex-col">
         <Link
           href="/sobre-liz"
           onClick={onClose}
           className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
           <span>Ver toda la página</span>
+          <ChevronRight className="h-4 w-4 shrink-0 text-[#c6a75e]" />
         </Link>
 
         {CONOCENOS_LINKS.map((link) => (
@@ -815,11 +855,41 @@ function ConocenosPanel({ onBack, onClose }: { onBack: () => void; onClose: () =
             onClick={onClose}
             className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 transition-colors hover:bg-neutral-50 lg:py-[18px]"
           >
-            <span className="text-[13px] font-semibold uppercase tracking-[0.16em] text-[#1a1a1a] lg:text-[14px]">
+            <span className="text-[13px] font-medium uppercase tracking-[0.12em] text-[#2a2a2a] lg:text-[14px]">
               {link.label}
             </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-neutral-300" />
           </Link>
         ))}
+
+        {/* Retrato editorial de Liz: llena el espacio y da alma al panel. */}
+        <Link
+          href="/sobre-liz#sobre-liz"
+          onClick={onClose}
+          className="group mt-4 block px-3 pb-6 md:px-4"
+        >
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg bg-neutral-100">
+            <Image
+              src={featureImage}
+              alt="Liz Cabriales"
+              fill
+              sizes="(max-width: 768px) 100vw, 380px"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-4">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#e2c06f]">
+                Conócenos
+              </p>
+              <p
+                className="mt-1 text-[19px] leading-tight text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]"
+                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+              >
+                Liz Cabriales
+              </p>
+            </div>
+          </div>
+        </Link>
       </div>
     </div>
   )

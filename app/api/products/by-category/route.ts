@@ -25,13 +25,18 @@ export async function GET(
   request: Request
 ): Promise<NextResponse<ApiResponse>> {
   const { searchParams } = new URL(request.url)
-  const categorySlug = searchParams.get("categoria")?.trim()
+  // Acepta una o varias categorías separadas por coma (grupos del menú,
+  // p. ej. Nail art = nail-art,decoracion,glitter…).
+  const categorySlugs = (searchParams.get("categoria") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
 
-  if (!categorySlug) {
+  if (categorySlugs.length === 0) {
     return NextResponse.json({ data: [], error: null })
   }
 
-  const result = await getProducts({ categorySlug })
+  const result = await getProducts({ categorySlugs })
 
   if (!result.data) {
     return NextResponse.json(

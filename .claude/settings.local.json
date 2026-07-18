@@ -98,7 +98,26 @@
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/academia\" -UseBasicParsing -TimeoutSec 10; Write-Output \"STATUS: $\\($r.StatusCode\\)\" } catch { Write-Output \"NO SERVER: $\\($_.Exception.Message\\)\" })",
       "PowerShell($paths = @\\(\"C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\", \"C:\\\\Program Files \\(x86\\)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\", \"$env:LOCALAPPDATA\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe\"\\); foreach \\($p in $paths\\) { if \\(Test-Path $p\\) { Write-Output \"FOUND: $p\" } })",
       "PowerShell(npm *)",
-      "PowerShell(\"killed\")"
+      "PowerShell(\"killed\")",
+      "PowerShell(npx eslint app/components/home/HomeHeroTriCards.tsx app/components/navbar/Navbar.tsx lib/nav-sticky.ts)",
+      "PowerShell(Stop-Job *)",
+      "WebFetch(domain:www.facebook.com)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri http://localhost:3000/ -UseBasicParsing -TimeoutSec 30; \"status: $\\($r.StatusCode\\)\"; if \\($r.Content -match 'Tienda profesional'\\) { 'hero presente en HTML' } else { 'hero NO encontrado' } } catch { \"ERROR: $\\($_.Exception.Message\\)\" })",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "mcp__claude-in-chrome__navigate",
+      "mcp__claude-in-chrome__get_page_text",
+      "mcp__claude-in-chrome__computer",
+      "mcp__claude-in-chrome__browser_batch",
+      "mcp__claude-in-chrome__read_page",
+      "mcp__claude-in-chrome__find",
+      "mcp__claude-in-chrome__javascript_tool",
+      "PowerShell(try { \\(Invoke-WebRequest -Uri \"http://localhost:3000/sobre-liz\" -UseBasicParsing -TimeoutSec 30\\).StatusCode } catch { $_.Exception.Message })",
+      "PowerShell(node -e \"console.log\\(BigInt\\('0xa133dc3d410704e1'\\).toString\\(\\)\\)\")",
+      "PowerShell($r=Invoke-WebRequest -Uri \"https://maps.google.com/?cid=11615870019560735969\" -UseBasicParsing -MaximumRedirection 5 -TimeoutSec 30; $r.StatusCode; if\\($r.Content -match 'Academia Liz Cabriales'\\){'ficha OK'}else{'no match'})",
+      "PowerShell($h=\\(Invoke-WebRequest -Uri \"http://localhost:3000/academia\" -UseBasicParsing -TimeoutSec 90\\).Content; $m=[regex]::Match\\($h,'/academia/\\([0-9a-f\\\\-]{36}\\)'\\); $id=$m.Groups[1].Value; \"curso id: $id\"; $r=Invoke-RestMethod -Uri \"http://localhost:3000/api/courses/$id/reviews\" -TimeoutSec 60; $r | ConvertTo-Json -Depth 5)",
+      "PowerShell(Remove-Item \"app\\\\sobre-liz\\\\components\\\\TestimonialsCarousel.tsx\" -Confirm:$false)",
+      "PowerShell(npx tsc --noEmit; if\\($?\\){ $b=\\(Invoke-WebRequest -Uri \"http://localhost:3000/sobre-liz\" -UseBasicParsing -TimeoutSec 90\\).RawContentStream.ToArray\\(\\); $h=[System.Text.Encoding]::UTF8.GetString\\($b\\); $fakes=@\\('Mariana Reyes','Gabriela Soto','Daniela Ortiz','Karen Villa','unsplash'\\); $left=$fakes | Where-Object { $h.Contains\\($_\\) }; if\\($left\\){\"AÚN PRESENTES: $\\($left -join ', '\\)\"}else{\"testimonios falsos fuera; reales: \"+\\([regex]::Matches\\($h,'recomienda|Vianey|Fernanda'\\).Count\\)+\" refs\"} })",
+      "PowerShell(git diff --stat HEAD | Select-Object -Last 5; git status --short | Where-Object {$_ -match '^\\\\?\\\\?|^ D| D '})"
     ]
   }
 }

@@ -37,11 +37,35 @@ Definidos como CSS vars en `app/globals.css`:
 
 ### Tipografía
 
-Pendiente de definir con Liz (ver [`design-notes.md`](./ux/design-notes.md)). Por ahora se usa la default de Next/Tailwind. Convenciones de tracking:
+**Solo hay 2 familias en todo el sitio** (cargadas en `app/layout.tsx`): **Playfair Display** (serif display, títulos) y **Outfit** (sans, todo lo demás). No agregar más. Playfair se aplica con la utility `font-display` (token `--font-display` en `globals.css`; equivale a `font-[family-name:var(--font-playfair),serif]` — preferir `font-display` en código nuevo).
+
+**Referencia canónica: `/servicios` (`ServiciosLanding.tsx`).** Escala definida a partir de esa página (2026-07-17):
+
+| Rol | Receta | Ejemplo |
+|---|---|---|
+| **H1 de página pública** | Playfair · `font-display text-[clamp(30px,5vw,46px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]` (móvil: `text-[32px]`, mismo resto) | "Servicios", "Tienda", "Academia" |
+| Subtítulo bajo H1 | `mt-1 text-[14px] text-[#8a8a8a]` (o meta row `text-[13px] text-[#5a5a5a]`) | "Talleres y formación profesional" |
+| **H2 de sección landing/home** | Componente `SectionHeader` (Playfair grande + eyebrow dorado + línea). **Solo en la home** | Home, destacados |
+| **H2 de sección funcional** (dentro de página) | Sans · `text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]` (opcional eyebrow dorado uppercase arriba). Es el default fuera de la home — incluye `/sobre-liz` (decisión 2026-07-17: el usuario no quiere serifs grandes en secciones) | "Elige tu servicio", "Tres pilares" |
+| Título de card/item | `text-[15px] font-semibold text-[#111]` (`sm:text-[16px]` si respira) | Nombre de servicio en lista |
+| Título de card feature (grande) | `text-[20px] font-semibold text-[#111]` | Pilares de `/sobre-liz` |
+| Body | `text-[14px] leading-relaxed text-[#5a5a5a]` | Descripciones |
+| Meta/caption | `text-[12px]`–`text-[13px] text-[#8a8a8a]` | Duración, fechas |
+| Acento dorado en texto | `text-[#8a6d26]` (AA); `#c6a75e` solo decorativo/fondos oscuros | Rating, links suaves |
+| Playfair chica (sheets/modales) | `font-display text-[20px] leading-tight` | `ServiceDetailSheet` |
+| Nombre de producto (PDP) | `font-display text-[clamp(26px,2.2vw,34px)] font-medium leading-[1.15] tracking-[-0.01em] text-[#111]` (clamp reducido: vive en panel lateral) | `ProductInfoPanel` |
+| Subtítulos `##` en RichText | Sans `text-[16px] font-semibold` por default; `serifHeadings` (Playfair 19px) solo en blog | Descripción de curso vs. post |
+| **H1 transaccional** (checkout, orden, cita, estados) | Sans · `text-2xl font-semibold` (`text-3xl` en pantallas de estado final). **Nunca** `font-bold` | "Tu orden", "Cita confirmada" |
+| Editorial (blog, nail-art) | Playfair, puede escalar más (`clamp(40px,6vw,72px)`) e itálicas | Blog hero |
+| **Título hero sobre foto** (curso/evento) | Sans · `text-[clamp(20px,4.2vw,44px)] font-semibold leading-[1.1] tracking-[-0.02em] text-white`. Playfair blanca sobre imagen ruidosa se ve "Times" — no usarla ahí | Hero de `/academia/[id]` |
+
+Convenciones de tracking (sin cambios):
 
 - Headers de sección admin: `text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500`
 - CTAs pill: `text-[11px]/[12px] font-semibold uppercase tracking-[0.14em]`
-- Body: regular sans, `text-sm`/`text-base`, sin tracking custom.
+- Navbar links: `text-[14px] font-medium uppercase tracking-[0.16em]`
+
+**Regla:** títulos de página pública = Playfair medium; flujos transaccionales y admin = sans semibold. No mezclar pesos (`font-bold` está prohibido en títulos) ni inventar tamaños nuevos fuera de la tabla.
 
 ### Border radius
 

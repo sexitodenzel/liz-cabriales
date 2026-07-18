@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -9,7 +9,12 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@/app/components/ui/icons"
 
 /* Tabs con productos comprables debajo (estilo Westman Atelier): se compra
    desde la landing sin navegar toda la tienda. Genérico — lo usan tanto la
-   sección de categorías como la de destacados (ofertas/nuevos/best sellers). */
+   sección de categorías como la de destacados (ofertas/nuevos/best sellers).
+
+   Layout tomado del SectionCarousel de la página de producto: header con
+   pestañas a la izquierda + flechas ‹ › a la derecha (visibles también en
+   móvil, con estado activo/inactivo), y el rail SIN sangrado a los bordes —
+   las cards arrancan alineadas bajo las pestañas, con el margen del sitio. */
 
 export type ShopperProduct = {
   id: string
@@ -100,18 +105,58 @@ function ProductCard({
   )
 }
 
-export default function TabbedShopper({
-  tabs,
-  centerTabs = false,
+function ArrowButton({
+  dir,
+  disabled,
+  onClick,
 }: {
-  tabs: ShopperTab[]
-  /** Centra la fila de pestañas (útil cuando son pocas, ej. destacados). */
-  centerTabs?: boolean
+  dir: "left" | "right"
+  disabled: boolean
+  onClick: () => void
 }) {
+  const Icon = dir === "left" ? ChevronLeftIcon : ChevronRightIcon
+  return (
+    <button
+      type="button"
+      aria-label={dir === "left" ? "Anterior" : "Siguiente"}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex h-9 w-9 cursor-pointer items-center justify-center bg-transparent text-ink transition-colors hover:text-gold disabled:cursor-not-allowed disabled:opacity-30"
+    >
+      <Icon className="h-5 w-5" />
+    </button>
+  )
+}
+
+export default function TabbedShopper({ tabs }: { tabs: ShopperTab[] }) {
   const [activeId, setActiveId] = useState(tabs[0]?.id ?? "")
   const scrollerRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
 
   const active = tabs.find((t) => t.id === activeId) ?? tabs[0]
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 4)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4)
+  }, [])
+
+  useEffect(() => {
+    updateScrollState()
+    const el = scrollerRef.current
+    if (!el) return
+    const onScroll = () => updateScrollState()
+    el.addEventListener("scroll", onScroll, { passive: true })
+    const ro = new ResizeObserver(updateScrollState)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener("scroll", onScroll)
+      ro.disconnect()
+    }
+  }, [updateScrollState, active?.id])
+
   if (!active) return null
 
   const selectTab = (id: string) => {
@@ -127,64 +172,58 @@ export default function TabbedShopper({
 
   return (
     <div>
-      {/* Tabs */}
-      <div
-        role="tablist"
-        aria-label="Categorías de la tienda"
-        className={`-mx-[var(--site-px)] mb-8 flex overflow-x-auto px-[var(--site-px)] scrollbar-hide md:mx-0 md:px-0 ${
-          centerTabs ? "justify-center gap-5 sm:gap-8" : "gap-7"
-        }`}
-      >
-        {tabs.map((tab) => {
-          const isActive = tab.id === active.id
-          return (
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => selectTab(tab.id)}
-              className={`shrink-0 cursor-pointer whitespace-nowrap border-b-2 pb-2 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors duration-300 ${
-                isActive
-                  ? "border-gold text-ink"
-                  : "border-transparent text-ink-soft hover:text-ink"
-              }`}
-            >
-              {tab.name}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Productos de la pestaña activa + flechas a los lados de las imágenes */}
-      <div className="relative">
+      {/* Header: pestañas a la izquierda + flechas a la derecha (estilo
+          SectionCarousel de la página de producto). */}
+      <div className="mb-8 flex items-end justify-between gap-4">
         <div
-          key={active.id}
-          ref={scrollerRef}
-          className="animate-fade-up -mx-[var(--site-px)] flex snap-x gap-4 overflow-x-auto px-[var(--site-px)] pb-2 scrollbar-hide md:mx-0 md:px-0 lg:gap-6"
+          role="tablist"
+          aria-label="Categorías de la tienda"
+          className="flex min-w-0 gap-7 overflow-x-auto scrollbar-hide"
         >
-          {active.products.map((product) => (
-            <ProductCard key={product.id} product={product} badge={active.badge} />
-          ))}
+          {tabs.map((tab) => {
+            const isActive = tab.id === active.id
+            return (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => selectTab(tab.id)}
+                className={`shrink-0 cursor-pointer whitespace-nowrap border-b-2 pb-2 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors duration-300 ${
+                  isActive
+                    ? "border-gold text-ink"
+                    : "border-transparent text-ink-soft hover:text-ink"
+                }`}
+              >
+                {tab.name}
+              </button>
+            )
+          })}
         </div>
 
-        {active.products.length > 4 && (
-          <>
-            <button
-              onClick={() => scrollByViewport(-1)}
-              aria-label="Anterior"
-              className="absolute left-0 top-[38%] z-10 hidden -translate-x-full -translate-y-1/2 cursor-pointer pr-1.5 text-ink transition-colors duration-200 hover:text-gold lg:block"
-            >
-              <ChevronLeftIcon className="h-6 w-6" />
-            </button>
-            <button
-              onClick={() => scrollByViewport(1)}
-              aria-label="Siguiente"
-              className="absolute right-0 top-[38%] z-10 hidden translate-x-full -translate-y-1/2 cursor-pointer pl-1.5 text-ink transition-colors duration-200 hover:text-gold lg:block"
-            >
-              <ChevronRightIcon className="h-6 w-6" />
-            </button>
-          </>
-        )}
+        <div className="flex shrink-0 gap-1.5 pb-1">
+          <ArrowButton
+            dir="left"
+            disabled={!canScrollLeft}
+            onClick={() => scrollByViewport(-1)}
+          />
+          <ArrowButton
+            dir="right"
+            disabled={!canScrollRight}
+            onClick={() => scrollByViewport(1)}
+          />
+        </div>
+      </div>
+
+      {/* Rail SIN sangrado: las cards arrancan bajo las pestañas, con el
+          margen del sitio (nada pegado a la orilla). */}
+      <div
+        key={active.id}
+        ref={scrollerRef}
+        className="animate-fade-up flex snap-x gap-4 overflow-x-auto pb-2 scrollbar-hide lg:gap-6"
+      >
+        {active.products.map((product) => (
+          <ProductCard key={product.id} product={product} badge={active.badge} />
+        ))}
       </div>
     </div>
   )

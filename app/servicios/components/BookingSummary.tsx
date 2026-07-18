@@ -119,7 +119,7 @@ export default function BookingSummary({
   return (
     <div
       // Estilo sidebar academia: bg #fafafa + líneas inset (padding del card).
-      className="flex flex-col overflow-hidden rounded-xl border border-[#ececec] bg-[#fafafa] p-5 max-lg:min-h-0 lg:h-[calc(100dvh-var(--navbar-actual-h,64px)-4.75rem)] lg:max-h-[calc(100dvh-var(--navbar-actual-h,64px)-4.75rem)]"
+      className="flex flex-col overflow-hidden rounded-xl border border-neutral-200/80 bg-white/70 p-5 max-lg:min-h-0 lg:h-[calc(100dvh-var(--navbar-actual-h,64px)-4.75rem)] lg:max-h-[calc(100dvh-var(--navbar-actual-h,64px)-4.75rem)]"
     >
       {/* Header */}
       {isConfirmStep && selectedProfessional ? (

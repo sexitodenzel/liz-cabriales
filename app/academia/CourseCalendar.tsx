@@ -310,10 +310,7 @@ export default function CourseCalendar({
                           href={`/academia/${course.id}`}
                           className="flex flex-col gap-1 rounded-xl border border-[#f0f0f0] bg-white px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.05)] transition-colors hover:border-[#1a1a1a]"
                         >
-                          <span
-                            className="line-clamp-2 min-h-[2.7em] text-[14px] font-medium leading-snug text-[#1a1a1a]"
-                            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                          >
+                          <span className="line-clamp-2 min-h-[2.7em] text-[15px] font-semibold leading-snug text-[#111] sm:text-[16px]">
                             {course.title}
                           </span>
                           <div className="flex items-center gap-2 text-[12.5px] text-[#3a3a3a]">

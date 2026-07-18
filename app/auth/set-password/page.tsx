@@ -102,7 +102,7 @@ export default function SetPasswordPage() {
         />
       </Link>
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-[#1a1a1a] mb-2">
+        <h1 className="text-2xl font-semibold text-[#1a1a1a] mb-2">
           {isRecoveryFlow ? "Restablecer contraseña" : "Crear contraseña"}
         </h1>
         <p className="text-sm text-neutral-500 mb-8">

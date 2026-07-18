@@ -106,7 +106,7 @@ export default function ServiciosMegaMenu({
     >
       <div
         className={`
-          site-container flex gap-0 pt-6 pb-8
+          site-container flex gap-0 pt-6 pb-8 min-h-[360px]
           transition-opacity duration-300 ease-out
           ${contentVisible ? "opacity-100" : "opacity-0"}
         `}
@@ -157,7 +157,7 @@ export default function ServiciosMegaMenu({
         </div>
 
         {/* ===== Panel derecho: servicios + placeholders etiquetados ===== */}
-        <div className="relative min-h-[300px] flex-1 pl-8 lg:pl-12">
+        <div className="relative min-h-[220px] flex-1 pl-8 lg:pl-12">
           {activeCat && (
             <div key={activeCat.slug} className="lc-mega-panel-in flex gap-10">
               {/* Servicios de la categoría activa */}

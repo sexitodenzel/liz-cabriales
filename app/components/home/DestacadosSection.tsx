@@ -65,7 +65,7 @@ export default async function DestacadosSection() {
       className="py-12 md:py-16"
       aria-label="En oferta, nuevos y best sellers"
     >
-      <TabbedShopper tabs={tabs} centerTabs />
+      <TabbedShopper tabs={tabs} />
     </section>
   )
 }

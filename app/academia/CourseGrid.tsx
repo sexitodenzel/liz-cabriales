@@ -338,10 +338,7 @@ function CourseCard({
 
           <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-0.5 sm:py-1">
             <div className="flex flex-col gap-2">
-              <h2
-                className="line-clamp-2 text-[17px] font-medium leading-snug text-[#1a1a1a] transition-colors group-hover:text-[#8a6d26] sm:text-[19px]"
-                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-              >
+              <h2 className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#111] transition-colors group-hover:text-[#8a6d26] sm:text-[16px]">
                 {course.title}
               </h2>
               <p className="line-clamp-3 max-w-xl text-[13px] leading-relaxed text-[#6b6b6b]">
@@ -479,10 +476,7 @@ function CourseCard({
       <div className="flex flex-1 flex-col pt-3">
         {/* min-h reserva 2 líneas para que descripción/instructor arranquen a
             la misma altura aunque el título sea de 1 o 2 líneas. */}
-        <h2
-          className="line-clamp-2 min-h-[2.75em] text-[17px] font-medium leading-snug text-[#1a1a1a]"
-          style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-        >
+        <h2 className="line-clamp-2 min-h-[2.75em] text-[15px] font-semibold leading-snug text-[#111] sm:text-[16px]">
           {course.title}
         </h2>
         <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-[#6b6b6b]">
@@ -648,7 +642,6 @@ export default function CourseGrid({ courses }: Props) {
         data-nav-collapse-guard
         className="navbar-follow-collapse sticky top-[var(--navbar-actual-h)] z-20 -mx-[var(--site-px)] mb-6 bg-ivory px-[var(--site-px)] py-2"
       >
-        {/* Barra de controles: toggle de vista + Filtrar, alineados a la derecha */}
         <div className="flex items-center justify-end gap-2 sm:gap-4">
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {/* Filtrar → Drawer. Mismo pill que Hoy/flechas; ícono a la derecha. */}

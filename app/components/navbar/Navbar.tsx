@@ -22,6 +22,7 @@ import {
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
+import { NAV_COLLAPSE_EVENT, type NavCollapseEventDetail } from "@/lib/nav-sticky"
 import { useCart } from "../cart/CartContext"
 import { useWishlist } from "../wishlist/WishlistContext"
 import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
@@ -232,7 +233,18 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     let guardDockTop = navbarBottom
 
     const setCollapsed = (collapsed: boolean) => {
-      document.documentElement.classList.toggle("lc-nav-collapsed", collapsed)
+      const root = document.documentElement
+      if (root.classList.contains("lc-nav-collapsed") !== collapsed) {
+        root.classList.toggle("lc-nav-collapsed", collapsed)
+        // Anuncia el CAMBIO de estado (nunca por scroll repetido): el hero de
+        // home se acopla a este evento para compactar/expandir en el mismo
+        // frame que el colapso — una sola coreografía (ver lib/nav-sticky.ts).
+        window.dispatchEvent(
+          new CustomEvent<NavCollapseEventDetail>(NAV_COLLAPSE_EVENT, {
+            detail: { collapsed },
+          })
+        )
+      }
       // Con un megamenu abierto el chrome debe seguir accesible (aria/tabIndex)
       if (!activeMenuRef.current) setHideChrome(collapsed)
     }

@@ -399,8 +399,7 @@ export default function CourseDetail({
                 {LEVEL_LABEL[course.level]} · {dayName} {day} {monthFull} {year}
               </div>
               <h1
-                className="mb-2 sm:mb-3.5 max-w-[720px] text-[clamp(20px,5vw,56px)] font-medium leading-tight sm:leading-none tracking-tight"
-                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+                className="mb-2 sm:mb-3.5 max-w-[720px] text-[clamp(20px,4.2vw,44px)] font-semibold leading-[1.1] tracking-[-0.02em] text-white"
               >
                 {course.title}
               </h1>
@@ -453,13 +452,10 @@ export default function CourseDetail({
           <div>
             {/* About the workshop */}
             <section className="mb-11">
-              <h2
-                className="mb-1 text-[28px] font-medium tracking-tight text-[#1a1a1a]"
-                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-              >
+              <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
                 {isPast ? "Sobre la edición" : "Sobre el taller"}
               </h2>
-              <div className="mb-5 h-0.5 w-9 bg-[#c6a75e]" />
+              <div className="mb-5 mt-5 h-0.5 w-9 bg-[#c6a75e]" />
               <RichText text={course.description} />
 
               {/* Chips / distintivos */}
@@ -490,13 +486,10 @@ export default function CourseDetail({
                 la cajita de maestro invitado ("se pasaba"). El aire inferior lo
                 da el pb-20 del contenedor. */}
             <section>
-              <h2
-                className="mb-1 text-[28px] font-medium tracking-tight text-[#1a1a1a]"
-                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-              >
+              <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
                 Respaldado por
               </h2>
-              <div className="mb-5 h-0.5 w-9 bg-[#c6a75e]" />
+              <div className="mb-5 mt-5 h-0.5 w-9 bg-[#c6a75e]" />
 
               {/* Organiza — mismo chrome que el sidebar de fecha (agosto). */}
               <div className="flex items-center gap-4 rounded-xl border border-[#ececec] bg-[#fafafa] p-6">
