@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/admin/instructors", label: "Instructores" },
   { href: "/admin/media", label: "Media" },
   { href: "/admin/nail-art", label: "Nail Art" },
+  { href: "/admin/resenas", label: "Reseñas" },
   { href: "/admin/top-searches", label: "Más buscados" },
   { href: "/admin/announcements", label: "Anuncios" },
   { href: "/admin/sobre-liz", label: "Sobre Liz" },

@@ -8,10 +8,12 @@ import {
 import { getServicesCached } from "@/lib/supabase/cache"
 import { getPublishedCourses } from "@/lib/supabase/courses"
 import { getBlockedSlotsForDate } from "@/lib/supabase/appointments"
+import { getProductReviews } from "@/lib/supabase/product-reviews"
 import CoursesCarousel from "../components/CoursesCarousel"
 import ProductAccordion from "../components/ProductAccordion"
 import ProductHero from "../components/ProductHero"
 import RelatedProductsCarousel from "../components/RelatedProductsCarousel"
+import ProductReviews from "../components/ProductReviews"
 import RecentlyViewed from "../components/RecentlyViewed"
 import ServicesSection from "../components/ServicesSection"
 import Breadcrumb from "@/components/shared/Breadcrumb"
@@ -47,12 +49,14 @@ export default async function ProductPage({ params }: PageProps) {
 
   const today = new Date().toISOString().split("T")[0] ?? ""
 
-  const [relatedRes, coursesRes, servicesRes, blockedRes] = await Promise.all([
-    getRelatedProductsCached(product.category_id, product.brand, product.id, 8),
-    getPublishedCourses(),
-    getServicesCached(),
-    getBlockedSlotsForDate(today),
-  ])
+  const [relatedRes, coursesRes, servicesRes, blockedRes, reviewsRes] =
+    await Promise.all([
+      getRelatedProductsCached(product.category_id, product.brand, product.id, 8),
+      getPublishedCourses(),
+      getServicesCached(),
+      getBlockedSlotsForDate(today),
+      getProductReviews(product.id),
+    ])
 
   const relatedProducts = relatedRes.data ?? []
   const upcomingCourses = (coursesRes.data ?? [])
@@ -76,7 +80,7 @@ export default async function ProductPage({ params }: PageProps) {
           ]}
         /> */}
 
-        <ProductHero product={product} />
+        <ProductHero product={product} reviewSummary={reviewsRes.summary} />
 
         <ProductAccordion
           description={product.description}
@@ -95,6 +99,12 @@ export default async function ProductPage({ params }: PageProps) {
               ? { start_time: courseSlot.start_time, end_time: courseSlot.end_time }
               : null,
           }}
+        />
+
+        <ProductReviews
+          productId={product.id}
+          initialReviews={reviewsRes.reviews}
+          initialSummary={reviewsRes.summary}
         />
 
         <RelatedProductsCarousel products={relatedProducts} />

@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react"
 
 import type { ProductWithVariants } from "@/lib/supabase/products"
+import type { ProductReviewSummary } from "@/lib/supabase/product-reviews"
 import { useNavFollowParked } from "@/lib/hooks/use-nav-follow-parked"
 
 import ProductImageScroller from "./ProductImageScroller"
@@ -18,9 +19,10 @@ function pickInitialVariantId(product: ProductWithVariants): string | null {
 
 type Props = {
   product: ProductWithVariants
+  reviewSummary?: ProductReviewSummary
 }
 
-export default function ProductHero({ product }: Props) {
+export default function ProductHero({ product, reviewSummary }: Props) {
   const heroRef = useRef<HTMLElement | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
   // Al agotar la columna de imágenes el panel se estaciona abajo; sin esto el
@@ -92,6 +94,7 @@ export default function ProductHero({ product }: Props) {
             product={product}
             selectedVariantId={selectedVariantId}
             onSelectVariant={setSelectedVariantId}
+            reviewSummary={reviewSummary}
           />
         </aside>
       </section>
