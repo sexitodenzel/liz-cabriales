@@ -26,6 +26,13 @@ import type {
   ServiceFilterRow,
   ServiceWithOptions,
 } from "@/lib/supabase/appointments"
+import type {
+  ServiceReviewRow,
+  ServiceReviewSummary,
+} from "@/lib/supabase/service-reviews"
+import ServiceReviewsSection, {
+  ServiceReviewsAverage,
+} from "./components/ServiceReviewsSection"
 import {
   DEFAULT_STUDIO_WEEKLY_HOURS,
   STUDIO_WEEK_DAYS,
@@ -40,14 +47,7 @@ import {
   PICKUP_MAPS_URL,
 } from "@/lib/constants/contact"
 import { navSticky } from "@/lib/nav-sticky"
-
-const GALLERY = [
-  "https://picsum.photos/seed/servicios-studio-a/1200/900",
-  "https://picsum.photos/seed/servicios-studio-b/700/500",
-  "https://picsum.photos/seed/servicios-studio-c/700/500",
-  "https://picsum.photos/seed/servicios-studio-d/700/500",
-  "https://picsum.photos/seed/servicios-studio-e/700/500",
-]
+import { SERVICIOS_GALLERY_FALLBACKS } from "@/lib/media-slots"
 
 const SECTION_TABS = [
   { id: "fotos", label: "Fotos" },
@@ -57,37 +57,6 @@ const SECTION_TABS = [
   { id: "portfolio", label: "Portfolio" },
   { id: "acerca", label: "Acerca de" },
 ] as const
-
-const STUDIO_REVIEWS = [
-  {
-    id: "r1",
-    name: "Mariana R.",
-    date: "hace 2 semanas",
-    stars: 5,
-    quote: "Gran atención y super recomendado. Las uñas quedaron impecables.",
-  },
-  {
-    id: "r2",
-    name: "Gabriela S.",
-    date: "hace 3 semanas",
-    stars: 5,
-    quote: "Ambiente limpio, puntualidad y resultado profesional. Volveré.",
-  },
-  {
-    id: "r3",
-    name: "Daniela O.",
-    date: "hace 1 mes",
-    stars: 5,
-    quote: "Me encantó el detalle y el cuidado con el que trabajan.",
-  },
-  {
-    id: "r4",
-    name: "Paola M.",
-    date: "hace 1 mes",
-    stars: 5,
-    quote: "Excelente experiencia de punta a punta. Muy recomendable.",
-  },
-]
 
 const ABOUT_TEXT =
   "Estudio de manicure, pedicure y cuidado profesional en Cd. Madero. Atención personalizada, bioseguridad y técnicas actualizadas — agenda tu visita con el equipo de Liz Cabriales."
@@ -103,6 +72,12 @@ type Props = {
   professionals: ProfessionalRow[]
   studioWeeklyHours: StudioWeeklyHourRow[]
   portfolioItems: PortfolioItem[]
+  reviews: ServiceReviewRow[]
+  reviewSummary: ServiceReviewSummary
+  isAuthenticated: boolean
+  ownReview: ServiceReviewRow | null
+  /** Galería Media (sección servicios); fallback a placeholders. */
+  galleryImages?: string[]
 }
 
 function formatPrice(v: number): string {
@@ -199,7 +174,16 @@ export default function ServiciosLanding({
   professionals,
   studioWeeklyHours,
   portfolioItems,
+  reviews,
+  reviewSummary,
+  isAuthenticated,
+  ownReview,
+  galleryImages,
 }: Props) {
+  const gallery =
+    galleryImages && galleryImages.length > 0
+      ? galleryImages
+      : [...SERVICIOS_GALLERY_FALLBACKS]
   const [activeCategory, setActiveCategory] = useState("")
   const [activeTab, setActiveTab] = useState<string>("fotos")
   const [hoursOpen, setHoursOpen] = useState(false)
@@ -252,16 +236,18 @@ export default function ServiciosLanding({
     const used = new Set(
       services.map((s) => s.filter_slug).filter((slug): slug is string => Boolean(slug))
     )
-    const fromFilters = filters.filter((f) => f.is_active && used.has(f.slug))
-    if (fromFilters.length > 0) return fromFilters
-    return filters.filter((f) => f.is_active)
+    // Solo categorías que realmente tienen servicios. Si ningún servicio trae
+    // filter_slug, no inventamos tabs que dejarían la lista vacía.
+    return filters.filter((f) => f.is_active && used.has(f.slug))
   }, [filters, services])
 
-  // Sin "Todos": arranca en la primera categoría y siempre filtra por una.
+  // Sin categorías útiles: mostrar todos. Con categorías: filtrar por la activa.
   const currentCategory = activeCategory || availableCategories[0]?.slug || ""
   const visibleServices = useMemo(() => {
     if (!currentCategory) return services
-    return services.filter((s) => s.filter_slug === currentCategory)
+    const filtered = services.filter((s) => s.filter_slug === currentCategory)
+    // Evita lista vacía si hubo desfase de slugs: muestra todo como fallback.
+    return filtered.length > 0 ? filtered : services
   }, [services, currentCategory])
 
   const activePros = useMemo(
@@ -379,7 +365,7 @@ export default function ServiciosLanding({
   const portfolio: PortfolioItem[] =
     portfolioItems.length > 0
       ? portfolioItems
-      : GALLERY.slice(0, 3).map((image, i) => ({
+      : gallery.slice(0, 3).map((image, i) => ({
           id: `ph-${i}`,
           title: `Trabajo ${i + 1}`,
           image,
@@ -409,10 +395,8 @@ export default function ServiciosLanding({
             Liz Cabriales
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-[#5a5a5a]">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="font-semibold text-[#111]">5,0</span>
-              <Stars />
-              <span className="text-[#8a6d26]">({STUDIO_REVIEWS.length})</span>
+            <span className="inline-flex items-center gap-1.5 text-[13px]">
+              <ServiceReviewsAverage summary={reviewSummary} />
             </span>
             <span className="text-neutral-300" aria-hidden>
               ·
@@ -449,7 +433,7 @@ export default function ServiciosLanding({
               className="relative aspect-[4/3] cursor-zoom-in overflow-hidden sm:col-span-2 sm:row-span-2 sm:aspect-auto"
             >
               <SmoothImage
-                src={GALLERY[0]}
+                src={gallery[0]}
                 alt="Estudio Liz Cabriales"
                 fill
                 className="object-cover transition-transform duration-500 hover:scale-[1.02]"
@@ -464,7 +448,7 @@ export default function ServiciosLanding({
               className="relative hidden cursor-zoom-in overflow-hidden sm:block"
             >
               <SmoothImage
-                src={GALLERY[1]}
+                src={gallery[1]}
                 alt=""
                 fill
                 className="object-cover transition-transform duration-500 hover:scale-[1.02]"
@@ -479,7 +463,7 @@ export default function ServiciosLanding({
               className="relative hidden cursor-zoom-in overflow-hidden sm:block"
             >
               <SmoothImage
-                src={GALLERY[2]}
+                src={gallery[2]}
                 alt=""
                 fill
                 className="object-cover transition-transform duration-500 hover:scale-[1.02]"
@@ -578,9 +562,7 @@ export default function ServiciosLanding({
                   Liz Cabriales
                 </p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px]">
-                  <span className="font-semibold text-[#0a0a0a]">5,0</span>
-                  <Stars />
-                  <span className="text-neutral-500">({STUDIO_REVIEWS.length})</span>
+                  <ServiceReviewsAverage summary={reviewSummary} />
                 </div>
               </div>
             </div>
@@ -705,12 +687,16 @@ export default function ServiciosLanding({
                         <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
                           {service.name}
                         </h3>
-                        <p className="mt-1 text-[13px] text-[#8a8a8a]">
-                          {formatDuration(service.duration_min)}
-                        </p>
-                        <p className="mt-2 text-[15px] font-semibold text-[#111]">
-                          {formatPrice(service.price)}
-                        </p>
+                        {!service.hide_duration_public && (
+                          <p className="mt-1 text-[13px] text-[#8a8a8a]">
+                            {formatDuration(service.duration_min)}
+                          </p>
+                        )}
+                        {!service.hide_price_public && (
+                          <p className="mt-2 text-[15px] font-semibold text-[#111]">
+                            {formatPrice(service.price)}
+                          </p>
+                        )}
                       </div>
                       <Link
                         href={`/servicios/agendar?servicio=${encodeURIComponent(service.id)}`}
@@ -776,42 +762,12 @@ export default function ServiciosLanding({
             )}
 
             {/* Reseñas */}
-            <section id="resenas" className="scroll-mt-36" aria-labelledby="resenas-heading">
-              <h2
-                id="resenas-heading"
-                className="font-[family-name:var(--font-playfair),serif] text-[26px] font-medium leading-none text-[#111]"
-              >
-                Reseñas
-              </h2>
-              <div className="mt-5 flex items-center gap-2">
-                <span className="text-[28px] font-semibold leading-none text-[#111]">5,0</span>
-                <Stars />
-                <span className="text-[13px] text-[#8a6d26]">({STUDIO_REVIEWS.length})</span>
-              </div>
-              <ul className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {STUDIO_REVIEWS.map((review) => (
-                  <li key={review.id} className="min-w-0">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#c6a75e]/20 text-[13px] font-semibold text-[#8a6d26]">
-                        {review.name.charAt(0)}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-[13px] font-semibold text-[#111]">
-                          {review.name}
-                        </p>
-                        <p className="text-[11px] text-neutral-400">{review.date}</p>
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <Stars count={review.stars} />
-                    </div>
-                    <p className="mt-2 text-[13px] leading-relaxed text-[#5a5a5a]">
-                      {review.quote}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <ServiceReviewsSection
+              initialReviews={reviews}
+              initialSummary={reviewSummary}
+              isAuthenticated={isAuthenticated}
+              ownReview={ownReview}
+            />
 
             {/* Portfolio */}
             <section id="portfolio" className="scroll-mt-36" aria-labelledby="portfolio-heading">
@@ -993,7 +949,7 @@ export default function ServiciosLanding({
 
       {lightboxOpen && (
         <ImageLightbox
-          images={GALLERY}
+          images={gallery}
           startIndex={lightboxIndex}
           alt="Galería del estudio"
           onClose={() => setLightboxOpen(false)}

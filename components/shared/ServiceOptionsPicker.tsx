@@ -13,6 +13,8 @@ type Props = {
   compact?: boolean
   variant?: "chips" | "subindex"
   serviceName?: string
+  hidePrice?: boolean
+  hideDuration?: boolean
 }
 
 function formatPrice(v: number): string {
@@ -35,12 +37,18 @@ function OptionChip({
   selected,
   onClick,
   compact,
+  hidePrice = false,
+  hideDuration = false,
 }: {
   option: EnabledServiceOption
   selected: boolean
   onClick: () => void
   compact?: boolean
+  hidePrice?: boolean
+  hideDuration?: boolean
 }) {
+  const showPrice = !hidePrice && option.price_delta > 0
+  const showDuration = !hideDuration && option.duration_delta > 0
   return (
     <button
       type="button"
@@ -54,11 +62,11 @@ function OptionChip({
       }`}
     >
       {option.label}
-      {(option.price_delta > 0 || option.duration_delta > 0) && (
+      {(showPrice || showDuration) && (
         <span className="ml-1 text-[10px] text-neutral-500">
-          {option.price_delta > 0 ? `+${formatPrice(option.price_delta)}` : ""}
-          {option.price_delta > 0 && option.duration_delta > 0 ? " · " : ""}
-          {option.duration_delta > 0 ? `+${option.duration_delta} min` : ""}
+          {showPrice ? `+${formatPrice(option.price_delta)}` : ""}
+          {showPrice && showDuration ? " · " : ""}
+          {showDuration ? `+${option.duration_delta} min` : ""}
         </span>
       )}
     </button>
@@ -73,6 +81,8 @@ function Section({
   serviceId,
   onChange,
   compact,
+  hidePrice = false,
+  hideDuration = false,
 }: {
   title: string
   type: ServiceOptionType
@@ -81,6 +91,8 @@ function Section({
   serviceId: string
   onChange: (serviceId: string, optionIds: string[]) => void
   compact?: boolean
+  hidePrice?: boolean
+  hideDuration?: boolean
 }) {
   if (options.length === 0) return null
 
@@ -119,6 +131,8 @@ function Section({
             selected={selectedOptionIds.includes(opt.id)}
             onClick={() => toggle(opt.id)}
             compact={compact}
+            hidePrice={hidePrice}
+            hideDuration={hideDuration}
           />
         ))}
       </div>
@@ -160,12 +174,16 @@ function SubindexList({
   options,
   selectedOptionIds,
   onChange,
+  hidePrice = false,
+  hideDuration = false,
 }: {
   serviceId: string
   serviceName?: string
   options: EnabledServiceOption[]
   selectedOptionIds: string[]
   onChange: (serviceId: string, optionIds: string[]) => void
+  hidePrice?: boolean
+  hideDuration?: boolean
 }) {
   const toggle = (optionId: string) => {
     const next = selectedOptionIds.includes(optionId)
@@ -209,16 +227,21 @@ function SubindexList({
                   <SubindexCheckbox checked={active} />
                   <span>{opt.label}</span>
                 </span>
-                {opt.price_delta > 0 && (
-                  <span className="shrink-0 text-sm font-medium tabular-nums text-[#0a0a0a]">
-                    +{formatPrice(opt.price_delta)}
-                  </span>
-                )}
-                {opt.price_delta <= 0 && opt.duration_delta > 0 && (
-                  <span className="shrink-0 text-[11px] text-neutral-500">
-                    +{opt.duration_delta} min
-                  </span>
-                )}
+                {(() => {
+                  const showOptPrice = !hidePrice && opt.price_delta > 0
+                  const showOptDuration =
+                    !hideDuration && opt.duration_delta > 0
+                  if (!showOptPrice && !showOptDuration) return null
+                  return (
+                    <span className="shrink-0 text-sm tabular-nums text-[#0a0a0a]">
+                      {showOptPrice ? `+${formatPrice(opt.price_delta)}` : ""}
+                      {showOptPrice && showOptDuration ? " · " : ""}
+                      {showOptDuration
+                        ? `+${opt.duration_delta} min`
+                        : ""}
+                    </span>
+                  )
+                })()}
               </label>
             </li>
           )
@@ -236,6 +259,8 @@ export default function ServiceOptionsPicker({
   compact = false,
   variant = "chips",
   serviceName,
+  hidePrice = false,
+  hideDuration = false,
 }: Props) {
   if (variant === "subindex") {
     return (
@@ -245,6 +270,8 @@ export default function ServiceOptionsPicker({
         options={options}
         selectedOptionIds={selectedOptionIds}
         onChange={onChange}
+        hidePrice={hidePrice}
+        hideDuration={hideDuration}
       />
     )
   }
@@ -266,6 +293,8 @@ export default function ServiceOptionsPicker({
         serviceId={serviceId}
         onChange={onChange}
         compact={compact}
+        hidePrice={hidePrice}
+        hideDuration={hideDuration}
       />
       <Section
         title="Extras"
@@ -275,6 +304,8 @@ export default function ServiceOptionsPicker({
         serviceId={serviceId}
         onChange={onChange}
         compact={compact}
+        hidePrice={hidePrice}
+        hideDuration={hideDuration}
       />
     </div>
   )

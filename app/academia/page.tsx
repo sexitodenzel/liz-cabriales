@@ -1,19 +1,23 @@
 import { getPublishedCoursesCached } from "@/lib/supabase/courses"
+import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
+import {
+  ACADEMIA_HERO_FALLBACKS,
+  ACADEMIA_HERO_SLOT_KEYS,
+} from "@/lib/media-slots"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import CourseGrid from "./CourseGrid"
 
 export const revalidate = 60
 
-// Imágenes del collage hero (placeholder mientras no hay fotos reales del estudio).
-const HERO_IMAGES = [
-  "https://picsum.photos/seed/academia-hero-a/1200/900",
-  "https://picsum.photos/seed/academia-hero-b/700/500",
-  "https://picsum.photos/seed/academia-hero-c/700/500",
-]
-
 /** Encabezado editorial + galería collage: 1 imagen grande (2/3) + 2 apiladas. */
-function HeroBand() {
+function HeroBand({ images }: { images: string[] }) {
+  const [a, b, c] = [
+    images[0] || ACADEMIA_HERO_FALLBACKS[0],
+    images[1] || ACADEMIA_HERO_FALLBACKS[1],
+    images[2] || ACADEMIA_HERO_FALLBACKS[2],
+  ]
+
   return (
     <>
       <header className="mb-5">
@@ -28,7 +32,7 @@ function HeroBand() {
       <section className="mb-10 grid gap-2 overflow-hidden rounded-2xl sm:h-[440px] sm:grid-cols-3 sm:grid-rows-2">
         <div className="relative aspect-[4/3] overflow-hidden sm:col-span-2 sm:row-span-2 sm:aspect-auto">
           <SmoothImage
-            src={HERO_IMAGES[0]}
+            src={a}
             alt=""
             fill
             className="object-cover"
@@ -38,7 +42,7 @@ function HeroBand() {
         </div>
         <div className="relative hidden overflow-hidden sm:block">
           <SmoothImage
-            src={HERO_IMAGES[1]}
+            src={b}
             alt=""
             fill
             className="object-cover"
@@ -48,7 +52,7 @@ function HeroBand() {
         </div>
         <div className="relative hidden overflow-hidden sm:block">
           <SmoothImage
-            src={HERO_IMAGES[2]}
+            src={c}
             alt=""
             fill
             className="object-cover"
@@ -62,7 +66,10 @@ function HeroBand() {
 }
 
 export default async function AcademiaPage() {
-  const result = await getPublishedCoursesCached()
+  const [result, heroImages] = await Promise.all([
+    getPublishedCoursesCached(),
+    getOrderedSlotUrls([...ACADEMIA_HERO_SLOT_KEYS], ACADEMIA_HERO_FALLBACKS),
+  ])
 
   if (!result.data) {
     return (
@@ -83,7 +90,7 @@ export default async function AcademiaPage() {
           items={[{ label: "Inicio", href: "/" }, { label: "Academia" }]}
           className="mb-4"
         />
-        <HeroBand />
+        <HeroBand images={heroImages} />
         <CourseGrid courses={result.data} />
       </div>
     </main>

@@ -225,6 +225,125 @@ html {
   }
 }
 
+/* ── Home overlay (estilo LuxeBeauty, sólido ivory — no negro) ─────────────
+   Capa ::after = barra ivory (detrás del contenido, isolation).
+   Al quitar lc-home-overlay la opacidad 0→1 hace aparecer la barra. */
+#site-navbar {
+  isolation: isolate;
+  background-color: transparent;
+  color: #1a1a1a;
+  transition: color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#site-navbar::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--color-ivory);
+  opacity: 1;
+  transition: opacity 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 1200px) {
+  #site-navbar::after {
+    box-shadow: 0 1px 0 0 var(--color-ivory);
+  }
+}
+
+html.lc-home-overlay #site-navbar {
+  color: #fff;
+  box-shadow: none !important;
+}
+
+html.lc-home-overlay #site-navbar::after {
+  opacity: 0;
+}
+
+/* Velo oscuro sobre la foto (detrás del toolbar; no tapa el logo) */
+html.lc-home-overlay #site-navbar::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgba(12, 10, 8, 0.42) 0%,
+    rgba(12, 10, 8, 0.12) 55%,
+    transparent 100%
+  );
+}
+
+#site-navbar .navbar-toolbar {
+  position: relative;
+  z-index: 1;
+}
+
+#site-navbar .navbar-toolbar a,
+#site-navbar .navbar-toolbar button {
+  transition: color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* No forzar color en el link del logo: el PNG no usa currentColor y
+   en algunos navegadores el cascade + filter lo hacía desaparecer. */
+html.lc-home-overlay #site-navbar .navbar-toolbar a:not(.navbar-brand-link),
+html.lc-home-overlay #site-navbar .navbar-toolbar button {
+  color: #fff;
+}
+
+html.lc-home-overlay #site-navbar .navbar-toolbar a:not(.navbar-brand-link):hover,
+html.lc-home-overlay #site-navbar .navbar-toolbar button:hover {
+  color: var(--color-gold-soft);
+}
+
+html.lc-home-overlay #site-navbar nav a {
+  color: #fff !important;
+}
+
+html.lc-home-overlay #site-navbar nav a:hover {
+  color: var(--color-gold-soft) !important;
+}
+
+html.lc-home-overlay #site-navbar .navbar-search-input {
+  color: #fff;
+  transition: color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.lc-home-overlay #site-navbar .navbar-search-typewriter {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+html.lc-home-overlay #site-navbar .navbar-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+html.lc-home-overlay #site-navbar form.border-b {
+  border-color: rgba(255, 255, 255, 0.55);
+  transition: border-color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Sin transition de filter: animar drop-shadow↔none hace desaparecer el PNG. */
+html.lc-home-overlay #site-navbar .navbar-brand-logo {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #site-navbar,
+  #site-navbar::after,
+  #site-navbar .navbar-toolbar a,
+  #site-navbar .navbar-toolbar button {
+    transition: none;
+  }
+
+  @media (min-width: 1200px) {
+    #site-navbar {
+      transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+}
+
 /* Entrada única del hero mobile de home (HomeTriCards con prop `entrance`):
    Ken Burns sutil en la IMAGEN (solo transform, GPU) + fade-rise del bloque
    de texto. Nunca scale en texto — el texto solo hace opacity/translate. */
@@ -255,6 +374,51 @@ html {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Resplandor dorado en títulos del hero (estilo LuxeBeauty, banda en oro).
+   Loop lineal sin pausa: en los extremos la banda queda fuera del texto,
+   así el reinicio no se nota. */
+.lc-text-shimmer-gold {
+  background-image: linear-gradient(
+    110deg,
+    #f5f5f4 0%,
+    #f5f5f4 40%,
+    #8a6d26 46%,
+    #f3e6b8 50%,
+    #c6a75e 54%,
+    #f5f5f4 60%,
+    #f5f5f4 100%
+  );
+  background-size: 280% 100%;
+  background-position: 200% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lc-text-shimmer-gold {
+    animation: lc-text-shimmer-gold 8s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc-text-shimmer-gold {
+    background-image: none;
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+  }
+}
+
+@keyframes lc-text-shimmer-gold {
+  from {
+    background-position: 200% 50%;
+  }
+  to {
+    background-position: -80% 50%;
   }
 }
 

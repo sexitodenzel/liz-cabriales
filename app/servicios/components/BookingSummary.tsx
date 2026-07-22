@@ -39,6 +39,8 @@ type Props = {
   clientPhone?: string
   /** Ancla del CTA in-page: el sticky inferior se oculta al llegar aquí. */
   actionsRef?: RefObject<HTMLDivElement | null>
+  showPrice?: boolean
+  showDuration?: boolean
 }
 
 function IconCalendar() {
@@ -107,6 +109,8 @@ export default function BookingSummary({
   showActions = true,
   clientPhone = "",
   actionsRef,
+  showPrice = true,
+  showDuration = true,
 }: Props) {
   const isConfirmStep = step === 4
   const phoneDigits = clientPhone.replace(/\D/g, "").slice(0, 10)
@@ -200,8 +204,8 @@ export default function BookingSummary({
                     {formatTimeLabel(selectedSlot.start_time)}
                     {selectedSlot.end_time
                       ? ` – ${formatTimeLabel(selectedSlot.end_time)}`
-                      : ""}{" "}
-                    ({formatDuration(totalDuration)})
+                      : ""}
+                    {showDuration ? ` (${formatDuration(totalDuration)})` : ""}
                   </span>
                 </div>
               </div>
@@ -225,18 +229,27 @@ export default function BookingSummary({
                       <p className="text-[14px] font-semibold leading-snug text-[#1a1a1a]">
                         {s.name}
                       </p>
-                      <p className="shrink-0 text-[14px] font-semibold text-[#1a1a1a]">
-                        {formatPrice(linePrice)}
-                      </p>
+                      {showPrice && !s.hide_price_public && (
+                        <p className="shrink-0 text-[14px] font-semibold text-[#1a1a1a]">
+                          {formatPrice(linePrice)}
+                        </p>
+                      )}
                     </div>
                     {opts.length > 0 && (
                       <p className="mt-1 text-[12px] text-[#6b6b6b]">
                         {opts.map((o) => o.label).join(" · ")}
                       </p>
                     )}
-                    <p className="mt-1 text-[12px] text-[#6b6b6b]">
-                      {formatDuration(lineDuration)} con {profLabel}
-                    </p>
+                    {!s.hide_duration_public && showDuration && (
+                      <p className="mt-1 text-[12px] text-[#6b6b6b]">
+                        {formatDuration(lineDuration)} con {profLabel}
+                      </p>
+                    )}
+                    {s.hide_duration_public && (
+                      <p className="mt-1 text-[12px] text-[#6b6b6b]">
+                        Con {profLabel}
+                      </p>
+                    )}
                   </li>
                 )
               })}
@@ -256,12 +269,14 @@ export default function BookingSummary({
 
       {/* Footer: total + CTA */}
       <div className="shrink-0 border-t border-[#ececec] pt-5">
-        <div className="mb-4 flex items-baseline justify-between gap-3">
-          <span className="text-[13px] text-[#6b6b6b]">Total</span>
-          <span className="text-[15px] font-semibold text-[#1a1a1a]">
-            {hasSelection ? formatPrice(totalPrice) : "Gratis"}
-          </span>
-        </div>
+        {showPrice && (
+          <div className="mb-4 flex items-baseline justify-between gap-3">
+            <span className="text-[13px] text-[#6b6b6b]">Total</span>
+            <span className="text-[15px] font-semibold text-[#1a1a1a]">
+              {hasSelection ? formatPrice(totalPrice) : "Gratis"}
+            </span>
+          </div>
+        )}
 
         {isConfirmStep && (
           <div className="mb-4 flex items-start gap-3 rounded-[10px] border border-[#ececec] bg-white p-3.5">
@@ -269,8 +284,9 @@ export default function BookingSummary({
               ✓
             </span>
             <p className="text-xs leading-relaxed text-[#6b6b6b]">
-              Al confirmar, tu reserva quedará en espera. Realiza la transferencia
-              del anticipo y envía tu comprobante por WhatsApp.
+              Al confirmar verás el resumen y podrás enviarlo por WhatsApp al
+              estudio. La cita no se guarda en el sitio hasta que el estudio la
+              confirme.
             </p>
           </div>
         )}

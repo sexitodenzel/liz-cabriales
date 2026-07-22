@@ -10,6 +10,11 @@ import {
   recordLoginEvent,
 } from "@/lib/supabase/login-events"
 import { touchUserLastActivity } from "@/lib/supabase/admin-session-activity"
+import {
+  notifyAdminLoginSuccess,
+  notifyLoginRateLimited,
+  trackFailedLoginAndMaybeAlert,
+} from "@/lib/security/login-alerts"
 
 type ApiError = { message: string; code?: string }
 
@@ -82,15 +87,7 @@ function applyCookies<T>(
  * en cookies HttpOnly (no se devuelven access/refresh tokens en el JSON).
  */
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
-  const rateLimited = enforceRateLimit(
-    request,
-    "login",
-    LOGIN_RATE_LIMIT,
-    LOGIN_RATE_WINDOW_MS
-  )
-  if (rateLimited) {
-    return rateLimited as NextResponse<ApiResponse>
-  }
+  const meta = loginEventRequestMeta(request)
 
   let json: unknown
   try {
@@ -103,6 +100,26 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       },
       { status: 400 }
     )
+  }
+
+  const attemptedEmail =
+    typeof (json as { email?: unknown })?.email === "string"
+      ? String((json as { email: string }).email)
+      : null
+
+  const rateLimited = enforceRateLimit(
+    request,
+    "login",
+    LOGIN_RATE_LIMIT,
+    LOGIN_RATE_WINDOW_MS
+  )
+  if (rateLimited) {
+    notifyLoginRateLimited({
+      emailAttempted: attemptedEmail,
+      ip: meta.ip,
+      userAgent: meta.userAgent,
+    })
+    return rateLimited as NextResponse<ApiResponse>
   }
 
   const turnstileRejected = await requireTurnstile(
@@ -154,6 +171,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
   if (error || !data.user || !data.session) {
     const friendly = friendlyAuthError(error?.message ?? "")
+    if (
+      friendly.code === "INVALID_CREDENTIALS" ||
+      friendly.code === "AUTH_ERROR"
+    ) {
+      trackFailedLoginAndMaybeAlert({
+        emailAttempted: parsed.data.email,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+      })
+    }
     return applyCookies(
       NextResponse.json(
         {
@@ -175,15 +202,22 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
   const role = (profile?.role as string | undefined) ?? "client"
   const fullName =
     [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || null
+  const email = data.user.email ?? profile?.email ?? parsed.data.email
 
-  // Auditoría de accesos: solo administradores (control interno del panel).
+  // Auditoría + alerta Resend: solo administradores.
   if (role === "admin") {
-    const meta = loginEventRequestMeta(request)
     void recordLoginEvent({
       userId: data.user.id,
-      email: data.user.email ?? profile?.email ?? parsed.data.email,
+      email,
       fullName,
       role,
+      method: "password",
+      ip: meta.ip,
+      userAgent: meta.userAgent,
+    })
+    notifyAdminLoginSuccess({
+      fullName,
+      email,
       method: "password",
       ip: meta.ip,
       userAgent: meta.userAgent,

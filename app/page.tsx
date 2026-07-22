@@ -1,5 +1,10 @@
 import { Suspense } from "react"
 
+import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
+import {
+  HOME_TRI_FALLBACKS,
+  HOME_TRI_SLOT_KEYS,
+} from "@/lib/media-slots"
 import HomeHeroTriCards from "./components/home/HomeHeroTriCards"
 import CategoriasSection from "./components/home/CategoriasSection"
 import DestacadosSection from "./components/home/DestacadosSection"
@@ -16,13 +21,18 @@ export const revalidate = 60
    hero (3 pilares) → marcas → en oferta/nuevos/best sellers → compra por
    categoría → academia/eventos → inspiración → historia → instagram. */
 
-export default function Home() {
+export default async function Home() {
+  const triImages = await getOrderedSlotUrls(
+    [...HOME_TRI_SLOT_KEYS],
+    HOME_TRI_FALLBACKS
+  )
+
   return (
     <main className="min-h-screen bg-ivory text-ink">
       <h1 className="sr-only">
         Liz Cabriales — Academia y distribuidora profesional de uñas
       </h1>
-      <HomeHeroTriCards />
+      <HomeHeroTriCards images={triImages} />
       <Suspense fallback={<div className="h-10 shrink-0 md:h-12" aria-hidden />}>
         <HomeTopSections />
       </Suspense>

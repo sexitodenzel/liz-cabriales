@@ -30,16 +30,38 @@ type CourseOption = { id: string; title: string }
 
 const SECTION_META: Record<string, { title: string; description: string }> = {
   hero: {
-    title: "Hero Slider",
-    description: "Banners principales del carrusel de inicio. Formato recomendado: 1920×600 px (también 1600×500).",
+    title: "Imágenes para el módulo de inicio (Hero Slider)",
+    description:
+      "Banners del carrusel clásico de inicio. Formato recomendado: 1920×600 px.",
   },
   brand: {
-    title: "Quiénes somos",
-    description: "Foto lateral de la sección de presentación. Formato recomendado: 500×750 px.",
+    title: "Imágenes para Quiénes somos / Sobre Liz",
+    description:
+      "Foto lateral de la sección de presentación. Formato recomendado: 500×750 px.",
+  },
+  home: {
+    title: "Imágenes para el módulo de inicio (tri-cards)",
+    description:
+      "Las tres tarjetas del hero actual: Tienda, Academia y Cabina/Citas.",
+  },
+  servicios: {
+    title: "Imágenes para el módulo de servicios",
+    description:
+      "Galería del estudio en /servicios (collage y lightbox). Formato recomendado: 1200×900 px.",
+  },
+  academia: {
+    title: "Imágenes para el módulo de academia",
+    description:
+      "Collage superior de la página /academia. Formato recomendado: 1200×900 px.",
+  },
+  blog: {
+    title: "Imágenes para el módulo de blog",
+    description:
+      "Collage superior de la página /blog. Formato recomendado: 700×900 px.",
   },
 }
 
-const SECTION_ORDER = ["hero", "brand"]
+const SECTION_ORDER = ["home", "servicios", "academia", "blog", "hero", "brand"]
 
 function UploadIcon() {
   return (
@@ -709,7 +731,8 @@ export default function AdminMediaPage() {
             </p>
             <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">Media</h1>
             <p className="mt-1 text-sm text-[#6b6b6b]">
-              Sube banners, fotos y GIFs para cada sección de la página principal. Los cambios se reflejan en menos de 1 minuto.
+              Imágenes organizadas por módulo. Cada sección indica dónde se ve
+              en el sitio. Los cambios se reflejan en menos de 1 minuto.
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">

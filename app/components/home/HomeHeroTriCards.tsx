@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
+import { HOME_TRI_FALLBACKS } from "@/lib/media-slots"
 import InView from "../ui/motion/in-view"
 
 type Card = {
@@ -16,37 +17,36 @@ type Card = {
   alt: string
 }
 
-const CENTER: Card = {
+const CENTER_BASE: Omit<Card, "image"> = {
   href: "/tienda",
   eyebrow: "Tienda profesional",
   title: "Los productos que usan las profesionales",
   subtitle: "Cosmetología de salón, ahora a un clic.",
   cta: "Descubrir",
-  image:
-    "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1200&q=75",
   alt: "Productos de cosmetología profesional",
 }
 
-const LEFT: Card = {
+const LEFT_BASE: Omit<Card, "image"> = {
   href: "/academia",
   eyebrow: "Academia",
   title: "Capacítate con nosotros",
   subtitle: "Cursos presenciales y online.",
   cta: "Ver cursos",
-  image:
-    "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=75",
   alt: "Curso de cosmetología",
 }
 
-const RIGHT: Card = {
+const RIGHT_BASE: Omit<Card, "image"> = {
   href: "/servicios/agendar",
   eyebrow: "Cabina",
   title: "Agenda tu cita",
   subtitle: "Tratamientos faciales y estética.",
   cta: "Reservar",
-  image:
-    "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=75",
   alt: "Servicios de cabina",
+}
+
+type Props = {
+  /** [tienda, academia, cabina] desde Media; fallback a Unsplash. */
+  images?: [string, string, string] | string[]
 }
 
 // Sección 120vh → 20vh de "scroll muerto" (sticky pin). Reducido desde 180vh
@@ -93,7 +93,16 @@ function computeTarget(y: number, prevY: number, expanded: boolean): boolean {
   return false
 }
 
-export default function HomeHeroTriCards() {
+export default function HomeHeroTriCards({ images }: Props) {
+  const [tiendaImg, academiaImg, cabinaImg] = [
+    images?.[0] || HOME_TRI_FALLBACKS[0],
+    images?.[1] || HOME_TRI_FALLBACKS[1],
+    images?.[2] || HOME_TRI_FALLBACKS[2],
+  ]
+  const CENTER: Card = { ...CENTER_BASE, image: tiendaImg }
+  const LEFT: Card = { ...LEFT_BASE, image: academiaImg }
+  const RIGHT: Card = { ...RIGHT_BASE, image: cabinaImg }
+
   const [expanded, setExpanded] = useState(false)
   const [centerHover, setCenterHover] = useState(false)
   // animEnabled: cuando la sección está fuera del viewport, las transitions
@@ -303,15 +312,15 @@ export default function HomeHeroTriCards() {
         style={{ height: `${SECTION_HEIGHT_VH}vh` }}
       >
         <div
-          className="navbar-follow-collapse sticky w-full overflow-hidden bg-ivory px-6"
+          className="sticky w-full overflow-hidden bg-black"
           style={{
-            top: "var(--navbar-actual-h, 64px)",
-            // --home-hero-inset (globals.css) dimensiona el hero para el
-            // navbar COLAPSADO en ≥1200px: expandido, el borde inferior queda
-            // ~32px bajo el fold (full-bleed); al colapsar, el follow-collapse
-            // lo sube -56px por transform y el respiro de 24px entra exacto
-            // al viewport. Así no hay franja blanca ni se anima height.
-            height: "calc(100vh - var(--home-hero-inset, 88px))",
+            // Overlay: hero a 100vh pegado al top (bajo el menú transparente).
+            // Al scrollear, el menú ivory sólido “separa” la imagen debajo.
+            // Sin navbar-follow-collapse: el hero ya vive bajo el nav; al
+            // colapsar solo se revela más foto (no hay hueco que cerrar).
+            top: 0,
+            height: "100vh",
+            marginTop: "calc(-1 * var(--navbar-actual-h, 64px))",
           }}
         >
           <div className="relative h-full w-full">
@@ -348,7 +357,7 @@ export default function HomeHeroTriCards() {
               <span className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white/90">
                 {CENTER.eyebrow}
               </span>
-              <h2 className="max-w-[14ch] font-display text-xl font-normal leading-[1.1] md:text-3xl lg:text-4xl">
+              <h2 className="lc-text-shimmer-gold max-w-[14ch] font-display text-xl font-normal leading-[1.1] md:text-3xl lg:text-4xl">
                 {CENTER.title}
               </h2>
               <p className="mt-2 max-w-xs text-[11px] text-white/85 md:text-xs">
@@ -393,7 +402,7 @@ export default function HomeHeroTriCards() {
           card={CENTER}
           hero
           entrance
-          className="h-[calc(100svh-var(--navbar-mobile-h,64px))]"
+          className="h-[100svh] -mt-[var(--navbar-mobile-h,64px)]"
         />
         <InView>
           <CardBlock card={LEFT} compact className="h-[60svh]" />
@@ -471,7 +480,7 @@ function CardBlock({
             <span className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white/90">
               {card.eyebrow}
             </span>
-            <h2 className="max-w-[14ch] font-display text-4xl font-normal leading-[1.05] md:text-6xl lg:text-7xl">
+            <h2 className="lc-text-shimmer-gold max-w-[14ch] font-display text-4xl font-normal leading-[1.05] md:text-6xl lg:text-7xl">
               {card.title}
             </h2>
             <p className="mt-5 max-w-md text-sm text-white/85 md:text-base">

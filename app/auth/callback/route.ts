@@ -5,6 +5,7 @@ import {
   recordLoginEvent,
   type LoginMethod,
 } from "@/lib/supabase/login-events"
+import { notifyAdminLoginSuccess } from "@/lib/security/login-alerts"
 
 function sanitizeNextPath(value: string | null): string | null {
   if (!value) return null
@@ -56,17 +57,31 @@ export async function GET(request: NextRequest) {
     const role = (profile?.role as string | undefined) ?? "client"
     if (role === "admin") {
       const meta = loginEventRequestMeta(request)
+      const email = user.email ?? profile?.email ?? null
+      const fullName =
+        [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
+        null
+      const method = resolveAuthMethod(type)
+
       void recordLoginEvent({
         userId: user.id,
-        email: user.email ?? profile?.email ?? null,
-        fullName:
-          [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
-          null,
+        email,
+        fullName,
         role,
-        method: resolveAuthMethod(type),
+        method,
         ip: meta.ip,
         userAgent: meta.userAgent,
       })
+
+      if (email) {
+        notifyAdminLoginSuccess({
+          fullName,
+          email,
+          method,
+          ip: meta.ip,
+          userAgent: meta.userAgent,
+        })
+      }
     }
   }
 

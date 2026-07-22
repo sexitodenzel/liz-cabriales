@@ -19,7 +19,7 @@ import type {
   ServiceRow,
   ServiceWithOptions,
 } from "./appointments"
-import { getPublicServicesWithOptions, queryServiceRows } from "./servicesAdmin"
+import { getPublicServicesWithOptions, mapServiceRecord, queryServiceRows } from "./servicesAdmin"
 
 function adminDb() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -773,18 +773,7 @@ export const getServicesCached = unstable_cache(
     if (!result.data) {
       return { data: null, error: result.error }
     }
-    const rows = result.data.map((r) => ({
-      id: r.id as string,
-      name: r.name as string,
-      description: (r.description as string | null) ?? null,
-      price: Number(r.price),
-      duration_min: Number(r.duration_min),
-      is_active: Boolean(r.is_active),
-      show_options: Boolean(r.show_options ?? false),
-      filter_id: (r.filter_id as string | null) ?? null,
-      filter_slug: (r.filter_slug as string | null) ?? null,
-      filter_name: (r.filter_name as string | null) ?? null,
-    }))
+    const rows = result.data.map(mapServiceRecord)
     return { data: rows, error: null }
   },
   ["services"],

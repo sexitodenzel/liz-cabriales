@@ -12,7 +12,6 @@ import {
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
-import { SearchTypewriter } from "./SearchTypewriter"
 import { getSearchDestination } from "@/lib/search-navigation"
 import { SITE_CONTAINER_CLASS } from "@/lib/site-shell"
 import { MOBILE_CHROME_PANEL_CLASS } from "@/lib/site-chrome"
@@ -48,7 +47,6 @@ export default function MobileSearchOverlay({
 }: Props) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
-  const [inputFocused, setInputFocused] = useState(false)
   const [isWideViewport, setIsWideViewport] = useState(false)
 
   useEffect(() => {
@@ -61,10 +59,7 @@ export default function MobileSearchOverlay({
   const useDesktopBranch = hideForm && isWideViewport
 
   useEffect(() => {
-    if (!open) {
-      setInputFocused(false)
-      return
-    }
+    if (!open) return
     const previous = document.body.style.overflow
     document.body.style.overflow = "hidden"
     return () => {
@@ -89,7 +84,6 @@ export default function MobileSearchOverlay({
   }
 
   const isEmpty = query.trim().length < 2
-  const showTypewriter = open && !inputFocused && query.length === 0
 
   const overlayContent = (
     <>
@@ -101,10 +95,6 @@ export default function MobileSearchOverlay({
           >
             <Search className="h-6 w-6 shrink-0 text-neutral-900" strokeWidth={1.5} />
             <div className="relative min-w-0 flex-1">
-              <SearchTypewriter
-                active={showTypewriter}
-                className="pointer-events-none absolute inset-y-0 left-0 flex items-center text-base tracking-wide text-neutral-400 md:text-[17px]"
-              />
               <input
                 ref={inputRef}
                 type="text"
@@ -113,10 +103,6 @@ export default function MobileSearchOverlay({
                 autoComplete="off"
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => {
-                  if (query.length === 0) setInputFocused(false)
-                }}
                 placeholder=""
                 className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-base tracking-wide text-neutral-900 outline-none md:text-[17px]"
                 aria-label="Buscar productos"

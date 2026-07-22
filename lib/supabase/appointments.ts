@@ -25,6 +25,7 @@ import {
 import { getStudioWeeklyHoursCached } from "@/lib/supabase/studio-hours"
 import {
   insertAppointmentServiceOptions,
+  mapServiceRecord,
   queryServiceRows,
   resolveSelectedServiceOptions,
 } from "@/lib/supabase/servicesAdmin"
@@ -137,6 +138,8 @@ export type ServiceRow = {
   duration_min: number
   is_active: boolean
   show_options: boolean
+  hide_price_public: boolean
+  hide_duration_public: boolean
   filter_id: string | null
   filter_slug: string | null
   filter_name: string | null
@@ -235,18 +238,7 @@ export async function getServices(): Promise<Result<ServiceRow[]>> {
   const result = await queryServiceRows(supabase, { activeOnly: true })
   if (!result.data) return result
 
-  const rows = result.data.map((r) => ({
-    id: r.id as string,
-    name: r.name as string,
-    description: (r.description as string | null) ?? null,
-    price: Number(r.price),
-    duration_min: Number(r.duration_min),
-    is_active: Boolean(r.is_active),
-    show_options: Boolean(r.show_options ?? false),
-    filter_id: (r.filter_id as string | null) ?? null,
-    filter_slug: (r.filter_slug as string | null) ?? null,
-    filter_name: (r.filter_name as string | null) ?? null,
-  }))
+  const rows = result.data.map(mapServiceRecord)
 
   return { data: rows, error: null }
 }
@@ -482,18 +474,7 @@ async function loadServicesForIds(
     return { data: null, error: result.error }
   }
 
-  const rows = result.data.map((r) => ({
-    id: r.id as string,
-    name: r.name as string,
-    description: (r.description as string | null) ?? null,
-    price: Number(r.price),
-    duration_min: Number(r.duration_min),
-    is_active: Boolean(r.is_active),
-    show_options: Boolean(r.show_options ?? false),
-    filter_id: (r.filter_id as string | null) ?? null,
-    filter_slug: (r.filter_slug as string | null) ?? null,
-    filter_name: (r.filter_name as string | null) ?? null,
-  }))
+  const rows = result.data.map(mapServiceRecord)
 
   if (rows.length !== serviceIds.length) {
     return {

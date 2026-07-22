@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Check, ChevronDown, Plus, User } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type {
-  AppointmentRecord,
   ProfessionalRow,
   ServiceFilterRow,
   ServiceWithOptions,
@@ -26,7 +25,9 @@ import {
 import BookingSummary from "./components/BookingSummary"
 import FullCalendarModal from "./components/FullCalendarModal"
 import StickyContinueBar from "./components/StickyContinueBar"
-import TransferPaymentModal from "./components/TransferPaymentModal"
+import WhatsAppBookingModal, {
+  type BookingDraft,
+} from "./components/WhatsAppBookingModal"
 
 type Slot = {
   start_time: string
@@ -42,8 +43,6 @@ type Props = {
   professionals: ProfessionalRow[]
   studioWeeklyHours: StudioWeeklyHourRow[]
   isAuthenticated: boolean
-  activeAppointment: AppointmentRecord | null
-  transferAccountNumber: string
 }
 
 const STEP_LABELS: Record<Step, string> = {
@@ -291,16 +290,10 @@ export default function ServiciosClient({
   professionals,
   studioWeeklyHours,
   isAuthenticated,
-  activeAppointment: initialActiveAppointment,
-  transferAccountNumber: initialTransferAccountNumber,
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [transferAccountNumber, setTransferAccountNumber] = useState(
-    initialTransferAccountNumber
-  )
-  const [modalAppointment, setModalAppointment] =
-    useState<AppointmentRecord | null>(initialActiveAppointment)
+  const [bookingDraft, setBookingDraft] = useState<BookingDraft | null>(null)
 
   const [step, setStep] = useState<Step>(1)
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([])
@@ -318,7 +311,6 @@ export default function ServiciosClient({
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState("")
-  const categoryClickLockRef = useRef(false)
   const [descExpandedId, setDescExpandedId] = useState<string | null>(null)
   const [optionsExpandedId, setOptionsExpandedId] = useState<string | null>(
     null
@@ -363,6 +355,12 @@ export default function ServiciosClient({
   const totalDuration =
     selectedServices.reduce((a, s) => a + s.duration_min, 0) +
     optionTotals.duration
+  const showPricePublic =
+    selectedServices.length === 0 ||
+    selectedServices.every((s) => !s.hide_price_public)
+  const showDurationPublic =
+    selectedServices.length === 0 ||
+    selectedServices.every((s) => !s.hide_duration_public)
   const availableDates = useMemo(
     () => buildBookableDates(QUICK_PICK_DAYS, studioWeeklyHours),
     [studioWeeklyHours]
@@ -432,61 +430,24 @@ export default function ServiciosClient({
     return groups
   }, [availableCategories, services])
 
-  const scrollToCategory = useCallback((slug: string) => {
-    const el = document.getElementById(`cat-${slug}`)
-    if (!el) return
-    el.scrollIntoView({ behavior: "smooth", block: "start" })
+  const onCategoryClick = useCallback((slug: string) => {
+    setActiveCategory(slug)
   }, [])
 
-  const onCategoryClick = useCallback(
-    (slug: string) => {
-      setActiveCategory(slug)
-      categoryClickLockRef.current = true
-      scrollToCategory(slug)
-      window.setTimeout(() => {
-        categoryClickLockRef.current = false
-      }, 900)
-    },
-    [scrollToCategory]
-  )
-
-  // Arranca resaltando la primera categoría (p. ej. Reflexología).
+  // Arranca en la primera categoría con servicios.
   useEffect(() => {
     if (!activeCategory && servicesByCategory.length > 0) {
       setActiveCategory(servicesByCategory[0].slug)
     }
   }, [activeCategory, servicesByCategory])
 
-  // Scroll-spy: el tab activo sigue la sección visible mientras se hace scroll.
-  useEffect(() => {
-    if (step !== 1) return
-    const els = servicesByCategory
-      .map((g) => document.getElementById(`cat-${g.slug}`))
-      .filter((el): el is HTMLElement => Boolean(el))
-    if (els.length === 0) return
-
-    const visibility = new Map<string, number>()
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          visibility.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0)
-        }
-        if (categoryClickLockRef.current) return
-        let bestId = ""
-        let bestRatio = 0
-        for (const [id, ratio] of visibility) {
-          if (ratio > bestRatio) {
-            bestRatio = ratio
-            bestId = id
-          }
-        }
-        if (bestId) setActiveCategory(bestId.replace("cat-", ""))
-      },
-      { root: null, rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.1, 0.25, 0.5, 1] }
+  const activeServiceGroup = useMemo(() => {
+    if (servicesByCategory.length === 0) return null
+    return (
+      servicesByCategory.find((g) => g.slug === activeCategory) ??
+      servicesByCategory[0]
     )
-    for (const el of els) observer.observe(el)
-    return () => observer.disconnect()
-  }, [servicesByCategory, step])
+  }, [servicesByCategory, activeCategory])
 
   useEffect(() => {
     const categoria = searchParams.get("categoria")?.trim()
@@ -494,7 +455,6 @@ export default function ServiciosClient({
 
     if (categoria && availableCategories.some((f) => f.slug === categoria)) {
       setActiveCategory(categoria)
-      window.setTimeout(() => scrollToCategory(categoria), 120)
     }
 
     if (!servicioId) return
@@ -503,13 +463,12 @@ export default function ServiciosClient({
 
     if (service.filter_slug) {
       setActiveCategory(service.filter_slug)
-      window.setTimeout(() => scrollToCategory(service.filter_slug!), 120)
     }
     setSelectedServiceIds([servicioId])
     if (service.options.length > 0) {
       setOptionsExpandedId(servicioId)
     }
-  }, [searchParams, availableCategories, services, scrollToCategory])
+  }, [searchParams, availableCategories, services])
 
   const selectedProfessional = professionals.find(
     (p) => p.id === selectedProfessionalId
@@ -789,137 +748,62 @@ export default function ServiciosClient({
     }
   }, [proPickerOpen])
 
-  const hasBlockingAppointment = Boolean(
-    modalAppointment &&
-      (modalAppointment.status === "pending" ||
-        modalAppointment.status === "paid")
-  )
-
-  const handleTransferCancelled = useCallback(() => {
-    setModalAppointment(null)
-    router.refresh()
-  }, [router])
-
-  const handleTransferStatusChange = useCallback(
-    (status: AppointmentRecord["status"]) => {
-      setModalAppointment((prev) => (prev ? { ...prev, status } : prev))
-    },
-    []
-  )
-
-  useEffect(() => {
-    setTransferAccountNumber(initialTransferAccountNumber)
-  }, [initialTransferAccountNumber])
-
-  useEffect(() => {
-    setModalAppointment(initialActiveAppointment)
-  }, [initialActiveAppointment])
-
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!hasValidPhone) {
       setPhoneError("Ingresa tu número de celular (10 dígitos)")
       return
     }
     setPhoneError(null)
 
-    if (!isAuthenticated) {
-      try {
-        sessionStorage.setItem(
-          "pendingAppointment",
-          JSON.stringify({
-            service_ids: selectedServiceIds,
-            service_selections: serviceSelections,
-            professional_id: selectedProfessionalId,
-            date: selectedDate,
-            start_time: selectedSlot?.start_time,
-            client_phone: phoneDigits,
-          })
-        )
-      } catch {
-        // noop
-      }
-      router.push("/login?redirect=/servicios/agendar")
-      return
-    }
-
     if (!selectedSlot || !selectedDate || !selectedProfessionalId) return
-    if (hasBlockingAppointment) {
-      setSubmitError("Ya tienes una cita activa. Completa o cancela tu reserva actual.")
-      return
-    }
 
-    setSubmitting(true)
-    setSubmitError(null)
-    try {
-      const profToSend =
+    const draft: BookingDraft = {
+      date: selectedDate,
+      start_time: selectedSlot.start_time,
+      end_time: selectedSlot.end_time,
+      professional_name:
         selectedProfessionalId === "any"
-          ? "any"
-          : selectedSlot.professional_id
-
-      const res = await fetch("/api/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          service_ids: selectedServiceIds,
-          service_selections: serviceSelections,
-          professional_id: profToSend,
-          date: selectedDate,
-          start_time: selectedSlot.start_time,
-          client_phone: phoneDigits,
-        }),
-      })
-      const json = await res.json()
-      if (!res.ok || json.error) {
-        setSubmitError(json?.error?.message ?? "No se pudo crear la cita")
-        return
-      }
-
-      const appointmentId = json.data.appointment_id
-
-      const activeRes = await fetch("/api/appointments/active")
-      const activeJson = await activeRes.json()
-      if (activeRes.ok && activeJson.data?.appointment) {
-        setModalAppointment(activeJson.data.appointment)
-        if (typeof activeJson.data.transfer_account_number === "string") {
-          setTransferAccountNumber(activeJson.data.transfer_account_number)
+          ? "Cualquier profesional"
+          : (selectedProfessional?.name ?? null),
+      client_phone: phoneDigits,
+      total: totalPrice,
+      showPrice: showPricePublic,
+      services: selectedServices.map((s) => {
+        const opts = resolveServiceOptions(s, selectedOptionsByService)
+        return {
+          service_name: s.name,
+          options: opts.map((o) => o.label),
+          unit_price: s.hide_price_public
+            ? null
+            : s.price + opts.reduce((sum, o) => sum + o.price_delta, 0),
+          duration_min: s.hide_duration_public
+            ? null
+            : s.duration_min +
+              opts.reduce((sum, o) => sum + o.duration_delta, 0),
         }
-      } else {
-        setModalAppointment((prev) =>
-          prev ??
-          ({
-            id: appointmentId,
-            user_id: null,
-            professional_id: selectedSlot.professional_id,
-            professional_name: selectedProfessional?.name ?? null,
-            appointment_type: "individual",
-            date: selectedDate,
-            start_time: selectedSlot.start_time,
-            end_time: selectedSlot.end_time,
-            total: json.data.total,
-            status: "pending",
-            cancelled_by: null,
-            created_at: new Date().toISOString(),
-            services: selectedServices.map((s) => ({
-              service_id: s.id,
-              service_name: s.name,
-              unit_price: s.price,
-              duration_min: s.duration_min,
-            })),
-          } satisfies AppointmentRecord)
-        )
-      }
-
-      setStep(1)
-      setSelectedServiceIds([])
-      setSelectedOptionsByService({})
-      setSelectedProfessionalId(null)
-      setSelectedDate(null)
-      setSelectedSlot(null)
-    } catch {
-      setSubmitError("Error de red al reservar")
-    } finally {
-      setSubmitting(false)
+      }),
     }
+
+    setBookingDraft(draft)
+  }
+
+  const handleEditBooking = () => {
+    setBookingDraft(null)
+    setStep(4)
+  }
+
+  const handleGoHomeWithoutSaving = () => {
+    setBookingDraft(null)
+    setStep(1)
+    setSelectedServiceIds([])
+    setSelectedOptionsByService({})
+    setSelectedProfessionalId(null)
+    setSelectedDate(null)
+    setSelectedSlot(null)
+    setPhone("")
+    setPhoneError(null)
+    setSubmitError(null)
+    router.push("/")
   }
 
   const summaryProps = {
@@ -943,6 +827,8 @@ export default function ServiciosClient({
     canContinue,
     submitting,
     clientPhone: phone,
+    showPrice: showPricePublic,
+    showDuration: showDurationPublic,
   }
 
   const stickyServiceLabel =
@@ -972,7 +858,7 @@ export default function ServiciosClient({
             <button
               type="button"
               onClick={handleBack}
-              className="shrink-0 text-[13px] font-medium text-neutral-500 transition-colors hover:text-[#0a0a0a]"
+              className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-neutral-900 px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-neutral-800"
             >
               Volver
             </button>
@@ -1075,202 +961,204 @@ export default function ServiciosClient({
                   </p>
                 )}
 
-                <div className="space-y-12">
-                  {servicesByCategory.map((group) => (
-                    <section
-                      key={group.slug}
-                      id={`cat-${group.slug}`}
-                      className="scroll-mt-52"
-                      aria-labelledby={`cat-${group.slug}-heading`}
+                {activeServiceGroup && (
+                  <section
+                    id={`cat-${activeServiceGroup.slug}`}
+                    className="scroll-mt-52"
+                    aria-labelledby={`cat-${activeServiceGroup.slug}-heading`}
+                  >
+                    <h2
+                      id={`cat-${activeServiceGroup.slug}-heading`}
+                      className="mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
                     >
-                      <h2
-                        id={`cat-${group.slug}-heading`}
-                        className="mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
-                      >
-                        {group.name}
-                      </h2>
-                      <ul className="divide-y divide-neutral-200/80 border-y border-neutral-200/80">
-                        {group.services.map((s) => {
-                          const selected = selectedServiceIds.includes(s.id)
-                          const descExpanded = descExpandedId === s.id
-                          const optionsExpanded = optionsExpandedId === s.id
-                          const longDesc =
-                            s.description && s.description.length > 120
-                          const hasSubOptions = s.options.length > 0
-                          const showSubindex = hasSubOptions && optionsExpanded
-                          const missingOption = servicesMissingOptions.has(s.id)
+                      {activeServiceGroup.name}
+                    </h2>
+                    <ul className="space-y-3">
+                      {activeServiceGroup.services.map((s) => {
+                        const selected = selectedServiceIds.includes(s.id)
+                        const descExpanded = descExpandedId === s.id
+                        const optionsExpanded = optionsExpandedId === s.id
+                        const longDesc =
+                          s.description && s.description.length > 120
+                        const hasSubOptions = s.options.length > 0
+                        const showSubindex = hasSubOptions && optionsExpanded
+                        const missingOption = servicesMissingOptions.has(s.id)
 
-                          return (
-                            <li
-                              key={s.id}
-                              className={
-                                missingOption
-                                  ? "bg-red-50/60"
-                                  : selected
-                                    ? "bg-neutral-50/80"
-                                    : undefined
-                              }
-                            >
-                              <div className="flex items-start justify-between gap-3 py-5 sm:gap-6">
-                                <div
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={() => handleServiceCardClick(s)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                      e.preventDefault()
-                                      handleServiceCardClick(s)
-                                    }
-                                  }}
-                                  className="min-w-0 flex-1 cursor-pointer text-left"
-                                >
-                                  <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
-                                    {s.name}
-                                  </h3>
+                        return (
+                          <li
+                            key={s.id}
+                            className={`rounded-2xl border px-4 py-4 sm:px-5 sm:py-5 ${
+                              missingOption
+                                ? "border-red-200 bg-red-50/70"
+                                : selected
+                                  ? "border-neutral-900 bg-[#f3eee4]"
+                                  : "border-[#ebe4d6] bg-[#f8f4ec]"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3 sm:gap-6">
+                              <div
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => handleServiceCardClick(s)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault()
+                                    handleServiceCardClick(s)
+                                  }
+                                }}
+                                className="min-w-0 flex-1 cursor-pointer text-left"
+                              >
+                                <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
+                                  {s.name}
+                                </h3>
+                                {!s.hide_duration_public && (
                                   <p className="mt-1 text-[13px] text-[#8a8a8a]">
                                     {formatDuration(s.duration_min)}
                                   </p>
-                                  {s.description && (
-                                    <div
-                                      className="mt-2"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <p
-                                        className={`max-w-[52ch] text-[13px] leading-relaxed text-[#6b6b6b] ${
-                                          descExpanded ? "" : "line-clamp-2"
-                                        }`}
-                                      >
-                                        {s.description}
-                                      </p>
-                                      {longDesc && (
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            setDescExpandedId(
-                                              descExpanded ? null : s.id,
-                                            )
-                                          }
-                                          className="mt-1 text-[12px] font-medium text-[#111] underline decoration-neutral-400 underline-offset-4 hover:text-[#0a0a0a]"
-                                        >
-                                          {descExpanded
-                                            ? "Ver menos"
-                                            : "Ver más"}
-                                        </button>
-                                      )}
-                                    </div>
-                                  )}
-                                  <p className="mt-2 text-[15px] font-semibold text-[#111]">
-                                    {formatPrice(s.price)}
-                                  </p>
-                                </div>
-
-                                {/* + (añadir/quitar) + pestañita si hay opciones */}
-                                <div
-                                  className={`inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-full border transition-colors ${
-                                    selected
-                                      ? "border-neutral-900 bg-neutral-900 text-white"
-                                      : "border-neutral-300 bg-white text-[#0a0a0a] hover:border-neutral-900"
-                                  }`}
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleService(s.id)}
-                                    className={`inline-flex h-11 w-11 items-center justify-center transition-colors ${
-                                      hasSubOptions ? "" : "rounded-full"
-                                    } ${
-                                      selected
-                                        ? "hover:bg-neutral-800"
-                                        : "hover:bg-neutral-50"
-                                    }`}
-                                    aria-label={
-                                      selected
-                                        ? `Quitar ${s.name}`
-                                        : `Añadir ${s.name}`
-                                    }
-                                    aria-pressed={selected}
+                                )}
+                                {s.description && (
+                                  <div
+                                    className="mt-2"
+                                    onClick={(e) => e.stopPropagation()}
                                   >
-                                    {selected ? (
-                                      <Check
-                                        className="h-4 w-4"
-                                        strokeWidth={2.5}
-                                        aria-hidden
-                                      />
-                                    ) : (
-                                      <Plus
-                                        className="h-4 w-4"
-                                        strokeWidth={2.5}
-                                        aria-hidden
-                                      />
-                                    )}
-                                  </button>
-                                  {hasSubOptions && (
-                                    <>
-                                      <span
-                                        className={`w-px self-stretch ${
-                                          selected
-                                            ? "bg-white/25"
-                                            : "bg-neutral-200"
-                                        }`}
-                                        aria-hidden
-                                      />
+                                    <p
+                                      className={`max-w-[52ch] text-[13px] leading-relaxed text-[#6b6b6b] ${
+                                        descExpanded ? "" : "line-clamp-2"
+                                      }`}
+                                    >
+                                      {s.description}
+                                    </p>
+                                    {longDesc && (
                                       <button
                                         type="button"
                                         onClick={() =>
-                                          setOptionsExpandedId((prev) =>
-                                            prev === s.id ? null : s.id,
+                                          setDescExpandedId(
+                                            descExpanded ? null : s.id,
                                           )
                                         }
-                                        className={`inline-flex h-11 w-9 items-center justify-center transition-colors ${
-                                          selected
-                                            ? "hover:bg-neutral-800"
-                                            : "hover:bg-neutral-50"
-                                        }`}
-                                        aria-label={
-                                          optionsExpanded
-                                            ? `Ocultar opciones de ${s.name}`
-                                            : `Ver opciones de ${s.name}`
-                                        }
-                                        aria-expanded={optionsExpanded}
+                                        className="mt-1 text-[12px] font-medium text-[#111] underline decoration-neutral-400 underline-offset-4 hover:text-[#0a0a0a]"
                                       >
-                                        <ChevronDown
-                                          className={`h-4 w-4 transition-transform duration-200 ${
-                                            optionsExpanded ? "rotate-180" : ""
-                                          }`}
-                                          strokeWidth={2.25}
-                                          aria-hidden
-                                        />
+                                        {descExpanded
+                                          ? "Ver menos"
+                                          : "Ver más"}
                                       </button>
-                                    </>
-                                  )}
-                                </div>
+                                    )}
+                                  </div>
+                                )}
+                                {!s.hide_price_public && (
+                                  <p className="mt-2 text-[15px] font-semibold text-[#111]">
+                                    {formatPrice(s.price)}
+                                  </p>
+                                )}
                               </div>
 
-                              {showSubindex && (
-                                <div className="pb-5">
-                                  <ServiceOptionsPicker
-                                    serviceId={s.id}
-                                    serviceName={s.name}
-                                    options={s.options}
-                                    selectedOptionIds={
-                                      selectedOptionsByService[s.id] ?? []
-                                    }
-                                    onChange={handleServiceOptionsChange}
-                                    variant="subindex"
-                                  />
-                                  {missingOption && (
-                                    <p className="mt-3 text-xs font-medium text-red-600">
-                                      Elige al menos una opción para continuar.
-                                    </p>
+                              <div
+                                className={`inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-full border transition-colors ${
+                                  selected
+                                    ? "border-neutral-900 bg-neutral-900 text-white"
+                                    : "border-neutral-300 bg-white text-[#0a0a0a] hover:border-neutral-900"
+                                }`}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => toggleService(s.id)}
+                                  className={`inline-flex h-11 w-11 items-center justify-center transition-colors ${
+                                    hasSubOptions ? "" : "rounded-full"
+                                  } ${
+                                    selected
+                                      ? "hover:bg-neutral-800"
+                                      : "hover:bg-neutral-50"
+                                  }`}
+                                  aria-label={
+                                    selected
+                                      ? `Quitar ${s.name}`
+                                      : `Añadir ${s.name}`
+                                  }
+                                  aria-pressed={selected}
+                                >
+                                  {selected ? (
+                                    <Check
+                                      className="h-4 w-4"
+                                      strokeWidth={2.5}
+                                      aria-hidden
+                                    />
+                                  ) : (
+                                    <Plus
+                                      className="h-4 w-4"
+                                      strokeWidth={2.5}
+                                      aria-hidden
+                                    />
                                   )}
-                                </div>
-                              )}
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    </section>
-                  ))}
-                </div>
+                                </button>
+                                {hasSubOptions && (
+                                  <>
+                                    <span
+                                      className={`w-px self-stretch ${
+                                        selected
+                                          ? "bg-white/25"
+                                          : "bg-neutral-200"
+                                      }`}
+                                      aria-hidden
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setOptionsExpandedId((prev) =>
+                                          prev === s.id ? null : s.id,
+                                        )
+                                      }
+                                      className={`inline-flex h-11 w-9 items-center justify-center transition-colors ${
+                                        selected
+                                          ? "hover:bg-neutral-800"
+                                          : "hover:bg-neutral-50"
+                                      }`}
+                                      aria-label={
+                                        optionsExpanded
+                                          ? `Ocultar opciones de ${s.name}`
+                                          : `Ver opciones de ${s.name}`
+                                      }
+                                      aria-expanded={optionsExpanded}
+                                    >
+                                      <ChevronDown
+                                        className={`h-4 w-4 transition-transform duration-200 ${
+                                          optionsExpanded ? "rotate-180" : ""
+                                        }`}
+                                        strokeWidth={2.25}
+                                        aria-hidden
+                                      />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            {showSubindex && (
+                              <div className="mt-3 border-t border-[#ebe4d6] pt-3">
+                                <ServiceOptionsPicker
+                                  serviceId={s.id}
+                                  serviceName={s.name}
+                                  options={s.options}
+                                  selectedOptionIds={
+                                    selectedOptionsByService[s.id] ?? []
+                                  }
+                                  onChange={handleServiceOptionsChange}
+                                  variant="subindex"
+                                  hidePrice={s.hide_price_public}
+                                  hideDuration={s.hide_duration_public}
+                                />
+                                {missingOption && (
+                                  <p className="mt-3 text-xs font-medium text-red-600">
+                                    Elige al menos una opción para continuar.
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </section>
+                )}
               </div>
             )}
 
@@ -1656,17 +1544,21 @@ export default function ServiciosClient({
                         })}
                       </div>
                       <p className="mt-1 text-sm text-neutral-500">
-                        {formatDuration(totalDuration)} con {profLabel}
+                        {showDurationPublic
+                          ? `${formatDuration(totalDuration)} con ${profLabel}`
+                          : `Con ${profLabel}`}
                       </p>
                     </div>
-                    <div className="text-left md:text-right">
-                      <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
-                        Total
-                      </p>
-                      <p className="text-2xl font-semibold text-[#0a0a0a]">
-                        {formatPrice(totalPrice)}
-                      </p>
-                    </div>
+                    {showPricePublic && (
+                      <div className="text-left md:text-right">
+                        <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
+                          Total
+                        </p>
+                        <p className="text-2xl font-semibold text-[#0a0a0a]">
+                          {formatPrice(totalPrice)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1676,7 +1568,7 @@ export default function ServiciosClient({
               <div>
                 <StepHeading
                   title="Revisar y confirmar"
-                  subtitle="Verifica los detalles de tu cita antes de proceder al pago."
+                  subtitle="Verifica los detalles. Al confirmar podrás enviarlos por WhatsApp o editarlos."
                 />
 
                 <div className="space-y-8">
@@ -1884,27 +1776,19 @@ export default function ServiciosClient({
         canContinue={canContinue}
         submitting={submitting}
         isConfirmStep={step === 4}
+        showPrice={showPricePublic}
       />
 
-      {modalAppointment &&
-        (modalAppointment.status === "pending" ||
-          modalAppointment.status === "paid") && (
-          <TransferPaymentModal
-            appointment={modalAppointment}
-            transferAccountNumber={transferAccountNumber}
-            formatPrice={formatPrice}
-            formatTimeLabel={formatTimeLabel}
-            prettyDate={prettyDate}
-            onExpired={handleTransferCancelled}
-            onStatusChange={handleTransferStatusChange}
-            onCancelled={handleTransferCancelled}
-            onDismiss={
-              modalAppointment.status === "paid"
-                ? () => setModalAppointment(null)
-                : undefined
-            }
-          />
-        )}
+      {bookingDraft && (
+        <WhatsAppBookingModal
+          draft={bookingDraft}
+          formatPrice={formatPrice}
+          formatTimeLabel={formatTimeLabel}
+          prettyDate={prettyDate}
+          onEdit={handleEditBooking}
+          onGoHome={handleGoHomeWithoutSaving}
+        />
+      )}
     </div>
   )
 }

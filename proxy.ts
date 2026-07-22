@@ -21,11 +21,17 @@ import {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-lc-pathname", pathname)
+
+  // Home y rutas no-admin: solo propagar pathname (overlay SSR del navbar).
   if (!pathname.startsWith("/admin")) {
-    return NextResponse.next()
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    })
   }
 
-  const response = NextResponse.next({ request: { headers: request.headers } })
+  const response = NextResponse.next({ request: { headers: requestHeaders } })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -107,5 +113,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/", "/admin/:path*"],
 }

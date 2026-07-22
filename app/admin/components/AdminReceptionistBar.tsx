@@ -31,7 +31,7 @@ export default function AdminReceptionistBar() {
               aria-current="page"
             >
               <span className="transition-colors duration-200 group-hover:text-[#c9a84c]">
-                Agenda
+                Servicios
               </span>
               <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-[#c9a84c] transition-all duration-200 group-hover:w-full" />
             </Link>

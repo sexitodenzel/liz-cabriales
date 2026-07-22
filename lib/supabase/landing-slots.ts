@@ -94,10 +94,29 @@ export async function getLandingSlots(): Promise<Record<string, string>> {
   return slots
 }
 
-/** Devuelve los slides del hero con datos de link para la landing page. */
-export async function getHeroSlides(): Promise<HeroSlide[]> {
-  const { heroSlides } = await getLandingPageDataCached()
-  return heroSlides
+/**
+ * URLs en el orden de `keys`. Si un slot no existe o está vacío, usa
+ * el fallback en la misma posición (así no se rompe el layout fijo).
+ */
+export async function getOrderedSlotUrls(
+  keys: string[],
+  fallbacks: string[] = []
+): Promise<string[]> {
+  const slots = await getLandingSlots()
+  return keys.map((key, i) => {
+    const url = (slots[key] ?? "").trim()
+    return url || fallbacks[i] || ""
+  })
+}
+
+/** URL de un slot concreto, o fallback. */
+export async function getSlotUrl(
+  key: string,
+  fallback = ""
+): Promise<string> {
+  const slots = await getLandingSlots()
+  const url = (slots[key] ?? "").trim()
+  return url || fallback
 }
 
 /** Devuelve todos los slots con metadata para la página de administración. */
