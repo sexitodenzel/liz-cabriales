@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Inicio" },
   { href: "/admin/products", label: "Productos" },
   { href: "/admin/orders", label: "Órdenes" },
-  { href: "/admin/appointments", label: "Agenda" },
+  { href: "/admin/appointments", label: "Servicios" },
   { href: "/admin/courses", label: "Cursos" },
   { href: "/admin/instructors", label: "Instructores" },
   { href: "/admin/media", label: "Media" },
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: "/admin/top-searches", label: "Más buscados" },
   { href: "/admin/announcements", label: "Anuncios" },
   { href: "/admin/sobre-liz", label: "Sobre Liz" },
+  { href: "/admin/accesos", label: "Accesos" },
 ] as const
 
 function isActivePath(pathname: string, href: string) {

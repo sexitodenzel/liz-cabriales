@@ -14,6 +14,8 @@ export const adminServiceCreateSchema = z.object({
     .min(15, "Duración mínima 15 minutos")
     .max(600, "Duración máxima 600 minutos"),
   show_options: z.boolean().optional(),
+  hide_price_public: z.boolean().optional(),
+  hide_duration_public: z.boolean().optional(),
   filter_id: uuid.optional().nullable(),
 })
 
@@ -25,6 +27,8 @@ export const adminServiceUpdateSchema = z
     duration_min: z.coerce.number().int().min(15).max(600).optional(),
     is_active: z.boolean().optional(),
     show_options: z.boolean().optional(),
+    hide_price_public: z.boolean().optional(),
+    hide_duration_public: z.boolean().optional(),
     filter_id: uuid.optional().nullable(),
   })
   .refine(
@@ -35,6 +39,8 @@ export const adminServiceUpdateSchema = z
       value.duration_min !== undefined ||
       value.is_active !== undefined ||
       value.show_options !== undefined ||
+      value.hide_price_public !== undefined ||
+      value.hide_duration_public !== undefined ||
       value.filter_id !== undefined,
     { message: "Debes indicar al menos un campo a actualizar" }
   )

@@ -4,6 +4,10 @@ import { MercadoPagoConfig, Preference } from "mercadopago"
 import { createClient } from "@/lib/supabase/server"
 import { getAppointmentForPayment } from "@/lib/supabase/appointments"
 import { createAppointmentPaymentSchema } from "@/lib/validations/appointments"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+
+const PAYMENT_RATE_LIMIT = 10
+const PAYMENT_RATE_WINDOW_MS = 5 * 60_000
 
 type ApiError = { message: string; code?: string }
 type ApiResponse<T> = { data: T; error: null } | { data: null; error: ApiError }
@@ -38,6 +42,19 @@ export async function POST(
 
     if (authError || !user) {
       return errorResponse("No autorizado", 401, "UNAUTHENTICATED")
+    }
+
+    const rate = checkRateLimit(
+      `payment-appointment:${user.id}:${getClientIp(request)}`,
+      PAYMENT_RATE_LIMIT,
+      PAYMENT_RATE_WINDOW_MS
+    )
+    if (!rate.allowed) {
+      return errorResponse(
+        "Demasiados intentos de pago. Espera unos minutos.",
+        429,
+        "RATE_LIMITED"
+      )
     }
 
     let json: unknown

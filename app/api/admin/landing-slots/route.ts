@@ -115,6 +115,9 @@ export async function PATCH(request: Request) {
     }
 
     revalidatePath("/")
+    revalidatePath("/servicios")
+    revalidatePath("/academia")
+    revalidatePath("/blog")
     revalidateTag("landing-slots", "max")
 
     return NextResponse.json({ data: { ok: true }, error: null })

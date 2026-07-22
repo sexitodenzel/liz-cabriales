@@ -2,6 +2,11 @@ import Link from "next/link"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import { getBlogPosts } from "@/lib/supabase/blog"
 import type { BlogPost } from "@/lib/supabase/blog"
+import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
+import {
+  BLOG_HERO_FALLBACKS,
+  BLOG_HERO_SLOT_KEYS,
+} from "@/lib/media-slots"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import {
   BLOG_CATEGORIES,
@@ -19,13 +24,6 @@ const BLOG_PLACEHOLDERS = [
   "https://picsum.photos/seed/blog4/800/533",
   "https://picsum.photos/seed/blog5/800/533",
   "https://picsum.photos/seed/blog6/800/533",
-]
-
-// Trío de imágenes de la banda hero (placeholder mientras no hay portada real).
-const HERO_IMAGES = [
-  "https://picsum.photos/seed/blog-hero-a/700/900",
-  "https://picsum.photos/seed/blog-hero-b/700/900",
-  "https://picsum.photos/seed/blog-hero-c/700/900",
 ]
 
 function pickPlaceholder(slug: string) {
@@ -190,13 +188,19 @@ function CategorySection({
 }
 
 /** Banda hero: 3 imágenes con el título sobre el panel central. */
-function HeroBand() {
+function HeroBand({ images }: { images: string[] }) {
+  const [left, center, right] = [
+    images[0] || BLOG_HERO_FALLBACKS[0],
+    images[1] || BLOG_HERO_FALLBACKS[1],
+    images[2] || BLOG_HERO_FALLBACKS[2],
+  ]
+
   return (
     <section className="relative -mx-[var(--site-px)] mb-14 grid grid-cols-1 sm:grid-cols-3">
       {/* Imagen izquierda — solo en pantallas medianas+ */}
       <div className="relative hidden aspect-[3/4] sm:block">
         <SmoothImage
-          src={HERO_IMAGES[0]}
+          src={left}
           alt=""
           fill
           className="object-cover"
@@ -208,7 +212,7 @@ function HeroBand() {
       {/* Panel central con imagen + velo marfil + título */}
       <div className="relative aspect-[4/3] sm:aspect-[3/4]">
         <SmoothImage
-          src={HERO_IMAGES[1]}
+          src={center}
           alt=""
           fill
           className="object-cover"
@@ -233,7 +237,7 @@ function HeroBand() {
       {/* Imagen derecha — solo en pantallas medianas+ */}
       <div className="relative hidden aspect-[3/4] sm:block">
         <SmoothImage
-          src={HERO_IMAGES[2]}
+          src={right}
           alt=""
           fill
           className="object-cover"
@@ -303,7 +307,10 @@ type Props = { searchParams: Promise<{ categoria?: string }> }
 export default async function BlogPage({ searchParams }: Props) {
   const { categoria } = await searchParams
   const activeCategory = getCategoryBySlug(categoria)
-  const allPosts = await getBlogPosts()
+  const [allPosts, heroImages] = await Promise.all([
+    getBlogPosts(),
+    getOrderedSlotUrls([...BLOG_HERO_SLOT_KEYS], BLOG_HERO_FALLBACKS),
+  ])
 
   // Agrupa por categoría (label) conservando el orden ya ordenado de la query.
   const byCategory = new Map<string, BlogPost[]>()
@@ -329,7 +336,7 @@ export default async function BlogPage({ searchParams }: Props) {
       <div className="site-container pt-5 pb-20">
         <Breadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Blog" }]} />
 
-        <HeroBand />
+        <HeroBand images={heroImages} />
 
         <CategoryCircles covers={covers} activeSlug={activeCategory?.slug ?? null} />
 

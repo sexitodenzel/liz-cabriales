@@ -1,14 +1,18 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 import { createClient } from "@/lib/supabase/client"
 import { authEmailSchema } from "@/lib/validations/auth"
 import { normalizePhoneInput } from "@/lib/validations/phone"
+import { verifyTurnstileOnServer } from "@/lib/turnstile-client"
 import FloatingInput from "@/app/components/auth/FloatingInput"
 import FloatingSelect from "@/app/components/auth/FloatingSelect"
+import TurnstileWidget, {
+  type TurnstileWidgetHandle,
+} from "@/components/shared/TurnstileWidget"
 
 type FieldErrors = Record<string, string>
 
@@ -54,6 +58,7 @@ export default function RegistrarPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null)
 
   const initialEmail = searchParams.get("email") ?? ""
   const nextParam = searchParams.get("next")
@@ -83,6 +88,12 @@ export default function RegistrarPage() {
   const [codeSentCount, setCodeSentCount] = useState(0)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+
+  function resetTurnstile() {
+    setTurnstileToken(null)
+    turnstileRef.current?.reset()
+  }
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -115,9 +126,20 @@ export default function RegistrarPage() {
       setErrors((prev) => ({ ...prev, email: "Información necesaria" }))
       return
     }
+    if (!turnstileToken) {
+      setServerError("Completa la verificación de seguridad (CAPTCHA).")
+      return
+    }
     clearError("email")
     setSendingCode(true)
     try {
+      const captcha = await verifyTurnstileOnServer(turnstileToken)
+      resetTurnstile()
+      if (!captcha.ok) {
+        setServerError(captcha.message)
+        return
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email: parsed.data,
         options: { shouldCreateUser: true },
@@ -139,6 +161,7 @@ export default function RegistrarPage() {
       setCodeSentCount((n) => n + 1)
       setResendCooldown(120)
     } catch (err) {
+      resetTurnstile()
       const message = err instanceof Error ? err.message : "Error al enviar el código."
       setServerError(message)
     } finally {
@@ -229,9 +252,20 @@ export default function RegistrarPage() {
     const errs = validate()
     setErrors(errs)
     if (Object.keys(errs).length > 0) return
+    if (!turnstileToken) {
+      setServerError("Completa la verificación de seguridad (CAPTCHA).")
+      return
+    }
 
     setSubmitting(true)
     try {
+      const captcha = await verifyTurnstileOnServer(turnstileToken)
+      resetTurnstile()
+      if (!captcha.ok) {
+        setServerError(captcha.message)
+        return
+      }
+
       const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: code,
@@ -285,6 +319,7 @@ export default function RegistrarPage() {
       router.push(safeNext ?? "/")
       router.refresh()
     } catch (err) {
+      resetTurnstile()
       const message =
         err instanceof Error ? err.message : "Error al crear la cuenta."
       setServerError(message)
@@ -601,6 +636,12 @@ export default function RegistrarPage() {
             haciendo clic en el enlace que se encuentra en la parte inferior de
             todos nuestros mensajes.
           </p>
+
+          <TurnstileWidget
+            ref={turnstileRef}
+            onToken={setTurnstileToken}
+            className="flex justify-center pt-2"
+          />
 
           {serverError ? (
             <p className="text-[13px] text-red-600" role="alert">

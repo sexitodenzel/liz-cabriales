@@ -24,6 +24,8 @@ type ServiceForm = {
   price: string
   duration_min: string
   show_options: boolean
+  hide_price_public: boolean
+  hide_duration_public: boolean
   filter_id: string
 }
 
@@ -33,6 +35,8 @@ const EMPTY_SERVICE: ServiceForm = {
   price: "",
   duration_min: "60",
   show_options: false,
+  hide_price_public: false,
+  hide_duration_public: false,
   filter_id: "",
 }
 
@@ -139,6 +143,8 @@ export default function ServicesPanel({
       price: String(service.price),
       duration_min: String(service.duration_min),
       show_options: service.show_options,
+      hide_price_public: service.hide_price_public,
+      hide_duration_public: service.hide_duration_public,
       filter_id: service.filter_id ?? "",
     })
     setShowServiceModal(true)
@@ -171,6 +177,8 @@ export default function ServicesPanel({
         price,
         duration_min,
         show_options: serviceForm.show_options,
+        hide_price_public: serviceForm.hide_price_public,
+        hide_duration_public: serviceForm.hide_duration_public,
         filter_id: serviceForm.filter_id || null,
       }
 
@@ -593,6 +601,10 @@ export default function ServicesPanel({
                         {service.show_options
                           ? ` · ${opts.length} opción${opts.length === 1 ? "" : "es"}`
                           : ""}
+                        {service.hide_price_public ? " · precio oculto" : ""}
+                        {service.hide_duration_public
+                          ? " · duración oculta"
+                          : ""}
                       </p>
                     </div>
 
@@ -874,6 +886,52 @@ export default function ServicesPanel({
                     required
                   />
                 </div>
+              </div>
+              <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/80 p-3">
+                <label className="flex items-start gap-3 text-sm text-[#3a3a3a]">
+                  <input
+                    type="checkbox"
+                    checked={serviceForm.hide_price_public}
+                    onChange={(e) =>
+                      setServiceForm((f) => ({
+                        ...f,
+                        hide_price_public: e.target.checked,
+                      }))
+                    }
+                    className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-[#111]"
+                  />
+                  <span>
+                    <span className="block font-medium text-[#1a1a1a]">
+                      Inhabilitar visualización de precios
+                    </span>
+                    <span className="block text-xs leading-relaxed text-[#6b6b6b]">
+                      El precio no se muestra en el módulo público de servicios.
+                      Sigue guardado para el admin y la agenda.
+                    </span>
+                  </span>
+                </label>
+                <label className="flex items-start gap-3 text-sm text-[#3a3a3a]">
+                  <input
+                    type="checkbox"
+                    checked={serviceForm.hide_duration_public}
+                    onChange={(e) =>
+                      setServiceForm((f) => ({
+                        ...f,
+                        hide_duration_public: e.target.checked,
+                      }))
+                    }
+                    className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-[#111]"
+                  />
+                  <span>
+                    <span className="block font-medium text-[#1a1a1a]">
+                      Inhabilitar visualización de duración
+                    </span>
+                    <span className="block text-xs leading-relaxed text-[#6b6b6b]">
+                      La duración no se muestra al público. Sigue usándose para
+                      calcular horarios disponibles.
+                    </span>
+                  </span>
+                </label>
               </div>
               <div>
                 <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">

@@ -30,7 +30,9 @@ const SERVICE_COLUMNS_BASE =
   "id, name, description, price, duration_min, is_active"
 const SERVICE_COLUMNS_FULL = `${SERVICE_COLUMNS_BASE}, show_options`
 const SERVICE_COLUMNS_FILTER = `${SERVICE_COLUMNS_FULL}, filter_id`
-const SERVICE_SELECT_WITH_JOIN = `${SERVICE_COLUMNS_FILTER}, service_filters ( id, name, slug )`
+const SERVICE_COLUMNS_DISPLAY = `${SERVICE_COLUMNS_FILTER}, hide_price_public, hide_duration_public`
+const SERVICE_SELECT_WITH_JOIN = `${SERVICE_COLUMNS_DISPLAY}, service_filters ( id, name, slug )`
+const SERVICE_SELECT_JOIN_NO_DISPLAY = `${SERVICE_COLUMNS_FILTER}, service_filters ( id, name, slug )`
 
 function unwrapJoin<T>(value: T | T[] | null | undefined): T | null {
   if (!value) return null
@@ -52,11 +54,32 @@ function isMissingColumnError(
   error: { message?: string; code?: string },
   column: string
 ): boolean {
+  // Postgres: columna inexistente.
   if (error.code === "42703") return true
+  // PostgREST schema cache (columna aún no migrada).
+  if (error.code === "PGRST204") {
+    const msg = (error.message ?? "").toLowerCase()
+    return msg.includes(column.toLowerCase()) || msg.includes("schema cache")
+  }
   const msg = (error.message ?? "").toLowerCase()
   return (
     msg.includes(column.toLowerCase()) &&
-    (msg.includes("does not exist") || msg.includes("column"))
+    (msg.includes("does not exist") ||
+      msg.includes("schema cache") ||
+      msg.includes("could not find") ||
+      msg.includes("column"))
+  )
+}
+
+function selectNeedsDisplayFallback(error: {
+  message?: string
+  code?: string
+}): boolean {
+  return (
+    isMissingColumnError(error, "hide_price_public") ||
+    isMissingColumnError(error, "hide_duration_public") ||
+    ((error.code === "PGRST204" || error.code === "42703") &&
+      /hide_(price|duration)_public/i.test(error.message ?? ""))
   )
 }
 
@@ -97,10 +120,17 @@ function mapServiceRow(r: Record<string, unknown>): ServiceRow {
     duration_min: Number(r.duration_min),
     is_active: Boolean(r.is_active),
     show_options: Boolean(r.show_options ?? false),
+    hide_price_public: Boolean(r.hide_price_public ?? false),
+    hide_duration_public: Boolean(r.hide_duration_public ?? false),
     filter_id: (r.filter_id as string | null) ?? null,
-    filter_slug: filterJoin?.slug ?? null,
-    filter_name: filterJoin?.name ?? null,
+    filter_slug: filterJoin?.slug ?? (r.filter_slug as string | null) ?? null,
+    filter_name: filterJoin?.name ?? (r.filter_name as string | null) ?? null,
   }
+}
+
+/** Exportado para mapeos en cache / appointments. */
+export function mapServiceRecord(r: Record<string, unknown>): ServiceRow {
+  return mapServiceRow(r)
 }
 
 function mapFilterRow(r: Record<string, unknown>): ServiceFilterRow {
@@ -125,6 +155,9 @@ async function queryServiceRecords(
   }
 
   let result = await run(SERVICE_SELECT_WITH_JOIN)
+  if (result.error && selectNeedsDisplayFallback(result.error)) {
+    result = await run(SERVICE_SELECT_JOIN_NO_DISPLAY)
+  }
   if (
     result.error &&
     (isMissingColumnError(result.error, "filter_id") ||
@@ -134,6 +167,12 @@ async function queryServiceRecords(
   }
   if (result.error && isMissingColumnError(result.error, "show_options")) {
     result = await run(SERVICE_COLUMNS_BASE)
+  }
+
+  // Último recurso: si el select con display flags falla por otra razón
+  // relacionada a columnas nuevas, reintentar sin ellas.
+  if (result.error && /hide_/i.test(result.error.message ?? "")) {
+    result = await run(SERVICE_SELECT_JOIN_NO_DISPLAY)
   }
 
   if (result.error) {
@@ -168,19 +207,39 @@ export async function getAdminServices(): Promise<Result<ServiceRow[]>> {
 export async function createService(
   input: AdminServiceCreateInput
 ): Promise<Result<ServiceRow>> {
-  const { data, error } = await supabaseAdmin
+  const payload: Record<string, unknown> = {
+    name: input.name.trim(),
+    description: input.description?.trim() || null,
+    price: input.price,
+    duration_min: input.duration_min,
+    is_active: true,
+    show_options: input.show_options ?? false,
+    filter_id: input.filter_id ?? null,
+    hide_price_public: input.hide_price_public ?? false,
+    hide_duration_public: input.hide_duration_public ?? false,
+  }
+
+  let insertResult = await supabaseAdmin
     .from("services")
-    .insert({
-      name: input.name.trim(),
-      description: input.description?.trim() || null,
-      price: input.price,
-      duration_min: input.duration_min,
-      is_active: true,
-      show_options: input.show_options ?? false,
-      filter_id: input.filter_id ?? null,
-    })
+    .insert(payload)
     .select(SERVICE_SELECT_WITH_JOIN)
     .single()
+
+  if (
+    insertResult.error &&
+    (isMissingColumnError(insertResult.error, "hide_price_public") ||
+      isMissingColumnError(insertResult.error, "hide_duration_public"))
+  ) {
+    const { hide_price_public: _hp, hide_duration_public: _hd, ...legacy } =
+      payload
+    insertResult = await supabaseAdmin
+      .from("services")
+      .insert(legacy)
+      .select(SERVICE_SELECT_JOIN_NO_DISPLAY)
+      .single()
+  }
+
+  const { data, error } = insertResult
 
   if (error || !data) {
     return {
@@ -209,15 +268,41 @@ export async function updateService(
   if (input.duration_min !== undefined) updates.duration_min = input.duration_min
   if (input.is_active !== undefined) updates.is_active = input.is_active
   if (input.show_options !== undefined) updates.show_options = input.show_options
+  if (input.hide_price_public !== undefined) {
+    updates.hide_price_public = input.hide_price_public
+  }
+  if (input.hide_duration_public !== undefined) {
+    updates.hide_duration_public = input.hide_duration_public
+  }
   if (input.filter_id !== undefined) updates.filter_id = input.filter_id
   updates.updated_at = new Date().toISOString()
 
-  const { data, error } = await supabaseAdmin
+  let updateResult = await supabaseAdmin
     .from("services")
     .update(updates)
     .eq("id", id)
     .select(SERVICE_SELECT_WITH_JOIN)
     .single()
+
+  if (
+    updateResult.error &&
+    (isMissingColumnError(updateResult.error, "hide_price_public") ||
+      isMissingColumnError(updateResult.error, "hide_duration_public"))
+  ) {
+    const {
+      hide_price_public: _hp,
+      hide_duration_public: _hd,
+      ...legacyUpdates
+    } = updates
+    updateResult = await supabaseAdmin
+      .from("services")
+      .update(legacyUpdates)
+      .eq("id", id)
+      .select(SERVICE_SELECT_JOIN_NO_DISPLAY)
+      .single()
+  }
+
+  const { data, error } = updateResult
 
   if (error || !data) {
     return {

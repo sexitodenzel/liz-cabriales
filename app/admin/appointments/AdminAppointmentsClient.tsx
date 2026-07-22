@@ -19,20 +19,22 @@ import Breadcrumb from "@/components/shared/Breadcrumb"
 import DatePicker from "@/components/shared/DatePicker"
 import NewAppointmentModal from "./components/NewAppointmentModal"
 import AvailabilitySchedulePanel from "./components/AvailabilitySchedulePanel"
-import TransferSettingsPanel from "./components/TransferSettingsPanel"
 import BlockSlotModal from "./components/BlockSlotModal"
 import RescheduleAppointmentModal from "./components/RescheduleAppointmentModal"
 import CourseDaysPanel from "./components/CourseDaysPanel"
 import WorkersPanel from "./components/WorkersPanel"
 import ServicesPanel from "./components/ServicesPanel"
+import ServiceReviewsModeration from "./components/ServiceReviewsModeration"
 import PaymentCountdownCell from "./components/PaymentCountdownCell"
 import { toast } from "@/app/components/ui/motion/toast-provider"
+import type { ServiceReviewRow } from "@/lib/supabase/service-reviews"
 
 type Props = {
   professionals: ProfessionalRow[]
   services: ServiceRow[]
   bookingServices: ServiceWithOptions[]
   filters: ServiceFilterRow[]
+  serviceReviews: ServiceReviewRow[]
 }
 
 type StatusFilter = "all" | AppointmentStatus
@@ -153,6 +155,7 @@ export default function AdminAppointmentsClient({
   services: initialServices,
   bookingServices: initialBookingServices,
   filters: initialFilters,
+  serviceReviews,
 }: Props) {
   const [date, setDate] = useState<string>("")
   const [professionalId, setProfessionalId] = useState<string>("all")
@@ -348,7 +351,7 @@ export default function AdminAppointmentsClient({
             { label: "Inicio", href: "/" },
             { label: "Mi Perfil", href: "/perfil" },
             { label: "Panel de administrador", href: "/admin" },
-            { label: "Agenda" },
+            { label: "Servicios" },
           ]}
         />
 
@@ -358,54 +361,16 @@ export default function AdminAppointmentsClient({
               Panel administrador
             </p>
             <h1 className="mt-2 font-[family-name:var(--font-playfair),serif] text-3xl font-medium tracking-tight text-[#111] md:text-4xl">
-              Agenda
+              Servicios
             </h1>
-            {isUpcomingView && (
-              <p className="mt-2 text-sm text-neutral-500">
-                Próximas citas de hoy en adelante. Con estado &quot;Cualquiera&quot;
-                se muestran todos los estatus.
-              </p>
-            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowNewModal(true)}
-              className="rounded-lg bg-[#111] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#c9a84c] hover:text-[#111]"
-            >
-              Nueva cita manual
-            </button>
             <Link
               href="/admin"
               className="px-2 text-sm text-neutral-500 transition-colors hover:text-[#111]"
             >
               ← Volver al panel
             </Link>
-          </div>
-        </div>
-
-        <div className="mb-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-neutral-200/80 bg-white p-5 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-              {isUpcomingView ? "Próximas citas" : "Citas del día"}
-            </p>
-            <p className="mt-2 font-[family-name:var(--font-playfair),serif] text-4xl font-medium text-[#111]">
-              {stats.totalCount}
-            </p>
-            <p className="mt-1 text-xs text-neutral-500">
-              {isUpcomingView
-                ? "Hasta 10 citas · sin filtro de fecha"
-                : `${stats.confirmedCount} confirmada${stats.confirmedCount === 1 ? "" : "s"}`}
-            </p>
-          </div>
-          <div className="rounded-lg border border-neutral-200/80 bg-white p-5 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-              Pendientes de pago
-            </p>
-            <p className="mt-2 font-[family-name:var(--font-playfair),serif] text-4xl font-medium text-[#c9a84c]">
-              {stats.pendingCount}
-            </p>
-            <p className="mt-1 text-xs text-neutral-500">Por confirmar pago</p>
           </div>
         </div>
 
@@ -417,6 +382,8 @@ export default function AdminAppointmentsClient({
           onBookingRefresh={refreshBookingServices}
         />
 
+        <ServiceReviewsModeration initialReviews={serviceReviews} />
+
         <WorkersPanel
           workers={workers}
           filters={managedFilters}
@@ -426,271 +393,6 @@ export default function AdminAppointmentsClient({
         />
 
         <AvailabilitySchedulePanel className="mb-6" />
-
-        <TransferSettingsPanel className="mb-6" />
-
-        <div className="overflow-hidden rounded-lg border border-neutral-200/80 bg-white shadow-sm">
-          <div className="flex flex-wrap items-end gap-4 border-b border-neutral-100 px-5 py-4">
-            <div>
-              <label
-                htmlFor="date"
-                className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500"
-              >
-                Fecha
-              </label>
-              <div className="mt-1.5 flex items-center gap-2">
-                <DatePicker
-                  id="date"
-                  value={date}
-                  onChange={setDate}
-                  className="min-w-[180px]"
-                />
-                {date && (
-                  <button
-                    type="button"
-                    onClick={() => setDate("")}
-                    className="text-[11px] font-medium text-[#c9a84c] hover:underline"
-                  >
-                    Quitar fecha
-                  </button>
-                )}
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="professional"
-                className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500"
-              >
-                Profesional
-              </label>
-              <select
-                id="professional"
-                value={professionalId}
-                onChange={(e) => setProfessionalId(e.target.value)}
-                className="mt-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-[#c9a84c]"
-              >
-                <option value="all">Todos</option>
-                {activeWorkers.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="status"
-                className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500"
-              >
-                Estado
-              </label>
-              <select
-                id="status"
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value as StatusFilter)
-                }
-                className="mt-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-[#c9a84c]"
-              >
-                <option value="all">Cualquiera</option>
-                <option value="pending">Pendiente</option>
-                <option value="paid">Confirmada</option>
-                <option value="completed">Completada</option>
-                <option value="cancelled">Cancelada</option>
-              </select>
-            </div>
-            {!isUpcomingView && (
-              <div className="ml-auto text-right">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
-                  Total del día
-                </p>
-                <p className="mt-1 font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
-                  {formatPrice(stats.totalDay)}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-neutral-100 bg-neutral-50/80 text-[11px] uppercase tracking-[0.14em] text-neutral-500">
-                <tr>
-                  {isUpcomingView && (
-                    <th className="px-5 py-3 font-semibold">Fecha</th>
-                  )}
-                  <th className="px-5 py-3 font-semibold">Hora</th>
-                  <th className="px-5 py-3 font-semibold">Profesional</th>
-                  <th className="px-5 py-3 font-semibold">Cliente</th>
-                  <th className="px-5 py-3 font-semibold">Celular</th>
-                  <th className="px-5 py-3 font-semibold">Servicios</th>
-                  <th className="px-5 py-3 font-semibold">Duración</th>
-                  <th className="px-5 py-3 font-semibold">Estado</th>
-                  <th className="px-5 py-3 font-semibold">Expira en:</th>
-                  <th className="px-5 py-3 font-semibold">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {loading ? (
-                  <tr>
-                    <td
-                      colSpan={isUpcomingView ? UPCOMING_TABLE_COL_COUNT : TABLE_COL_COUNT}
-                      className="px-6 py-12 text-center text-neutral-500"
-                    >
-                      Cargando…
-                    </td>
-                  </tr>
-                ) : visibleAppointments.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={isUpcomingView ? UPCOMING_TABLE_COL_COUNT : TABLE_COL_COUNT}
-                      className="px-6 py-12 text-center"
-                    >
-                      <div className="flex flex-col items-center gap-2 text-neutral-500">
-                        <CalendarX2 className="h-5 w-5 text-neutral-400" />
-                        <p className="text-sm">
-                          {isUpcomingView
-                            ? "No hay citas próximas con los filtros seleccionados."
-                            : "No hay citas para este día con los filtros seleccionados."}
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  visibleAppointments.map((a) => {
-                    const duration = a.services.reduce(
-                      (sum, s) => sum + s.duration_min,
-                      0
-                    )
-                    const clientName =
-                      [a.client_first_name, a.client_last_name]
-                        .filter(Boolean)
-                        .join(" ") ||
-                      a.client_email ||
-                      "Sin nombre"
-                    const phoneDisplay = formatPhoneDisplay(a.client_phone)
-                    const phoneHref = phoneWhatsAppHref(a.client_phone)
-                    const initials = getClientInitials(
-                      a.client_first_name,
-                      a.client_last_name,
-                      a.client_email
-                    )
-
-                    return (
-                      <tr key={a.id} className="transition-colors hover:bg-neutral-50/60">
-                        {isUpcomingView && (
-                          <td className="px-5 py-4 text-neutral-700 capitalize">
-                            {formatDateLabel(a.date)}
-                          </td>
-                        )}
-                        <td className="px-5 py-4 font-medium text-[#111]">
-                          {formatTimeLabel(a.start_time)}
-                        </td>
-                        <td className="px-5 py-4 text-neutral-700">
-                          {a.professional_name ?? "—"}
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-semibold text-neutral-600">
-                              {initials}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-medium text-[#111]">
-                                {clientName}
-                              </p>
-                              {a.client_email ? (
-                                <p className="truncate text-xs text-neutral-500">
-                                  {a.client_email}
-                                </p>
-                              ) : (
-                                <p className="text-xs text-neutral-400">
-                                  Sin email
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-neutral-700">
-                          {phoneDisplay && phoneHref ? (
-                            <a
-                              href={phoneHref}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="whitespace-nowrap text-sm text-[#111] transition-colors hover:text-[#c9a84c]"
-                            >
-                              {phoneDisplay}
-                            </a>
-                          ) : (
-                            <span className="text-sm text-neutral-400">
-                              Sin registrar
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 text-neutral-700">
-                          {a.services.map((s) => s.service_name).join(", ")}
-                        </td>
-                        <td className="px-5 py-4 text-neutral-700">
-                          {duration} min
-                        </td>
-                        <td className="px-5 py-4">
-                          <span
-                            className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${statusClass(a.status, a.cancelled_by)}`}
-                          >
-                            {statusLabel(a.status, a.cancelled_by)}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <PaymentCountdownCell
-                            appointmentDate={a.date}
-                            createdAt={a.created_at}
-                            status={a.status}
-                          />
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-1">
-                            {a.status === "pending" && (
-                              <button
-                                type="button"
-                                onClick={() => void handleConfirmPayment(a.id)}
-                                className="mr-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.06em] text-emerald-800 transition-colors hover:bg-emerald-100"
-                                title="Confirmar pago recibido"
-                              >
-                                Confirmar pago
-                              </button>
-                            )}
-                            {(a.status === "paid" ||
-                              a.status === "pending") && (
-                              <button
-                                type="button"
-                                onClick={() => setRescheduleTarget(a)}
-                                className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-[#111]"
-                                aria-label="Reprogramar cita"
-                                title="Reprogramar"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                            )}
-                            {a.status !== "cancelled" &&
-                              a.status !== "completed" && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleCancel(a.id)}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                                  aria-label="Cancelar cita"
-                                  title="Cancelar"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              )}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
 
         <CourseDaysPanel />
       </div>

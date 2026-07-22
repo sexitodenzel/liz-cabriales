@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from "react"
 
+/** Frases del typewriter (ortografía corregida). */
 export const SEARCH_TYPEWRITER_PHRASES = [
-  "¿Qué estás buscando?",
-  "Sigue buscando con lizcabriales.com",
-  "Todo lo que ocupas en un solo lugar",
-  "Encuentra lo que necesitas para tus uñas",
+  "Compra en lizcabriales.com",
+  "Explora nuestro módulo de tienda",
+  "Todo lo que necesitas para tus uñas está aquí",
+  "Explora nuestros diferentes servicios",
 ] as const
 
-const TYPE_MS = 58
-const DELETE_MS = 36
-const PAUSE_MS = 2000
+const IDLE_LABEL = "Buscar"
+const TYPE_MS = 55
+const DELETE_MS = 32
+const PAUSE_AFTER_PHRASE_MS = 1800
+const IDLE_HOLD_MS = 15_000
 
 export function useTypewriterPhrases(
   active: boolean,
@@ -21,6 +24,8 @@ export function useTypewriterPhrases(
   const [phraseIndex, setPhraseIndex] = useState(0)
   const [charIndex, setCharIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
+  /** Tras el ciclo de frases, se muestra "Buscar" 15s. */
+  const [isIdleHold, setIsIdleHold] = useState(false)
 
   useEffect(() => {
     if (!active) {
@@ -28,7 +33,20 @@ export function useTypewriterPhrases(
       setPhraseIndex(0)
       setCharIndex(0)
       setIsDeleting(false)
+      setIsIdleHold(false)
       return
+    }
+
+    if (isIdleHold) {
+      setDisplay(IDLE_LABEL)
+      const timer = setTimeout(() => {
+        setIsIdleHold(false)
+        setPhraseIndex(0)
+        setCharIndex(0)
+        setIsDeleting(false)
+        setDisplay("")
+      }, IDLE_HOLD_MS)
+      return () => clearTimeout(timer)
     }
 
     const phrase = phrases[phraseIndex] ?? phrases[0]
@@ -43,7 +61,7 @@ export function useTypewriterPhrases(
     }
 
     if (!isDeleting && charIndex >= phrase.length) {
-      const timer = setTimeout(() => setIsDeleting(true), PAUSE_MS)
+      const timer = setTimeout(() => setIsDeleting(true), PAUSE_AFTER_PHRASE_MS)
       return () => clearTimeout(timer)
     }
 
@@ -56,11 +74,19 @@ export function useTypewriterPhrases(
       return () => clearTimeout(timer)
     }
 
+    // Terminó de borrar la frase actual
     if (isDeleting && charIndex === 0) {
-      setIsDeleting(false)
-      setPhraseIndex((current) => (current + 1) % phrases.length)
+      const isLast = phraseIndex >= phrases.length - 1
+      if (isLast) {
+        setIsIdleHold(true)
+        setDisplay(IDLE_LABEL)
+        setIsDeleting(false)
+      } else {
+        setIsDeleting(false)
+        setPhraseIndex((current) => current + 1)
+      }
     }
-  }, [active, phraseIndex, charIndex, isDeleting, phrases])
+  }, [active, phraseIndex, charIndex, isDeleting, isIdleHold, phrases])
 
   return display
 }
@@ -76,12 +102,9 @@ export function SearchTypewriter({ active, className }: SearchTypewriterProps) {
   if (!active) return null
 
   return (
-    <span
-      className={className}
-      aria-hidden
-    >
+    <span className={className} aria-hidden>
       {text}
-      <span className="ml-px inline-block h-[1.1em] w-[2px] translate-y-[0.06em] animate-pulse bg-neutral-400 align-middle" />
+      <span className="ml-px inline-block h-[1.1em] w-[1.5px] translate-y-[0.06em] animate-pulse bg-current align-middle opacity-70" />
     </span>
   )
 }

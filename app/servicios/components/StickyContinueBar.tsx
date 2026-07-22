@@ -14,6 +14,7 @@ type Props = {
   submitting?: boolean
   /** Pasos 1–3: Continuar. Paso 4: Confirmar reserva. */
   isConfirmStep?: boolean
+  showPrice?: boolean
 }
 
 /**
@@ -29,6 +30,7 @@ export default function StickyContinueBar({
   canContinue,
   submitting = false,
   isConfirmStep = false,
+  showPrice = true,
 }: Props) {
   const [visible, setVisible] = useState(false)
 
@@ -83,9 +85,11 @@ export default function StickyContinueBar({
               <p className="truncate text-xs font-semibold uppercase tracking-[0.14em] text-[#0a0a0a]">
                 {serviceLabel}
               </p>
-              <p className="mt-0.5 text-[13px] font-semibold tabular-nums text-[#0a0a0a]">
-                {formatPrice(totalPrice)}
-              </p>
+              {showPrice && (
+                <p className="mt-0.5 text-[13px] font-semibold tabular-nums text-[#0a0a0a]">
+                  {formatPrice(totalPrice)}
+                </p>
+              )}
             </div>
           </div>
 

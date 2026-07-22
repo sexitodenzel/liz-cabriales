@@ -202,7 +202,12 @@ export default function AdminDashboardClient({
               <div className="hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--gold)]/30 bg-[#faf8f5] text-sm font-medium text-[var(--gold)] sm:flex">
                 {userName.charAt(0).toUpperCase()}
               </div>
-              <span className="text-sm text-neutral-600">{userName}</span>
+              <span className="text-sm text-neutral-600">
+                Bienvenido {userName}{" "}
+                <span className="font-medium uppercase tracking-[0.04em] text-neutral-800">
+                  (ADMINISTRADOR)
+                </span>
+              </span>
               <button
                 type="button"
                 onClick={() => void handleSignOut()}

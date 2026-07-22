@@ -8,6 +8,7 @@ import {
 } from "@/lib/supabase/orders"
 import { createClient } from "@/lib/supabase/server"
 import { createOrderSchema } from "@/lib/validations/orders"
+import { extractTurnstileToken, requireTurnstile } from "@/lib/turnstile"
 
 type ApiError = {
   message: string
@@ -111,7 +112,20 @@ export async function POST(
       return errorResponse("Body invalido", 400, "VALIDATION_ERROR")
     }
 
-    const parseResult = createOrderSchema.safeParse(json)
+    const turnstileRejected = await requireTurnstile(
+      request,
+      extractTurnstileToken(json)
+    )
+    if (turnstileRejected) {
+      return turnstileRejected as NextResponse<ApiResponse<CreateOrderResult>>
+    }
+
+    // Quitar turnstileToken antes del schema de negocio (no forma parte del pedido).
+    const { turnstileToken: _turnstileToken, ...orderPayload } =
+      (json as Record<string, unknown>) ?? {}
+    void _turnstileToken
+
+    const parseResult = createOrderSchema.safeParse(orderPayload)
     if (!parseResult.success) {
       return errorResponse("Datos invalidos", 400, "VALIDATION_ERROR")
     }

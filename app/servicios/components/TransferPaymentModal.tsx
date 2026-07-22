@@ -9,16 +9,18 @@ import {
   getPaymentTimeRemainingMs,
   isSameDayAppointmentBooking,
 } from "@/lib/appointmentPaymentPolicy"
-import { PICKUP_LOCATION_NAME, buildWhatsAppHref } from "@/lib/constants/contact"
+import { PICKUP_LOCATION_NAME } from "@/lib/constants/contact"
+import { buildAppointmentWhatsAppHref } from "@/lib/appointments/whatsapp-booking"
 import type { AppointmentRecord } from "@/lib/supabase/appointments"
 import type { AppointmentStatus } from "@/types"
 
 type Props = {
   appointment: AppointmentRecord
-  transferAccountNumber: string
   formatPrice: (v: number) => string
   formatTimeLabel: (hhmmss: string) => string
   prettyDate: (dateStr: string) => string
+  /** Si false, el total no se incluye en el mensaje ni en la UI. */
+  showPrice?: boolean
   onExpired?: () => void
   onStatusChange?: (status: AppointmentStatus) => void
   onDismiss?: () => void
@@ -104,10 +106,10 @@ function ConfirmCancelDialog({
 
 export default function TransferPaymentModal({
   appointment,
-  transferAccountNumber,
   formatPrice,
   formatTimeLabel,
   prettyDate,
+  showPrice = true,
   onExpired,
   onStatusChange,
   onDismiss,
@@ -127,14 +129,22 @@ export default function TransferPaymentModal({
     appointment.created_at
   )
 
-  const whatsAppHref = useMemo(() => {
-    const serviceNames = appointment.services.map((s) => s.service_name).join(", ")
-    const timeLabel = formatTimeLabel(appointment.start_time)
-    const dateLabel = prettyDate(appointment.date)
-    return buildWhatsAppHref(
-      `Hola, envío comprobante de anticipo para mi cita del ${dateLabel} a las ${timeLabel}. Servicio: ${serviceNames}. Total: ${formatPrice(appointment.total)}.`
-    )
-  }, [appointment, formatPrice, formatTimeLabel, prettyDate])
+  const whatsAppHref = useMemo(
+    () =>
+      buildAppointmentWhatsAppHref({
+        dateLabel: prettyDate(appointment.date),
+        timeLabel: formatTimeLabel(appointment.start_time),
+        professionalName: appointment.professional_name,
+        services: appointment.services.map((s) => ({
+          name: s.service_name,
+          price: showPrice ? s.unit_price : null,
+          durationMin: s.duration_min,
+        })),
+        total: showPrice ? appointment.total : null,
+        formatPrice: showPrice ? formatPrice : undefined,
+      }),
+    [appointment, formatPrice, formatTimeLabel, prettyDate, showPrice]
+  )
 
   useEffect(() => {
     setStatus(appointment.status)
@@ -179,41 +189,38 @@ export default function TransferPaymentModal({
       }
     }
 
-    const id = window.setInterval(() => void poll(), 15000)
     void poll()
-
+    const id = window.setInterval(() => void poll(), 8000)
     return () => {
       mounted = false
       window.clearInterval(id)
     }
   }, [appointment.id, onStatusChange, status])
 
+  const openCancelConfirm = () => {
+    setCancelError(null)
+    setShowCancelConfirm(true)
+  }
+
   const handleConfirmCancel = async () => {
     setCancelling(true)
     setCancelError(null)
     try {
       const res = await fetch(`/api/appointments/${appointment.id}/cancel`, {
-        method: "PATCH",
+        method: "POST",
       })
       const json = await res.json()
       if (!res.ok || json.error) {
-        setCancelError(
-          json?.error?.message ?? "No se pudo cancelar la cita. Intenta de nuevo."
-        )
+        setCancelError(json?.error?.message ?? "No se pudo cancelar la cita")
         return
       }
       setShowCancelConfirm(false)
       onCancelled?.()
     } catch {
-      setCancelError("Error de red al cancelar la cita")
+      setCancelError("Error de red al cancelar")
     } finally {
       setCancelling(false)
     }
-  }
-
-  const openCancelConfirm = () => {
-    setCancelError(null)
-    setShowCancelConfirm(true)
   }
 
   return (
@@ -224,9 +231,9 @@ export default function TransferPaymentModal({
         aria-modal="true"
         aria-labelledby="transfer-payment-title"
       >
-        <div className="w-full max-w-md overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-xl">
-          <div className="bg-[var(--background)] px-8 pb-6 pt-8 text-center">
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center">
+        <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-xl">
+          <div className="flex flex-col items-center border-b border-neutral-100 px-8 pb-4 pt-8">
+            <div className="mb-3 h-16 w-16 overflow-hidden">
               <Image
                 src="/images/logo.png"
                 alt="Liz Cabriales Studio"
@@ -245,105 +252,107 @@ export default function TransferPaymentModal({
           </div>
 
           <div className="px-8 pb-8 pt-6">
-          {isPaid ? (
-            <div className="text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
-                <Check className="h-7 w-7 text-emerald-600" strokeWidth={2.5} />
-              </div>
-              <p className="mt-4 text-lg font-semibold text-emerald-600">Pagado</p>
-              <p className="mt-3 text-sm text-neutral-600">
-                Tu cita quedó confirmada para
-              </p>
-              <p className="mt-1 font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
-                {prettyDate(appointment.date)}
-              </p>
-              <p className="mt-1 text-sm font-medium text-[#111]">
-                {formatTimeLabel(appointment.start_time)}
-              </p>
-              {onDismiss && (
-                <button
-                  type="button"
-                  onClick={onDismiss}
-                  className="mt-6 w-full rounded-lg border border-neutral-200 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#111] transition-colors hover:border-[#111]"
-                >
-                  Entendido
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              <p className="mt-3 text-center text-sm text-neutral-600">
-                Reserva registrada. Realiza tu transferencia de anticipo para
-                mantener tu horario.
-              </p>
-
-              <div className="mt-6 rounded-lg border border-neutral-200/80 bg-neutral-50/80 p-5 text-center">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                  Número para transferencias
+            {isPaid ? (
+              <div className="text-center">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
+                  <Check className="h-7 w-7 text-emerald-600" strokeWidth={2.5} />
+                </div>
+                <p className="mt-4 text-lg font-semibold text-emerald-600">
+                  Confirmada
                 </p>
-                <p className="mt-2 break-all font-mono text-lg font-semibold tracking-wide text-[#111]">
-                  {transferAccountNumber || "—"}
-                </p>
-                {!transferAccountNumber && (
-                  <p className="mt-2 text-xs text-neutral-500">
-                    El estudio aún no ha configurado el número de cuenta.
-                  </p>
-                )}
                 <p className="mt-3 text-sm text-neutral-600">
-                  Anticipo:{" "}
-                  <span className="font-semibold text-[#111]">
-                    {formatPrice(appointment.total)}
-                  </span>
+                  Tu cita quedó confirmada para
                 </p>
+                <p className="mt-1 font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
+                  {prettyDate(appointment.date)}
+                </p>
+                <p className="mt-1 text-sm font-medium text-[#111]">
+                  {formatTimeLabel(appointment.start_time)}
+                </p>
+                {onDismiss && (
+                  <button
+                    type="button"
+                    onClick={onDismiss}
+                    className="mt-6 w-full rounded-lg border border-neutral-200 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#111] transition-colors hover:border-[#111]"
+                  >
+                    Entendido
+                  </button>
+                )}
               </div>
-
-              <p className="mt-6 text-center text-sm leading-relaxed text-neutral-600">
-                Manda tu comprobante de tu anticipo al siguiente WhatsApp
-              </p>
-
-              <a
-                href={whatsAppHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 flex w-full items-center justify-center gap-2.5 rounded-lg px-5 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "#25D366" }}
-              >
-                <WhatsAppIcon />
-                Enviar comprobante por WhatsApp
-              </a>
-
-              <div className="mt-6 rounded-lg border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-center">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-800/80">
-                  Tiempo para completar el pago
+            ) : (
+              <>
+                <p className="mt-3 text-center text-sm text-neutral-600">
+                  Reserva registrada. Envía los detalles de tu cita por WhatsApp
+                  para confirmarla con el estudio.
                 </p>
-                <p
-                  className={`mt-1 text-lg font-semibold tabular-nums ${
-                    remainingMs <= 0 ? "text-red-600" : "text-[#c6a75e]"
-                  }`}
+
+                <div className="mt-6 rounded-lg border border-neutral-200/80 bg-neutral-50/80 p-5 text-center">
+                  <p className="font-[family-name:var(--font-playfair),serif] text-xl text-[#111]">
+                    {prettyDate(appointment.date)}
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-[#111]">
+                    {formatTimeLabel(appointment.start_time)}
+                  </p>
+                  {appointment.professional_name && (
+                    <p className="mt-2 text-sm text-neutral-600">
+                      Con {appointment.professional_name}
+                    </p>
+                  )}
+                  <ul className="mt-3 space-y-1 text-sm text-neutral-700">
+                    {appointment.services.map((s) => (
+                      <li key={`${s.service_id}-${s.service_name}`}>
+                        {s.service_name}
+                      </li>
+                    ))}
+                  </ul>
+                  {showPrice && (
+                    <p className="mt-3 text-sm text-neutral-600">
+                      Total:{" "}
+                      <span className="font-semibold text-[#111]">
+                        {formatPrice(appointment.total)}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                <a
+                  href={whatsAppHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-6 flex w-full items-center justify-center gap-2.5 rounded-lg px-5 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "#25D366" }}
                 >
-                  {formatPaymentCountdown(remainingMs)}
-                </p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  {isSameDay
-                    ? "Citas el mismo día: 20 minutos para transferir."
-                    : "Citas con anticipación: 4 horas para transferir."}
-                </p>
-              </div>
+                  <WhatsAppIcon />
+                  Enviar cita por WhatsApp
+                </a>
 
-              <p className="mt-4 text-center text-xs text-neutral-500">
-                {prettyDate(appointment.date)} ·{" "}
-                {formatTimeLabel(appointment.start_time)}
-              </p>
-            </>
-          )}
+                <div className="mt-6 rounded-lg border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-center">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-800/80">
+                    Tiempo para confirmar
+                  </p>
+                  <p
+                    className={`mt-1 text-lg font-semibold tabular-nums ${
+                      remainingMs <= 0 ? "text-red-600" : "text-[#c6a75e]"
+                    }`}
+                  >
+                    {formatPaymentCountdown(remainingMs)}
+                  </p>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    {isSameDay
+                      ? "Citas el mismo día: 20 minutos para confirmar."
+                      : "Citas con anticipación: 4 horas para confirmar."}
+                  </p>
+                </div>
+              </>
+            )}
 
-          <button
-            type="button"
-            onClick={openCancelConfirm}
-            className="mt-6 w-full rounded-lg border border-red-200 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-red-600 transition-colors hover:bg-red-50"
-          >
-            Cancelar cita
-          </button>
+            <button
+              type="button"
+              onClick={openCancelConfirm}
+              className="mt-6 w-full rounded-lg border border-red-200 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-red-600 transition-colors hover:bg-red-50"
+            >
+              Cancelar cita
+            </button>
           </div>
         </div>
       </div>

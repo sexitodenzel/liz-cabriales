@@ -2,9 +2,9 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Search, ShoppingBag, X, Heart, User } from "lucide-react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useLayoutEffect, useRef } from "react"
 import { getSearchDestination } from "@/lib/search-navigation"
 import { tiendaCategories, cursosCategories } from "./menuData"
 import CartMenu from "./dropdowns/CartMenu"
@@ -27,6 +27,7 @@ import { useCart } from "../cart/CartContext"
 import { useWishlist } from "../wishlist/WishlistContext"
 import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
 import SlidingNumber from "../ui/motion/sliding-number"
+import { SearchTypewriter } from "./SearchTypewriter"
 
 type DesktopMenu = "Tienda" | "Academia" | "Servicios" | "Marcas" | "Conócenos" | null
 
@@ -57,6 +58,7 @@ const DESKTOP_NAV_ITEMS = [
 
 export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [searchQuery, setSearchQuery] = useState("")
   const [brandMenuItems, setBrandMenuItems] = useState<BrandMenuItem[]>([])
   const [suggestionProducts, setSuggestionProducts] = useState<SearchSuggestionProduct[]>([])
@@ -351,6 +353,63 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     }
   }, [])
 
+  // Home overlay: transparente mientras el hero sigue a pantalla completa
+  // (pin ~20vh de scroll muerto + respiro). Umbral viejo (anuncio+56) hacía
+  // que al “llegar al tope” visual el menú siguiera ivory hasta otro scroll.
+  useLayoutEffect(() => {
+    const overlayRange = () => {
+      // Cubre el pin del hero (120vh − 100vh) + chrome; histéresis al salir.
+      const pin = Math.round(window.innerHeight * 0.22)
+      const ann =
+        document.getElementById("site-announcement-bar")?.offsetHeight ?? 0
+      return { enterAt: pin + ann + 24, exitAt: pin + ann + 96 }
+    }
+
+    let overlayOn = false
+    if (pathname === "/" && typeof window !== "undefined") {
+      overlayOn = window.scrollY <= overlayRange().enterAt
+    }
+
+    const sync = () => {
+      const isHome = pathname === "/"
+      if (!isHome) {
+        overlayOn = false
+        document.documentElement.classList.remove("lc-home-overlay")
+        return
+      }
+
+      const chromeBusy =
+        Boolean(activeMenu) || drawerOpen || mobileSearchOpen || isCartOpen
+      if (chromeBusy) {
+        document.documentElement.classList.remove("lc-home-overlay")
+        return
+      }
+
+      const y = window.scrollY
+      const { enterAt, exitAt } = overlayRange()
+      if (overlayOn) {
+        if (y > exitAt) overlayOn = false
+      } else if (y <= enterAt) {
+        overlayOn = true
+      }
+
+      document.documentElement.classList.toggle("lc-home-overlay", overlayOn)
+    }
+
+    sync()
+    window.addEventListener("scroll", sync, { passive: true })
+    window.addEventListener("resize", sync)
+    // scrollend: al frenar en el tope tras un fling, el último scroll a veces
+    // no cae bajo el umbral y el menú se quedaba ivory hasta otro gesto.
+    window.addEventListener("scrollend", sync)
+    return () => {
+      window.removeEventListener("scroll", sync)
+      window.removeEventListener("resize", sync)
+      window.removeEventListener("scrollend", sync)
+      document.documentElement.classList.remove("lc-home-overlay")
+    }
+  }, [pathname, activeMenu, drawerOpen, mobileSearchOpen, isCartOpen])
+
   useEffect(() => {
     if (isCartOpen) {
       setDrawerOpen(false)
@@ -427,27 +486,47 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     let isMounted = true
     async function loadEmptyState() {
       try {
-        const [topRes, bestRes] = await Promise.all([
+        const [topResult, bestResult] = await Promise.allSettled([
           fetch("/api/navbar/top-searches"),
           fetch("/api/products/best-sellers"),
         ])
-        const [topJson, bestJson] = await Promise.all([
-          topRes.ok ? topRes.json() : Promise.resolve({ data: [] }),
-          bestRes.ok ? bestRes.json() : Promise.resolve({ data: [] }),
-        ])
+
+        let topData: TopSearchChip[] = []
+        let bestData: SearchSuggestionProduct[] = []
+
+        if (topResult.status === "fulfilled" && topResult.value.ok) {
+          try {
+            const topJson = await topResult.value.json()
+            if (Array.isArray(topJson?.data)) topData = topJson.data as TopSearchChip[]
+          } catch {
+            /* JSON inválido */
+          }
+        }
+
+        if (bestResult.status === "fulfilled" && bestResult.value.ok) {
+          try {
+            const bestJson = await bestResult.value.json()
+            if (Array.isArray(bestJson?.data)) {
+              bestData = bestJson.data as SearchSuggestionProduct[]
+            }
+          } catch {
+            /* JSON inválido */
+          }
+        }
+
         if (!isMounted) return
-        setTopSearches(
-          Array.isArray(topJson?.data) ? (topJson.data as TopSearchChip[]) : []
-        )
-        setBestSellers(
-          Array.isArray(bestJson?.data) ? (bestJson.data as SearchSuggestionProduct[]) : []
-        )
+        setTopSearches(topData)
+        setBestSellers(bestData)
+      } catch {
+        /* Red caída / HMR stale — el navbar sigue sin top searches */
       } finally {
         if (isMounted) setEmptyStateLoading(false)
       }
     }
     void loadEmptyState()
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   useEffect(() => {
@@ -478,11 +557,16 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         setSuggestionProducts(Array.isArray(json.data?.products) ? json.data!.products! : [])
         setSuggestionBrands(Array.isArray(json.data?.brands) ? json.data!.brands! : [])
         setSuggestionCategories(Array.isArray(json.data?.categories) ? json.data!.categories! : [])
+      } catch {
+        /* ignore network / aborted */
       } finally {
         if (isMounted) setSuggestionsLoading(false)
       }
     }, 180)
-    return () => { isMounted = false; clearTimeout(timeout) }
+    return () => {
+      isMounted = false
+      clearTimeout(timeout)
+    }
   }, [searchQuery])
 
   const toggleMobileSearch = () => {
@@ -504,7 +588,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       <header
         id="site-navbar"
         ref={headerRef}
-        className="relative z-50 w-full sticky top-0 overflow-visible bg-ivory text-neutral-800"
+        className="relative z-50 w-full sticky top-0 overflow-visible text-neutral-800"
         onMouseLeave={scheduleMenuClose}
       >
 
@@ -537,7 +621,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           <div className="flex items-center justify-center px-2">
             <Link
               href="/"
-              className="shrink-0 no-underline transition-opacity hover:opacity-90"
+              className="navbar-brand-link shrink-0 no-underline transition-opacity hover:opacity-90"
               aria-label="Ir al inicio"
             >
               <span className="inline-flex h-10 w-10 items-center justify-center sm:h-12 sm:w-12">
@@ -546,7 +630,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   alt="Liz Cabriales"
                   width={56}
                   height={56}
-                  className="h-full w-full object-contain"
+                  className="navbar-brand-logo h-full w-full object-contain"
                   priority
                 />
               </span>
@@ -624,33 +708,39 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                       setSearchQuery("")
                       setMobileSearchOpen(false)
                     }}
-                    className="flex items-center gap-2 border-b border-neutral-900 pb-1 will-change-[width]"
+                    className="relative flex items-center gap-2 border-b border-neutral-900 pb-1 will-change-[width]"
                     style={{
-                      width: mobileSearchOpen ? "300px" : "150px",
+                      width: mobileSearchOpen ? "300px" : "220px",
                       transition: "width 420ms cubic-bezier(0.22, 1, 0.36, 1)",
                     }}
                   >
-                    <input
-                      ref={desktopSearchInputRef}
-                      type="text"
-                      inputMode="search"
-                      enterKeyHint="search"
-                      autoComplete="off"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => {
-                        if (!mobileSearchOpen) {
-                          setActiveMenu(null)
-                          closeCart()
-                          setDrawerOpen(false)
-                          setMobileSearchOpen(true)
-                        }
-                      }}
-                      placeholder="Buscar"
-                      tabIndex={hideChrome ? -1 : 0}
-                      className="navbar-search-input min-w-0 flex-1 bg-transparent text-[13px] tracking-wide text-neutral-900 outline-none placeholder:text-neutral-400"
-                      aria-label="Buscar productos"
-                    />
+                    <div className="relative min-w-0 flex-1">
+                      <SearchTypewriter
+                        active={!mobileSearchOpen && searchQuery.length === 0}
+                        className="navbar-search-typewriter pointer-events-none absolute inset-y-0 left-0 flex max-w-full items-center overflow-hidden text-[13px] tracking-wide text-neutral-400 whitespace-nowrap"
+                      />
+                      <input
+                        ref={desktopSearchInputRef}
+                        type="text"
+                        inputMode="search"
+                        enterKeyHint="search"
+                        autoComplete="off"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => {
+                          if (!mobileSearchOpen) {
+                            setActiveMenu(null)
+                            closeCart()
+                            setDrawerOpen(false)
+                            setMobileSearchOpen(true)
+                          }
+                        }}
+                        placeholder=""
+                        tabIndex={hideChrome ? -1 : 0}
+                        className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-[13px] tracking-wide text-neutral-900 outline-none"
+                        aria-label="Buscar productos"
+                      />
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
@@ -676,7 +766,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
                 <Link
                   href="/"
-                  className="shrink-0 justify-self-center no-underline transition-opacity hover:opacity-90"
+                  className="navbar-brand-link relative z-[2] shrink-0 justify-self-center no-underline transition-opacity hover:opacity-90"
                   tabIndex={hideChrome ? -1 : 0}
                   aria-label="Ir al inicio"
                   onMouseEnter={() => activeMenu && scheduleMenuClose()}
@@ -687,7 +777,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                       alt="Liz Cabriales"
                       width={48}
                       height={48}
-                      className="h-full w-full object-contain"
+                      className="navbar-brand-logo h-full w-full object-contain"
                       priority
                     />
                   </span>
@@ -749,8 +839,32 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             </div>
           </div>
 
-          {/* Fila inferior: nav items centrados. Siempre visible. */}
-          <div className="flex h-12 w-full items-center justify-center">
+          {/* Fila inferior: nav items centrados. Siempre visible.
+              Logo compacto a la izquierda cuando Hermès colapsa (la fila del
+              logo grande sale del viewport con el translate -56px). */}
+          <div className="relative flex h-12 w-full items-center justify-center">
+            <Link
+              href="/"
+              className={`navbar-brand-link absolute left-1 z-[2] shrink-0 no-underline transition-opacity duration-300 ease-out ${
+                hideChrome
+                  ? "pointer-events-auto opacity-100"
+                  : "pointer-events-none opacity-0"
+              }`}
+              tabIndex={hideChrome ? 0 : -1}
+              aria-hidden={!hideChrome}
+              aria-label="Ir al inicio"
+              onMouseEnter={() => activeMenu && scheduleMenuClose()}
+            >
+              <span className="inline-flex h-7 w-7 items-center justify-center">
+                <Image
+                  src="/images/logo.png"
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="navbar-brand-logo h-full w-full object-contain"
+                />
+              </span>
+            </Link>
             <nav ref={navRef} className="relative flex items-center justify-center gap-0">
               <span
                 aria-hidden

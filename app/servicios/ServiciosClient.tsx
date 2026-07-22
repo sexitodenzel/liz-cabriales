@@ -1876,7 +1876,6 @@ export default function ServiciosClient({
           modalAppointment.status === "paid") && (
           <TransferPaymentModal
             appointment={modalAppointment}
-            transferAccountNumber={transferAccountNumber}
             formatPrice={formatPrice}
             formatTimeLabel={formatTimeLabel}
             prettyDate={prettyDate}

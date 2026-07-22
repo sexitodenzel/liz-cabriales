@@ -14,7 +14,8 @@ export default async function AdminPage() {
 
   const userName =
     [profile.first_name, profile.last_name].filter(Boolean).join(" ") ||
-    "Administrador"
+    profile.email?.split("@")[0] ||
+    "Usuario"
 
   const [lowStockVariants, dashboardStats] = await Promise.all([
     getLowStockVariants().catch(() => []),
