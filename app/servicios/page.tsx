@@ -7,6 +7,11 @@ import {
 import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
 import { getStudioWeeklyHoursCached } from "@/lib/supabase/studio-hours"
 import { getNailArtPosts } from "@/lib/supabase/nail-art"
+import { createClient } from "@/lib/supabase/server"
+import {
+  getApprovedServiceReviews,
+  getOwnServiceReview,
+} from "@/lib/supabase/service-reviews"
 
 import ServiciosLanding from "./ServiciosLanding"
 
@@ -25,14 +30,28 @@ export default async function ServiciosPage({ searchParams }: Props) {
     redirect(`/servicios/agendar?${q.toString()}`)
   }
 
-  const [servicesWithOptionsRes, profsRes, filtersRes, studioWeeklyHours, nailArtPosts] =
-    await Promise.all([
-      getServices(),
-      getProfessionals(),
-      getPublicServiceFilters(),
-      getStudioWeeklyHoursCached(),
-      getNailArtPosts(6).catch(() => []),
-    ])
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const [
+    servicesWithOptionsRes,
+    profsRes,
+    filtersRes,
+    studioWeeklyHours,
+    nailArtPosts,
+    reviewsBundle,
+    ownReview,
+  ] = await Promise.all([
+    getServices(),
+    getProfessionals(),
+    getPublicServiceFilters(),
+    getStudioWeeklyHoursCached(),
+    getNailArtPosts(6).catch(() => []),
+    getApprovedServiceReviews(),
+    user ? getOwnServiceReview(user.id) : Promise.resolve(null),
+  ])
 
   let servicesRes = servicesWithOptionsRes
   if (!servicesRes.data) {
@@ -72,6 +91,10 @@ export default async function ServiciosPage({ searchParams }: Props) {
       professionals={profsRes.data}
       studioWeeklyHours={studioWeeklyHours}
       portfolioItems={portfolioItems}
+      reviews={reviewsBundle.reviews}
+      reviewSummary={reviewsBundle.summary}
+      isAuthenticated={Boolean(user)}
+      ownReview={ownReview}
     />
   )
 }

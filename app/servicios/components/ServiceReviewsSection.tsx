@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Star } from "lucide-react"
 
@@ -8,12 +9,18 @@ import type {
   ServiceReviewRow,
   ServiceReviewSummary,
 } from "@/lib/supabase/service-reviews"
+import type { StudioReview } from "../reviews-data"
 
 type Props = {
   initialReviews: ServiceReviewRow[]
   initialSummary: ServiceReviewSummary
   isAuthenticated: boolean
   ownReview: ServiceReviewRow | null
+  /** Placeholders mostrados mientras no haya reseñas reales aprobadas. */
+  fallbackReviews?: StudioReview[]
+  /** Enlace "Ver todo" a la página completa de reseñas. */
+  viewAllHref?: string
+  viewAllClassName?: string
 }
 
 function formatRelativeDate(iso: string): string {
@@ -177,12 +184,12 @@ function ReviewForm({
         <p className="mt-2 text-[13px] text-[#8a6d26]">
           ¡Gracias por enviar tu reseña! Te invitamos a que explores nuestro
           catálogo:{" "}
-          <a
+          <Link
             href="/tienda"
             className="font-semibold underline underline-offset-2 hover:text-[#111]"
           >
             /tienda
-          </a>
+          </Link>
         </p>
       )}
 
@@ -228,36 +235,34 @@ export function ServiceReviewsAverage({
   )
 }
 
+function hashRequestsForm(): boolean {
+  if (typeof window === "undefined") return false
+  return window.location.hash === "#resenas"
+}
+
 export default function ServiceReviewsSection({
   initialReviews,
   initialSummary,
   isAuthenticated,
   ownReview,
+  fallbackReviews = [],
+  viewAllHref,
+  viewAllClassName,
 }: Props) {
   const router = useRouter()
+  // El estado se siembra de las props en el mount. El padre remonta el
+  // componente (via `key`) cuando el server manda datos nuevos, así que no
+  // hace falta un effect de sincronización (evita setState-in-effect).
   const [reviews, setReviews] = useState(initialReviews)
   const [summary, setSummary] = useState(initialSummary)
   const [own, setOwn] = useState(ownReview)
-  // Si ya tiene reseña, se muestra al entrar / al hacer refresh.
+  // Se muestra el form al entrar si ya tiene reseña, o si la URL apunta a
+  // #resenas (deep-link desde "Escribir reseña" tras login). El estado inicial
+  // se computa en el initializer para no llamar setState dentro de un effect.
   const [showForm, setShowForm] = useState(
-    () => Boolean(isAuthenticated && ownReview)
+    () =>
+      isAuthenticated && (Boolean(ownReview) || hashRequestsForm())
   )
-
-  useEffect(() => {
-    setOwn(ownReview)
-    setReviews(initialReviews)
-    setSummary(initialSummary)
-    if (isAuthenticated && ownReview) {
-      setShowForm(true)
-    }
-  }, [ownReview, initialReviews, initialSummary, isAuthenticated])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    if (window.location.hash === "#resenas" && isAuthenticated) {
-      setShowForm(true)
-    }
-  }, [isAuthenticated])
 
   function handleWriteClick() {
     if (!isAuthenticated) {
@@ -290,7 +295,7 @@ export default function ServiceReviewsSection({
         <div>
           <h2
             id="resenas-heading"
-            className="font-[family-name:var(--font-playfair),serif] text-[26px] font-medium leading-none text-[#111]"
+            className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]"
           >
             Reseñas
           </h2>
@@ -303,6 +308,16 @@ export default function ServiceReviewsSection({
                 <StarsRow count={Math.round(summary.average)} />
                 <span className="text-[13px] text-[#8a6d26]">
                   ({summary.count})
+                </span>
+              </>
+            ) : fallbackReviews.length > 0 ? (
+              <>
+                <span className="text-[28px] font-semibold leading-none text-[#111]">
+                  5,0
+                </span>
+                <StarsRow count={5} />
+                <span className="text-[13px] text-[#8a6d26]">
+                  ({fallbackReviews.length})
                 </span>
               </>
             ) : (
@@ -349,10 +364,42 @@ export default function ServiceReviewsSection({
             </li>
           ))}
         </ul>
+      ) : fallbackReviews.length > 0 ? (
+        <ul className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {fallbackReviews.map((review) => (
+            <li key={review.id} className="min-w-0">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#c6a75e]/20 text-[13px] font-semibold text-[#8a6d26]">
+                  {review.name.charAt(0).toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-[13px] font-semibold text-[#111]">
+                    {review.name}
+                  </p>
+                  <p className="text-[11px] text-neutral-400">{review.date}</p>
+                </div>
+              </div>
+              <div className="mt-2">
+                <StarsRow count={review.stars} />
+              </div>
+              <p className="mt-2 text-[13px] leading-relaxed text-[#5a5a5a]">
+                {review.quote}
+              </p>
+            </li>
+          ))}
+        </ul>
       ) : (
         <p className="mt-8 text-[13px] text-[#6b6b6b]">
           Sé la primera en compartir tu experiencia.
         </p>
+      )}
+
+      {viewAllHref && (reviews.length > 0 || fallbackReviews.length > 0) && (
+        <div className="mt-6">
+          <Link href={viewAllHref} className={viewAllClassName}>
+            Ver todo
+          </Link>
+        </div>
       )}
 
       {showForm && isAuthenticated && (

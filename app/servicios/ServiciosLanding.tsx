@@ -45,6 +45,11 @@ import {
 } from "@/lib/constants/contact"
 import { navSticky } from "@/lib/nav-sticky"
 import { STUDIO_REVIEWS } from "./reviews-data"
+import ServiceReviewsSection from "./components/ServiceReviewsSection"
+import type {
+  ServiceReviewRow,
+  ServiceReviewSummary,
+} from "@/lib/supabase/service-reviews"
 
 const GALLERY = [
   "https://picsum.photos/seed/servicios-studio-a/1200/900",
@@ -89,6 +94,10 @@ type Props = {
   professionals: ProfessionalRow[]
   studioWeeklyHours: StudioWeeklyHourRow[]
   portfolioItems: PortfolioItem[]
+  reviews: ServiceReviewRow[]
+  reviewSummary: ServiceReviewSummary
+  isAuthenticated: boolean
+  ownReview: ServiceReviewRow | null
 }
 
 function formatPrice(v: number): string {
@@ -192,7 +201,20 @@ export default function ServiciosLanding({
   professionals,
   studioWeeklyHours,
   portfolioItems,
+  reviews,
+  reviewSummary,
+  isAuthenticated,
+  ownReview,
 }: Props) {
+  // Header: promedio real si ya hay reseñas aprobadas; si no, placeholder 5,0
+  // con el conteo de STUDIO_REVIEWS (mismo comportamiento visual previo).
+  const hasRealReviews = reviewSummary.count > 0
+  const headerRatingLabel = hasRealReviews
+    ? reviewSummary.average.toFixed(1).replace(".", ",")
+    : "5,0"
+  const headerReviewCount = hasRealReviews
+    ? reviewSummary.count
+    : STUDIO_REVIEWS.length
   const [activeCategory, setActiveCategory] = useState("")
   const [activeTab, setActiveTab] = useState<string>("fotos")
   const [hoursOpen, setHoursOpen] = useState(false)
@@ -454,9 +476,9 @@ export default function ServiciosLanding({
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-[#5a5a5a]">
             <span className="inline-flex items-center gap-1.5">
-              <span className="font-semibold text-[#111]">5,0</span>
+              <span className="font-semibold text-[#111]">{headerRatingLabel}</span>
               <Stars />
-              <span className="text-[#8a6d26]">({STUDIO_REVIEWS.length})</span>
+              <span className="text-[#8a6d26]">({headerReviewCount})</span>
             </span>
             <span className="text-neutral-300" aria-hidden>
               ·
@@ -585,8 +607,8 @@ export default function ServiciosLanding({
                   className="h-3.5 w-3.5 fill-[#8a6d26] text-[#8a6d26]"
                   aria-hidden
                 />
-                <span className="font-semibold text-[#111]">5,0</span>
-                <span className="text-[#8a6d26]">({STUDIO_REVIEWS.length})</span>
+                <span className="font-semibold text-[#111]">{headerRatingLabel}</span>
+                <span className="text-[#8a6d26]">({headerReviewCount})</span>
               </span>
               <span className="text-neutral-300" aria-hidden>
                 ·
@@ -829,52 +851,19 @@ export default function ServiciosLanding({
               </section>
             )}
 
-            {/* Reseñas */}
-            <section
-              id="resenas"
-              className="scroll-mt-36 lg:order-3"
-              aria-labelledby="resenas-heading"
-            >
-              <h2
-                id="resenas-heading"
-                className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]"
-              >
-                Reseñas
-              </h2>
-              <div className="mt-5 flex items-center gap-2">
-                <span className="text-[28px] font-semibold leading-none text-[#111]">5,0</span>
-                <Stars />
-                <span className="text-[13px] text-[#8a6d26]">({STUDIO_REVIEWS.length})</span>
-              </div>
-              <ul className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {STUDIO_REVIEWS.map((review) => (
-                  <li key={review.id} className="min-w-0">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#c6a75e]/20 text-[13px] font-semibold text-[#8a6d26]">
-                        {review.name.charAt(0)}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-[13px] font-semibold text-[#111]">
-                          {review.name}
-                        </p>
-                        <p className="text-[11px] text-neutral-400">{review.date}</p>
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <Stars count={review.stars} />
-                    </div>
-                    <p className="mt-2 text-[13px] leading-relaxed text-[#5a5a5a]">
-                      {review.quote}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-6">
-                <Link href="/servicios/resenas" className={verTodoClassName}>
-                  Ver todo
-                </Link>
-              </div>
-            </section>
+            {/* Reseñas — reales (moderadas) con fallback a placeholders */}
+            <div className="lg:order-3">
+              <ServiceReviewsSection
+                key={`${reviewSummary.count}-${ownReview?.id ?? "none"}-${ownReview?.rating ?? 0}`}
+                initialReviews={reviews}
+                initialSummary={reviewSummary}
+                isAuthenticated={isAuthenticated}
+                ownReview={ownReview}
+                fallbackReviews={STUDIO_REVIEWS}
+                viewAllHref="/servicios/resenas"
+                viewAllClassName={verTodoClassName}
+              />
+            </div>
 
             {/* Portfolio — carrusel horizontal, una fila de fotos chicas */}
             <section
