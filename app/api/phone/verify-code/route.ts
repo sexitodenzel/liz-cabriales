@@ -3,14 +3,36 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { verifyPhoneCodeSchema } from "@/lib/validations/phone"
 import { verifyPhoneOtp } from "@/lib/notifications/phone-verification"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 type ApiError = { message: string; code?: string }
 type ApiResponse<T> = { data: T; error: null } | { data: null; error: ApiError }
+
+// Verificación de OTP: límite por IP contra fuerza bruta del código.
+const RATE_LIMIT_PER_MINUTE = 10
 
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<ApiResponse<null>>> {
   try {
+    const rate = checkRateLimit(
+      `phone-verify:${getClientIp(request)}`,
+      RATE_LIMIT_PER_MINUTE,
+      60_000
+    )
+    if (!rate.allowed) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            message: "Demasiados intentos. Espera un momento e intenta de nuevo.",
+            code: "RATE_LIMITED",
+          },
+        },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } }
+      )
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

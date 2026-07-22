@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
 import { compressImage } from "@/lib/image-compress"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import type { LinkType, TextPosition } from "@/lib/supabase/landing-slots"
@@ -169,27 +168,27 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
 
     try {
       const compressed = await compressImage(file, { maxWidthOrHeight: 2400 })
-      const supabase = createClient()
-      const ext = (compressed.name.split(".").pop() ?? "jpg").toLowerCase()
-      const path = `landing/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
-      const { error: uploadError } = await supabase.storage
-        .from("images")
-        .upload(path, compressed, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: compressed.type || undefined,
-        })
-
-      if (uploadError) throw uploadError
-
-      const { data } = supabase.storage.from("images").getPublicUrl(path)
-      if (!data?.publicUrl) throw new Error("No se pudo obtener la URL pública.")
+      const uploadBody = new FormData()
+      uploadBody.append("file", compressed)
+      uploadBody.append("folder", "landing")
+      const uploadRes = await fetch("/api/admin/uploads/image", {
+        method: "POST",
+        body: uploadBody,
+      })
+      const uploadJson = (await uploadRes.json()) as {
+        data: { url: string } | null
+        error: { message: string } | null
+      }
+      if (!uploadRes.ok || !uploadJson.data?.url) {
+        throw new Error(uploadJson.error?.message ?? "Error al subir la imagen.")
+      }
+      const publicUrl = uploadJson.data.url
 
       const res = await fetch("/api/admin/landing-slots", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: slot.key, url: data.publicUrl }),
+        body: JSON.stringify({ key: slot.key, url: publicUrl }),
       })
 
       if (!res.ok) {
@@ -197,8 +196,8 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
         throw new Error(body?.error?.message ?? "Error al guardar.")
       }
 
-      setCurrentUrl(data.publicUrl)
-      onUpdate(slot.key, { url: data.publicUrl })
+      setCurrentUrl(publicUrl)
+      onUpdate(slot.key, { url: publicUrl })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
       toast.success("Imagen actualizada")
@@ -295,7 +294,7 @@ function SlotCard({ slot, onUpdate }: SlotCardProps) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*,image/gif"
+        accept="image/jpeg,image/png,image/webp,image/gif"
         className="hidden"
         onChange={handleFileChange}
       />

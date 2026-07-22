@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: "/admin/top-searches", label: "Más buscados" },
   { href: "/admin/announcements", label: "Anuncios" },
   { href: "/admin/sobre-liz", label: "Sobre Liz" },
+  { href: "/admin/accesos", label: "Accesos" },
 ] as const
 
 function isActivePath(pathname: string, href: string) {

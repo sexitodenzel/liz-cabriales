@@ -1,27 +1,62 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
-import { createClient } from "@/lib/supabase/client"
 import { authEmailSchema, loginCredentialsSchema } from "@/lib/validations/auth"
 import FloatingInput from "@/app/components/auth/FloatingInput"
+import TurnstileWidget, {
+  type TurnstileWidgetHandle,
+} from "@/components/shared/TurnstileWidget"
 
 type Step = "email" | "password"
+
+type LoginApiResponse =
+  | {
+      data: {
+        user: { id: string; email: string | null }
+        role: string
+        session: {
+          expires_at: number | null
+          expires_in: number | null
+          token_type: string | null
+        }
+      }
+      error: null
+    }
+  | { data: null; error: { message: string; code?: string } }
+  | { error: string; retryAfterSeconds?: number }
+
+function rateLimitMessage(retryAfterSeconds?: number | null): string {
+  const base = "Demasiados intentos. Espera un momento antes de volver a intentar."
+  if (
+    typeof retryAfterSeconds === "number" &&
+    Number.isFinite(retryAfterSeconds) &&
+    retryAfterSeconds > 0
+  ) {
+    return `${base} (≈ ${Math.ceil(retryAfterSeconds)} s)`
+  }
+  return base
+}
 
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null)
 
   const [step, setStep] = useState<Step>("email")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const [emailError, setEmailError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [serverError, setServerError] = useState<string | null>(null)
+  const [serverError, setServerError] = useState<string | null>(() =>
+    searchParams.get("reason") === "inactivity"
+      ? "Tu sesión expiró por inactividad"
+      : null
+  )
 
   const [checking, setChecking] = useState(false)
   const [signingIn, setSigningIn] = useState(false)
@@ -44,6 +79,11 @@ export default function LoginPage() {
     return `/registrar?${params.toString()}`
   }
 
+  function resetTurnstile() {
+    setTurnstileToken(null)
+    turnstileRef.current?.reset()
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setServerError(null)
@@ -60,15 +100,23 @@ export default function LoginPage() {
         )
         return
       }
+      if (!turnstileToken) {
+        setServerError("Completa la verificación de seguridad (CAPTCHA).")
+        return
+      }
       setEmailError(null)
       setChecking(true)
       try {
         const res = await fetch("/api/auth/check-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: parsed.data }),
+          body: JSON.stringify({
+            email: parsed.data,
+            turnstileToken,
+          }),
         })
         const json = await res.json()
+        resetTurnstile()
         if (!res.ok || json.error) {
           setServerError(json?.error?.message ?? "No se pudo verificar el correo.")
           return
@@ -80,6 +128,7 @@ export default function LoginPage() {
           router.push(buildCreateAccountHref(parsed.data))
         }
       } catch {
+        resetTurnstile()
         setServerError("Error de red. Intenta de nuevo.")
       } finally {
         setChecking(false)
@@ -87,7 +136,7 @@ export default function LoginPage() {
       return
     }
 
-    // step === "password"
+    // step === "password" → endpoint propio (Turnstile + rate limit + Auth)
     const credResult = loginCredentialsSchema.safeParse({ email, password })
     if (!credResult.success) {
       const issue = credResult.error.issues[0]
@@ -95,30 +144,51 @@ export default function LoginPage() {
       else setEmailError("Información necesaria")
       return
     }
+    if (!turnstileToken) {
+      setServerError("Completa la verificación de seguridad (CAPTCHA).")
+      return
+    }
     setPasswordError(null)
     setSigningIn(true)
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: credResult.data.email,
-        password: credResult.data.password,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: credResult.data.email,
+          password: credResult.data.password,
+          turnstileToken,
+        }),
       })
-      if (error || !data.user) {
-        const raw = error?.message ?? ""
-        const friendly = /invalid login credentials/i.test(raw)
-          ? "Correo o contraseña incorrectos."
-          : /email not confirmed/i.test(raw)
-          ? "Aún no confirmas tu correo. Revisa tu bandeja de entrada."
-          : raw ||
-            "No se pudo iniciar sesión. Verifica tus datos e intenta de nuevo."
-        setServerError(friendly)
+      const json = (await res.json()) as LoginApiResponse
+      resetTurnstile()
+
+      if (res.status === 429) {
+        const fromBody =
+          "retryAfterSeconds" in json && typeof json.retryAfterSeconds === "number"
+            ? json.retryAfterSeconds
+            : null
+        const fromHeader = Number(res.headers.get("Retry-After"))
+        const retryAfterSeconds =
+          fromBody ??
+          (Number.isFinite(fromHeader) && fromHeader > 0 ? fromHeader : null)
+        setServerError(rateLimitMessage(retryAfterSeconds))
         return
       }
-      const { data: profile } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", data.user.id)
-        .single()
-      const role = profile?.role ?? "client"
+
+      if (!res.ok || !("data" in json) || !json.data) {
+        const message =
+          "error" in json && json.error && typeof json.error === "object"
+            ? json.error.message
+            : null
+        setServerError(
+          message ??
+            "No se pudo iniciar sesión. Verifica tus datos e intenta de nuevo."
+        )
+        return
+      }
+
+      const role = json.data.role ?? "client"
       if (safeRedirect) {
         navigateAndRefresh(safeRedirect)
         return
@@ -127,6 +197,7 @@ export default function LoginPage() {
       else if (role === "receptionist") navigateAndRefresh("/admin/appointments")
       else navigateAndRefresh("/")
     } catch (err) {
+      resetTurnstile()
       const message = err instanceof Error ? err.message : "Error al iniciar sesión."
       setServerError(message)
     } finally {
@@ -193,6 +264,13 @@ export default function LoginPage() {
             </>
           ) : null}
 
+          <TurnstileWidget
+            key={step}
+            ref={turnstileRef}
+            onToken={setTurnstileToken}
+            className="pt-1"
+          />
+
           {serverError ? (
             <p className="text-[13px] text-red-600" role="alert">
               {serverError}
@@ -208,6 +286,7 @@ export default function LoginPage() {
                   setPassword("")
                   setPasswordError(null)
                   setServerError(null)
+                  resetTurnstile()
                 }}
                 className="order-2 text-[13px] text-neutral-600 underline-offset-2 hover:underline sm:order-1"
               >

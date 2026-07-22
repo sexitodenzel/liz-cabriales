@@ -32,8 +32,10 @@ export default function SetPasswordPage() {
         }
       })
     } else {
-      supabase.auth.getSession().then(({ data }) => {
-        if (data.session) {
+      // getUser() valida con Auth (no solo la cookie local), para no mostrar
+      // el formulario con una sesión expirada o inválida.
+      supabase.auth.getUser().then(({ data, error: userError }) => {
+        if (!userError && data.user) {
           setReady(true)
         } else {
           setError("Enlace inválido. Pide uno nuevo.")

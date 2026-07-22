@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { compressImage } from "@/lib/image-compress"
 import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 import { BLOG_CATEGORIES, DEFAULT_BLOG_CATEGORY } from "@/lib/blog-categories"
@@ -165,16 +164,18 @@ export default function BlogForm({ initialData, onSave, onCancel, saving }: Prop
     setUploadingCover(true)
     try {
       const compressed = await compressImage(file)
-      const supabase = createClient()
-      const ext = (compressed.name.split(".").pop() ?? "jpg").toLowerCase()
-      const path = `blog/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from("images")
-        .upload(path, compressed, { cacheControl: "3600", upsert: false, contentType: compressed.type || undefined })
-      if (uploadError) throw uploadError
-      const { data } = supabase.storage.from("images").getPublicUrl(path)
-      if (!data?.publicUrl) throw new Error("No se pudo obtener la URL.")
-      setCoverImage(data.publicUrl)
+      const body = new FormData()
+      body.append("file", compressed)
+      body.append("folder", "blog")
+      const res = await fetch("/api/admin/uploads/image", { method: "POST", body })
+      const json = (await res.json()) as {
+        data: { url: string } | null
+        error: { message: string } | null
+      }
+      if (!res.ok || !json.data?.url) {
+        throw new Error(json.error?.message ?? "No se pudo obtener la URL.")
+      }
+      setCoverImage(json.data.url)
     } catch (err) {
       setCoverError(err instanceof Error ? err.message : "Error al subir la imagen.")
     } finally {
@@ -272,7 +273,7 @@ export default function BlogForm({ initialData, onSave, onCancel, saving }: Prop
       {/* Imagen de portada */}
       <div className="flex flex-col gap-2">
         <label className="text-[12px] font-semibold text-neutral-600">Imagen de portada</label>
-        <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+        <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverUpload} />
         <div className="flex items-start gap-4">
           <div
             className="relative h-24 w-36 shrink-0 overflow-hidden rounded-xl bg-neutral-100 cursor-pointer"

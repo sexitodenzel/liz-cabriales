@@ -29,6 +29,9 @@ import type { DeliveryType } from "@/types"
 import { useCart } from "@/app/components/cart/CartContext"
 import { createClient } from "@/lib/supabase/client"
 import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
+import TurnstileWidget, {
+  type TurnstileWidgetHandle,
+} from "@/components/shared/TurnstileWidget"
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -53,6 +56,9 @@ function getCheckoutErrorMessage(code?: string, fallback?: string): string {
   if (code === "UNAUTHORIZED") return "Tu sesion ya no es valida. Inicia sesion de nuevo."
   if (code === "VALIDATION_ERROR") return "Revisa los campos marcados en rojo."
   if (code === "PAYMENT_ERROR") return "No se pudo conectar con MercadoPago. Intenta de nuevo."
+  if (code === "TURNSTILE_MISSING" || code === "TURNSTILE_FAILED") {
+    return fallback ?? "Completa la verificación de seguridad e intenta de nuevo."
+  }
   return fallback ?? "Ocurrio un error inesperado. Intenta de nuevo."
 }
 
@@ -98,6 +104,8 @@ type ShippingProps = {
   onRetryPayment: () => void
   onCancelPendingOrder: () => void
   errorRef: React.RefObject<HTMLDivElement | null>
+  turnstileRef: React.RefObject<TurnstileWidgetHandle | null>
+  onTurnstileToken: (token: string | null) => void
 }
 
 function ShippingStep(p: ShippingProps) {
@@ -759,6 +767,8 @@ function ShippingStep(p: ShippingProps) {
                     : p.errorCode === "UNAUTHORIZED" ? "Sesión expirada"
                     : p.errorCode === "CART_EMPTY" ? "Bolsa vacía"
                     : p.errorCode === "VALIDATION_ERROR" ? "Faltan datos o hay errores en el formulario"
+                    : p.errorCode === "TURNSTILE_MISSING" || p.errorCode === "TURNSTILE_FAILED"
+                    ? "Verificación de seguridad"
                     : "No se pudo crear la orden"}
                 </p>
                 {p.errorCode === "VALIDATION_ERROR" && Object.values(p.fieldErrors).length > 0 ? (
@@ -772,6 +782,13 @@ function ShippingStep(p: ShippingProps) {
                 )}
               </div>
             )}
+
+            <div className="my-4">
+              <TurnstileWidget
+                ref={p.turnstileRef}
+                onToken={p.onTurnstileToken}
+              />
+            </div>
 
           </form>
         )}
@@ -914,6 +931,8 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
   const [cpLookupState, setCpLookupState] = useState<"idle" | "loading" | "found" | "notfound">("idle")
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
   const errorRef = useRef<HTMLDivElement>(null)
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   // Si el carrito queda vacío (p. ej. el usuario borra el último producto desde
   // la bolsa), sacarlo del flujo de checkout y mandarlo al carrito vacío.
@@ -1055,15 +1074,26 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
       return
     }
 
+    if (!turnstileToken) {
+      setErrorCode("TURNSTILE_MISSING")
+      setErrorMessage(getCheckoutErrorMessage("TURNSTILE_MISSING"))
+      requestAnimationFrame(() => {
+        errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      })
+      return
+    }
+
     setIsSubmitting(true)
     setSubmitLabel("Creando orden...")
     try {
       const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, turnstileToken }),
       })
       const orderJson = (await orderRes.json()) as ApiResponse<OrderCreateData>
+      setTurnstileToken(null)
+      turnstileRef.current?.reset()
       if (!orderRes.ok || !orderJson.data) {
         setErrorCode(orderJson.error?.code ?? "UNKNOWN")
         setErrorMessage(getCheckoutErrorMessage(orderJson.error?.code, orderJson.error?.message))
@@ -1113,6 +1143,8 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
       // el usuario pierde su carrito al volver atrás sin haber pagado.
       await callPaymentEndpoint(orderJson.data.order_id)
     } catch {
+      setTurnstileToken(null)
+      turnstileRef.current?.reset()
       setErrorCode("UNKNOWN")
       setErrorMessage(getCheckoutErrorMessage())
     } finally {
@@ -1217,6 +1249,8 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
     onRetryPayment: handleRetryPayment,
     onCancelPendingOrder: handleCancelPendingOrder,
     errorRef,
+    turnstileRef,
+    onTurnstileToken: setTurnstileToken,
   } as const
 
   return (

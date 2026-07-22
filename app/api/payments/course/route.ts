@@ -6,6 +6,10 @@ import { createClient } from "@/lib/supabase/server"
 import { getRegistrationForPayment } from "@/lib/supabase/courses"
 import { createCoursePaymentSchema } from "@/lib/validations/courses"
 import { getMinDeposit } from "@/lib/utils"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+
+const PAYMENT_RATE_LIMIT = 10
+const PAYMENT_RATE_WINDOW_MS = 5 * 60_000
 
 type ApiError = { message: string; code?: string }
 type ApiResponse<T> =
@@ -44,6 +48,19 @@ export async function POST(
 
     if (!user) {
       return errorResponse("No autorizado", 401, "UNAUTHENTICATED")
+    }
+
+    const rate = checkRateLimit(
+      `payment-course:${user.id}:${getClientIp(request)}`,
+      PAYMENT_RATE_LIMIT,
+      PAYMENT_RATE_WINDOW_MS
+    )
+    if (!rate.allowed) {
+      return errorResponse(
+        "Demasiados intentos de pago. Espera unos minutos.",
+        429,
+        "RATE_LIMITED"
+      )
     }
 
     let json: unknown

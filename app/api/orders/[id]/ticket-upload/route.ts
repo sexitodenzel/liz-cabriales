@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
 import { createClient } from "@/lib/supabase/server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -10,13 +11,50 @@ const supabaseAdmin = createServiceClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
+const MIME_TO_EXT: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "application/pdf": "pdf",
+}
 const MAX_BYTES = 10 * 1024 * 1024
 const PAID_STATUSES = ["paid", "awaiting_shipping_payment", "shipping_paid", "shipped", "delivered"]
+
+/** Valida los primeros bytes contra el MIME declarado. */
+function hasValidMagicBytes(bytes: Uint8Array, mime: string): boolean {
+  if (mime === "application/pdf") {
+    return bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46
+  }
+  if (mime === "image/jpeg") {
+    return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+  }
+  if (mime === "image/png") {
+    return bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+  }
+  if (mime === "image/webp") {
+    return (
+      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+    )
+  }
+  return false
+}
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { id: orderId } = await context.params
+
+    const rate = checkRateLimit(
+      `ticket-upload:${getClientIp(request)}`,
+      6,
+      10 * 60_000
+    )
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { data: null, error: { message: "Demasiadas subidas. Espera un momento." } },
+        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } }
+      )
+    }
 
     const supabase = await createClient()
     const {
@@ -68,7 +106,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       )
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const ext = MIME_TO_EXT[file.type]
+    if (!ext) {
       return NextResponse.json(
         { data: null, error: { message: "Solo se permiten imágenes (JPG, PNG, WEBP) o PDF" } },
         { status: 400 }
@@ -82,10 +121,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
       )
     }
 
-    const rawExt = file.name.split(".").pop() ?? ""
-    const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || "bin"
-    const storagePath = `ticket/${orderId}/${Date.now()}.${ext}`
     const arrayBuffer = await file.arrayBuffer()
+    if (!hasValidMagicBytes(new Uint8Array(arrayBuffer), file.type)) {
+      return NextResponse.json(
+        { data: null, error: { message: "El archivo no es válido" } },
+        { status: 400 }
+      )
+    }
+
+    const storagePath = `ticket/${orderId}/${Date.now()}.${ext}`
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("invoice-docs")

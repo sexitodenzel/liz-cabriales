@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 
 import { authEmailSchema } from "@/lib/validations/auth"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import { extractTurnstileToken, requireTurnstile } from "@/lib/turnstile"
 
 type ApiError = { message: string; code?: string }
 type ApiResponse = { data: { exists: boolean }; error: null } | { data: null; error: ApiError }
@@ -43,6 +44,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       { data: null, error: { message: "Body inválido", code: "VALIDATION_ERROR" } },
       { status: 400 }
     )
+  }
+
+  const turnstileRejected = await requireTurnstile(
+    request,
+    extractTurnstileToken(json)
+  )
+  if (turnstileRejected) {
+    return turnstileRejected as NextResponse<ApiResponse>
   }
 
   const emailField = (json as { email?: unknown })?.email

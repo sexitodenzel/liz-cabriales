@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 
 import {
   buildSupabaseOrFilter,
@@ -7,6 +7,11 @@ import {
 } from "@/lib/search-text"
 import { createClient } from "@/lib/supabase/server"
 import { applyDiscount } from "@/lib/tienda/discount"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+
+// Búsqueda pública de alto volumen: límite generoso por IP para frenar bots
+// que enumeren el catálogo sin afectar a usuarios reales.
+const RATE_LIMIT_PER_MINUTE = 120
 
 type ProductSuggestion = {
   id: string
@@ -81,7 +86,25 @@ function scoreProduct(
   return score
 }
 
-export async function GET(request: Request): Promise<NextResponse<ApiResponse>> {
+export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+  const rate = checkRateLimit(
+    `search-suggestions:${getClientIp(request)}`,
+    RATE_LIMIT_PER_MINUTE,
+    60_000
+  )
+  if (!rate.allowed) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: {
+          message: "Demasiadas búsquedas. Espera un momento.",
+          code: "RATE_LIMITED",
+        },
+      },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } }
+    )
+  }
+
   const { searchParams } = new URL(request.url)
   const q = searchParams.get("q")?.trim() ?? ""
   const tokens = tokenizeSearchQuery(q)

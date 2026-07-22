@@ -96,6 +96,12 @@ type WebhookBody = {
 }
 
 /**
+ * Ventana máxima de antigüedad para la firma del webhook (anti-replay).
+ * Si el timestamp firmado es más viejo que esto, se descarta.
+ */
+const MAX_WEBHOOK_SIGNATURE_AGE_MS = 10 * 60 * 1000
+
+/**
  * Verifica la firma del webhook de MercadoPago.
  * Formato esperado de x-signature: "ts=TIMESTAMP,v1=HASH"
  * Contenido firmado: "id:{dataId};request-id:{xRequestId};ts:{ts};"
@@ -124,6 +130,16 @@ function verifyWebhookSignature(
   const v1 = parts["v1"]
 
   if (!ts || !v1) return false
+
+  // Anti-replay: rechazar firmas cuyo timestamp esté fuera de la ventana.
+  const tsNum = Number(ts)
+  if (Number.isFinite(tsNum)) {
+    // MP envía el ts en segundos o milisegundos según el evento; normalizamos.
+    const tsMs = tsNum < 1e12 ? tsNum * 1000 : tsNum
+    if (Math.abs(Date.now() - tsMs) > MAX_WEBHOOK_SIGNATURE_AGE_MS) {
+      return false
+    }
+  }
 
   const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`
   const computed = createHmac("sha256", secret).update(manifest).digest("hex")

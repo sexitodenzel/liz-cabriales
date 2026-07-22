@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react"
 
-import { createClient } from "@/lib/supabase/client"
 import { compressImage } from "@/lib/image-compress"
 import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
+
+const MAX_SOURCE_BYTES = 15 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"]
 
 const SIZE_HINTS: Record<string, string> = {
   products: "1:1 · mín. 800×800 px",
@@ -45,31 +47,42 @@ export default function ImageUploader({
     if (!file) return
     e.target.value = ""
 
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      onError("Solo se permiten imágenes JPG, PNG o WEBP.")
+      e.target.value = ""
+      return
+    }
+    if (file.size > MAX_SOURCE_BYTES) {
+      onError("La imagen es demasiado grande (máx. 15 MB antes de comprimir).")
+      e.target.value = ""
+      return
+    }
+
     const objectUrl = URL.createObjectURL(file)
     setPreview(objectUrl)
     setUploading(true)
 
     try {
       const compressed = await compressImage(file)
-      const supabase = createClient()
-      const ext = (compressed.name.split(".").pop() ?? "jpg").toLowerCase()
-      const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
-      const { error: uploadError } = await supabase.storage
-        .from("images")
-        .upload(path, compressed, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: compressed.type || undefined,
-        })
+      const body = new FormData()
+      body.append("file", compressed)
+      body.append("folder", folder)
 
-      if (uploadError) throw uploadError
-
-      const { data } = supabase.storage.from("images").getPublicUrl(path)
-      if (!data?.publicUrl) {
-        throw new Error("No se pudo obtener la URL pública de la imagen.")
+      const res = await fetch("/api/admin/uploads/image", {
+        method: "POST",
+        body,
+      })
+      const json = (await res.json()) as {
+        data: { url: string } | null
+        error: { message: string } | null
       }
-      onUpload(data.publicUrl)
+
+      if (!res.ok || !json.data?.url) {
+        throw new Error(json.error?.message ?? "No se pudo subir la imagen.")
+      }
+
+      onUpload(json.data.url)
       setJustUploaded(true)
     } catch (err: unknown) {
       console.error("[ImageUploader] upload error", err)
@@ -97,7 +110,7 @@ export default function ImageUploader({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={handleChange}
       />
