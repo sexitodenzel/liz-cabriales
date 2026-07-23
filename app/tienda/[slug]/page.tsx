@@ -5,7 +5,6 @@ import {
   getProductBySlugCached as getProductBySlug,
   getRelatedProductsCached,
 } from "@/lib/supabase/cache"
-import { getServicesCached } from "@/lib/supabase/cache"
 import { getPublishedCourses } from "@/lib/supabase/courses"
 import { getBlockedSlotsForDate } from "@/lib/supabase/appointments"
 import CoursesCarousel from "../components/CoursesCarousel"
@@ -13,7 +12,6 @@ import ProductAccordion from "../components/ProductAccordion"
 import ProductHero from "../components/ProductHero"
 import RelatedProductsCarousel from "../components/RelatedProductsCarousel"
 import RecentlyViewed from "../components/RecentlyViewed"
-import ServicesSection from "../components/ServicesSection"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type PageProps = {
@@ -47,10 +45,9 @@ export default async function ProductPage({ params }: PageProps) {
 
   const today = new Date().toISOString().split("T")[0] ?? ""
 
-  const [relatedRes, coursesRes, servicesRes, blockedRes] = await Promise.all([
+  const [relatedRes, coursesRes, blockedRes] = await Promise.all([
     getRelatedProductsCached(product.category_id, product.brand, product.id, 8),
     getPublishedCourses(),
-    getServicesCached(),
     getBlockedSlotsForDate(today),
   ])
 
@@ -58,7 +55,6 @@ export default async function ProductPage({ params }: PageProps) {
   const upcomingCourses = (coursesRes.data ?? [])
     .filter((c) => c.start_date >= today)
     .slice(0, 8)
-  const activeServices = servicesRes.data ?? []
   const courseSlot = (blockedRes.data ?? []).find(
     (slot) => slot.reason?.startsWith("[curso]")
   )
@@ -110,8 +106,6 @@ export default async function ProductPage({ params }: PageProps) {
         />
 
         <CoursesCarousel courses={upcomingCourses} />
-
-        <ServicesSection services={activeServices} />
         </div>
       </div>
     </main>

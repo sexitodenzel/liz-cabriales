@@ -54,18 +54,18 @@ export default function BrandsMegaMenu({
         transition-opacity ease-out
         ${isOpen
           ? "opacity-100 pointer-events-auto duration-300"
-          : "opacity-0 pointer-events-none duration-200"
+          : "opacity-0 pointer-events-none duration-100"
         }
       `}
     >
       <div className="site-container pt-6 pb-10">
         <div className="mb-6">
           <Link
-            href="/tienda"
+            href="/marcas"
             onClick={onClose}
             className="flex w-fit items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e] hover:opacity-80 transition-opacity"
           >
-            Ver toda la tienda
+            Ver todas las marcas
           </Link>
         </div>
 

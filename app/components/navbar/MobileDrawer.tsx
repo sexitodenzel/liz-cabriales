@@ -136,12 +136,12 @@ export default function MobileDrawer({
     }
   }, [pathname, onClose])
 
+  // Resetear al cerrar (no al abrir) para no forzar un re-render a mitad del slide.
   useEffect(() => {
-    if (isOpen) {
-      setStack([{ kind: "root" }])
-      setActiveIndex(0)
-      setPendingIndex(null)
-    }
+    if (isOpen) return
+    setStack([{ kind: "root" }])
+    setActiveIndex(0)
+    setPendingIndex(null)
   }, [isOpen])
 
   useEffect(() => {
@@ -152,9 +152,16 @@ export default function MobileDrawer({
     if (serviciosMenuCategories !== null) return
     void fetch("/api/navbar/servicios-menu")
       .then((r) => (r.ok ? r.json() : { data: [] }))
-      .then((json) =>
-        setServiciosMenuCategories(Array.isArray(json?.data) ? json.data : [])
-      )
+      .then((json) => {
+        const payload = json?.data
+        if (Array.isArray(payload)) {
+          setServiciosMenuCategories(payload)
+          return
+        }
+        setServiciosMenuCategories(
+          Array.isArray(payload?.categories) ? payload.categories : []
+        )
+      })
       .catch(() => setServiciosMenuCategories([]))
   }, [serviciosMenuCategories])
 
@@ -171,7 +178,7 @@ export default function MobileDrawer({
     setStack((prev) => [...prev.slice(0, activeIndex + 1), view])
     setPendingIndex(activeIndex + 1)
     if (view.kind === "nail-art" && nailArtPosts === null) {
-      void fetch("/api/nail-art/list")
+      void fetch("/api/nail-art/list?sort=likes&limit=6")
         .then((r) => (r.ok ? r.json() : { data: [] }))
         .then((json) => setNailArtPosts(Array.isArray(json?.data) ? json.data : []))
         .catch(() => setNailArtPosts([]))
@@ -205,6 +212,8 @@ export default function MobileDrawer({
       }}
       side="left"
       ariaLabel="Menú"
+      preload
+      backdropClassName="md:bg-black/40"
       className="w-full max-w-none overflow-hidden md:w-[380px]"
     >
       {/* Close button */}
@@ -673,6 +682,18 @@ function NailArtPanel({ posts, onBack, onClose }: NailArtPanelProps) {
   return (
     <div className="flex min-h-full min-w-0 flex-col">
       <PanelHeader title="Nail Art" onBack={onBack} />
+      <div className="px-4 pt-2 md:px-6">
+        <p className="text-[12px] leading-relaxed text-neutral-500">
+          Inspírate con diseños hechos por productos de nuestro catálogo
+        </p>
+        <Link
+          href="/nail-art#subir"
+          onClick={onClose}
+          className="mt-3 inline-flex text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c6a75e]"
+        >
+          Subir inspiración
+        </Link>
+      </div>
       <div className="grid grid-cols-2 gap-x-2 gap-y-4 px-3 py-5 md:px-4">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <TileSkeleton key={i} />)
@@ -744,11 +765,11 @@ function MarcasPanel({ brands, onBack, onClose }: MarcasPanelProps) {
 
       <div className="flex-1">
         <Link
-          href="/tienda"
+          href="/marcas"
           onClick={onClose}
           className="flex w-full items-center justify-between px-4 py-[16px] md:px-6 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#c6a75e] transition-colors hover:bg-neutral-50 lg:py-[18px] lg:text-[13px]"
         >
-          <span>Ver toda la tienda</span>
+          <span>Ver todas las marcas</span>
         </Link>
 
         {sortedBrands.length === 0 ? (

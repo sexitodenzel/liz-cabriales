@@ -1,9 +1,14 @@
 "use client"
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react"
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type TransitionEvent,
+} from "react"
 import { createPortal } from "react-dom"
-import { EASE_OUT, SPRING_PANEL } from "@/lib/ease"
 import { cn } from "@/lib/utils"
 
 export interface DrawerProps {
@@ -15,7 +20,13 @@ export interface DrawerProps {
   backdropClassName?: string
   ariaLabel?: string
   dismissable?: boolean
+  /** Monta el DOM en idle para que la 1ª apertura solo anime CSS. */
+  preload?: boolean
 }
+
+/** Alineado con EASE_DRAWER — compositor CSS, sin JS por frame. */
+const EASE = "cubic-bezier(0.32, 0.72, 0, 1)"
+const DURATION_MS = 300
 
 export function Drawer({
   open,
@@ -26,80 +37,140 @@ export function Drawer({
   backdropClassName,
   ariaLabel,
   dismissable = true,
+  preload = false,
 }: DrawerProps) {
-  const reduce = useReducedMotion()
-  const [mounted, setMounted] = useState(false)
+  const [portalReady, setPortalReady] = useState(false)
+  // Tras la 1ª apertura (o preload) el DOM se queda vivo: abrir/cerrar = CSS.
+  const [mountedPanel, setMountedPanel] = useState(false)
+  const [entered, setEntered] = useState(false)
+  const [paint, setPaint] = useState(true)
   const panelRef = useRef<HTMLElement>(null)
+  const enterRaf = useRef<number | null>(null)
 
   useEffect(() => {
-    setMounted(true)
+    setPortalReady(true)
   }, [])
 
   useEffect(() => {
+    if (!preload || mountedPanel) return
+    const warm = () => setMountedPanel(true)
+    const timeoutId = setTimeout(warm, 600)
+    return () => clearTimeout(timeoutId)
+  }, [preload, mountedPanel])
+
+  useEffect(() => {
+    if (open) {
+      setMountedPanel(true)
+      setPaint(true)
+      setEntered(false)
+      if (enterRaf.current != null) cancelAnimationFrame(enterRaf.current)
+      // 2× rAF: asegura el frame “fuera” antes de pedir el slide.
+      enterRaf.current = requestAnimationFrame(() => {
+        enterRaf.current = requestAnimationFrame(() => {
+          enterRaf.current = null
+          setEntered(true)
+        })
+      })
+      return () => {
+        if (enterRaf.current != null) cancelAnimationFrame(enterRaf.current)
+      }
+    }
+
+    setEntered(false)
+    return
+  }, [open])
+
+  // Scroll lock ligero (sin position:fixed → evita reflow de toda la página).
+  useEffect(() => {
     if (!open) return
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    html.style.overflow = "hidden"
+    body.style.overflow = "hidden"
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onOpenChange(false)
     }
     window.addEventListener("keydown", onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    // Mover el foco al panel al abrir: sin esto, Tab sigue recorriendo la
-    // página de fondo y el lector de pantalla nunca entra al diálogo.
-    const opener = document.activeElement as HTMLElement | null
-    const focusFrame = requestAnimationFrame(() => panelRef.current?.focus())
+
+    const focusTimer = window.setTimeout(() => {
+      panelRef.current?.focus({ preventScroll: true })
+    }, DURATION_MS)
+
     return () => {
       window.removeEventListener("keydown", onKey)
-      document.body.style.overflow = prevOverflow
-      cancelAnimationFrame(focusFrame)
-      opener?.focus?.()
+      window.clearTimeout(focusTimer)
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
     }
   }, [open, onOpenChange])
 
-  const offscreen = side === "right" ? "100%" : "-100%"
+  const onPanelTransitionEnd = useCallback(
+    (e: TransitionEvent<HTMLElement>) => {
+      if (e.target !== e.currentTarget) return
+      if (e.propertyName !== "transform") return
+      if (!open) setPaint(false)
+    },
+    [open],
+  )
 
-  if (!mounted) return null
+  if (!portalReady || !mountedPanel) return null
+
+  const isOpen = entered
+  const closed = !open && !entered
 
   const content = (
-    <AnimatePresence>
-      {open ? (
-        <div className="fixed inset-0 z-50">
-          <motion.button
-            type="button"
-            aria-label="Cerrar"
-            tabIndex={dismissable ? 0 : -1}
-            onClick={() => dismissable && onOpenChange(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: EASE_OUT }}
-            className={cn(
-              "absolute inset-0 h-full w-full cursor-default bg-black/40 backdrop-blur-sm",
-              backdropClassName,
-            )}
-          />
-          <motion.aside
-            ref={panelRef}
-            tabIndex={-1}
-            role="dialog"
-            aria-modal="true"
-            aria-label={ariaLabel}
-            initial={reduce ? { opacity: 0 } : { x: offscreen }}
-            animate={reduce ? { opacity: 1 } : { x: 0 }}
-            exit={reduce ? { opacity: 0 } : { x: offscreen }}
-            transition={reduce ? { duration: 0.2, ease: EASE_OUT } : SPRING_PANEL}
-            className={cn(
-              "absolute inset-y-0 flex w-80 max-w-[85vw] flex-col bg-white shadow-2xl",
-              side === "right"
-                ? "right-0 border-l border-neutral-200"
-                : "left-0 border-r border-neutral-200",
-              className,
-            )}
-          >
-            {children}
-          </motion.aside>
-        </div>
-      ) : null}
-    </AnimatePresence>
+    <div
+      className={cn("fixed inset-0 z-50", closed && "pointer-events-none")}
+      aria-hidden={closed}
+      style={closed && !paint ? { visibility: "hidden" } : undefined}
+    >
+      <button
+        type="button"
+        aria-label="Cerrar"
+        tabIndex={dismissable && open ? 0 : -1}
+        onClick={() => dismissable && onOpenChange(false)}
+        className={cn(
+          "absolute inset-0 h-full w-full cursor-default bg-black/40",
+          "transition-opacity duration-300 motion-reduce:transition-none",
+          isOpen ? "opacity-100" : "opacity-0",
+          backdropClassName,
+        )}
+        style={{ transitionTimingFunction: EASE }}
+      />
+      <aside
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal={open ? "true" : undefined}
+        aria-label={ariaLabel}
+        onTransitionEnd={onPanelTransitionEnd}
+        className={cn(
+          "absolute inset-y-0 flex w-80 max-w-[85vw] flex-col overflow-hidden bg-white shadow-xl",
+          "transform-gpu will-change-transform backface-hidden",
+          "transition-transform duration-300 motion-reduce:transition-none",
+          side === "right"
+            ? "right-0 border-l border-neutral-200"
+            : "left-0 border-r border-neutral-200",
+          side === "right"
+            ? isOpen
+              ? "translate-x-0"
+              : "translate-x-full"
+            : isOpen
+              ? "translate-x-0"
+              : "-translate-x-full",
+          className,
+        )}
+        style={{
+          transitionTimingFunction: EASE,
+          WebkitBackfaceVisibility: "hidden",
+        }}
+      >
+        {children}
+      </aside>
+    </div>
   )
 
   return createPortal(content, document.body)

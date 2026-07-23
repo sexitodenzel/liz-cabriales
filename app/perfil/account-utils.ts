@@ -49,6 +49,32 @@ export function orderStatusClass(status: OrderStatus): string {
 export const orderStatusBadgeClassName =
   "text-[11px] font-medium tracking-wide"
 
+export function nailArtStatusLabel(status: string): string {
+  switch (status) {
+    case "pending":
+      return "En revisión"
+    case "approved":
+      return "Publicada"
+    case "rejected":
+      return "No publicada"
+    default:
+      return status
+  }
+}
+
+export function nailArtStatusClass(status: string): string {
+  switch (status) {
+    case "pending":
+      return "text-amber-700"
+    case "approved":
+      return "text-emerald-700"
+    case "rejected":
+      return "text-neutral-500"
+    default:
+      return "text-neutral-600"
+  }
+}
+
 export function registrationStatusLabel(status: RegistrationStatus): string {
   const map = {
     pending: "Pendiente de pago",

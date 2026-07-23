@@ -45,11 +45,7 @@
      No se actualiza en runtime; el colapso se hace con transform (ver Hermès collapse). */
   --navbar-actual-h: var(--navbar-mobile-h);
   /* Alto que el hero de home le resta a 100vh (navbar visible + respiro de
-     24px abajo). En ≥1200px usa la altura COLAPSADA del navbar (48px + 24px):
-     el hero sigue al colapso con transform, así que se dimensiona para ese
-     estado — expandido, su borde inferior queda ~32px bajo el fold
-     (full-bleed) y al colapsar el respiro entra exacto al viewport, sin
-     franja blanca y sin animar height (ver Hermès/Dior collapse abajo). */
+     24px abajo). Al ocultar el navbar por scroll queda solo el respiro. */
   --home-hero-inset: calc(var(--navbar-mobile-h) + 24px);
   /* Borde inferior del chrome (anuncios + navbar); SiteChromeMetrics.tsx */
   --site-chrome-bottom: var(--navbar-actual-h);
@@ -125,32 +121,45 @@ html {
   overflow-anchor: none;
 }
 
-/* Hermès/Dior collapse (sólo desktop wide ≥1200px).
-   Binario y por DIRECCIÓN de scroll: Navbar.tsx togglea html.lc-nav-collapsed
-   (bajar colapsa, subir expande de inmediato) y el movimiento es una
-   transition de `transform` — 100% GPU, cero trabajo por frame. La var
-   --navbar-actual-h se mantiene ESTÁTICA (104px expanded) para que los
-   stickys que la usan como `top` NO disparen reflow. Los stickys/fixed que
-   deben pegarse al navbar colapsado (barra de filtros, sticky cart bar)
-   llevan .navbar-follow-collapse y se trasladan con la misma transition. */
+/* Auto-hide del navbar por dirección de scroll.
+   Binario: bajar oculta TODA la barra (logo + módulos), subir la muestra.
+   Navbar.tsx togglea html.lc-nav-collapsed; el movimiento es `transform`
+   (GPU). --navbar-actual-h se mantiene ESTÁTICA para que los stickys no
+   disparen reflow. Barras .navbar-follow-collapse viajan con la misma
+   transition. */
+#site-navbar,
+.navbar-follow-collapse {
+  transform: translate3d(0, 0, 0);
+  transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+html.lc-nav-collapsed #site-navbar,
+html.lc-nav-collapsed .navbar-follow-collapse {
+  transform: translate3d(0, calc(-1 * var(--navbar-actual-h)), 0);
+  pointer-events: none;
+}
+
+/* Follow con FIN DE RECORRIDO (sidebar de curso/producto): al agotar el
+   scroll de su columna el sticky se estaciona en el borde inferior y viaja
+   con el contenido; ahí el translate del hide lo dejaría fuera de sitio.
+   use-nav-follow-parked marca .lc-follow-parked y el transform vuelve a 0. */
+html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
+  transform: translate3d(0, 0, 0);
+  pointer-events: auto;
+}
+
 @media (min-width: 1200px) {
   :root {
     --navbar-actual-h: 104px;
-    /* 48px de navbar colapsado + 24px de respiro (ver :root arriba) */
-    --home-hero-inset: 72px;
-  }
-
-  #site-navbar,
-  .navbar-follow-collapse {
-    transform: translate3d(0, 0, 0);
-    transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform;
+    /* Navbar se oculta por completo al scrollear: solo queda el respiro. */
+    --home-hero-inset: 24px;
   }
 
   #site-navbar {
     height: 104px;
     /* Sella la rendija de 1px entre capas GPU: sin esto asoma el FooterStage
-       fijo (#0a0a0a) entre navbar y barra sticky al colapsar / re-expandir. */
+       fijo (#0a0a0a) entre navbar y barra sticky al ocultar / mostrar. */
     box-shadow: 0 1px 0 0 var(--color-ivory);
   }
 
@@ -159,26 +168,10 @@ html {
     box-shadow: 0 -1px 0 0 var(--color-ivory);
   }
 
-  html.lc-nav-collapsed #site-navbar,
-  html.lc-nav-collapsed .navbar-follow-collapse {
-    transform: translate3d(0, -56px, 0);
-  }
-
-  /* Follow con FIN DE RECORRIDO (sidebar de curso/producto): al agotar el
-     scroll de su columna el sticky se estaciona en el borde inferior y viaja
-     con el contenido; ahí el -56px lo dejaría descansando 56px arriba del
-     borde de la columna (y lo levantaba sobre el hero mientras aún iba en el
-     flujo). use-nav-follow-parked marca .lc-follow-parked cuando el layout ya
-     lo arrastra por encima de su línea top y el transform vuelve a 0 con la
-     MISMA transición (se re-alinea deslizándose con la página en movimiento). */
-  html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
-    transform: translate3d(0, 0, 0);
-  }
-
   /* Barra sticky DESPEGADA del navbar (vive en el flujo, sobre su hero o arriba
      del todo): Navbar.tsx marca html.lc-nav-guard-free. Sin transition, la barra
      descansa en su sitio al instante en vez de arrastrar la transición de 480ms
-     del colapso (si no, al frenar arriba seguía deslizándose ~0.1s). Solo se
+     del hide (si no, al frenar arriba seguía deslizándose ~0.1s). Solo se
      marca con el transform ya en ~0, así que el snap no produce salto. Pegada
      bajo el navbar mantiene su transición para viajar junto a él sin abrir
      hueco. */
@@ -209,19 +202,16 @@ html {
     content: none;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    #site-navbar,
-    .navbar-follow-collapse {
-      transition: none;
-    }
-  }
-
-  /* Megamenu abierto: fijar el header expandido sin animar transform
-     (evita que el panel suba/baje bajo el cursor al abrir desde colapsado). */
+  /* Megamenu abierto: congelar la transition del navbar. */
   :root.navbar-menu-open #site-navbar {
-    transform: none !important;
-    margin-bottom: 0 !important;
     transition: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #site-navbar,
+  .navbar-follow-collapse {
+    transition: none;
   }
 }
 
@@ -232,7 +222,9 @@ html {
   isolation: isolate;
   background-color: transparent;
   color: #1a1a1a;
-  transition: color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #site-navbar::after {
@@ -442,8 +434,8 @@ html.lc-home-overlay #site-navbar .navbar-brand-logo {
   position: absolute;
   left: 0;
   right: 0;
-  top: -8px;
-  height: 8px;
+  top: -20px;
+  height: 20px;
 }
 
 /* Fade sutil del panel derecho del mega-menú de Tienda al cambiar categoría */

@@ -47,7 +47,7 @@ function ProductCard({
   return (
     <Link
       href={`/tienda/${product.slug}`}
-      className="group block w-[68vw] max-w-[280px] shrink-0 snap-start sm:w-[240px] lg:w-[calc((100%-72px)/4)] lg:max-w-none"
+      className="group block w-[min(72vw,280px)] shrink-0 snap-center sm:w-[240px] sm:snap-start lg:w-[calc((100%-72px)/4)] lg:max-w-none"
       aria-label={`${product.name}${product.brand ? ` — ${product.brand}` : ""}`}
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_28px_rgba(20,20,20,0.06)]">
@@ -56,7 +56,7 @@ function ProductCard({
             src={product.image}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 68vw, (max-width: 1024px) 240px, 25vw"
+            sizes="(max-width: 640px) 72vw, (max-width: 1024px) 240px, 25vw"
             className="object-cover transition-transform duration-700 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
             loading="lazy"
           />
@@ -155,12 +155,12 @@ export default function TabbedShopper({
         })}
       </div>
 
-      {/* Productos de la pestaña activa + flechas a los lados de las imágenes */}
+      {/* Carrusel: en móvil cada card se centra en pantalla (snap-center) */}
       <div className="relative">
         <div
           key={active.id}
           ref={scrollerRef}
-          className="animate-fade-up -mx-[var(--site-px)] flex snap-x gap-4 overflow-x-auto px-[var(--site-px)] pb-2 scrollbar-hide md:mx-0 md:px-0 lg:gap-6"
+          className="animate-fade-up relative left-1/2 flex w-screen -translate-x-1/2 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 scrollbar-hide [padding-inline:calc((100vw-min(72vw,280px))/2)] sm:left-auto sm:w-auto sm:translate-x-0 sm:snap-proximity sm:gap-4 sm:px-0 lg:gap-6"
         >
           {active.products.map((product) => (
             <ProductCard key={product.id} product={product} badge={active.badge} />

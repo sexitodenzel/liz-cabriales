@@ -11,7 +11,6 @@ import {
 } from "@/lib/constants/abrasivity"
 import type { HomeBrandItem } from "@/lib/supabase/cache"
 import type { CourseWithStats } from "@/lib/supabase/courses"
-import type { ServiceRow } from "@/lib/supabase/appointments"
 import type {
   Category,
   ProductWithCategory,
@@ -58,7 +57,6 @@ type ProductGridProps = {
   brandsWithLogo?: HomeBrandItem[]
   initialFilters: FiltersState
   upcomingCourses: CourseWithStats[]
-  activeServices: ServiceRow[]
   breadcrumbItems?: BreadcrumbItem[]
 }
 
@@ -69,7 +67,6 @@ export default function ProductGrid({
   brandsWithLogo = [],
   initialFilters,
   upcomingCourses,
-  activeServices,
   breadcrumbItems,
 }: ProductGridProps) {
   const pathname = usePathname()
@@ -512,7 +509,6 @@ export default function ProductGrid({
         <StoreDiscoverySections
           relatedProducts={relatedProducts}
           courses={upcomingCourses}
-          services={activeServices}
         />
       )}
 

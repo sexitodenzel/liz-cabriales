@@ -19,10 +19,18 @@ import { useEffect, useRef, useState } from "react"
 export default function SmoothImage({
   onLoad,
   style,
+  unoptimized,
+  src,
   ...props
 }: ImageProps) {
   const [loaded, setLoaded] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
+
+  // /api/nail-art/image/* responde 302 a signed URL: el optimizer de Next
+  // no debe intentar reescribir esa ruta (rompe covers UGC).
+  const srcStr = typeof src === "string" ? src : ""
+  const skipOptimize =
+    Boolean(unoptimized) || srcStr.startsWith("/api/nail-art/image/")
 
   useEffect(() => {
     if (imgRef.current?.complete) setLoaded(true)
@@ -31,7 +39,9 @@ export default function SmoothImage({
   return (
     <Image
       ref={imgRef}
+      src={src}
       {...props}
+      unoptimized={skipOptimize}
       onLoad={(event) => {
         setLoaded(true)
         onLoad?.(event)

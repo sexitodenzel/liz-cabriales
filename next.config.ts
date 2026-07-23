@@ -2,6 +2,21 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
 
+/** Hostname de Storage (sin https://). Fallback al proyecto actual si falta env en build. */
+function supabaseStorageHostname(): string {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (raw) {
+    try {
+      return new URL(raw).hostname;
+    } catch {
+      /* ignore */
+    }
+  }
+  return "qlvslouwkiemsjkggdqq.supabase.co";
+}
+
+const supabaseHost = supabaseStorageHostname();
+
 // Content-Security-Policy equilibrada: bloquea clickjacking, inyección de base
 // y objetos, pero permite lo que la app usa (Supabase, MercadoPago, Instagram,
 // Google OAuth, Cloudflare Turnstile). Se mantienen 'unsafe-inline'/'unsafe-eval'
@@ -43,21 +58,21 @@ const nextConfig: NextConfig = {
   // el lockfile de C:\Users\migue como raíz (había múltiples package-lock.json).
   outputFileTracingRoot: __dirname,
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "picsum.photos",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
+        hostname: supabaseHost,
+        // public + signed (UGC Nail Art y legacy)
         pathname: "/storage/v1/**",
       },
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
         pathname: "/**",
       },
     ],

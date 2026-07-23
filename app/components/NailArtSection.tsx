@@ -3,25 +3,11 @@ import Link from "next/link"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import { getNailArtPosts } from "@/lib/supabase/nail-art"
 import type { NailArtPost } from "@/lib/supabase/nail-art"
+import { nailArtImageApiPath } from "@/lib/nail-art-image"
 import SectionHeader from "@/app/components/ui/SectionHeader"
 
-const NAIL_PLACEHOLDERS = [
-  "https://picsum.photos/seed/nails1/400/533",
-  "https://picsum.photos/seed/nails2/400/533",
-  "https://picsum.photos/seed/nails3/400/533",
-  "https://picsum.photos/seed/nails4/400/533",
-  "https://picsum.photos/seed/nails5/400/533",
-  "https://picsum.photos/seed/nails6/400/533",
-]
-
-function pickPlaceholder(slug: string) {
-  let hash = 0
-  for (let i = 0; i < slug.length; i++) hash = (hash * 31 + slug.charCodeAt(i)) >>> 0
-  return NAIL_PLACEHOLDERS[hash % NAIL_PLACEHOLDERS.length]
-}
-
 function NailArtCard({ post }: { post: NailArtPost }) {
-  const coverImage = post.cover_image || pickPlaceholder(post.slug)
+  const coverImage = nailArtImageApiPath(post.id)
   const productChips = post.linked_products.slice(0, 3)
 
   return (

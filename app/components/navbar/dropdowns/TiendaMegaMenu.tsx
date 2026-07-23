@@ -199,7 +199,7 @@ export default function TiendaMegaMenu({
         transition-opacity ease-out
         ${isOpen
           ? "opacity-100 pointer-events-auto duration-300"
-          : "opacity-0 pointer-events-none duration-200"
+          : "opacity-0 pointer-events-none duration-100"
         }
       `}
     >

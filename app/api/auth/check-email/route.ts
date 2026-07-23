@@ -13,8 +13,7 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Frena la enumeración de correos: un usuario legítimo hace 1-2 checks al
-// entrar al login; 10/min por IP deja margen para NAT compartido.
+// Frena la enumeración de correos: Turnstile + rate limit por IP.
 const RATE_LIMIT_PER_MINUTE = 10
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {

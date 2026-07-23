@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server"
 
+import {
+  SERVICIOS_GALLERY_FALLBACKS,
+  SERVICIOS_GALLERY_SLOT_KEYS,
+} from "@/lib/media-slots"
 import { serviciosMenuToCategories, buildServiciosMenuGroups } from "@/lib/navbar/servicios-menu"
+import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
 import { getServicesCached } from "@/lib/supabase/cache"
 import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
 
@@ -14,13 +19,20 @@ type ServiciosMenuItem = {
 }
 
 type ApiResponse =
-  | { data: ServiciosMenuItem[]; error: null }
+  | {
+      data: { categories: ServiciosMenuItem[]; gallery: string[] }
+      error: null
+    }
   | { data: null; error: { message: string; code?: string } }
 
 export async function GET(): Promise<NextResponse<ApiResponse>> {
-  const [filtersRes, servicesRes] = await Promise.all([
+  const [filtersRes, servicesRes, gallery] = await Promise.all([
     getPublicServiceFilters(),
     getServicesCached(),
+    getOrderedSlotUrls(
+      [...SERVICIOS_GALLERY_SLOT_KEYS],
+      SERVICIOS_GALLERY_FALLBACKS
+    ),
   ])
 
   if (!servicesRes.data) {
@@ -40,7 +52,13 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
   const categories = serviciosMenuToCategories(groups)
 
   return NextResponse.json(
-    { data: categories, error: null },
+    {
+      data: {
+        categories,
+        gallery: gallery.filter((url) => url.trim().length > 0),
+      },
+      error: null,
+    },
     { headers: { "Cache-Control": "no-store" } }
   )
 }

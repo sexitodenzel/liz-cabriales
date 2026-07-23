@@ -543,7 +543,7 @@ export default function CartMenu() {
       }}
       side="right"
       ariaLabel="Bolsa de compras"
-      backdropClassName="bg-transparent backdrop-blur-0 md:bg-black/40 md:backdrop-blur-sm"
+      backdropClassName="bg-transparent md:bg-black/40 md:backdrop-blur-sm"
       className="w-full max-w-none overflow-hidden md:w-[380px]"
     >
       {panelInner}

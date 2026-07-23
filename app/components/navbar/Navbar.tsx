@@ -12,6 +12,7 @@ import AcademiaMegaMenu from "./dropdowns/AcademiaMegaMenu"
 import TiendaMegaMenu from "./dropdowns/TiendaMegaMenu"
 import ServiciosMegaMenu from "./dropdowns/ServiciosMegaMenu"
 import BrandsMegaMenu from "./dropdowns/BrandsMegaMenu"
+import NailArtMegaMenu from "./dropdowns/NailArtMegaMenu"
 import LizMegaMenu from "./dropdowns/LizMegaMenu"
 import MobileDrawer from "./MobileDrawer"
 import MobileSearchOverlay from "./MobileSearchOverlay"
@@ -28,7 +29,7 @@ import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
 import SlidingNumber from "../ui/motion/sliding-number"
 import { SearchTypewriter } from "./SearchTypewriter"
 
-type DesktopMenu = "Tienda" | "Academia" | "Servicios" | "Marcas" | "Conócenos" | null
+type DesktopMenu = "Tienda" | "Academia" | "Servicios" | "Marcas" | "Nail Art" | "Conócenos" | null
 
 type NavbarProps = {
   isLoggedIn?: boolean
@@ -51,7 +52,8 @@ const DESKTOP_NAV_ITEMS = [
   { label: "Tienda" as const, href: "/tienda", menu: "Tienda" as const },
   { label: "Servicios" as const, href: "/servicios", menu: "Servicios" as const },
   { label: "Academia" as const, href: "/academia", menu: "Academia" as const },
-  { label: "Marcas" as const, href: "/tienda", menu: "Marcas" as const },
+  { label: "Nail Art" as const, href: "/nail-art", menu: "Nail Art" as const },
+  { label: "Marcas" as const, href: "/marcas", menu: "Marcas" as const },
   { label: "Conócenos" as const, href: "/sobre-liz", menu: "Conócenos" as const },
 ] as const
 
@@ -78,6 +80,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const menuCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navBarStyleRef = useRef({ left: 0, width: 0, visible: false })
   const activeMenuRef = useRef<DesktopMenu>(null)
+  const overlayOpenRef = useRef(false)
   const navRef = useRef<HTMLElement>(null)
   const navLinkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
   const headerRef = useRef<HTMLElement>(null)
@@ -147,20 +150,24 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   }
   const scheduleMenuClose = () => {
     clearMenuCloseTimer()
+    // Grace corto: solo para cruzar el puente nav → panel (~20px CSS).
+    // Antes 320ms se sentía ~1s al salir hacia zonas sin desplegable.
     menuCloseTimerRef.current = setTimeout(() => {
       setActiveMenu(null)
       hideNavBar()
-    }, 200)
+    }, 80)
   }
   const openDesktopMenu = (menu: Exclude<DesktopMenu, null>) => {
     clearMenuCloseTimer()
     setHideChrome(false)
+    document.documentElement.classList.remove("lc-nav-collapsed")
     closeCart()
     setMobileSearchOpen(false)
     setDrawerOpen(false)
     setActiveMenu(menu)
   }
   const handleNavMouseEnter = (menu: Exclude<DesktopMenu, null>) => {
+    clearMenuCloseTimer()
     openDesktopMenu(menu)
     updateNavBar(menu)
   }
@@ -181,6 +188,9 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   useEffect(() => () => clearMenuCloseTimer(), [])
 
   activeMenuRef.current = activeMenu
+  overlayOpenRef.current = Boolean(
+    activeMenu || isCartOpen || drawerOpen || mobileSearchOpen
+  )
 
   useEffect(() => {
     document.documentElement.classList.toggle("navbar-menu-open", Boolean(activeMenu))
@@ -189,54 +199,31 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     }
   }, [activeMenu])
 
+  // Auto-hide del navbar (todas las vistas): bajar oculta toda la barra
+  // (logo + módulos), subir la vuelve a mostrar. CSS mueve con transform
+  // html.lc-nav-collapsed (ver globals.css) — 100% GPU.
+  // Umbrales ACUMULADOS por dirección: micro-scrolls no togglean.
+  // Cerca del top queda siempre visible. hideChrome ya no aplica a un
+  // “slim bar”: al ocultar sale toda la barra.
   useEffect(() => {
-    if (!drawerOpen) return
-
-    let lastY = window.scrollY
-    function handleScroll() {
-      const currentY = window.scrollY
-      // Ignore micro-scrolls from layout shifts / mobile browser chrome
-      if (currentY - lastY > 12) {
-        setDrawerOpen(false)
-      }
-      lastY = currentY
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [drawerOpen])
-
-  // Colapso del navbar (solo desktop ≥1200px), binario y por DIRECCIÓN de
-  // scroll: bajar colapsa, subir expande de inmediato (no solo al llegar al
-  // top). El movimiento lo hace CSS con una transition de transform sobre
-  // html.lc-nav-collapsed (ver globals.css) — 100% GPU, nada por frame.
-  // Umbrales ACUMULADOS por dirección: micro-scrolls (layout shifts, rueda
-  // inercial rebotando) no togglean. Cerca del top queda siempre expandido
-  // para que el toggle no parpadee mientras el sticky aún no se pega; el
-  // announcement bar (contenido previo al header) cuenta como parte del top.
-  // hideChrome (aria/tabIndex de la fila superior) sigue este mismo estado.
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1200px)")
+    const mqDesktopNav = window.matchMedia("(min-width: 1200px)")
     const COLLAPSE_AFTER = 24
     const EXPAND_AFTER = -8
     let lastY = window.scrollY
     let acc = 0
-    // Barra sticky de la página que sigue el colapso (marcada con
+    // Barra sticky de la página que sigue el hide (marcada con
     // data-nav-collapse-guard). Se cachea entre frames; se re-consulta si el
     // elemento se desmonta al cambiar de ruta.
     let guardEl: HTMLElement | null = null
     // Borde inferior del navbar EXPANDIDO (sin transform) = --navbar-actual-h.
     let navbarBottom = readNavbarBottom()
-    // Línea de dock del guard: su `top` sticky resuelto en px. Las barras de
-    // filtros pegan justo bajo el navbar (top = --navbar-actual-h) y el
-    // sidebar de curso 24px más abajo (+1.5rem); leer el computed style del
-    // propio guard soporta ambos sin hardcodear el respiro aquí.
+    // Línea de dock del guard: su `top` sticky resuelto en px.
     let guardDockTop = navbarBottom
 
     const setCollapsed = (collapsed: boolean) => {
       document.documentElement.classList.toggle("lc-nav-collapsed", collapsed)
-      // Con un megamenu abierto el chrome debe seguir accesible (aria/tabIndex)
-      if (!activeMenuRef.current) setHideChrome(collapsed)
+      // Ocultamos toda la barra: no hay fila de módulos residual ni logo compacto.
+      setHideChrome(false)
     }
 
     const update = () => {
@@ -244,77 +231,68 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       const delta = y - lastY
       lastY = y
       const root = document.documentElement
-      if (!mq.matches) {
+
+      // Menú / overlays abiertos: forzar barra visible.
+      if (overlayOpenRef.current) {
         acc = 0
-        root.classList.remove("lc-nav-guard-free")
         setCollapsed(false)
         return
       }
+
       const pinOffset =
         document.getElementById("site-announcement-bar")?.offsetHeight ?? 0
-      // En la zona top vamos a expandir sí o sí: el lc-nav-collapsed viejo NO
-      // cuenta como "pegada" (si no, al saltar al top guard-free quedaba
-      // apagado sin más scrolls que lo corrigieran, y el escudo ::before
-      // tapaba el breadcrumb con la barra ya en el flujo).
-      const inTopZone = y <= pinOffset + 56
+      const inTopZone = y <= pinOffset + 24
       const collapsed =
         !inTopZone && root.classList.contains("lc-nav-collapsed")
 
-      // ¿El sticky guard de la página (data-nav-collapse-guard) ya llegó a su
-      // línea de dock y está pegado? Solo leemos layout mientras seguimos
-      // expandidos (colapsados sabemos que está pegada → sin reflow por frame).
-      if (!collapsed && (!guardEl || !guardEl.isConnected)) {
-        guardEl = document.querySelector<HTMLElement>("[data-nav-collapse-guard]")
-        if (guardEl) {
-          const dockTop = parseFloat(getComputedStyle(guardEl).top)
-          guardDockTop = Number.isFinite(dockTop) ? dockTop : navbarBottom
-        }
-      }
-      let guardTop = Number.POSITIVE_INFINITY
-      if (!collapsed && guardEl && guardEl.isConnected) {
-        guardTop = guardEl.getBoundingClientRect().top
-        if (inTopZone) {
-          // El rect incluye el transform del colapso: tras un salto al top la
-          // barra aún trae -56px y el rect miente "pegada" (148-56=92), dejando
-          // escudo y transición activos sin más scrolls que lo corrijan. En la
-          // zona top decide el layout puro (rect - translateY). Fuera del top
-          // se queda el rect CON transform: es lo que hace que el undock
-          // gradual espere a transform≈0 y el snap no dé salto.
-          const transform = getComputedStyle(guardEl).transform
-          if (transform && transform !== "none") {
-            guardTop -= new DOMMatrixReadOnly(transform).m42
+      // Guard dock solo aplica en desktop wide (sticky filters bajo navbar 104px).
+      if (mqDesktopNav.matches) {
+        if (!collapsed && (!guardEl || !guardEl.isConnected)) {
+          guardEl = document.querySelector<HTMLElement>("[data-nav-collapse-guard]")
+          if (guardEl) {
+            const dockTop = parseFloat(getComputedStyle(guardEl).top)
+            guardDockTop = Number.isFinite(dockTop) ? dockTop : navbarBottom
           }
         }
-      }
-      const guardDocked =
-        collapsed ||
-        !guardEl ||
-        !guardEl.isConnected ||
-        guardTop <= guardDockTop + 1
+        let guardTop = Number.POSITIVE_INFINITY
+        if (!collapsed && guardEl && guardEl.isConnected) {
+          guardTop = guardEl.getBoundingClientRect().top
+          if (inTopZone) {
+            const transform = getComputedStyle(guardEl).transform
+            if (transform && transform !== "none") {
+              guardTop -= new DOMMatrixReadOnly(transform).m42
+            }
+          }
+        }
+        const guardDocked =
+          collapsed ||
+          !guardEl ||
+          !guardEl.isConnected ||
+          guardTop <= guardDockTop + 1
 
-      // DESPEGADA: la barra vive en el flujo, sobre su hero (o arriba del todo),
-      // no bajo el navbar. Ahí NO debe arrastrar la transición de 480ms del
-      // colapso: si lo hace, al frenar arriba sigue deslizándose ~0.1s hasta su
-      // sitio. La marcamos para que CSS le quite la transition (snap inmediato)
-      // y apague el escudo ::before (globals.css). El check de "despegada" solo
-      // se cumple con el transform ya en ~0, así que el snap no da salto.
-      // Pegada → sigue al navbar con su transición (necesario para que no se
-      // abra un hueco con el hero al colapsar).
-      root.classList.toggle("lc-nav-guard-free", !guardDocked)
+        root.classList.toggle("lc-nav-guard-free", !guardDocked)
 
-      if (inTopZone) {
-        acc = 0
-        setCollapsed(false)
-        return
+        if (inTopZone) {
+          acc = 0
+          setCollapsed(false)
+          return
+        }
+        // No ocultar hasta que la barra sticky se haya pegado: si el navbar
+        // sube entero mientras la barra aún baja por el hero, queda un hueco.
+        if (!guardDocked) {
+          acc = 0
+          setCollapsed(false)
+          return
+        }
+      } else {
+        root.classList.remove("lc-nav-guard-free")
+        if (inTopZone) {
+          acc = 0
+          setCollapsed(false)
+          return
+        }
       }
-      // No colapsar hasta que la barra se haya pegado: si el navbar sube 56px
-      // mientras la barra aún baja por el hero, queda un hueco con el hero
-      // asomándose (bug /academia: se leía "Eventos temporada 2026").
-      if (!guardDocked) {
-        acc = 0
-        setCollapsed(false)
-        return
-      }
+
       if (delta > 0 !== acc > 0) acc = 0
       acc += delta
       if (acc > COLLAPSE_AFTER) setCollapsed(true)
@@ -325,17 +303,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       lastY = window.scrollY
       acc = 0
       navbarBottom = readNavbarBottom()
-      // El `top` del guard cambia con el breakpoint (64px ↔ 104px): forzar
-      // re-query para re-medir su línea de dock.
       guardEl = null
-      if (!mq.matches) setCollapsed(false)
     }
     window.addEventListener("scroll", update, { passive: true })
-    mq.addEventListener("change", handleModeChange)
+    mqDesktopNav.addEventListener("change", handleModeChange)
     update()
     return () => {
       window.removeEventListener("scroll", update)
-      mq.removeEventListener("change", handleModeChange)
+      mqDesktopNav.removeEventListener("change", handleModeChange)
       document.documentElement.classList.remove("lc-nav-collapsed")
       document.documentElement.classList.remove("lc-nav-guard-free")
     }
@@ -410,6 +385,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   useEffect(() => {
     if (activeMenu || isCartOpen || drawerOpen || mobileSearchOpen) {
       setHideChrome(false)
+      document.documentElement.classList.remove("lc-nav-collapsed")
     }
   }, [activeMenu, isCartOpen, drawerOpen, mobileSearchOpen])
 
@@ -674,9 +650,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             className="min-h-0 flex-1 overflow-hidden"
             aria-hidden={hideChrome}
           >
-            <div className="grid h-full w-full grid-cols-[1fr_auto_1fr] items-center pt-4">
+            <div className="grid h-full w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-4 pt-4">
+                {/* Columna izq. = misma fracción que la derecha → logo queda centrado */}
                 <div
-                  className="relative z-20 flex min-w-0 shrink-0 items-center justify-self-start gap-3 pl-1"
+                  className="relative z-20 flex min-w-0 w-full items-center justify-self-stretch gap-2 pl-1 pr-2"
                   onMouseEnter={scheduleMenuClose}
                 >
                   <button
@@ -696,16 +673,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                       setSearchQuery("")
                       setMobileSearchOpen(false)
                     }}
-                    className="relative flex items-center gap-2 border-b border-neutral-900 pb-1 will-change-[width]"
-                    style={{
-                      width: mobileSearchOpen ? "300px" : "220px",
-                      transition: "width 420ms cubic-bezier(0.22, 1, 0.36, 1)",
-                    }}
+                    className={`relative flex min-w-0 items-center gap-2 border-b border-neutral-900 pb-1 ${
+                      mobileSearchOpen ? "flex-1" : "w-1/2 shrink-0"
+                    }`}
                   >
-                    <div className="relative min-w-0 flex-1">
+                    <div className="relative min-w-0 w-full flex-1">
                       <SearchTypewriter
                         active={!mobileSearchOpen && searchQuery.length === 0}
-                        className="navbar-search-typewriter pointer-events-none absolute inset-y-0 left-0 flex max-w-full items-center overflow-hidden text-[13px] tracking-wide text-neutral-400 whitespace-nowrap"
+                        className="navbar-search-typewriter pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center overflow-hidden text-[12px] tracking-normal text-neutral-400 whitespace-nowrap lg:text-[13px]"
                       />
                       <input
                         ref={desktopSearchInputRef}
@@ -725,7 +700,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                         }}
                         placeholder=""
                         tabIndex={hideChrome ? -1 : 0}
-                        className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-[13px] tracking-wide text-neutral-900 outline-none"
+                        className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-[12px] tracking-normal text-neutral-900 outline-none lg:text-[13px]"
                         aria-label="Buscar productos"
                       />
                     </div>
@@ -772,7 +747,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                 </Link>
 
                 <div
-                  className="relative z-20 flex shrink-0 items-center justify-self-end gap-0.5 pr-1"
+                  className="relative z-20 flex min-w-0 w-full items-center justify-end justify-self-stretch gap-0.5 pr-1 pl-2"
                   onMouseEnter={() => activeMenu && scheduleMenuClose()}
                 >
                   <Link
@@ -827,10 +802,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
             </div>
           </div>
 
-          {/* Fila inferior: nav items centrados. Siempre visible.
-              Logo compacto a la izquierda cuando Hermès colapsa (la fila del
-              logo grande sale del viewport con el translate -56px). */}
-          <div className="relative flex h-12 w-full items-center justify-center">
+          {/* Fila inferior: nav centrado al ancho completo (equilibra con el
+              logo de arriba). Logo compacto absolute a la izq. (legado; con
+              auto-hide total ya no queda visible al scrollear). */}
+          <div className="relative flex h-12 w-full items-center justify-center px-1">
             <Link
               href="/"
               className={`navbar-brand-link absolute left-1 z-[2] shrink-0 no-underline transition-opacity duration-300 ease-out ${
@@ -915,6 +890,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
         />
+        <NailArtMegaMenu
+          isOpen={activeMenu === "Nail Art"}
+          onClose={() => setActiveMenu(null)}
+          onMouseEnter={clearMenuCloseTimer}
+        />
         <LizMegaMenu
           isOpen={activeMenu === "Conócenos"}
           onClose={() => setActiveMenu(null)}
@@ -945,16 +925,19 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         hideForm={!showCompactToolbar}
       />
 
-      {/* Overlay de blur global (carrito + megamenu desktop + búsqueda) */}
+      {/* Overlay de blur global (carrito + megamenu desktop + búsqueda).
+          El megamenú NO se cierra en mouseEnter: con el navbar colapsado el
+          header puede dejar el cursor sobre el overlay un instante y eso
+          provocaba un loop abrir/cerrar. Se cierra solo con click. */}
       <div
         className={`fixed inset-0 top-[var(--site-chrome-bottom,var(--navbar-actual-h))] backdrop-blur-md bg-black/10 z-[45] transition-opacity duration-300 md:top-0 ${
           isCartOpen || activeMenu || (mobileSearchOpen && !showCompactToolbar && isDesktopWidth) ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onMouseEnter={() => {
           if (isProgrammatic()) { clearProgrammatic(); return }
+          // No tocar activeMenu aquí (ver comentario arriba).
           closeCart()
           setDrawerOpen(false)
-          setActiveMenu(null)
           setMobileSearchOpen(false)
         }}
         onClick={() => {

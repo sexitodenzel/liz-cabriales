@@ -6,7 +6,10 @@ import {
   createNailArtPost,
   updateNailArtPost,
   deleteNailArtPost,
+  listPendingInspirations,
+  moderateInspiration,
 } from "@/lib/supabase/nail-art"
+import { revalidateTag } from "next/cache"
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -14,13 +17,21 @@ async function getAdminUser() {
   return user
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getAdminUser()
     const auth = await requireAdmin(user?.id)
     if (auth.error) {
       const status = auth.error.code === "UNAUTHENTICATED" ? 401 : 403
       return NextResponse.json({ data: null, error: auth.error }, { status })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const pendingOnly = searchParams.get("pending") === "1"
+
+    if (pendingOnly) {
+      const pending = await listPendingInspirations()
+      return NextResponse.json({ data: pending, error: null })
     }
 
     const posts = await getAllNailArtPostsAdmin()
@@ -69,6 +80,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ data: null, error: { message: result.error } }, { status: 500 })
     }
 
+    try { revalidateTag("nail-art", "max") } catch { /* ignore */ }
+
     return NextResponse.json({ data: { id: result.id }, error: null }, { status: 201 })
   } catch {
     return NextResponse.json({ data: null, error: { message: "Error interno" } }, { status: 500 })
@@ -89,10 +102,27 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ data: null, error: { message: "Cuerpo inválido" } }, { status: 400 })
     }
 
-    const { id, ...fields } = body as Record<string, unknown>
+    const { id, action, rejection_reason, ...fields } = body as Record<string, unknown>
 
     if (typeof id !== "string" || !id) {
       return NextResponse.json({ data: null, error: { message: "id es requerido" } }, { status: 400 })
+    }
+
+    if (action === "approve" || action === "reject") {
+      if (!user?.id) {
+        return NextResponse.json({ data: null, error: { message: "No autenticado" } }, { status: 401 })
+      }
+      const result = await moderateInspiration(
+        id,
+        action,
+        user.id,
+        typeof rejection_reason === "string" ? rejection_reason : undefined
+      )
+      if (result.error) {
+        return NextResponse.json({ data: null, error: { message: result.error } }, { status: 400 })
+      }
+      try { revalidateTag("nail-art", "max") } catch { /* ignore */ }
+      return NextResponse.json({ data: { ok: true }, error: null })
     }
 
     const update: Parameters<typeof updateNailArtPost>[1] = {}
@@ -111,6 +141,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ data: null, error: { message: result.error } }, { status: 500 })
     }
 
+    try { revalidateTag("nail-art", "max") } catch { /* ignore */ }
     return NextResponse.json({ data: { ok: true }, error: null })
   } catch {
     return NextResponse.json({ data: null, error: { message: "Error interno" } }, { status: 500 })
@@ -138,6 +169,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ data: null, error: { message: result.error } }, { status: 500 })
     }
 
+    try { revalidateTag("nail-art", "max") } catch { /* ignore */ }
     return NextResponse.json({ data: { ok: true }, error: null })
   } catch {
     return NextResponse.json({ data: null, error: { message: "Error interno" } }, { status: 500 })

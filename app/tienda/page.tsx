@@ -9,7 +9,6 @@ import {
   getAllProductsCached as getProducts,
   getBrandsCached as getBrands,
   getCategoriesCached as getCategories,
-  getServicesCached,
 } from "@/lib/supabase/cache"
 import { getPublishedCourses } from "@/lib/supabase/courses"
 import type { ProductWithCategory, Category } from "@/lib/supabase/products"
@@ -63,14 +62,13 @@ export default async function StorePage({
 
   // Cargamos el catálogo activo completo una sola vez; el filtrado y orden
   // se resuelven en el cliente para una experiencia instantánea.
-  const [categoriesResult, brandsResult, allBrandsFullResult, productsResult, coursesResult, servicesResult] =
+  const [categoriesResult, brandsResult, allBrandsFullResult, productsResult, coursesResult] =
     await Promise.all([
       getCategories(),
       getBrands(),
       getAllBrandsFullCached(),
       getProducts(),
       getPublishedCourses(),
-      getServicesCached(),
     ])
 
   if (categoriesResult.error || productsResult.error) {
@@ -99,7 +97,6 @@ export default async function StorePage({
   const upcomingCourses = (coursesResult.data ?? [])
     .filter((c) => c.start_date >= today)
     .slice(0, 8)
-  const activeServices = servicesResult.data ?? []
 
   const abrasivities: AbrasivityValue[] = abrasivityParam
     ? abrasivityParam
@@ -129,7 +126,6 @@ export default async function StorePage({
           brandsWithLogo={allBrandsFull}
           initialFilters={initialFilters}
           upcomingCourses={upcomingCourses}
-          activeServices={activeServices}
           breadcrumbItems={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]}
         />
       </div>

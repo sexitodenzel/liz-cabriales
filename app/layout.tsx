@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { headers } from "next/headers";
 import { CartProvider } from "./components/cart/CartContext";
 import { WishlistProvider } from "./components/wishlist/WishlistContext";
+import { NailArtFavoritesProvider } from "./components/wishlist/NailArtFavoritesContext";
 import SiteNavbar from "./components/SiteNavbar";
 import SiteNavbarAuth from "./components/SiteNavbarAuth";
 import SiteCurtainLayout from "./components/footer/SiteCurtainLayout";
@@ -86,6 +87,7 @@ export default async function RootLayout({
         </a>
         <CartProvider>
           <WishlistProvider>
+            <NailArtFavoritesProvider>
             <SiteChromeMetrics />
             <Suspense fallback={null}>
               <AnnouncementBar />
@@ -94,6 +96,7 @@ export default async function RootLayout({
               <SiteNavbarAuth />
             </Suspense>
             <SiteCurtainLayout>{children}</SiteCurtainLayout>
+            </NailArtFavoritesProvider>
           </WishlistProvider>
         </CartProvider>
       </body>

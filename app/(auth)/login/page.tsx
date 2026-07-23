@@ -67,9 +67,10 @@ export default function LoginPage() {
       ? redirectParam
       : null
 
-  const navigateAndRefresh = (path: string) => {
-    router.push(path)
-    router.refresh()
+  const navigateAfterLogin = (path: string) => {
+    // Full navigation: cookies HttpOnly ya están en la respuesta del login.
+    // Evita router.push + refresh (RSC completo), que se sentía como “colgado”.
+    window.location.assign(path)
   }
 
   function buildCreateAccountHref(prefillEmail: string) {
@@ -82,6 +83,11 @@ export default function LoginPage() {
   function resetTurnstile() {
     setTurnstileToken(null)
     turnstileRef.current?.reset()
+  }
+
+  /** Token fresco: el ref evita el “primer clic” con state aún null. */
+  function readTurnstileToken(): string | null {
+    return turnstileRef.current?.getToken() ?? turnstileToken
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -100,8 +106,11 @@ export default function LoginPage() {
         )
         return
       }
-      if (!turnstileToken) {
-        setServerError("Completa la verificación de seguridad (CAPTCHA).")
+      const emailCaptcha = readTurnstileToken()
+      if (!emailCaptcha) {
+        setServerError(
+          "Espera un momento a que termine la verificación de seguridad e intenta de nuevo."
+        )
         return
       }
       setEmailError(null)
@@ -112,10 +121,11 @@ export default function LoginPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: parsed.data,
-            turnstileToken,
+            turnstileToken: emailCaptcha,
           }),
         })
         const json = await res.json()
+        // Token de un solo uso: pedir uno nuevo para el paso de contraseña.
         resetTurnstile()
         if (!res.ok || json.error) {
           setServerError(json?.error?.message ?? "No se pudo verificar el correo.")
@@ -144,8 +154,11 @@ export default function LoginPage() {
       else setEmailError("Información necesaria")
       return
     }
-    if (!turnstileToken) {
-      setServerError("Completa la verificación de seguridad (CAPTCHA).")
+    const loginCaptcha = readTurnstileToken()
+    if (!loginCaptcha) {
+      setServerError(
+        "Espera un momento a que termine la verificación de seguridad e intenta de nuevo."
+      )
       return
     }
     setPasswordError(null)
@@ -157,7 +170,7 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: credResult.data.email,
           password: credResult.data.password,
-          turnstileToken,
+          turnstileToken: loginCaptcha,
         }),
       })
       const json = (await res.json()) as LoginApiResponse
@@ -190,12 +203,12 @@ export default function LoginPage() {
 
       const role = json.data.role ?? "client"
       if (safeRedirect) {
-        navigateAndRefresh(safeRedirect)
+        navigateAfterLogin(safeRedirect)
         return
       }
-      if (role === "admin") navigateAndRefresh("/admin")
-      else if (role === "receptionist") navigateAndRefresh("/admin/appointments")
-      else navigateAndRefresh("/")
+      if (role === "admin") navigateAfterLogin("/admin")
+      else if (role === "receptionist") navigateAfterLogin("/admin/appointments")
+      else navigateAfterLogin("/")
     } catch (err) {
       resetTurnstile()
       const message = err instanceof Error ? err.message : "Error al iniciar sesión."
@@ -206,6 +219,8 @@ export default function LoginPage() {
   }
 
   const loading = checking || signingIn
+  const captchaReady = Boolean(readTurnstileToken() || turnstileToken)
+  const canSubmit = !loading && captchaReady
 
   return (
     <div className="w-full max-w-3xl">
@@ -265,9 +280,11 @@ export default function LoginPage() {
           ) : null}
 
           <TurnstileWidget
-            key={step}
             ref={turnstileRef}
-            onToken={setTurnstileToken}
+            onToken={(token) => {
+              setTurnstileToken(token)
+              if (token) setServerError(null)
+            }}
             className="pt-1"
           />
 
@@ -296,14 +313,16 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={!canSubmit}
               className="order-1 ml-auto inline-flex h-12 w-full items-center justify-center bg-neutral-900 px-12 text-[13px] tracking-[0.2em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2 sm:w-auto"
             >
               {loading
                 ? step === "email"
                   ? "VERIFICANDO…"
                   : "ENTRANDO…"
-                : "CONTINUAR"}
+                : !captchaReady
+                  ? "VERIFICANDO…"
+                  : "CONTINUAR"}
             </button>
           </div>
         </form>

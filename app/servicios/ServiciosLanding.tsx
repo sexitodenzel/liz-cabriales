@@ -672,38 +672,43 @@ export default function ServiciosLanding({
                 </div>
               )}
 
-              <ul className="mt-6 divide-y divide-neutral-200/80 border-y border-neutral-200/80">
+              <ul className="mt-6">
                 {visibleServices.length === 0 ? (
                   <li className="py-10 text-center text-[14px] text-neutral-400">
                     No hay servicios en esta categoría.
                   </li>
                 ) : (
-                  visibleServices.map((service) => (
-                    <li
-                      key={service.id}
-                      className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
-                    >
-                      <div className="min-w-0">
-                        <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
-                          {service.name}
-                        </h3>
-                        {!service.hide_duration_public && (
-                          <p className="mt-1 text-[13px] text-[#8a8a8a]">
-                            {formatDuration(service.duration_min)}
-                          </p>
-                        )}
-                        {!service.hide_price_public && (
-                          <p className="mt-2 text-[15px] font-semibold text-[#111]">
-                            {formatPrice(service.price)}
-                          </p>
-                        )}
+                  visibleServices.map((service, index) => (
+                    <li key={service.id}>
+                      <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                        <div className="min-w-0">
+                          <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
+                            {service.name}
+                          </h3>
+                          {!service.hide_duration_public && (
+                            <p className="mt-1 text-[13px] text-[#8a8a8a]">
+                              {formatDuration(service.duration_min)}
+                            </p>
+                          )}
+                          {!service.hide_price_public && (
+                            <p className="mt-2 text-[15px] font-semibold text-[#111]">
+                              {formatPrice(service.price)}
+                            </p>
+                          )}
+                        </div>
+                        <Link
+                          href={`/servicios/agendar?servicio=${encodeURIComponent(service.id)}`}
+                          className={`${storeInlineButtonClassName} shrink-0`}
+                        >
+                          Reservar
+                        </Link>
                       </div>
-                      <Link
-                        href={`/servicios/agendar?servicio=${encodeURIComponent(service.id)}`}
-                        className={`${storeInlineButtonClassName} shrink-0`}
-                      >
-                        Reservar
-                      </Link>
+                      {index < visibleServices.length - 1 ? (
+                        <div
+                          className="mx-2.5 h-px bg-[#c6a75e]"
+                          aria-hidden
+                        />
+                      ) : null}
                     </li>
                   ))
                 )}
@@ -774,16 +779,13 @@ export default function ServiciosLanding({
               <div className="flex items-baseline justify-between gap-4">
                 <h2
                   id="portfolio-heading"
-                  className="font-[family-name:var(--font-playfair),serif] text-[26px] font-medium leading-none text-[#111]"
+                  className="min-w-0 flex-1 font-[family-name:var(--font-playfair),serif] text-[22px] font-medium leading-snug text-[#111] sm:text-[26px]"
                 >
-                  Portfolio{" "}
-                  <span className="text-[16px] font-normal text-neutral-400">
-                    {portfolio.length}
-                  </span>
+                  Inspírate con diseños hechos por productos de nuestro catálogo
                 </h2>
                 <Link
                   href="/nail-art"
-                  className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#8a6d26] transition-opacity hover:opacity-80"
+                  className="shrink-0 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#8a6d26] transition-opacity hover:opacity-80"
                 >
                   Ver todo
                 </Link>

@@ -1,3 +1,4 @@
+import Image from "next/image"
 import Link from "next/link"
 
 import AccountQuickStats from "./AccountQuickStats"
@@ -5,12 +6,16 @@ import AccountShell from "./AccountShell"
 import {
   buildPrimaryAddress,
   formatMoney,
+  nailArtStatusClass,
+  nailArtStatusLabel,
   orderStatusBadgeClassName,
   orderStatusClass,
   orderStatusLabel,
 } from "./account-utils"
 import { listAppointmentsForUser } from "@/lib/supabase/appointments"
 import { getUserRegistrations } from "@/lib/supabase/courses"
+import { listNailArtPostsForUser } from "@/lib/supabase/nail-art"
+import { nailArtImageApiPath } from "@/lib/nail-art-image"
 import { getUserOrdersSummaries, getUserSavedAddressesFromOrders } from "@/lib/supabase/orders"
 import { getAuthUser, getUserProfile } from "@/lib/supabase/auth-server"
 
@@ -30,11 +35,12 @@ export default async function PerfilPage() {
     ? new Date(user.created_at).toLocaleDateString("es-MX", { dateStyle: "long" })
     : null
 
-  const [ordersRes, savedAddressesRes, regsRes, apptsRes] = await Promise.all([
+  const [ordersRes, savedAddressesRes, regsRes, apptsRes, nailArtPosts] = await Promise.all([
     getUserOrdersSummaries(user.id),
     getUserSavedAddressesFromOrders(user.id),
     getUserRegistrations(user.id),
     listAppointmentsForUser(user.id),
+    listNailArtPostsForUser(user.id),
   ])
 
   const orders = ordersRes.data ?? []
@@ -52,6 +58,66 @@ export default async function PerfilPage() {
         coursesCount={registrations.length}
         servicesCount={appointments.length}
       />
+
+      <div className="mt-10">
+        <h3 className="text-xl font-medium text-neutral-900">Mis publicaciones</h3>
+        {nailArtPosts.length === 0 ? (
+          <p className="mt-4 text-sm text-neutral-600">
+            Aún no has subido inspiraciones. Comparte tu diseño en{" "}
+            <Link href="/nail-art" className="font-medium text-[var(--gold)] underline">
+              Nail Art
+            </Link>
+            .
+          </p>
+        ) : (
+          <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+            {nailArtPosts.map((post) => {
+              const isPublic = post.status === "approved" && post.is_active
+              const body = (
+                <>
+                  <span className="relative block aspect-[3/4] overflow-hidden rounded-lg bg-neutral-100">
+                    <Image
+                      src={nailArtImageApiPath(post.id)}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 45vw, 180px"
+                    />
+                  </span>
+                  <span className="mt-2 block truncate text-sm font-medium text-neutral-900">
+                    {post.title}
+                  </span>
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                    <span className={nailArtStatusClass(post.status)}>
+                      {nailArtStatusLabel(post.status)}
+                    </span>
+                    <span className="text-neutral-500">
+                      {new Date(post.created_at).toLocaleDateString("es-MX", {
+                        dateStyle: "medium",
+                      })}
+                    </span>
+                  </span>
+                </>
+              )
+
+              return (
+                <li key={post.id}>
+                  {isPublic ? (
+                    <Link
+                      href={`/nail-art/${post.slug}`}
+                      className="block transition-opacity hover:opacity-90"
+                    >
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className="block">{body}</div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
 
       <div className="mt-10">
         <h3 className="text-xl font-medium text-neutral-900">Pedidos recientes</h3>

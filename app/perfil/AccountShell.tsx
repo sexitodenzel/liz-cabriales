@@ -79,14 +79,8 @@ export default function AccountShell({
       <div className="mt-6 w-full">
         <div className="site-container">
           <div className="grid w-full min-w-0 md:grid-cols-[240px_1fr]">
-            <div className="flex items-center justify-between gap-4 py-6 md:justify-start">
+            <div className="py-6">
               <h1 className="text-4xl font-medium tracking-tight text-neutral-900">Mi cuenta</h1>
-              <div className="md:hidden">
-                <PerfilSignOutButton />
-              </div>
-            </div>
-            <div className="hidden items-center justify-end py-6 md:flex">
-              <PerfilSignOutButton />
             </div>
           </div>
         </div>
