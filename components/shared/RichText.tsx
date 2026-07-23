@@ -81,9 +81,13 @@ function parseBlocks(src: string): Block[] {
 export default function RichText({
   text,
   className = "",
+  serifHeadings = false,
 }: {
   text: string
   className?: string
+  /** Subtítulos en Playfair. Solo para contextos editoriales (blog);
+      el default sans sigue la escala de docs/design-system.md §Tipografía. */
+  serifHeadings?: boolean
 }) {
   const blocks = parseBlocks(text)
   return (
@@ -93,8 +97,11 @@ export default function RichText({
           return (
             <h3
               key={i}
-              className="mb-2 mt-7 text-[19px] font-medium text-[#1a1a1a] first:mt-0"
-              style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+              className={
+                serifHeadings
+                  ? "mb-2 mt-7 font-display text-[19px] font-medium text-[#1a1a1a] first:mt-0"
+                  : "mb-2 mt-7 text-[16px] font-semibold text-[#1a1a1a] first:mt-0"
+              }
             >
               {renderInline(block.text)}
             </h3>

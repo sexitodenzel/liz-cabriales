@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import { Heart } from "lucide-react"
 
 import type { ProductWithVariants, ProductVariant } from "@/lib/supabase/products"
+import type { ProductReviewSummary } from "@/lib/supabase/product-reviews"
 import { applyDiscount } from "@/lib/tienda/discount"
 import { useWishlist } from "@/app/components/wishlist/WishlistContext"
 import AddToCartButton from "./AddToCartButton"
@@ -40,16 +41,38 @@ function openAccordionSection(id: string) {
   )
 }
 
+function RatingStars({ value }: { value: number }) {
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <svg
+          key={n}
+          viewBox="0 0 24 24"
+          fill={n <= Math.round(value) ? "#c6a75e" : "none"}
+          stroke={n <= Math.round(value) ? "#c6a75e" : "#d9d9d9"}
+          strokeWidth="1.6"
+          className="h-[15px] w-[15px]"
+          aria-hidden
+        >
+          <path d="M12 2.5l2.95 6.06 6.68.92-4.87 4.67 1.2 6.63L12 17.6l-5.96 3.18 1.2-6.63-4.87-4.67 6.68-.92L12 2.5z" />
+        </svg>
+      ))}
+    </span>
+  )
+}
+
 type Props = {
   product: ProductWithVariants
   selectedVariantId: string | null
   onSelectVariant: (variantId: string) => void
+  reviewSummary?: ProductReviewSummary
 }
 
 export default function ProductInfoPanel({
   product,
   selectedVariantId,
   onSelectVariant,
+  reviewSummary,
 }: Props) {
   const wishlist = useWishlist()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -118,9 +141,26 @@ export default function ProductInfoPanel({
     // justify-center: el aside (min-height = alto de la 1a imagen) estira este
     // wrapper y el contenido queda centrado al centro vertical de la imagen.
     <div className="flex w-full flex-col justify-center">
-      <h1 className="text-[clamp(1.5rem,2.2vw,2.1rem)] font-semibold uppercase leading-[1.25] tracking-[0.12em] text-[#0a0a0a]">
+      <h1 className="font-display text-[clamp(26px,2.2vw,34px)] font-medium leading-[1.15] tracking-[-0.01em] text-[#111]">
         {product.name}
       </h1>
+      {reviewSummary && reviewSummary.count > 0 ? (
+        <button
+          type="button"
+          onClick={() =>
+            document
+              .getElementById("resenas")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }
+          className="mt-2 inline-flex cursor-pointer items-center gap-2 self-start text-[13px] text-neutral-600 transition-colors hover:text-[#0a0a0a]"
+        >
+          <RatingStars value={reviewSummary.average} />
+          <span>
+            {reviewSummary.average.toFixed(1)} ({reviewSummary.count} reseña
+            {reviewSummary.count !== 1 ? "s" : ""})
+          </span>
+        </button>
+      ) : null}
       <div className="mt-3 h-px w-full bg-neutral-900/85" />
 
       {tagline ? (

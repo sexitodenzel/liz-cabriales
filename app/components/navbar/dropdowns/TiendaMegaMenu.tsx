@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import type { TiendaCategory } from "../menuData"
+import { categorySlugsOf } from "../menuData"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 
 type CategoryProduct = {
@@ -116,23 +117,23 @@ export default function TiendaMegaMenu({
     if (prefetchStartedRef.current) return
     prefetchStartedRef.current = true
 
-    const slugs = categories
+    const targets = categories
       .filter((c) => c.href.includes("categoria=") && !productsRef.current[c.slug])
-      .map((c) => c.slug)
-    if (slugs.length === 0) return
+      .map((c) => ({ key: c.slug, param: categorySlugsOf(c).join(",") }))
+    if (targets.length === 0) return
 
     let cancelled = false
     void Promise.all(
-      slugs.map(async (slug) => {
+      targets.map(async ({ key, param }) => {
         try {
           const res = await fetch(
-            `/api/products/by-category?categoria=${encodeURIComponent(slug)}`
+            `/api/products/by-category?categoria=${encodeURIComponent(param)}`
           )
           if (!res.ok || cancelled) return
           const json = (await res.json()) as { data?: CategoryProduct[] }
           if (cancelled) return
           const list = Array.isArray(json.data) ? json.data : []
-          setProductsBySlug((prev) => (prev[slug] ? prev : { ...prev, [slug]: list }))
+          setProductsBySlug((prev) => (prev[key] ? prev : { ...prev, [key]: list }))
           warmImages(list)
         } catch {
           /* ignore */
@@ -148,16 +149,17 @@ export default function TiendaMegaMenu({
   // `categoria=`); las virtuales (cursos, etc.) no consultan.
   const wantsProducts = activeCat?.href.includes("categoria=") ?? false
   const activeCatSlug = activeCat?.slug ?? null
+  const activeCatParam = activeCat ? categorySlugsOf(activeCat).join(",") : null
 
   useEffect(() => {
-    if (!isOpen || !activeCatSlug || !wantsProducts) return
+    if (!isOpen || !activeCatSlug || !activeCatParam || !wantsProducts) return
     if (productsBySlug[activeCatSlug]) return
     let cancelled = false
     setLoadingSlug(activeCatSlug)
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(
-          `/api/products/by-category?categoria=${encodeURIComponent(activeCatSlug)}`
+          `/api/products/by-category?categoria=${encodeURIComponent(activeCatParam)}`
         )
         if (!res.ok) return
         const json = (await res.json()) as { data?: CategoryProduct[] }
@@ -180,7 +182,7 @@ export default function TiendaMegaMenu({
       cancelled = true
       clearTimeout(timer)
     }
-  }, [isOpen, activeCatSlug, wantsProducts, productsBySlug])
+  }, [isOpen, activeCatSlug, activeCatParam, wantsProducts, productsBySlug])
 
   const visibleSubs = activeCat?.subcategories ?? []
 

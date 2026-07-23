@@ -105,7 +105,7 @@ export default function LizMegaMenu({
         }
       `}
     >
-      <div className="site-container pt-6 pb-10">
+      <div className="site-container pt-6 pb-10 min-h-[360px]">
         <div className="mb-6">
           <Link
             href="/sobre-liz"
@@ -116,7 +116,7 @@ export default function LizMegaMenu({
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-[minmax(0,204px)_minmax(0,1fr)]">
           {/* Feature card */}
           <Link
             href="/sobre-liz"

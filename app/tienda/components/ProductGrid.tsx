@@ -17,16 +17,19 @@ import type {
 } from "@/lib/supabase/products"
 import { pickRelatedProductsForFilters } from "@/lib/tienda/related-products"
 import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
+import { slugifyText } from "@/lib/slug"
 import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 import BrandHeaderInfo from "./BrandHeaderInfo"
+import TiendaHero from "./TiendaHero"
 import ProductCard from "./ProductCard"
 import ProductFilterSortBar from "./ProductFilterSortBar"
 import StoreDiscoverySections from "./StoreDiscoverySections"
 import { useProductViewMode } from "./useProductViewMode"
-import Breadcrumb, { type BreadcrumbItem } from "@/components/shared/Breadcrumb"
 
 type FiltersState = {
   categorySlugs: string[]
+  /** Slugs de subcategoría (?subcategoria=): matchean slugify(product.subcategory). */
+  subcategorySlugs: string[]
   brands: string[]
   abrasivities: AbrasivityValue[]
   search: string
@@ -57,7 +60,6 @@ type ProductGridProps = {
   brandsWithLogo?: HomeBrandItem[]
   initialFilters: FiltersState
   upcomingCourses: CourseWithStats[]
-  breadcrumbItems?: BreadcrumbItem[]
 }
 
 export default function ProductGrid({
@@ -67,7 +69,6 @@ export default function ProductGrid({
   brandsWithLogo = [],
   initialFilters,
   upcomingCourses,
-  breadcrumbItems,
 }: ProductGridProps) {
   const pathname = usePathname()
 
@@ -75,17 +76,15 @@ export default function ProductGrid({
   const [sort, setSort] = useState<SortOption>("destacados")
   const { viewMode, setViewMode } = useProductViewMode()
 
-  useEffect(() => {
+  // Si el servidor manda nuevos filtros (navegación con otros search params),
+  // se adoptan comparando una llave estable DURANTE el render — el patrón
+  // recomendado por React para derivar estado de props sin useEffect.
+  const initialFiltersKey = JSON.stringify(initialFilters)
+  const [appliedFiltersKey, setAppliedFiltersKey] = useState(initialFiltersKey)
+  if (appliedFiltersKey !== initialFiltersKey) {
+    setAppliedFiltersKey(initialFiltersKey)
     setFilters(initialFilters)
-  }, [
-    initialFilters.categorySlugs,
-    initialFilters.brands,
-    initialFilters.abrasivities,
-    initialFilters.search,
-    initialFilters.priceMin,
-    initialFilters.priceMax,
-    initialFilters.onSale,
-  ])
+  }
 
   // Mantiene la URL sincronizada (enlaces compartibles / back-forward) sin
   // disparar un refetch del servidor: el filtrado ya ocurre en el cliente.
@@ -93,6 +92,8 @@ export default function ProductGrid({
     if (typeof window === "undefined") return
     const params = new URLSearchParams()
     if (filters.categorySlugs.length > 0) params.set("categoria", filters.categorySlugs.join(","))
+    if (filters.subcategorySlugs.length > 0)
+      params.set("subcategoria", filters.subcategorySlugs.join(","))
     if (filters.brands.length > 0) params.set("marca", filters.brands.join(","))
     if (filters.abrasivities.length > 0)
       params.set("abrasividad", filters.abrasivities.join(","))
@@ -112,6 +113,10 @@ export default function ProductGrid({
 
   const handleCategoriesChange = (slugs: string[]) => {
     setFilters((prev) => ({ ...prev, categorySlugs: slugs }))
+  }
+
+  const handleSubcategoriesChange = (slugs: string[]) => {
+    setFilters((prev) => ({ ...prev, subcategorySlugs: slugs }))
   }
 
   const handleBrandsChange = (brandsList: string[]) => {
@@ -140,6 +145,7 @@ export default function ProductGrid({
   const handleClearAll = () => {
     setFilters({
       categorySlugs: [],
+      subcategorySlugs: [],
       brands: [],
       abrasivities: [],
       search: "",
@@ -156,6 +162,7 @@ export default function ProductGrid({
 
   const hasActiveFilters =
     filters.categorySlugs.length > 0 ||
+    filters.subcategorySlugs.length > 0 ||
     filters.brands.length > 0 ||
     filters.abrasivities.length > 0 ||
     filters.search.trim().length > 0 ||
@@ -165,6 +172,7 @@ export default function ProductGrid({
 
   const activeFilterCount =
     filters.categorySlugs.length +
+    filters.subcategorySlugs.length +
     filters.brands.length +
     filters.abrasivities.length +
     (filters.search.trim().length > 0 ? 1 : 0) +
@@ -229,6 +237,19 @@ export default function ProductGrid({
     return { min: Math.floor(min), max: Math.ceil(max) }
   }, [products])
 
+  // slug de subcategoría → etiqueta original ("gel-semipermanente" →
+  // "Gel semipermanente"), para chips y para filtrar sin recalcular slugs.
+  const subcategoryLabelBySlug = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const product of products) {
+      const raw = product.subcategory?.trim()
+      if (!raw) continue
+      const slug = slugifyText(raw)
+      if (slug && !map[slug]) map[slug] = raw
+    }
+    return map
+  }, [products])
+
   const filteredProducts = useMemo(() => {
     const searchTokens = tokenizeSearchQuery(filters.search.trim())
     let result = products.filter((product) => {
@@ -237,6 +258,14 @@ export default function ProductGrid({
         !(product.category?.slug && filters.categorySlugs.includes(product.category.slug))
       ) {
         return false
+      }
+      if (filters.subcategorySlugs.length > 0) {
+        const productSubSlug = product.subcategory
+          ? slugifyText(product.subcategory)
+          : ""
+        if (!productSubSlug || !filters.subcategorySlugs.includes(productSubSlug)) {
+          return false
+        }
       }
       if (
         filters.brands.length > 0 &&
@@ -267,7 +296,7 @@ export default function ProductGrid({
         const haystack = normalizeSearchText(
           `${product.name} ${product.brand ?? ""} ${product.category?.name ?? ""} ${
             product.category?.slug ?? ""
-          } ${product.slug ?? ""}`
+          } ${product.slug ?? ""} ${product.subcategory ?? ""}`
         )
         if (!searchTokens.every((token) => haystack.includes(token))) {
           return false
@@ -369,6 +398,14 @@ export default function ProductGrid({
           handleCategoriesChange(filters.categorySlugs.filter((s) => s !== slug)),
       }
     }),
+    ...filters.subcategorySlugs.map((slug) => ({
+      id: `subcategory-${slug}`,
+      label: subcategoryLabelBySlug[slug] ?? slug.replace(/-/g, " "),
+      onRemove: () =>
+        handleSubcategoriesChange(
+          filters.subcategorySlugs.filter((s) => s !== slug)
+        ),
+    })),
     ...filters.brands.map((brand) => ({
       id: `brand-${brand}`,
       label: brand,
@@ -419,9 +456,7 @@ export default function ProductGrid({
 
   return (
     <div>
-      {breadcrumbItems && breadcrumbItems.length > 0 ? (
-        <Breadcrumb items={breadcrumbItems} className="mb-4" />
-      ) : null}
+      {!singleSelectedBrand ? <TiendaHero /> : null}
       {singleSelectedBrand ? (
         <BrandHeaderInfo
           brand={singleSelectedBrand}

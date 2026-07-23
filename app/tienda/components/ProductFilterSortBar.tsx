@@ -9,7 +9,6 @@ import StoreFilterPanel, {
 import {
   storeGoldHoverGlow,
   storeToolbarIconClassName,
-  storeToolbarTriggerClassName,
 } from "./store-button-styles"
 import type { ProductViewMode } from "./useProductViewMode"
 
@@ -106,7 +105,29 @@ export default function ProductFilterSortBar({
         }`}
       >
         <div className="flex items-center justify-end gap-4">
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="inline-flex items-center rounded-full border border-neutral-200 p-0.5">
+              <button
+                type="button"
+                onClick={openFilterPanel}
+                className={`${storeToolbarIconClassName} h-7 w-auto gap-1.5 px-2.5 text-[11px] font-medium tracking-wide ${
+                  activeFilterCount > 0 || filterPanelOpen
+                    ? "bg-[#0a0a0a] text-white"
+                    : `text-neutral-500 ${storeGoldHoverGlow}`
+                }`}
+                aria-expanded={filterPanelOpen}
+                aria-haspopup="dialog"
+              >
+                {hasFilterPanel ? "Filtrar" : "Ordenar"}
+                <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                {activeFilterCount > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-[#0a0a0a]">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
             {onViewModeChange && (
               <div
                 className="inline-flex items-center rounded-full border border-neutral-200 p-0.5"
@@ -141,26 +162,6 @@ export default function ProductFilterSortBar({
                 </button>
               </div>
             )}
-
-            <button
-              type="button"
-              onClick={openFilterPanel}
-              className={`${storeToolbarTriggerClassName} rounded-full border bg-white px-4 py-2 ${
-                activeFilterCount > 0 || filterPanelOpen
-                  ? "border-[#c6a75e] text-[#8a6d26]"
-                  : `border-neutral-200 text-[#0a0a0a] hover:border-[#c6a75e] ${storeGoldHoverGlow}`
-              }`}
-              aria-expanded={filterPanelOpen}
-              aria-haspopup="dialog"
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2} />
-              {hasFilterPanel ? "Filtrar" : "Ordenar"}
-              {activeFilterCount > 0 && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c6a75e] px-1 text-[10px] font-bold text-[#0a0a0a]">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
           </div>
         </div>
 

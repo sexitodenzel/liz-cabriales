@@ -89,7 +89,7 @@ export default async function BlogDetailPage({ params }: Props) {
           {/* Cuerpo */}
           {post.body && (
             <div className="mt-10">
-              <RichText text={post.body} />
+              <RichText text={post.body} serifHeadings />
             </div>
           )}
 

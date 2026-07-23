@@ -5,6 +5,7 @@ import {
   type AbrasivityValue,
 } from "@/lib/constants/abrasivity"
 import { notifyStockAlertsForVariant } from "@/lib/notifications/stock-alert-notifications"
+import { slugifyText } from "@/lib/slug"
 
 import { getUserRole } from "./users"
 import type { UserRole } from "@/types"
@@ -203,25 +204,11 @@ const supabaseAdmin = createClient(
 )
 
 function slugifyCategory(value: string): string {
-  const normalized = value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-  return normalized || "categoria"
+  return slugifyText(value) || "categoria"
 }
 
 function slugifyBrand(value: string): string {
-  const normalized = value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-  return normalized || "marca"
+  return slugifyText(value) || "marca"
 }
 
 async function ensureUniqueCategorySlug(baseSlug: string): Promise<Result<string>> {
@@ -623,14 +610,7 @@ export async function updateAdminCategory(
 }
 
 function slugifySubcategory(value: string): string {
-  const normalized = value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-  return normalized || "subcategoria"
+  return slugifyText(value) || "subcategoria"
 }
 
 async function ensureUniqueSubcategorySlug(

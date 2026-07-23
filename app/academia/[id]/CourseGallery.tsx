@@ -355,13 +355,10 @@ export default function CourseGallery({ items }: { items: CourseGalleryItem[] })
       <section className="mt-16 pb-16">
         {/* Header */}
         <div className="mb-8">
-          <h2
-            className="mb-1 text-[28px] font-medium tracking-tight text-[#1a1a1a]"
-            style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-          >
+          <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
             Lo que aprendimos
           </h2>
-          <div className="mb-4 h-0.5 w-9 bg-[#c6a75e]" />
+          <div className="mb-4 mt-5 h-0.5 w-9 bg-[#c6a75e]" />
           <p className="text-[14px] leading-relaxed text-[#6b6b6b]">
             Momentos e imágenes de esta edición del taller.
           </p>

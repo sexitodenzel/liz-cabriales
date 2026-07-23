@@ -118,7 +118,7 @@ export default function AcademiaMegaMenu({
     >
       <div
         className={`
-          site-container flex gap-0 pt-6 pb-8
+          site-container flex gap-0 pt-6 pb-8 min-h-[360px]
           transition-opacity duration-300 ease-out
           ${contentVisible ? "opacity-100" : "opacity-0"}
         `}

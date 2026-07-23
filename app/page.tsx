@@ -8,10 +8,9 @@ import {
 import HomeHeroTriCards from "./components/home/HomeHeroTriCards"
 import CategoriasSection from "./components/home/CategoriasSection"
 import DestacadosSection from "./components/home/DestacadosSection"
+import AcademiaShowcase from "./components/home/AcademiaShowcase"
 import HomeTopSections from "./components/home/HomeTopSections"
-import AcademiaEventos from "./components/home/AcademiaEventos"
 import NailArtSection from "./components/NailArtSection"
-import HomeSpotlightSection from "./components/home/HomeSpotlightSection"
 import InstagramFeed from "./components/InstagramFeed"
 import InView from "./components/ui/motion/in-view"
 
@@ -19,7 +18,7 @@ export const revalidate = 60
 
 /* Orden narrativo de la landing:
    hero (3 pilares) → marcas → en oferta/nuevos/best sellers → compra por
-   categoría → academia/eventos → inspiración → historia → instagram. */
+   categoría → inspiración → instagram. */
 
 export default async function Home() {
   const triImages = await getOrderedSlotUrls(
@@ -48,19 +47,16 @@ export default async function Home() {
           </Suspense>
         </InView>
       </div>
+      <Suspense fallback={null}>
+        <AcademiaShowcase />
+      </Suspense>
       <div className="site-container">
-        <InView>
-          <AcademiaEventos />
-        </InView>
         <InView>
           <Suspense fallback={null}>
             <NailArtSection />
           </Suspense>
         </InView>
       </div>
-      <Suspense fallback={null}>
-        <HomeSpotlightSection />
-      </Suspense>
       <InstagramFeed />
     </main>
   )

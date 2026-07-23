@@ -44,6 +44,18 @@ const RIGHT_BASE: Omit<Card, "image"> = {
   alt: "Servicios de cabina",
 }
 
+// Cuarta card, solo en la tira horizontal de móvil (no es un slot de Media).
+const ABOUT: Card = {
+  href: "/sobre-liz",
+  eyebrow: "Conócenos",
+  title: "La historia detrás de la marca",
+  subtitle: "Quiénes somos y por qué lo hacemos.",
+  cta: "Conócenos",
+  image:
+    "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=800&q=75",
+  alt: "Sobre Liz Cabriales",
+}
+
 type Props = {
   /** [tienda, academia, cabina] desde Media; fallback a Unsplash. */
   images?: [string, string, string] | string[]
@@ -389,26 +401,47 @@ export default function HomeHeroTriCards({ images }: Props) {
         </div>
       </section>
 
-      {/* MOBILE: editorial full-bleed (Dior-style) — hero a pantalla completa
-          (100svh menos navbar) con entrada Ken Burns sutil en la imagen (GPU)
-          y fade-rise del texto; Academia/Cabina a lo ancho completo debajo,
-          con reveal escalonado (InView). Los gaps de 3px dejan ver el marfil
-          del fondo como hairlines entre cards. */}
-      <section
-        aria-label="Tienda, academia y servicios"
-        className="flex flex-col gap-[3px] md:hidden"
-      >
+      {/* MOBILE: hero editorial que RESPIRA (~86svh, no 100) para que la tira
+          de pilares asome bajo el fold e invite a scrollear — entrada Ken Burns
+          sutil (GPU) + fade-rise del texto. Debajo, Academia/Cabina/Conócenos
+          en una TIRA HORIZONTAL con scroll-snap (gesto nativo de móvil, estilo
+          Aesop/Dior) en lugar de dos cards gigantes apiladas. */}
+      <section aria-label="Tienda, academia y servicios" className="md:hidden">
         <CardBlock
           card={CENTER}
           hero
           entrance
-          className="h-[100svh] -mt-[var(--navbar-mobile-h,64px)]"
+          className="h-[calc(86svh-var(--navbar-mobile-h,64px))]"
         />
+
         <InView>
-          <CardBlock card={LEFT} compact className="h-[60svh]" />
-        </InView>
-        <InView delay={0.1}>
-          <CardBlock card={RIGHT} compact className="h-[60svh]" />
+          <div className="bg-ivory pt-9 pb-11">
+            <div className="mb-5 flex items-baseline justify-between px-6">
+              <h3 className="font-display text-2xl font-normal">Explora</h3>
+              <span className="text-[10px] uppercase tracking-[0.28em] text-neutral-400">
+                Desliza →
+              </span>
+            </div>
+            {/* snap-x + scrollbar-hide: cada card ocupa ~78% y la siguiente
+                asoma como pista visual de que hay más. */}
+            <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-6 px-6 scrollbar-hide">
+              <CardBlock
+                card={LEFT}
+                compact
+                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
+              />
+              <CardBlock
+                card={RIGHT}
+                compact
+                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
+              />
+              <CardBlock
+                card={ABOUT}
+                compact
+                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
+              />
+            </div>
+          </div>
         </InView>
       </section>
     </>

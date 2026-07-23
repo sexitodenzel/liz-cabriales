@@ -4,8 +4,10 @@ import type { Metadata } from "next"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 
 import EventsGallery, { type EventGalleryItem } from "./components/EventsGallery"
+import VerifiedReviews, { type VerifiedReviewsData } from "./components/VerifiedReviews"
+import PressMentions, { type PressMention } from "./components/PressMentions"
 import SobreLizStats from "./components/SobreLizStats"
-import TestimonialsCarousel, { type Testimonial } from "./components/TestimonialsCarousel"
+import TrajectoryTimeline from "./components/TrajectoryTimeline"
 import { resolveSobreLizBrandPhoto } from "@/lib/sobre-liz/brand-photo"
 import { getLandingPageDataCached } from "@/lib/supabase/landing-slots"
 import {
@@ -214,56 +216,146 @@ const TIMELINE = [
   },
 ] as const
 
-const TESTIMONIALS: Testimonial[] = [
+/**
+ * Apariciones en prensa y medios. Las notas locales viven en publicaciones de
+ * Facebook de los medios (no están indexadas en buscadores), así que los
+ * enlaces se capturan a mano desde lo que comparta Liz. La sección se oculta
+ * sola mientras la lista esté vacía.
+ *
+ * Formato de cada entrada:
+ * {
+ *   id: "p-1",
+ *   outlet: "El Sol de Tampico",
+ *   title: "Titular o descripción de la nota",
+ *   date: "Marzo 2025",
+ *   url: "https://…", // nota o publicación del medio en redes
+ *   image: "https://…", // opcional, foto de la nota
+ * }
+ */
+const PRESS_MENTIONS: PressMention[] = [
   {
-    id: "t-1",
-    name: "Mariana Reyes",
-    course: "Acrílico profesional",
-    quote:
-      "La academia cambió mi carrera por completo. Hoy tengo mi propio salón y clientas fieles gracias a lo que aprendí con Liz.",
-    photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
+    id: "press-somos-noticias-qap-2025",
+    outlet: "Somos Noticias Mx",
+    title:
+      "La zona conurbada se convirtió en sede del Primer Seminario Internacional Quiro Aesthetic Pedicure 2025, organizado por la Academia Liz Cabriales.",
+    date: "Noviembre 2025",
+    url: "https://www.facebook.com/permalink.php?story_fbid=pfbid02ZsjjfncBxe9YYLA7j5rvcCs5TEkJEV5Fzkapoh6cCGNc9Yx5QErMcNfsAdFTrMmVl&id=61556355743027",
   },
   {
-    id: "t-2",
-    name: "Gabriela Soto",
-    course: "Gel polish avanzado",
-    quote:
-      "Las maestras explican cada detalle con paciencia. Salí con la confianza de atender a cualquier clienta desde el primer día.",
-    photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "t-3",
-    name: "Daniela Ortiz",
-    course: "Nail art editorial",
-    quote:
-      "Aprendí técnicas que no había visto en ningún otro lado. El nivel de los cursos es realmente profesional.",
-    photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "t-4",
-    name: "Paola Méndez",
-    course: "Uñas esculpidas",
-    quote:
-      "Más que un curso, fue una comunidad. Sigo en contacto con mis compañeras y nos apoyamos en nuestros negocios.",
-    photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "t-5",
-    name: "Karen Villa",
-    course: "Quiropodia básica",
-    quote:
-      "El respaldo de las marcas y el material de práctica hicieron toda la diferencia. Recomiendo la academia totalmente.",
-    photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
-  },
-  {
-    id: "t-6",
-    name: "Lucía Fernández",
-    course: "Manicure ruso",
-    quote:
-      "Liz transmite su pasión en cada clase. Me motivó a atreverme y montar mi propio estudio en menos de un año.",
-    photo: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=200&q=80",
+    id: "press-nail-krush-entrevista-2021",
+    outlet: "Revista Nail Krush",
+    title:
+      "Entrevista completa a Liz Cabriales en la edición de la revista Nail Krush.",
+    date: "Julio 2021",
+    url: "https://www.facebook.com/nailkrush/posts/pfbid0n1NxYoGGssTnYHc8m4CEpqufG76A1TYm8DgYsCB8m3KqhGpPKH9MofvEoM1augf8l",
   },
 ]
+
+/**
+ * Reseñas reales capturadas tal cual de las plataformas (jul 2026):
+ * - Facebook: página de la academia; de las 8 opiniones solo las públicas son
+ *   legibles — el resto está restringido por privacidad de cada autora.
+ * - Google Maps: ficha "Academia Liz Cabriales" (Nayarit #204-B, Cd. Madero),
+ *   enlace estable por CID. Viviana Zenitram dejó solo estrellas (sin texto).
+ * Los agregados (% / promedio y conteos) son los oficiales de cada plataforma.
+ */
+const VERIFIED_REVIEWS: VerifiedReviewsData = {
+  sources: [
+    {
+      id: "google",
+      stat: "5.0",
+      detail: "de calificación promedio · 3 opiniones en Google Maps",
+      url: "https://maps.google.com/?cid=11615870019560735969",
+      cta: "Ver la ficha en Google",
+    },
+    {
+      id: "facebook",
+      stat: "100%",
+      detail: "de recomendación · 8 opiniones en la página oficial de la academia",
+      url: "https://www.facebook.com/profile.php?id=100063880305172&sk=reviews",
+      cta: "Ver todas en Facebook",
+    },
+  ],
+  quotes: [
+    {
+      id: "fb-fernanda-gar",
+      source: "facebook",
+      name: "Fernanda Gar",
+      date: "Marzo 2026",
+      quote:
+        "Recomiendo absolutamente todo, atención, profesionalismo. Siempre trae a los mejores masters. Acabo de salir de la capacitación con una excelente maestra, así como ella siempre tiene muy buenos temas.",
+    },
+    {
+      id: "fb-joshz-nails",
+      source: "facebook",
+      name: "Joshz Nails and Hair",
+      date: "Marzo 2026",
+      quote:
+        "Tengo ya dos años aprendiendo en la academia y en esta ocasión con la maestra Liz Togo aprendí su técnica de pedicure y me he actualizado; quedé satisfecha con mis resultados en la práctica. Recomendado, y espero volver a estar presente en un siguiente taller.",
+    },
+    {
+      id: "fb-stephany-deantes",
+      source: "facebook",
+      name: "Stephany Deantes",
+      date: "Marzo 2026",
+      quote:
+        "Siempre tienen a los mejores maestros. Este fin de semana asistí a otra capacitación más, ahora con la maestra Liz Togo, y quedé como siempre muy satisfecha con todo lo aprendido. Nunca me decepcionan.",
+    },
+    {
+      id: "fb-lizzeth-pancardo",
+      source: "facebook",
+      name: "Lizzeth Pancardo",
+      date: "Marzo 2026",
+      quote:
+        "Van 2 cursos que tomo aquí en la academia y la verdad 10/10: el primero con la miss Liz Cabriales y el segundo con la miss Liz Togo, y todo excelente.",
+    },
+    {
+      id: "fb-elisa-domm",
+      source: "facebook",
+      name: "Elisa Domm",
+      date: "Septiembre 2025",
+      quote:
+        "100% recomendado. Mis capacitaciones las he tomado en esta academia y el trato siempre ha sido muy amable; no sé cuántas llevo, pero lo recomiendo ampliamente.",
+    },
+    {
+      id: "fb-siomara-mireles",
+      source: "facebook",
+      name: "Siomara Mireles",
+      date: "Septiembre 2025",
+      quote:
+        "Muy amables, muy buena academia. Los cursos 10/10, súper recomendados.",
+    },
+    {
+      id: "fb-edith-perez",
+      source: "facebook",
+      name: "Edith Perez",
+      date: "Febrero 2024",
+      quote:
+        "Ya no recuerdo exactamente cuántos años tengo tomando cursos con su organización, pero desde el primero jamás ha hecho excepción por nadie: siempre su trato excelente, su atención nada que decir y los maestros que trae son de 10. Yo encantada con su academia.",
+    },
+    {
+      id: "fb-abi-rodriguez",
+      source: "facebook",
+      name: "Abi Rodríguez",
+      date: "Diciembre 2023",
+      quote: "Los mejores cursos y la atención 100 de 100.",
+    },
+    {
+      id: "g-vianey-cruz",
+      source: "google",
+      name: "Vianey Cruz Escobedo",
+      quote:
+        "La mejor escuela que puedes encontrar en Tamaulipas, te brindan cursos de lo más actual a nivel nacional e internacional, una organización de primer mundo, un trato como si fuera tu propia casa, la honestidad y responsabilidad de todo el equipo de trabajo es sumamente alto, sin duda alguna es la mejor opción para muchas de nosotras que nos dedicamos en este medio.",
+    },
+    {
+      id: "g-itzel-osorio",
+      source: "google",
+      name: "Itzel Osorio",
+      quote:
+        "Un lugar muy cálido, con todas las comodidades! Pero lo mejor es que siempre hay maestros de calidad, lo más novedoso. Lo mejor de Tampico, Madero y Altamira.",
+    },
+  ],
+}
 
 export default async function SobreLizPage() {
   const [{ slots }, eventRows, pastCoursesData] = await Promise.all([
@@ -304,19 +396,13 @@ export default async function SobreLizPage() {
       <section className="site-container pt-12 lg:pt-20">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_minmax(0,420px)] lg:gap-16">
           <div>
-            <p className="mb-4 inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a8862f]">
+            <p className="mb-4 inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
               <span className="h-px w-8 bg-[#c6a75e]" /> Sobre Liz
             </p>
-            <h1
-              className="font-medium leading-[0.98] tracking-[-0.02em] text-[#111]"
-              style={{
-                fontFamily: "var(--font-playfair), serif",
-                fontSize: "clamp(44px, 6.5vw, 84px)",
-              }}
-            >
+            <h1 className="font-display text-[clamp(30px,5vw,46px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">
               Liz Cabriales
               <br />
-              <em className="font-medium italic text-[#a8862f]">Maestra del arte</em>
+              <em className="font-medium italic text-gold">Maestra del arte</em>
               <br />
               de las uñas
             </h1>
@@ -327,17 +413,14 @@ export default async function SobreLizPage() {
               Podal. Llevo más de 7 años formando profesionales en Tampico y llevando el respaldo de las
               mejores marcas a todo México.
             </p>
-            <p
-              className="mt-5 max-w-xl text-[18px] italic leading-[1.55] text-[#a8862f]"
-              style={{ fontFamily: "var(--font-playfair), serif" }}
-            >
+            <p className="mt-5 max-w-xl font-display text-[18px] italic leading-[1.55] text-gold">
               &ldquo;Piensa, cree, sueña y atrévete.&rdquo;
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/academia"
-                className="inline-flex items-center gap-2 rounded-full bg-black px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-[#a8862f]"
+                className="inline-flex items-center gap-2 rounded-full bg-black px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-gold"
               >
                 Conoce la academia
               </Link>
@@ -345,7 +428,7 @@ export default async function SobreLizPage() {
                 href={SOCIAL.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-[#c6a75e]/60 px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#a8862f] transition-colors hover:bg-[#c6a75e]/10"
+                className="inline-flex items-center gap-2 rounded-full border border-[#c6a75e]/60 px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-gold transition-colors hover:bg-[#c6a75e]/10"
               >
                 Hablar por WhatsApp
               </Link>
@@ -376,7 +459,7 @@ export default async function SobreLizPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="text-[#a8862f] transition-colors hover:text-[#c6a75e]"
+                className="text-gold transition-colors hover:text-ink"
               >
                 <InstagramIcon />
               </Link>
@@ -385,7 +468,7 @@ export default async function SobreLizPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
-                className="text-[#a8862f] transition-colors hover:text-[#c6a75e]"
+                className="text-gold transition-colors hover:text-ink"
               >
                 <FacebookIcon />
               </Link>
@@ -394,7 +477,7 @@ export default async function SobreLizPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="text-[#a8862f] transition-colors hover:text-[#c6a75e]"
+                className="text-gold transition-colors hover:text-ink"
               >
                 <WhatsAppIcon />
               </Link>
@@ -402,7 +485,7 @@ export default async function SobreLizPage() {
                 href={SOCIAL.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[13px] font-semibold tracking-[0.1em] text-[#a8862f] transition-colors hover:text-[#c6a75e]"
+                className="text-[13px] font-semibold tracking-[0.1em] text-gold transition-colors hover:text-ink"
               >
                 @liz_cabriales
               </Link>
@@ -415,20 +498,13 @@ export default async function SobreLizPage() {
 
       {/* ── PILLARS / WHAT WE DO ── */}
       <section id="academia" className="site-container mt-24">
-        <div className="mb-12 max-w-3xl">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f]">
+        <div className="mb-10 max-w-3xl">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
             Tres pilares
           </p>
-          <h2
-            className="font-medium leading-[1.05] tracking-[-0.01em] text-[#111]"
-            style={{
-              fontFamily: "var(--font-playfair), serif",
-              fontSize: "clamp(32px, 4vw, 52px)",
-            }}
-          >
+          <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
             Una marca, tres formas de acompañarte
           </h2>
-          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -437,10 +513,7 @@ export default async function SobreLizPage() {
               key={pillar.title}
               className="flex h-full flex-col rounded-2xl border border-[#c6a75e]/20 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(168,134,47,0.12)]"
             >
-              <h3
-                className="text-[24px] font-medium text-[#111]"
-                style={{ fontFamily: "var(--font-playfair), serif" }}
-              >
+              <h3 className="text-[20px] font-semibold text-[#111]">
                 {pillar.title}
               </h3>
               <div className="mt-3 h-0.5 w-10 bg-[#c6a75e]" aria-hidden />
@@ -449,7 +522,7 @@ export default async function SobreLizPage() {
               </p>
               <Link
                 href={pillar.href}
-                className="mt-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f] transition-colors hover:text-[#c6a75e]"
+                className="mt-6 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold transition-colors hover:text-ink"
               >
                 {pillar.cta} →
               </Link>
@@ -460,134 +533,33 @@ export default async function SobreLizPage() {
 
       {/* ── TIMELINE ── */}
       <section className="site-container mt-24">
-        <div className="mb-12 max-w-3xl">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f]">
+        <div className="mb-10 max-w-3xl">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
             Nuestra trayectoria
           </p>
-          <h2
-            className="font-medium leading-[1.05] tracking-[-0.01em] text-[#111]"
-            style={{
-              fontFamily: "var(--font-playfair), serif",
-              fontSize: "clamp(32px, 4vw, 52px)",
-            }}
-          >
+          <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
             De un sueño a una comunidad
           </h2>
-          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
         </div>
 
-        <div className="relative">
-          <ol className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {TIMELINE.map((item, index) => {
-              // Serpentina (S): las filas impares se leen de derecha a izquierda
-              const perRow = 3
-              const row = Math.floor(index / perRow)
-              const colInRow = index % perRow
-              const visualCol = row % 2 === 0 ? colInRow : perRow - 1 - colInRow
-              const colStart = ["lg:col-start-1", "lg:col-start-2", "lg:col-start-3"][visualCol]
-              const rowStart = ["lg:row-start-1", "lg:row-start-2", "lg:row-start-3"][row]
-              // Flecha hacia la siguiente tarjeta siguiendo el recorrido de la S
-              const isLast = index === TIMELINE.length - 1
-              const staysInRow = Math.floor((index + 1) / perRow) === row
-              const arrow = isLast
-                ? null
-                : staysInRow
-                  ? row % 2 === 0
-                    ? "right"
-                    : "left"
-                  : "down"
-              const arrowPos =
-                arrow === "right"
-                  ? "top-1/2 -right-5 -translate-y-1/2"
-                  : arrow === "left"
-                    ? "top-1/2 -left-5 -translate-y-1/2"
-                    : "left-1/2 -bottom-5 -translate-x-1/2"
-              const arrowRotate =
-                arrow === "right" ? "" : arrow === "left" ? "rotate-180" : "rotate-90"
-              return (
-                <li
-                  key={item.year}
-                  className={`relative flex flex-col rounded-2xl border border-[#c6a75e]/15 bg-white/50 p-5 sm:p-6 ${colStart} ${rowStart}`}
-                >
-                  {arrow ? (
-                    <span
-                      className={`pointer-events-none absolute z-10 hidden text-[#c6a75e] lg:block ${arrowPos}`}
-                      aria-hidden
-                    >
-                      <svg
-                        width="22"
-                        height="22"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={arrowRotate}
-                      >
-                        <path d="M5 12h14M13 6l6 6-6 6" />
-                      </svg>
-                    </span>
-                  ) : null}
-                  <div className="mb-3 flex items-center gap-3">
-                    <span
-                      className="block h-3 w-3 shrink-0 rounded-full border-2 border-white bg-[#c6a75e] shadow-[0_0_0_1px_rgba(201,168,76,0.5)]"
-                      aria-hidden
-                    />
-                    <p
-                      className="text-[26px] font-medium leading-none text-[#a8862f]"
-                      style={{ fontFamily: "var(--font-playfair), serif" }}
-                    >
-                      {item.year}
-                    </p>
-                  </div>
-                  <h3 className="text-[16px] font-semibold text-[#111]">{item.title}</h3>
-                  <p className="mt-2 text-[13.5px] leading-[1.6] text-[#5a5a5a]">
-                    {item.description}
-                  </p>
-                  {"bullets" in item && item.bullets ? (
-                    <ul className="mt-3 flex flex-col gap-2">
-                      {item.bullets.map((bullet) => (
-                        <li
-                          key={bullet.label}
-                          className="relative pl-4 text-[13.5px] leading-[1.6] text-[#5a5a5a]"
-                        >
-                          <span
-                            className="absolute left-0 top-[8px] block h-1.5 w-1.5 rounded-full bg-[#c6a75e]"
-                            aria-hidden
-                          />
-                          <span className="font-semibold text-[#111]">{bullet.label}</span>{" "}
-                          {bullet.text}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              )
-            })}
-          </ol>
-        </div>
+        <TrajectoryTimeline items={TIMELINE} />
       </section>
 
       {/* ── TESTIMONIALS ── */}
       <section className="site-container mt-24">
-        <div className="mb-12 max-w-3xl">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f]">
+        <div className="mb-10 max-w-3xl">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
             Voces de la academia
           </p>
-          <h2
-            className="font-medium leading-[1.05] tracking-[-0.01em] text-[#111]"
-            style={{
-              fontFamily: "var(--font-playfair), serif",
-              fontSize: "clamp(32px, 4vw, 52px)",
-            }}
-          >
+          <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
             Lo que dicen nuestras alumnas
           </h2>
-          <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
         </div>
-        <TestimonialsCarousel items={TESTIMONIALS} />
+        <VerifiedReviews data={VERIFIED_REVIEWS} />
       </section>
+
+      {/* ── EN LOS MEDIOS ── */}
+      <PressMentions items={PRESS_MENTIONS} />
 
       {/* ── EVENTS GALLERY ── */}
       <section id="eventos" className="site-container">
@@ -604,16 +576,10 @@ export default async function SobreLizPage() {
       <section className="site-container pb-24">
         <div className="group rounded-3xl bg-[#111] px-8 py-14 lg:px-16 lg:py-20">
           <div className="max-w-2xl">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/45 transition-colors duration-300 group-hover:text-[#c6a75e]">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/45 transition-colors duration-300 group-hover:text-ink">
               Próximo paso
             </p>
-            <h2
-              className="font-medium leading-[1.08] tracking-[-0.01em] text-white"
-              style={{
-                fontFamily: "var(--font-playfair), serif",
-                fontSize: "clamp(28px, 3.6vw, 44px)",
-              }}
-            >
+            <h2 className="text-[clamp(24px,3vw,34px)] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
               Piensa en grande, cree en tu talento y atrévete a lograrlo con nosotros.
             </h2>
             <div

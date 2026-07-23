@@ -194,19 +194,12 @@ export default function EventsGallery({
       <section className="py-20">
         <div className="mb-10 flex items-end justify-between gap-6">
           <div>
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#a8862f]">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
               {eyebrow}
             </p>
-            <h2
-              className="font-medium leading-[1.05] tracking-[-0.01em] text-[#111]"
-              style={{
-                fontFamily: "var(--font-playfair), serif",
-                fontSize: "clamp(32px, 4vw, 52px)",
-              }}
-            >
+            <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
               {title}
             </h2>
-            <div className="mt-5 h-0.5 w-16 rounded-sm bg-[#c6a75e]" aria-hidden />
             {description && (
               <p className="mt-5 max-w-xl text-[15px] leading-[1.6] text-[#6b6b6b]">
                 {description}
@@ -227,7 +220,7 @@ export default function EventsGallery({
                   className={`rounded-full border px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors ${
                     isActive
                       ? "border-[#c6a75e] bg-[#c6a75e] text-white"
-                      : "border-[#c6a75e]/40 text-[#a8862f] hover:bg-[#c6a75e]/10"
+                      : "border-[#c6a75e]/40 text-gold hover:bg-[#c6a75e]/10"
                   }`}
                 >
                   {y === ALL_YEARS ? "Todos" : y}

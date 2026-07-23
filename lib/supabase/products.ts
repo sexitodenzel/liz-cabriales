@@ -27,6 +27,8 @@ export type Product = {
   category_id: string
   name: string
   slug: string
+  /** Subcategoría (texto libre del admin, p. ej. "Gel semipermanente"). */
+  subcategory: string | null
   description: string | null
   long_description: string | null
   application_text: string | null
@@ -69,6 +71,11 @@ export type ProductWithVariants = ProductWithCategory & {
 export type ProductFilters = {
   categorySlug?: string
   /**
+   * Varias categorías reales (un grupo del menú, p. ej. Nail art =
+   * nail-art + decoracion + glitter…). Tiene prioridad sobre categorySlug.
+   */
+  categorySlugs?: string[]
+  /**
    * Lista de marcas separadas por coma.
    * Ejemplo: "Exotic,Miss Nails"
    */
@@ -95,6 +102,7 @@ type ProductRow = {
   category_id: string
   name: string
   slug: string
+  subcategory?: string | null
   description: string | null
   long_description?: string | null
   application_text?: string | null
@@ -158,6 +166,7 @@ function mapProductWithCategoryRow(
     category_id: productRow.category_id,
     name: productRow.name,
     slug: productRow.slug,
+    subcategory: productRow.subcategory ?? null,
     description: productRow.description ?? null,
     long_description: productRow.long_description ?? null,
     application_text: productRow.application_text ?? null,
@@ -227,12 +236,18 @@ export async function getProducts(
   const supabase = await createClient()
 
   let categoryId: string | null | undefined
-  if (filters.categorySlug) {
-    const { data: catRow, error: catError } = await supabase
+  let categoryIds: string[] | undefined
+  const slugList =
+    filters.categorySlugs && filters.categorySlugs.length > 0
+      ? filters.categorySlugs
+      : filters.categorySlug
+        ? [filters.categorySlug]
+        : []
+  if (slugList.length > 0) {
+    const { data: catRows, error: catError } = await supabase
       .from("categories")
       .select("id")
-      .eq("slug", filters.categorySlug)
-      .maybeSingle()
+      .in("slug", slugList)
 
     if (catError) {
       return {
@@ -240,10 +255,11 @@ export async function getProducts(
         error: { message: catError.message, code: catError.code },
       }
     }
-    if (!catRow) {
+    if (!catRows || catRows.length === 0) {
       return { data: [], error: null }
     }
-    categoryId = catRow.id as string
+    categoryIds = catRows.map((r) => r.id as string)
+    categoryId = categoryIds[0]
   }
 
   let query = supabase
@@ -254,6 +270,7 @@ export async function getProducts(
       category_id,
       name,
       slug,
+      subcategory,
       description,
       long_description,
       application_text,
@@ -292,7 +309,9 @@ export async function getProducts(
     .is("deleted_at", null)
     .order("name", { ascending: true })
 
-  if (categoryId) {
+  if (categoryIds && categoryIds.length > 1) {
+    query = query.in("category_id", categoryIds)
+  } else if (categoryId) {
     query = query.eq("category_id", categoryId)
   }
 
@@ -320,42 +339,8 @@ export async function getProducts(
   }
 
   const products = (data ?? [])
-    .map((row) => {
-      const productRow = row as unknown as ProductRow
-      const cat = productRow.categories
-      if (!cat?.id) return null
-      const rawVariants = productRow.product_variants
-      const variantRows = Array.isArray(rawVariants)
-        ? rawVariants
-        : rawVariants
-          ? [rawVariants]
-          : []
-      return {
-        id: productRow.id,
-        category_id: productRow.category_id,
-        name: productRow.name,
-        slug: productRow.slug,
-        description: productRow.description ?? null,
-        long_description: productRow.long_description ?? null,
-        application_text: productRow.application_text ?? null,
-        base_price: Number(productRow.base_price),
-        discount_percent: Number(productRow.discount_percent ?? 0),
-        images: productRow.images ?? null,
-        desktop_image_mode: normalizeDesktopImageMode(
-          productRow.desktop_image_mode
-        ),
-        brand: productRow.brand ?? null,
-        abrasivity: normalizeAbrasivity(productRow.abrasivity),
-        is_featured: Boolean(productRow.is_featured),
-        is_best_seller: Boolean(productRow.is_best_seller),
-        is_active: Boolean(productRow.is_active),
-        updated_at: productRow.updated_at ?? null,
-        created_at: productRow.created_at ?? null,
-        category: { id: cat.id, name: cat.name, slug: cat.slug },
-        variants: variantRows.map(mapVariantRow),
-      }
-    })
-    .filter((p) => p !== null) as ProductWithCategory[]
+    .map(mapProductWithCategoryRow)
+    .filter((p): p is ProductWithCategory => p !== null)
 
   return { data: products, error: null }
 }
@@ -365,7 +350,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at, long_description, application_text")
+    .select("id, category_id, name, slug, subcategory, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at, long_description, application_text")
     .eq("is_featured", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -385,6 +370,7 @@ export async function getFeaturedProducts(): Promise<Result<Product[]>> {
         category_id: productRow.category_id,
         name: productRow.name,
         slug: productRow.slug,
+        subcategory: productRow.subcategory ?? null,
         description: productRow.description ?? null,
         long_description: productRow.long_description ?? null,
         application_text: productRow.application_text ?? null,
@@ -412,7 +398,7 @@ export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
 
   const { data, error } = await supabase
     .from("products")
-    .select("id, category_id, name, slug, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at, long_description, application_text")
+    .select("id, category_id, name, slug, subcategory, description, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at, long_description, application_text")
     .eq("is_best_seller", true)
     .eq("is_active", true)
     .is("deleted_at", null)
@@ -432,6 +418,7 @@ export async function getBestSellers(limit = 12): Promise<Result<Product[]>> {
         category_id: productRow.category_id,
         name: productRow.name,
         slug: productRow.slug,
+        subcategory: productRow.subcategory ?? null,
         description: productRow.description ?? null,
         long_description: productRow.long_description ?? null,
         application_text: productRow.application_text ?? null,
@@ -467,6 +454,7 @@ export async function getProductBySlug(
       category_id,
       name,
       slug,
+      subcategory,
       description,
       long_description,
       application_text,
@@ -536,6 +524,7 @@ export async function getProductBySlug(
     category_id: productRow.category_id,
     name: productRow.name,
     slug: productRow.slug,
+    subcategory: productRow.subcategory ?? null,
     description: productRow.description ?? null,
     long_description: productRow.long_description ?? null,
     application_text: productRow.application_text ?? null,
@@ -564,6 +553,7 @@ const RELATED_SELECT = `
   category_id,
   name,
   slug,
+  subcategory,
   description,
   base_price,
   images,

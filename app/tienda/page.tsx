@@ -14,6 +14,7 @@ import { getPublishedCourses } from "@/lib/supabase/courses"
 import type { ProductWithCategory, Category } from "@/lib/supabase/products"
 
 import ProductGrid from "./components/ProductGrid"
+import Breadcrumb from "@/components/shared/Breadcrumb"
 
 export const revalidate = 120
 
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
 
 type SearchParams = {
   categoria?: string | string[]
+  subcategoria?: string | string[]
   marca?: string | string[]
   abrasividad?: string | string[]
   search?: string | string[]
@@ -53,6 +55,7 @@ export default async function StorePage({
 }) {
   const sp = await searchParams
   const categoryParam = firstString(sp.categoria)
+  const subcategoryParam = firstString(sp.subcategoria)
   const brandParam = firstString(sp.marca)
   const abrasivityParam = firstString(sp.abrasividad)
   const search = firstString(sp.search)
@@ -107,6 +110,9 @@ export default async function StorePage({
 
   const initialFilters = {
     categorySlugs: categoryParam ? categoryParam.split(",").filter(Boolean) : [],
+    subcategorySlugs: subcategoryParam
+      ? subcategoryParam.split(",").filter(Boolean)
+      : [],
     brands: brandParam ? brandParam.split(",").filter(Boolean) : [],
     abrasivities,
     search: search ?? "",
@@ -118,7 +124,11 @@ export default async function StorePage({
   return (
     <main className="min-h-screen bg-ivory text-[#0a0a0a]">
       <h1 className="sr-only">Tienda</h1>
-      <div className="site-container pb-12">
+      <div className="site-container pb-12 pt-5 max-lg:pt-0">
+        <Breadcrumb
+          items={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]}
+          className="mb-4 hidden lg:flex"
+        />
         <ProductGrid
           products={products}
           categories={categories}
@@ -126,7 +136,6 @@ export default async function StorePage({
           brandsWithLogo={allBrandsFull}
           initialFilters={initialFilters}
           upcomingCourses={upcomingCourses}
-          breadcrumbItems={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]}
         />
       </div>
     </main>

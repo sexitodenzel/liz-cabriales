@@ -414,20 +414,6 @@ html.lc-home-overlay #site-navbar .navbar-brand-logo {
   }
 }
 
-/* Sello giratorio del spotlight (BrandDescription): rotación continua del
-   texto circular. Solo transform (GPU) y apagado con reduced-motion. */
-@media (prefers-reduced-motion: no-preference) {
-  .lc-rotate-slow {
-    animation: lc-rotate-slow 28s linear infinite;
-  }
-}
-
-@keyframes lc-rotate-slow {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* Puente invisible entre la fila nav y el panel desplegable */
 .megamenu-hover-bridge::before {
   content: "";
@@ -572,14 +558,6 @@ body {
     border-radius: 50% !important;
     opacity: 1 !important;
   }
-}
-
-/* Testimonios /sobre-liz — bullets dorados */
-.sobre-liz-testimonials .swiper-pagination-bullet {
-  background: #d8c79a !important;
-}
-.sobre-liz-testimonials .swiper-pagination-bullet-active {
-  background: #c6a75e !important;
 }
 
 /* =====================================

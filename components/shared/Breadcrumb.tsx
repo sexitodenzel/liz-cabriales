@@ -1,5 +1,7 @@
 import Link from "next/link"
 
+import { cn } from "@/lib/utils"
+
 export type BreadcrumbItem = {
   label: string
   href?: string
@@ -33,7 +35,10 @@ export default function Breadcrumb({
   return (
     <nav
       aria-label="Ruta de navegación"
-      className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-[#8a8a8a] ${className ?? "mb-2"}`}
+      className={cn(
+        "flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-[#8a8a8a]",
+        className ?? "mb-2",
+      )}
     >
       {items.map((item, index) => {
         const isFirst = index === 0

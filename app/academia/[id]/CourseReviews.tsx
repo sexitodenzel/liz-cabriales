@@ -101,10 +101,7 @@ function ReviewForm({
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a8862f]">
         Participante avalada
       </p>
-      <h3
-        className="mt-1 text-[20px] font-medium text-[#1a1a1a]"
-        style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-      >
+      <h3 className="mt-1 text-[15px] font-semibold leading-snug text-[#111] sm:text-[16px]">
         {ownReview ? "Edita tu reseña" : "Comparte tu experiencia"}
       </h3>
 
@@ -188,19 +185,13 @@ export default function CourseReviews({
     <section className="mt-4 pb-20">
       {/* Header */}
       <div className="mb-8">
-        <h2
-          className="mb-1 text-[28px] font-medium tracking-tight text-[#1a1a1a]"
-          style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-        >
+        <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
           Lo que dicen las participantes
         </h2>
-        <div className="mb-4 h-0.5 w-9 bg-[#c6a75e]" />
+        <div className="mb-4 mt-5 h-0.5 w-9 bg-[#c6a75e]" />
         {summary.count > 0 ? (
           <div className="flex items-center gap-3">
-            <span
-              className="text-[32px] font-medium leading-none text-[#1a1a1a]"
-              style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-            >
+            <span className="text-[28px] font-semibold leading-none text-[#111]">
               {summary.average.toFixed(1)}
             </span>
             <div>

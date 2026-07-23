@@ -5,13 +5,17 @@ import {
   getProductBySlugCached as getProductBySlug,
   getRelatedProductsCached,
 } from "@/lib/supabase/cache"
+import { getServicesCached } from "@/lib/supabase/cache"
 import { getPublishedCourses } from "@/lib/supabase/courses"
 import { getBlockedSlotsForDate } from "@/lib/supabase/appointments"
+import { getProductReviews } from "@/lib/supabase/product-reviews"
 import CoursesCarousel from "../components/CoursesCarousel"
 import ProductAccordion from "../components/ProductAccordion"
 import ProductHero from "../components/ProductHero"
 import RelatedProductsCarousel from "../components/RelatedProductsCarousel"
+import ProductReviews from "../components/ProductReviews"
 import RecentlyViewed from "../components/RecentlyViewed"
+import ServicesSection from "../components/ServicesSection"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
 type PageProps = {
@@ -45,16 +49,20 @@ export default async function ProductPage({ params }: PageProps) {
 
   const today = new Date().toISOString().split("T")[0] ?? ""
 
-  const [relatedRes, coursesRes, blockedRes] = await Promise.all([
-    getRelatedProductsCached(product.category_id, product.brand, product.id, 8),
-    getPublishedCourses(),
-    getBlockedSlotsForDate(today),
-  ])
+  const [relatedRes, coursesRes, servicesRes, blockedRes, reviewsRes] =
+    await Promise.all([
+      getRelatedProductsCached(product.category_id, product.brand, product.id, 8),
+      getPublishedCourses(),
+      getServicesCached(),
+      getBlockedSlotsForDate(today),
+      getProductReviews(product.id),
+    ])
 
   const relatedProducts = relatedRes.data ?? []
   const upcomingCourses = (coursesRes.data ?? [])
     .filter((c) => c.start_date >= today)
     .slice(0, 8)
+  const activeServices = servicesRes.data ?? []
   const courseSlot = (blockedRes.data ?? []).find(
     (slot) => slot.reason?.startsWith("[curso]")
   )
@@ -72,7 +80,7 @@ export default async function ProductPage({ params }: PageProps) {
           ]}
         /> */}
 
-        <ProductHero product={product} />
+        <ProductHero product={product} reviewSummary={reviewsRes.summary} />
 
         <ProductAccordion
           description={product.description}
@@ -93,6 +101,12 @@ export default async function ProductPage({ params }: PageProps) {
           }}
         />
 
+        <ProductReviews
+          productId={product.id}
+          initialReviews={reviewsRes.reviews}
+          initialSummary={reviewsRes.summary}
+        />
+
         <RelatedProductsCarousel products={relatedProducts} />
 
         <RecentlyViewed
@@ -106,6 +120,8 @@ export default async function ProductPage({ params }: PageProps) {
         />
 
         <CoursesCarousel courses={upcomingCourses} />
+
+        <ServicesSection services={activeServices} />
         </div>
       </div>
     </main>

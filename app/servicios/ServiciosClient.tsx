@@ -13,7 +13,6 @@ import type {
 import { professionalMatchesServiceFilters } from "@/lib/professionalFilters"
 import { navSticky } from "@/lib/nav-sticky"
 import ServiceOptionsPicker, {
-  buildServiceSelections,
   resolveServiceOptions,
   sumSelectedOptions,
 } from "@/components/shared/ServiceOptionsPicker"
@@ -24,6 +23,7 @@ import {
 
 import BookingSummary from "./components/BookingSummary"
 import FullCalendarModal from "./components/FullCalendarModal"
+import ServiceDetailSheet from "./components/ServiceDetailSheet"
 import StickyContinueBar from "./components/StickyContinueBar"
 import WhatsAppBookingModal, {
   type BookingDraft,
@@ -58,10 +58,11 @@ const DEFAULT_FILTERS: ServiceFilterRow[] = [
   { id: "pies", name: "Pies", slug: "pies", sort_order: 2, is_active: true },
 ]
 
-const SELECTED_CARD =
-  "border-2 border-neutral-900 bg-white"
-const DEFAULT_CARD =
-  "border border-neutral-200/80 bg-white hover:border-neutral-400"
+const SELECTED_CARD = "border border-neutral-900 bg-white"
+const DEFAULT_CARD = "border border-neutral-200/80 bg-white/70"
+/** Altura mínima uniforme de cards en el flujo (servicios / profesionales). */
+const FLOW_CARD_ROW =
+  "flex min-h-[92px] items-center justify-between gap-4 sm:min-h-[100px] sm:gap-6"
 
 function formatPrice(v: number): string {
   return new Intl.NumberFormat("es-MX", {
@@ -70,6 +71,13 @@ function formatPrice(v: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(v)
+}
+
+/** Primera mayúscula, resto minúsculas (p. ej. Reflexología). */
+function sentenceCase(value: string): string {
+  const t = value.trim()
+  if (!t) return t
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
 }
 
 function formatDuration(min: number): string {
@@ -171,17 +179,17 @@ function IconShuffle() {
   )
 }
 
-function IconCalendar() {
+function IconCalendar({ className }: { className?: string }) {
   return (
     <svg
-      width="15"
-      height="15"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      className={className ?? "h-[15px] w-[15px]"}
+      aria-hidden
     >
       <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
@@ -308,10 +316,11 @@ export default function ServiciosClient({
   const [slots, setSlots] = useState<Slot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState("")
-  const [descExpandedId, setDescExpandedId] = useState<string | null>(null)
+  const categoryClickLockRef = useRef(false)
+  const [detailService, setDetailService] = useState<ServiceWithOptions | null>(
+    null,
+  )
   const [optionsExpandedId, setOptionsExpandedId] = useState<string | null>(
     null
   )
@@ -355,12 +364,6 @@ export default function ServiciosClient({
   const totalDuration =
     selectedServices.reduce((a, s) => a + s.duration_min, 0) +
     optionTotals.duration
-  const showPricePublic =
-    selectedServices.length === 0 ||
-    selectedServices.every((s) => !s.hide_price_public)
-  const showDurationPublic =
-    selectedServices.length === 0 ||
-    selectedServices.every((s) => !s.hide_duration_public)
   const availableDates = useMemo(
     () => buildBookableDates(QUICK_PICK_DAYS, studioWeeklyHours),
     [studioWeeklyHours]
@@ -387,6 +390,17 @@ export default function ServiciosClient({
     () => groupSlotsByPeriod(slots),
     [slots]
   )
+
+  /** Siguiente día reservable después de la fecha elegida (para el vacío de horas). */
+  const nextBookableDate = useMemo(() => {
+    if (!selectedDate) return null
+    const all = buildBookableDates(CALENDAR_HORIZON_DAYS, studioWeeklyHours)
+    for (const d of all) {
+      const str = toDateString(d)
+      if (str > selectedDate) return d
+    }
+    return null
+  }, [selectedDate, studioWeeklyHours])
 
   useEffect(() => {
     if (selectedDate && !bookableDateSet.has(selectedDate)) {
@@ -430,24 +444,61 @@ export default function ServiciosClient({
     return groups
   }, [availableCategories, services])
 
-  const onCategoryClick = useCallback((slug: string) => {
-    setActiveCategory(slug)
+  const scrollToCategory = useCallback((slug: string) => {
+    const el = document.getElementById(`cat-${slug}`)
+    if (!el) return
+    el.scrollIntoView({ behavior: "smooth", block: "start" })
   }, [])
 
-  // Arranca en la primera categoría con servicios.
+  const onCategoryClick = useCallback(
+    (slug: string) => {
+      setActiveCategory(slug)
+      categoryClickLockRef.current = true
+      scrollToCategory(slug)
+      window.setTimeout(() => {
+        categoryClickLockRef.current = false
+      }, 900)
+    },
+    [scrollToCategory]
+  )
+
+  // Arranca resaltando la primera categoría (p. ej. Reflexología).
   useEffect(() => {
     if (!activeCategory && servicesByCategory.length > 0) {
       setActiveCategory(servicesByCategory[0].slug)
     }
   }, [activeCategory, servicesByCategory])
 
-  const activeServiceGroup = useMemo(() => {
-    if (servicesByCategory.length === 0) return null
-    return (
-      servicesByCategory.find((g) => g.slug === activeCategory) ??
-      servicesByCategory[0]
+  // Scroll-spy: el tab activo sigue la sección visible mientras se hace scroll.
+  useEffect(() => {
+    if (step !== 1) return
+    const els = servicesByCategory
+      .map((g) => document.getElementById(`cat-${g.slug}`))
+      .filter((el): el is HTMLElement => Boolean(el))
+    if (els.length === 0) return
+
+    const visibility = new Map<string, number>()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          visibility.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0)
+        }
+        if (categoryClickLockRef.current) return
+        let bestId = ""
+        let bestRatio = 0
+        for (const [id, ratio] of visibility) {
+          if (ratio > bestRatio) {
+            bestRatio = ratio
+            bestId = id
+          }
+        }
+        if (bestId) setActiveCategory(bestId.replace("cat-", ""))
+      },
+      { root: null, rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.1, 0.25, 0.5, 1] }
     )
-  }, [servicesByCategory, activeCategory])
+    for (const el of els) observer.observe(el)
+    return () => observer.disconnect()
+  }, [servicesByCategory, step])
 
   useEffect(() => {
     const categoria = searchParams.get("categoria")?.trim()
@@ -455,6 +506,7 @@ export default function ServiciosClient({
 
     if (categoria && availableCategories.some((f) => f.slug === categoria)) {
       setActiveCategory(categoria)
+      window.setTimeout(() => scrollToCategory(categoria), 120)
     }
 
     if (!servicioId) return
@@ -463,12 +515,13 @@ export default function ServiciosClient({
 
     if (service.filter_slug) {
       setActiveCategory(service.filter_slug)
+      window.setTimeout(() => scrollToCategory(service.filter_slug!), 120)
     }
     setSelectedServiceIds([servicioId])
     if (service.options.length > 0) {
       setOptionsExpandedId(servicioId)
     }
-  }, [searchParams, availableCategories, services])
+  }, [searchParams, availableCategories, services, scrollToCategory])
 
   const selectedProfessional = professionals.find(
     (p) => p.id === selectedProfessionalId
@@ -506,19 +559,9 @@ export default function ServiciosClient({
   }
 
   const handleServiceCardClick = (service: ServiceWithOptions) => {
-    if (service.options.length > 0) {
-      setOptionsExpandedId((prev) =>
-        prev === service.id ? null : service.id
-      )
-      return
-    }
-    toggleService(service.id)
+    setDetailService(service)
   }
 
-  const serviceSelections = useMemo(
-    () => buildServiceSelections(selectedServiceIds, selectedOptionsByService),
-    [selectedServiceIds, selectedOptionsByService]
-  )
 
   const servicesMissingOptions = useMemo(() => {
     const missing = new Set<string>()
@@ -600,85 +643,6 @@ export default function ServiciosClient({
     }
   }, [isAuthenticated])
 
-  useEffect(() => {
-    let cancelled = false
-
-    const restorePendingAppointment = () => {
-      if (cancelled) return
-
-      try {
-        const raw = sessionStorage.getItem("pendingAppointment")
-        if (!raw) return
-
-        const data = JSON.parse(raw) as {
-          service_ids?: string[]
-          service_selections?: Array<{
-            service_id: string
-            option_ids: string[]
-          }>
-          professional_id?: string | "any"
-          date?: string
-          start_time?: string
-          client_phone?: string
-        }
-
-        if (data.service_ids?.length) {
-          const serviceId = data.service_ids[0]
-          setSelectedServiceIds([serviceId])
-          if (data.service_selections?.length) {
-            const row = data.service_selections.find(
-              (s) => s.service_id === serviceId
-            )
-            if (row) {
-              setSelectedOptionsByService({ [serviceId]: row.option_ids })
-            }
-          }
-        } else if (data.service_selections?.length) {
-          const row = data.service_selections[0]
-          setSelectedServiceIds([row.service_id])
-          setSelectedOptionsByService({ [row.service_id]: row.option_ids })
-        }
-        if (data.professional_id) {
-          setSelectedProfessionalId(data.professional_id)
-        }
-        if (data.date) setSelectedDate(data.date)
-        if (data.start_time && data.professional_id) {
-          setSelectedSlot({
-            start_time: data.start_time,
-            end_time: "",
-            professional_id:
-              data.professional_id === "any" ? "" : data.professional_id,
-          })
-        }
-        if (data.client_phone) {
-          setPhone(data.client_phone.replace(/\D/g, "").slice(0, 10))
-        }
-
-        let targetStep: Step = 1
-        if (data.service_ids?.length) {
-          if (data.date && data.start_time && data.professional_id) {
-            targetStep = 4
-          } else if (data.date && data.professional_id) {
-            targetStep = 3
-          } else if (data.professional_id) {
-            targetStep = 2
-          }
-        }
-        setStep(targetStep)
-
-        sessionStorage.removeItem("pendingAppointment")
-      } catch {
-        // noop
-      }
-    }
-
-    const frameId = requestAnimationFrame(restorePendingAppointment)
-
-    return () => {
-      cancelled = true
-      cancelAnimationFrame(frameId)
-    }
-  }, [])
 
   const phoneDigits = phone.replace(/\D/g, "")
   const hasValidPhone = phoneDigits.length === 10
@@ -757,6 +721,9 @@ export default function ServiciosClient({
 
     if (!selectedSlot || !selectedDate || !selectedProfessionalId) return
 
+    // Agendado por WhatsApp: sin login obligatorio, sin cita en BD ni pago de
+    // anticipo: se arma un borrador y la
+    // clienta lo envía por WhatsApp para que el estudio confirme a mano.
     const draft: BookingDraft = {
       date: selectedDate,
       start_time: selectedSlot.start_time,
@@ -767,7 +734,8 @@ export default function ServiciosClient({
           : (selectedProfessional?.name ?? null),
       client_phone: phoneDigits,
       total: totalPrice,
-      showPrice: showPricePublic,
+      // Si algún servicio oculta su precio, no exponemos el total en el mensaje.
+      showPrice: selectedServices.every((s) => !s.hide_price_public),
       services: selectedServices.map((s) => {
         const opts = resolveServiceOptions(s, selectedOptionsByService)
         return {
@@ -800,9 +768,6 @@ export default function ServiciosClient({
     setSelectedProfessionalId(null)
     setSelectedDate(null)
     setSelectedSlot(null)
-    setPhone("")
-    setPhoneError(null)
-    setSubmitError(null)
     router.push("/")
   }
 
@@ -825,10 +790,8 @@ export default function ServiciosClient({
     onContinue: handleContinue,
     onConfirm: handleConfirm,
     canContinue,
-    submitting,
+    submitting: false,
     clientPhone: phone,
-    showPrice: showPricePublic,
-    showDuration: showDurationPublic,
   }
 
   const stickyServiceLabel =
@@ -858,7 +821,7 @@ export default function ServiciosClient({
             <button
               type="button"
               onClick={handleBack}
-              className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-neutral-900 px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-neutral-800"
+              className="shrink-0 text-[13px] font-medium text-neutral-500 transition-colors hover:text-[#0a0a0a]"
             >
               Volver
             </button>
@@ -928,7 +891,7 @@ export default function ServiciosClient({
                     )}
                   >
                     <div
-                      className="flex flex-wrap gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+                      className="-mx-1 flex flex-nowrap gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                       role="tablist"
                       aria-label="Categorías de servicio"
                     >
@@ -941,13 +904,13 @@ export default function ServiciosClient({
                             role="tab"
                             aria-selected={active}
                             onClick={() => onCategoryClick(group.slug)}
-                            className={`inline-flex h-9 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border px-4 text-xs font-medium uppercase tracking-wide transition-colors ${
+                            className={`inline-flex h-8 shrink-0 cursor-pointer items-center justify-center rounded-full border px-3 text-[12px] font-medium normal-case tracking-normal transition-colors ${
                               active
                                 ? "border-neutral-900 bg-neutral-900 text-white"
                                 : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
                             }`}
                           >
-                            {group.name}
+                            {sentenceCase(group.name)}
                           </button>
                         )
                       })}
@@ -961,232 +924,202 @@ export default function ServiciosClient({
                   </p>
                 )}
 
-                {activeServiceGroup && (
-                  <section
-                    id={`cat-${activeServiceGroup.slug}`}
-                    className="scroll-mt-52"
-                    aria-labelledby={`cat-${activeServiceGroup.slug}-heading`}
-                  >
-                    <h2
-                      id={`cat-${activeServiceGroup.slug}-heading`}
-                      className="mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
+                <div className="space-y-12">
+                  {servicesByCategory.map((group) => (
+                    <section
+                      key={group.slug}
+                      id={`cat-${group.slug}`}
+                      className="scroll-mt-52"
+                      aria-labelledby={`cat-${group.slug}-heading`}
                     >
-                      {activeServiceGroup.name}
-                    </h2>
-                    <ul className="space-y-3">
-                      {activeServiceGroup.services.map((s) => {
-                        const selected = selectedServiceIds.includes(s.id)
-                        const descExpanded = descExpandedId === s.id
-                        const optionsExpanded = optionsExpandedId === s.id
-                        const longDesc =
-                          s.description && s.description.length > 120
-                        const hasSubOptions = s.options.length > 0
-                        const showSubindex = hasSubOptions && optionsExpanded
-                        const missingOption = servicesMissingOptions.has(s.id)
+                      <h2
+                        id={`cat-${group.slug}-heading`}
+                        className="mb-4 text-xl font-semibold tracking-[-0.01em] text-[#0a0a0a]"
+                      >
+                        {group.name}
+                      </h2>
+                      <ul className="flex flex-col gap-3">
+                        {group.services.map((s) => {
+                          const selected = selectedServiceIds.includes(s.id)
+                          const optionsExpanded = optionsExpandedId === s.id
+                          const hasSubOptions = s.options.length > 0
+                          const showSubindex = hasSubOptions && optionsExpanded
+                          const missingOption = servicesMissingOptions.has(s.id)
 
-                        return (
-                          <li
-                            key={s.id}
-                            className={`rounded-2xl border px-4 py-4 sm:px-5 sm:py-5 ${
-                              missingOption
-                                ? "border-red-200 bg-red-50/70"
-                                : selected
-                                  ? "border-neutral-900 bg-[#f3eee4]"
-                                  : "border-[#ebe4d6] bg-[#f8f4ec]"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3 sm:gap-6">
-                              <div
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => handleServiceCardClick(s)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault()
-                                    handleServiceCardClick(s)
-                                  }
-                                }}
-                                className="min-w-0 flex-1 cursor-pointer text-left"
-                              >
-                                <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
-                                  {s.name}
-                                </h3>
-                                {!s.hide_duration_public && (
-                                  <p className="mt-1 text-[13px] text-[#8a8a8a]">
-                                    {formatDuration(s.duration_min)}
-                                  </p>
-                                )}
-                                {s.description && (
-                                  <div
-                                    className="mt-2"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <p
-                                      className={`max-w-[52ch] text-[13px] leading-relaxed text-[#6b6b6b] ${
-                                        descExpanded ? "" : "line-clamp-2"
-                                      }`}
-                                    >
-                                      {s.description}
+                          return (
+                            <li
+                              key={s.id}
+                              className={`rounded-xl border px-4 py-4 sm:px-5 sm:py-5 ${
+                                missingOption
+                                  ? "border-red-200 bg-red-50/70"
+                                  : selected
+                                    ? "border-neutral-900 bg-white"
+                                    : "border-neutral-200/80 bg-white/70"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-4 sm:gap-6">
+                                <div
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={() => handleServiceCardClick(s)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault()
+                                      handleServiceCardClick(s)
+                                    }
+                                  }}
+                                  className="min-w-0 flex-1 cursor-pointer text-left"
+                                >
+                                  <h3 className="truncate text-[15px] font-semibold leading-snug text-[#111] sm:text-[16px]">
+                                    {s.name}
+                                  </h3>
+                                  {!s.hide_duration_public && (
+                                    <p className="mt-1 text-[12px] text-[#8a8a8a] sm:text-[13px]">
+                                      {formatDuration(s.duration_min)}
                                     </p>
-                                    {longDesc && (
+                                  )}
+                                  <p className="mt-2 line-clamp-2 min-h-[2.5em] text-[13px] leading-relaxed text-[#6b6b6b]">
+                                    {s.description?.trim() || "\u00a0"}
+                                  </p>
+                                  {!s.hide_price_public && (
+                                    <p className="mt-1.5 text-[14px] font-semibold text-[#111] sm:mt-2 sm:text-[15px]">
+                                      {formatPrice(s.price)}
+                                    </p>
+                                  )}
+                                </div>
+
+                                {/* + (añadir/quitar) + pestañita si hay opciones */}
+                                <div
+                                  className={`inline-flex h-8 shrink-0 items-stretch overflow-hidden rounded-full border transition-colors sm:h-9 ${
+                                    selected
+                                      ? "border-neutral-900 bg-neutral-900 text-white"
+                                      : "border-neutral-300 bg-white text-[#0a0a0a] hover:border-neutral-900"
+                                  }`}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleService(s.id)}
+                                    className={`inline-flex h-8 w-8 items-center justify-center transition-colors sm:h-9 sm:w-9 ${
+                                      hasSubOptions ? "" : "rounded-full"
+                                    } ${
+                                      selected
+                                        ? "hover:bg-neutral-800"
+                                        : "hover:bg-neutral-50"
+                                    }`}
+                                    aria-label={
+                                      selected
+                                        ? `Quitar ${s.name}`
+                                        : `Añadir ${s.name}`
+                                    }
+                                    aria-pressed={selected}
+                                  >
+                                    {selected ? (
+                                      <Check
+                                        className="h-4 w-4"
+                                        strokeWidth={2.5}
+                                        aria-hidden
+                                      />
+                                    ) : (
+                                      <Plus
+                                        className="h-4 w-4"
+                                        strokeWidth={2.5}
+                                        aria-hidden
+                                      />
+                                    )}
+                                  </button>
+                                  {hasSubOptions && (
+                                    <>
+                                      <span
+                                        className={`w-px self-stretch ${
+                                          selected
+                                            ? "bg-white/25"
+                                            : "bg-neutral-200"
+                                        }`}
+                                        aria-hidden
+                                      />
                                       <button
                                         type="button"
                                         onClick={() =>
-                                          setDescExpandedId(
-                                            descExpanded ? null : s.id,
+                                          setOptionsExpandedId((prev) =>
+                                            prev === s.id ? null : s.id,
                                           )
                                         }
-                                        className="mt-1 text-[12px] font-medium text-[#111] underline decoration-neutral-400 underline-offset-4 hover:text-[#0a0a0a]"
-                                      >
-                                        {descExpanded
-                                          ? "Ver menos"
-                                          : "Ver más"}
-                                      </button>
-                                    )}
-                                  </div>
-                                )}
-                                {!s.hide_price_public && (
-                                  <p className="mt-2 text-[15px] font-semibold text-[#111]">
-                                    {formatPrice(s.price)}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div
-                                className={`inline-flex h-11 shrink-0 items-stretch overflow-hidden rounded-full border transition-colors ${
-                                  selected
-                                    ? "border-neutral-900 bg-neutral-900 text-white"
-                                    : "border-neutral-300 bg-white text-[#0a0a0a] hover:border-neutral-900"
-                                }`}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => toggleService(s.id)}
-                                  className={`inline-flex h-11 w-11 items-center justify-center transition-colors ${
-                                    hasSubOptions ? "" : "rounded-full"
-                                  } ${
-                                    selected
-                                      ? "hover:bg-neutral-800"
-                                      : "hover:bg-neutral-50"
-                                  }`}
-                                  aria-label={
-                                    selected
-                                      ? `Quitar ${s.name}`
-                                      : `Añadir ${s.name}`
-                                  }
-                                  aria-pressed={selected}
-                                >
-                                  {selected ? (
-                                    <Check
-                                      className="h-4 w-4"
-                                      strokeWidth={2.5}
-                                      aria-hidden
-                                    />
-                                  ) : (
-                                    <Plus
-                                      className="h-4 w-4"
-                                      strokeWidth={2.5}
-                                      aria-hidden
-                                    />
-                                  )}
-                                </button>
-                                {hasSubOptions && (
-                                  <>
-                                    <span
-                                      className={`w-px self-stretch ${
-                                        selected
-                                          ? "bg-white/25"
-                                          : "bg-neutral-200"
-                                      }`}
-                                      aria-hidden
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setOptionsExpandedId((prev) =>
-                                          prev === s.id ? null : s.id,
-                                        )
-                                      }
-                                      className={`inline-flex h-11 w-9 items-center justify-center transition-colors ${
-                                        selected
-                                          ? "hover:bg-neutral-800"
-                                          : "hover:bg-neutral-50"
-                                      }`}
-                                      aria-label={
-                                        optionsExpanded
-                                          ? `Ocultar opciones de ${s.name}`
-                                          : `Ver opciones de ${s.name}`
-                                      }
-                                      aria-expanded={optionsExpanded}
-                                    >
-                                      <ChevronDown
-                                        className={`h-4 w-4 transition-transform duration-200 ${
-                                          optionsExpanded ? "rotate-180" : ""
+                                        className={`inline-flex h-8 w-8 items-center justify-center transition-colors sm:h-9 sm:w-8 ${
+                                          selected
+                                            ? "hover:bg-neutral-800"
+                                            : "hover:bg-neutral-50"
                                         }`}
-                                        strokeWidth={2.25}
-                                        aria-hidden
-                                      />
-                                    </button>
-                                  </>
-                                )}
+                                        aria-label={
+                                          optionsExpanded
+                                            ? `Ocultar opciones de ${s.name}`
+                                            : `Ver opciones de ${s.name}`
+                                        }
+                                        aria-expanded={optionsExpanded}
+                                      >
+                                        <ChevronDown
+                                          className={`h-4 w-4 transition-transform duration-200 ${
+                                            optionsExpanded ? "rotate-180" : ""
+                                          }`}
+                                          strokeWidth={2.25}
+                                          aria-hidden
+                                        />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                            </div>
 
-                            {showSubindex && (
-                              <div className="mt-3 border-t border-[#ebe4d6] pt-3">
-                                <ServiceOptionsPicker
-                                  serviceId={s.id}
-                                  serviceName={s.name}
-                                  options={s.options}
-                                  selectedOptionIds={
-                                    selectedOptionsByService[s.id] ?? []
-                                  }
-                                  onChange={handleServiceOptionsChange}
-                                  variant="subindex"
-                                  hidePrice={s.hide_price_public}
-                                  hideDuration={s.hide_duration_public}
-                                />
-                                {missingOption && (
-                                  <p className="mt-3 text-xs font-medium text-red-600">
-                                    Elige al menos una opción para continuar.
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </section>
-                )}
+                              {showSubindex && (
+                                <div className="mt-4 border-t border-neutral-200/80 pt-4">
+                                  <ServiceOptionsPicker
+                                    serviceId={s.id}
+                                    serviceName={s.name}
+                                    options={s.options}
+                                    selectedOptionIds={
+                                      selectedOptionsByService[s.id] ?? []
+                                    }
+                                    onChange={handleServiceOptionsChange}
+                                    variant="subindex"
+                                  />
+                                  {missingOption && (
+                                    <p className="mt-3 text-xs font-medium text-red-600">
+                                      Elige al menos una opción para continuar.
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
               </div>
             )}
 
             {step === 2 && (
               <div>
-                <StepHeading
-                  title="Seleccionar profesional"
-                  subtitle="Nuestro equipo está listo para atenderte. Elige a quien prefieras o déjanos asignar según disponibilidad."
-                />
+                <StepHeading title="Seleccionar profesional" />
 
                 <div className="space-y-3">
                   {eligibleProfessionals.length > 0 && (
                     <div
-                      className={`flex cursor-pointer items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
+                      className={`${FLOW_CARD_ROW} cursor-pointer rounded-xl px-4 py-4 transition-all duration-200 sm:px-5 sm:py-5 ${
                         selectedProfessionalId === "any"
                           ? SELECTED_CARD
                           : DEFAULT_CARD
                       }`}
                       onClick={() => setSelectedProfessionalId("any")}
                     >
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-600 sm:h-16 sm:w-16">
                         <IconShuffle />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-lg font-semibold text-[#0a0a0a]">
+                        <p className="line-clamp-1 text-[15px] font-semibold text-[#0a0a0a] sm:text-lg">
                           Sin preferencia
                         </p>
-                        <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-neutral-500">
+                        <p className="mt-1 min-h-[2.5em] text-[13px] leading-relaxed text-neutral-500">
                           Máxima disponibilidad
                         </p>
                       </div>
@@ -1196,10 +1129,10 @@ export default function ServiciosClient({
                           e.stopPropagation()
                           setSelectedProfessionalId("any")
                         }}
-                        className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                        className={`inline-flex h-8 shrink-0 items-center justify-center rounded-full border px-3.5 text-[12px] font-normal normal-case tracking-normal transition-all sm:h-9 ${
                           selectedProfessionalId === "any"
                             ? "border-neutral-900 bg-neutral-900 text-white"
-                            : "border-neutral-300 text-neutral-600 hover:border-neutral-900"
+                            : "border-neutral-300 bg-white text-neutral-600 hover:border-neutral-900"
                         }`}
                       >
                         {selectedProfessionalId === "any"
@@ -1210,7 +1143,7 @@ export default function ServiciosClient({
                   )}
 
                   {eligibleProfessionals.length === 0 ? (
-                    <p className="rounded-lg border border-neutral-200/80 bg-white p-6 text-center text-sm text-neutral-500">
+                    <p className="rounded-xl border border-neutral-200/80 bg-white/70 p-6 text-center text-sm text-neutral-500">
                       No hay trabajadoras disponibles para los servicios
                       seleccionados. Vuelve al paso anterior y ajusta tus
                       servicios.
@@ -1221,12 +1154,12 @@ export default function ServiciosClient({
                       return (
                         <div
                           key={p.id}
-                          className={`flex cursor-pointer items-center gap-4 rounded-xl p-5 transition-all duration-200 ${
+                          className={`${FLOW_CARD_ROW} cursor-pointer rounded-xl px-4 py-4 transition-all duration-200 sm:px-5 sm:py-5 ${
                             selected ? SELECTED_CARD : DEFAULT_CARD
                           }`}
                           onClick={() => setSelectedProfessionalId(p.id)}
                         >
-                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full bg-neutral-100">
+                          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full bg-neutral-100 sm:h-16 sm:w-16">
                             {p.photo_url ? (
                               <img
                                 src={p.photo_url}
@@ -1240,14 +1173,12 @@ export default function ServiciosClient({
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-lg font-semibold text-[#0a0a0a]">
+                            <p className="line-clamp-1 text-[15px] font-semibold text-[#0a0a0a] sm:text-lg">
                               {p.name}
                             </p>
-                            {p.bio && (
-                              <p className="mt-1 line-clamp-2 text-sm text-neutral-500">
-                                {p.bio}
-                              </p>
-                            )}
+                            <p className="mt-1 min-h-[2.5em] line-clamp-2 text-[13px] leading-relaxed text-neutral-500">
+                              {p.bio?.trim() || "\u00a0"}
+                            </p>
                           </div>
                           <button
                             type="button"
@@ -1255,10 +1186,10 @@ export default function ServiciosClient({
                               e.stopPropagation()
                               setSelectedProfessionalId(p.id)
                             }}
-                            className={`shrink-0 rounded-full border px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.1em] transition-all ${
+                            className={`inline-flex h-8 shrink-0 items-center justify-center rounded-full border px-3.5 text-[12px] font-normal normal-case tracking-normal transition-all sm:h-9 ${
                               selected
                                 ? "border-neutral-900 bg-neutral-900 text-white"
-                                : "border-neutral-300 text-neutral-600 hover:border-neutral-900"
+                                : "border-neutral-300 bg-white text-neutral-600 hover:border-neutral-900"
                             }`}
                           >
                             {selected ? "Seleccionado" : "Seleccionar"}
@@ -1451,116 +1382,99 @@ export default function ServiciosClient({
                   </div>
                 </div>
 
-                {/* Sin margin-bottom final: un mb aquí no colapsa (BFC) y el
-                    sticky del resumen se alinea ese margen más abajo.
-                    Spinner solo en la 1ª carga; al cambiar fecha se mantienen
-                    los slots previos para no encoger la columna (salto sticky). */}
-                <div>
-                  <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                    Hora
-                  </p>
-                  {!selectedDate || (loadingSlots && slots.length === 0) ? (
-                    <div className="flex min-h-[14rem] items-center gap-2 text-sm text-neutral-500">
-                      <Spinner />
-                      Cargando horarios…
-                    </div>
-                  ) : slotsError && slots.length === 0 ? (
-                    <p className="text-sm text-red-600">{slotsError}</p>
-                  ) : slots.length === 0 ? (
-                    <div className="rounded-lg border border-neutral-200/80 bg-white px-6 py-10 text-center">
-                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-neutral-50">
-                        <IconCalendar />
+                {/* Hora solo si ya hay fecha. Vacío: texto plano (sin card),
+                    sin lista de espera. */}
+                {selectedDate ? (
+                  <div>
+                    <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                      Hora
+                    </p>
+                    {loadingSlots && slots.length === 0 ? (
+                      <div className="flex items-center gap-2 py-8 text-sm text-neutral-500">
+                        <Spinner />
+                        Cargando horarios…
                       </div>
-                      <p className="text-sm font-medium text-[#111]">
-                        Sin disponibilidad este día
-                      </p>
-                      <p className="mt-1 text-xs text-neutral-500">
-                        Prueba con otra fecha
-                      </p>
-                    </div>
-                  ) : (
-                    <div
-                      className={`space-y-8 transition-opacity duration-200 ${
-                        loadingSlots ? "opacity-50" : "opacity-100"
-                      }`}
-                      aria-busy={loadingSlots}
-                    >
-                      {morningSlots.length > 0 && (
-                        <div>
-                          <div className="mb-4 flex items-center gap-2 text-neutral-500">
-                            <IconSun morning />
-                            <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
-                              Mañana
-                            </span>
-                          </div>
-                          <SlotGrid
-                            slots={morningSlots}
-                            selectedSlot={selectedSlot}
-                            onSelect={setSelectedSlot}
-                            disabled={loadingSlots}
-                          />
-                        </div>
-                      )}
-                      {afternoonSlots.length > 0 && (
-                        <div>
-                          <div className="mb-4 flex items-center gap-2 text-neutral-500">
-                            <IconSun morning={false} />
-                            <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
-                              Tarde
-                            </span>
-                          </div>
-                          <SlotGrid
-                            slots={afternoonSlots}
-                            selectedSlot={selectedSlot}
-                            onSelect={setSelectedSlot}
-                            disabled={loadingSlots}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Resumen + total (solo desktop; móvil usa sticky Continuar). */}
-                {selectedServices.length > 0 && selectedSlot && (
-                  <div className="hidden items-center justify-between gap-4 rounded-lg border border-neutral-200/80 bg-white p-6 shadow-sm lg:flex lg:flex-row">
-                    <div>
-                      <div className="space-y-1">
-                        {selectedServices.map((s) => {
-                          const opts = resolveServiceOptions(
-                            s,
-                            selectedOptionsByService
-                          )
-                          return (
-                            <p key={s.id} className="font-medium text-[#111]">
-                              {s.name}
-                              {opts.length > 0 && (
-                                <span className="ml-1 text-sm font-normal text-neutral-500">
-                                  · {opts.map((o) => o.label).join(" · ")}
-                                </span>
-                              )}
+                    ) : slotsError && slots.length === 0 ? (
+                      <p className="text-sm text-red-600">{slotsError}</p>
+                    ) : slots.length === 0 ? (
+                      <div className="flex flex-col items-center px-2 py-10 text-center">
+                        <IconCalendar className="mb-4 h-10 w-10 text-neutral-400" />
+                        <p className="max-w-[28ch] text-[15px] font-semibold leading-snug text-[#0a0a0a]">
+                          {selectedProfessionalId &&
+                          selectedProfessionalId !== "any"
+                            ? "La persona seleccionada no tiene más disponibilidad en esta fecha"
+                            : "Sin disponibilidad este día"}
+                        </p>
+                        {nextBookableDate ? (
+                          <>
+                            <p className="mt-2 text-[14px] text-neutral-500">
+                              Disponible desde{" "}
+                              {nextBookableDate.toLocaleDateString("es-MX", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short",
+                              })}
                             </p>
-                          )
-                        })}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedDate(toDateString(nextBookableDate))
+                                setSelectedSlot(null)
+                              }}
+                              className="mt-6 inline-flex h-10 items-center justify-center rounded-full border border-neutral-300 bg-white px-5 text-[13px] font-medium text-[#0a0a0a] transition-colors hover:border-neutral-900"
+                            >
+                              Ir a la próxima fecha disponible
+                            </button>
+                          </>
+                        ) : (
+                          <p className="mt-2 text-[14px] text-neutral-500">
+                            Prueba con otra fecha
+                          </p>
+                        )}
                       </div>
-                      <p className="mt-1 text-sm text-neutral-500">
-                        {showDurationPublic
-                          ? `${formatDuration(totalDuration)} con ${profLabel}`
-                          : `Con ${profLabel}`}
-                      </p>
-                    </div>
-                    {showPricePublic && (
-                      <div className="text-left md:text-right">
-                        <p className="text-[11px] uppercase tracking-[0.12em] text-neutral-500">
-                          Total
-                        </p>
-                        <p className="text-2xl font-semibold text-[#0a0a0a]">
-                          {formatPrice(totalPrice)}
-                        </p>
+                    ) : (
+                      <div
+                        className={`space-y-8 transition-opacity duration-200 ${
+                          loadingSlots ? "opacity-50" : "opacity-100"
+                        }`}
+                        aria-busy={loadingSlots}
+                      >
+                        {morningSlots.length > 0 && (
+                          <div>
+                            <div className="mb-4 flex items-center gap-2 text-neutral-500">
+                              <IconSun morning />
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
+                                Mañana
+                              </span>
+                            </div>
+                            <SlotGrid
+                              slots={morningSlots}
+                              selectedSlot={selectedSlot}
+                              onSelect={setSelectedSlot}
+                              disabled={loadingSlots}
+                            />
+                          </div>
+                        )}
+                        {afternoonSlots.length > 0 && (
+                          <div>
+                            <div className="mb-4 flex items-center gap-2 text-neutral-500">
+                              <IconSun morning={false} />
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.12em]">
+                                Tarde
+                              </span>
+                            </div>
+                            <SlotGrid
+                              slots={afternoonSlots}
+                              selectedSlot={selectedSlot}
+                              onSelect={setSelectedSlot}
+                              disabled={loadingSlots}
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
+                ) : null}
               </div>
             )}
 
@@ -1568,7 +1482,7 @@ export default function ServiciosClient({
               <div>
                 <StepHeading
                   title="Revisar y confirmar"
-                  subtitle="Verifica los detalles. Al confirmar podrás enviarlos por WhatsApp o editarlos."
+                  subtitle="Verifica los detalles. Al confirmar podrás enviar tu cita por WhatsApp para que el estudio la confirme contigo."
                 />
 
                 <div className="space-y-8">
@@ -1595,10 +1509,10 @@ export default function ServiciosClient({
                               />
                               <span>
                                 <strong className="font-semibold text-[#111]">
-                                  Anticipo no reembolsable.
+                                  Confirmación por WhatsApp.
                                 </strong>{" "}
-                                El anticipo de tu cita no es reembolsable una
-                                vez realizado el pago.
+                                Tu cita queda apartada cuando el estudio la
+                                confirma contigo por WhatsApp.
                               </span>
                             </li>
                             <li className="flex gap-3">
@@ -1731,11 +1645,6 @@ export default function ServiciosClient({
                     </div>
                   </section>
 
-                  {submitError && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                      <p className="text-sm text-red-700">{submitError}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -1774,9 +1683,24 @@ export default function ServiciosClient({
         serviceLabel={stickyServiceLabel}
         onContinue={step < 4 ? handleContinue : handleConfirm}
         canContinue={canContinue}
-        submitting={submitting}
+        submitting={false}
         isConfirmStep={step === 4}
-        showPrice={showPricePublic}
+      />
+
+      <ServiceDetailSheet
+        service={detailService}
+        open={Boolean(detailService)}
+        onClose={() => setDetailService(null)}
+        selected={
+          detailService
+            ? selectedServiceIds.includes(detailService.id)
+            : false
+        }
+        onToggle={() => {
+          if (detailService) toggleService(detailService.id)
+        }}
+        formatPrice={formatPrice}
+        formatDuration={formatDuration}
       />
 
       {bookingDraft && (

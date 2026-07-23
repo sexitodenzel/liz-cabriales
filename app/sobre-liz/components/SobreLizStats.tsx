@@ -96,14 +96,7 @@ function AnimatedStat({
 
   return (
     <div className="flex flex-col items-center text-center">
-      <span
-        className="font-medium tabular-nums text-[#a8862f]"
-        style={{
-          fontFamily: "var(--font-playfair), serif",
-          fontSize: "clamp(38px, 4.6vw, 60px)",
-          lineHeight: 1,
-        }}
-      >
+      <span className="font-display text-[clamp(38px,4.6vw,60px)] font-medium leading-none tabular-nums text-gold">
         {value}
         {suffix}
       </span>

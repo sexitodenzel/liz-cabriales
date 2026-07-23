@@ -13,159 +13,204 @@ export type TiendaSubcategory = { label: string; href: string }
 
 export type TiendaCategory = {
   label: string
+  /** Id conceptual del menú (único). No siempre es una categoría real de BD. */
   slug: string
   href: string
   subcategories: TiendaSubcategory[]
+  /**
+   * Categorías REALES de la BD que agrupa esta entrada del menú. Se usa para
+   * traer los productos destacados (preview) y para el link `?categoria=a,b`.
+   * Si se omite, se asume [slug]. Un grupo como "Nail art" mapea a varias.
+   * El link queda como /tienda?categoria=slugUno,slugDos.
+   */
+  categorySlugs?: string[]
 }
 
+/** Slugs reales para el fetch de preview / filtro. Cae a [slug] si no hay grupo. */
+export function categorySlugsOf(cat: TiendaCategory): string[] {
+  return cat.categorySlugs && cat.categorySlugs.length > 0
+    ? cat.categorySlugs
+    : [cat.slug]
+}
+
+// Menú CURADO por Mildred, pero cada entrada mapea a categorías REALES de la
+// BD (`categorySlugs`). Los grupos (Nail art, Estructura, Accesorios, Cuidado
+// de la piel, Producto podal) juntan varias categorías reales para que ninguna
+// se pierda; sus subcategorías apuntan a la categoría real correspondiente y
+// por eso SÍ filtran. Ver scripts/validate-menu-categories.mjs.
 export const tiendaCategories: TiendaCategory[] = [
-  // 1) Con subcategorías (alfabético)
-  {
-    label: "Accesorios",
-    slug: "accesorios",
-    href: "/tienda?categoria=accesorios",
-    subcategories: [
-      { label: "Mobiliario", href: "/tienda?categoria=accesorios&subcategoria=mobiliario" },
-      { label: "Pinceles",   href: "/tienda?categoria=accesorios&subcategoria=pinceles" },
-    ],
-  },
-  {
-    label: "Cuidado de la piel",
-    slug: "cuidado-piel",
-    href: "/tienda?categoria=cuidado-piel",
-    subcategories: [
-      { label: "Exfoliantes",          href: "/tienda?categoria=cuidado-piel&subcategoria=exfoliantes" },
-      { label: "Kits",                 href: "/tienda?categoria=cuidado-piel&subcategoria=kits" },
-      { label: "Aceite",               href: "/tienda?categoria=cuidado-piel&subcategoria=aceite" },
-      { label: "Mascarilla",           href: "/tienda?categoria=cuidado-piel&subcategoria=mascarilla" },
-      { label: "Crema",                href: "/tienda?categoria=cuidado-piel&subcategoria=crema" },
-      { label: "Velas para masaje",    href: "/tienda?categoria=cuidado-piel&subcategoria=velas-masaje" },
-      { label: "Sales efervescentes",  href: "/tienda?categoria=cuidado-piel&subcategoria=sales-efervescentes" },
-      { label: "Bombas efervescentes", href: "/tienda?categoria=cuidado-piel&subcategoria=bombas-efervescentes" },
-    ],
-  },
+  // 1) Con subcategorías
   {
     label: "Esmaltes en gel",
     slug: "esmaltes-en-gel",
+    categorySlugs: ["esmaltes-en-gel"],
     href: "/tienda?categoria=esmaltes-en-gel",
+    // Subcategorías REALES (campo subcategory de los productos); el filtro
+    // ?subcategoria= las matchea vía slugify. Ver validate-menu-categories.
     subcategories: [
-      { label: "Base",                  href: "/tienda?categoria=esmaltes-en-gel&subcategoria=base" },
-      { label: "Top Coat",              href: "/tienda?categoria=esmaltes-en-gel&subcategoria=top-coat" },
-      { label: "Color",                 href: "/tienda?categoria=esmaltes-en-gel&subcategoria=color" },
-      { label: "Cat Eye (Ojo de gato)", href: "/tienda?categoria=esmaltes-en-gel&subcategoria=cat-eye" },
-      { label: "Reflectivos",           href: "/tienda?categoria=esmaltes-en-gel&subcategoria=reflectivos" },
-      { label: "Top Matte",             href: "/tienda?categoria=esmaltes-en-gel&subcategoria=top-matte" },
-      { label: "Esmalte",               href: "/tienda?categoria=esmaltes-en-gel&subcategoria=esmalte" },
-      { label: "Tintas",                href: "/tienda?categoria=esmaltes-en-gel&subcategoria=tintas" },
-      { label: "Vitrales",              href: "/tienda?categoria=esmaltes-en-gel&subcategoria=vitrales" },
-    ],
-  },
-  {
-    label: "Estructura",
-    slug: "estructura",
-    href: "/tienda?categoria=estructura",
-    subcategories: [
-      { label: "Moldes",    href: "/tienda?categoria=estructura&subcategoria=moldes" },
-      { label: "Tips",      href: "/tienda?categoria=estructura&subcategoria=tips" },
-      { label: "Dual form", href: "/tienda?categoria=estructura&subcategoria=dual-form" },
-      { label: "Soft Gel",  href: "/tienda?categoria=estructura&subcategoria=soft-gel" },
-    ],
-  },
-  {
-    label: "Limas",
-    slug: "limas",
-    href: "/tienda?categoria=limas",
-    subcategories: [
-      { label: "Limas y sponges",             href: "/tienda?categoria=limas&subcategoria=limas-y-sponges" },
-      { label: "Limas metálicas",              href: "/tienda?categoria=limas&subcategoria=limas-metalicas" },
-      { label: "Repuestos para lima metálica", href: "/tienda?categoria=limas&subcategoria=repuestos-lima-metalica" },
-      { label: "Repuestos para pododisco",     href: "/tienda?categoria=limas&subcategoria=repuestos-pododisco" },
-    ],
-  },
-  {
-    label: "Líquidos",
-    slug: "liquidos",
-    href: "/tienda?categoria=liquidos",
-    subcategories: [
-      { label: "Limpiadores",           href: "/tienda?categoria=liquidos&subcategoria=limpiadores" },
-      { label: "Hemostáticos",          href: "/tienda?categoria=liquidos&subcategoria=hemostaticos" },
-      { label: "Sanitizantes",          href: "/tienda?categoria=liquidos&subcategoria=sanitizantes" },
-      { label: "Preparadores",          href: "/tienda?categoria=liquidos&subcategoria=preparadores" },
-      { label: "Monómero",              href: "/tienda?categoria=liquidos&subcategoria=monomero" },
-      { label: "Solución para Polygel", href: "/tienda?categoria=liquidos&subcategoria=solucion-polygel" },
-      { label: "Removedor de cutícula", href: "/tienda?categoria=liquidos&subcategoria=removedor-cuticula" },
-      { label: "Acetona",               href: "/tienda?categoria=liquidos&subcategoria=acetona" },
-      { label: "Remover Gel",           href: "/tienda?categoria=liquidos&subcategoria=remover-gel" },
+      { label: "Gel semipermanente",     href: "/tienda?categoria=esmaltes-en-gel&subcategoria=gel-semipermanente" },
+      { label: "Cat eye (Ojo de gato)",  href: "/tienda?categoria=esmaltes-en-gel&subcategoria=cat-eye" },
+      { label: "Rubber base",            href: "/tienda?categoria=esmaltes-en-gel&subcategoria=rubber-base" },
+      { label: "Gel Rubber",             href: "/tienda?categoria=esmaltes-en-gel&subcategoria=gel-rubber" },
+      { label: "Top",                    href: "/tienda?categoria=esmaltes-en-gel&subcategoria=top" },
+      { label: "Top Matte",              href: "/tienda?categoria=esmaltes-en-gel&subcategoria=top-matte" },
+      { label: "Base coat",              href: "/tienda?categoria=esmaltes-en-gel&subcategoria=base-coat" },
+      { label: "Gel vitral",             href: "/tienda?categoria=esmaltes-en-gel&subcategoria=gel-vitral" },
+      { label: "Gel reflectivo",         href: "/tienda?categoria=esmaltes-en-gel&subcategoria=gel-reflectivo" },
+      { label: "Gel iridiscente",        href: "/tienda?categoria=esmaltes-en-gel&subcategoria=gel-iridiscente" },
+      { label: "Tratamiento en esmalte", href: "/tienda?categoria=esmaltes-en-gel&subcategoria=tratamiento-en-esmalte" },
     ],
   },
   {
     label: "Nail art",
     slug: "nail-art",
-    href: "/tienda?categoria=nail-art",
+    categorySlugs: ["nail-art", "decoracion", "glitter", "cristaleria", "efectos", "stamping"],
+    href: "/tienda?categoria=nail-art,decoracion,glitter,cristaleria,efectos,stamping",
     subcategories: [
-      { label: "Decoraciones",     href: "/tienda?categoria=nail-art&subcategoria=decoraciones" },
-      { label: "Glitter",          href: "/tienda?categoria=nail-art&subcategoria=glitter" },
-      { label: "Painting gel",     href: "/tienda?categoria=nail-art&subcategoria=painting-gel" },
-      { label: "Relieves",         href: "/tienda?categoria=nail-art&subcategoria=relieves" },
-      { label: "Cristalería",      href: "/tienda?categoria=nail-art&subcategoria=cristaleria" },
-      { label: "Gel moldeador",    href: "/tienda?categoria=nail-art&subcategoria=gel-moldeador" },
-      { label: "Gel para textura", href: "/tienda?categoria=nail-art&subcategoria=gel-para-textura" },
-      { label: "Plastilina",       href: "/tienda?categoria=nail-art&subcategoria=plastilina" },
-      { label: "Acuarelas",        href: "/tienda?categoria=nail-art&subcategoria=acuarelas" },
+      { label: "Nail art",     href: "/tienda?categoria=nail-art" },
+      { label: "Decoración",   href: "/tienda?categoria=decoracion" },
+      { label: "Glitter",      href: "/tienda?categoria=glitter" },
+      { label: "Cristalería",  href: "/tienda?categoria=cristaleria" },
+      { label: "Efectos",      href: "/tienda?categoria=efectos" },
+      { label: "Stamping",     href: "/tienda?categoria=stamping" },
     ],
+  },
+  {
+    label: "Estructura",
+    slug: "estructura",
+    categorySlugs: ["moldes", "tips"],
+    href: "/tienda?categoria=moldes,tips",
+    subcategories: [
+      { label: "Moldes", href: "/tienda?categoria=moldes" },
+      { label: "Tips",   href: "/tienda?categoria=tips" },
+    ],
+  },
+  {
+    label: "Cuidado de la piel",
+    slug: "cuidado-piel",
+    categorySlugs: ["cuidado-de-la-piel", "belleza", "kit"],
+    href: "/tienda?categoria=cuidado-de-la-piel,belleza,kit",
+    subcategories: [
+      { label: "Cuidado de la piel", href: "/tienda?categoria=cuidado-de-la-piel" },
+      { label: "Belleza",            href: "/tienda?categoria=belleza" },
+      { label: "Kits",               href: "/tienda?categoria=kit" },
+    ],
+  },
+  {
+    label: "Accesorios",
+    slug: "accesorios",
+    categorySlugs: ["insumos-accesorios", "pinceles"],
+    href: "/tienda?categoria=insumos-accesorios,pinceles",
+    subcategories: [
+      { label: "Insumos y accesorios", href: "/tienda?categoria=insumos-accesorios" },
+      { label: "Pinceles",             href: "/tienda?categoria=pinceles" },
+    ],
+  },
+  {
+    label: "Producto podal",
+    slug: "producto-podal",
+    categorySlugs: ["producto-podal", "quiropodia"],
+    href: "/tienda?categoria=producto-podal,quiropodia",
+    subcategories: [
+      { label: "Producto podal", href: "/tienda?categoria=producto-podal" },
+      { label: "Quiropodia",     href: "/tienda?categoria=quiropodia" },
+    ],
+  },
+
+  // 2) Categoría real única (sin subcategorías)
+  {
+    label: "Acrílicos",
+    slug: "acrilicos",
+    categorySlugs: ["acrilicos"],
+    href: "/tienda?categoria=acrilicos",
+    subcategories: [],
+  },
+  {
+    label: "Líquidos",
+    slug: "liquidos",
+    categorySlugs: ["liquidos"],
+    href: "/tienda?categoria=liquidos",
+    subcategories: [
+      { label: "Espuma limpiadora",     href: "/tienda?categoria=liquidos&subcategoria=espuma-limpiadora" },
+      { label: "Sanitizantes",          href: "/tienda?categoria=liquidos&subcategoria=sanitizante" },
+      { label: "Preparadores",          href: "/tienda?categoria=liquidos&subcategoria=preparadores" },
+      { label: "Hidratación",           href: "/tienda?categoria=liquidos&subcategoria=hidratacion" },
+      { label: "Aceite de cutícula",    href: "/tienda?categoria=liquidos&subcategoria=aceite-de-cuticula" },
+      { label: "Monómero",              href: "/tienda?categoria=liquidos&subcategoria=monomero" },
+      { label: "Resina",                href: "/tienda?categoria=liquidos&subcategoria=resina" },
+      { label: "Hemostáticos",          href: "/tienda?categoria=liquidos&subcategoria=hemostatico" },
+      { label: "Antisépticos",          href: "/tienda?categoria=liquidos&subcategoria=antiseptico" },
+      { label: "Limpiador de pinceles", href: "/tienda?categoria=liquidos&subcategoria=limpiador-de-pinceles" },
+    ],
+  },
+  {
+    label: "Polygel",
+    slug: "polygel",
+    categorySlugs: ["polygel"],
+    href: "/tienda?categoria=polygel",
+    subcategories: [],
   },
   {
     label: "Puntas",
     slug: "puntas",
+    categorySlugs: ["puntas"],
     href: "/tienda?categoria=puntas",
     subcategories: [
-      { label: "Carburo",  href: "/tienda?categoria=puntas&subcategoria=carburo" },
       { label: "Diamante", href: "/tienda?categoria=puntas&subcategoria=diamante" },
-      { label: "Silicona", href: "/tienda?categoria=puntas&subcategoria=silicona" },
+      { label: "Carburo",  href: "/tienda?categoria=puntas&subcategoria=carburo" },
     ],
-  },
-
-  // 2) Sin subcategorías (alfabético)
-  {
-    label: "Bioseguridad",
-    slug: "bioseguridad",
-    href: "/tienda?categoria=bioseguridad",
-    subcategories: [],
   },
   {
     label: "Builder gel",
     slug: "builder-gel",
+    categorySlugs: ["builder-gel"],
     href: "/tienda?categoria=builder-gel",
+    subcategories: [],
+  },
+  {
+    label: "Limas",
+    slug: "limas",
+    categorySlugs: ["limas"],
+    href: "/tienda?categoria=limas",
+    subcategories: [
+      { label: "Limas",                   href: "/tienda?categoria=limas&subcategoria=lima" },
+      { label: "Sponges",                 href: "/tienda?categoria=limas&subcategoria=sponge" },
+      { label: "Repuestos para pododisco", href: "/tienda?categoria=limas&subcategoria=repuestos-para-pododisco" },
+    ],
+  },
+  {
+    label: "Herramientas",
+    slug: "herramientas",
+    categorySlugs: ["herramientas"],
+    href: "/tienda?categoria=herramientas",
     subcategories: [],
   },
   {
     label: "Electrónicos",
     slug: "electronicos",
+    categorySlugs: ["electronicos"],
     href: "/tienda?categoria=electronicos",
     subcategories: [],
   },
   {
-    label: "Herramientas",
-    slug: "herramientas",
-    href: "/tienda?categoria=herramientas",
+    label: "Manicura",
+    slug: "manicura",
+    categorySlugs: ["manicura"],
+    href: "/tienda?categoria=manicura",
+    subcategories: [],
+  },
+  {
+    label: "Bioseguridad",
+    slug: "bioseguridad",
+    categorySlugs: ["bioseguridad"],
+    href: "/tienda?categoria=bioseguridad",
     subcategories: [],
   },
   {
     label: "Insumos de pestañas",
     slug: "insumos-pestanas",
-    href: "/tienda?categoria=insumos-pestanas",
-    subcategories: [],
-  },
-  {
-    label: "Polygel",
-    slug: "polygel",
-    href: "/tienda?categoria=polygel",
-    subcategories: [],
-  },
-  {
-    label: "Producto Podal",
-    slug: "producto-podal",
-    href: "/tienda?categoria=producto-podal",
+    categorySlugs: ["pestanas"],
+    href: "/tienda?categoria=pestanas",
     subcategories: [],
   },
 ]

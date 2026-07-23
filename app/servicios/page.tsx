@@ -14,8 +14,8 @@ import {
 } from "@/lib/supabase/service-reviews"
 import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
 import {
-  SERVICIOS_GALLERY_FALLBACKS,
   SERVICIOS_GALLERY_SLOT_KEYS,
+  SERVICIOS_GALLERY_FALLBACKS,
 } from "@/lib/media-slots"
 
 import ServiciosLanding from "./ServiciosLanding"

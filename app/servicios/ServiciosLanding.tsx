@@ -16,23 +16,20 @@ import {
 
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import ImageLightbox from "@/app/components/shared/ImageLightbox"
-import { storeInlineButtonClassName } from "@/app/tienda/components/store-button-styles"
-
 /** Mismo CTA negro que Continuar en /servicios/agendar (BookingSummary). */
 const bookNowClassName =
   "inline-flex h-11 w-full items-center justify-center rounded-full bg-[#1a1a1a] text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-black"
+
+/** Botones "Ver todo": ancho completo en móvil; chicos y a la izquierda en PC. */
+const verTodoClassName =
+  "inline-flex h-8 w-full items-center justify-center rounded-full border border-neutral-900 bg-white px-3.5 text-[12px] font-normal normal-case tracking-normal text-neutral-900 transition-all duration-200 ease-out hover:bg-neutral-900 hover:text-white active:scale-[0.97] lg:w-auto lg:px-5"
+
+const PORTFOLIO_SLOTS = 8
 import type {
   ProfessionalRow,
   ServiceFilterRow,
   ServiceWithOptions,
 } from "@/lib/supabase/appointments"
-import type {
-  ServiceReviewRow,
-  ServiceReviewSummary,
-} from "@/lib/supabase/service-reviews"
-import ServiceReviewsSection, {
-  ServiceReviewsAverage,
-} from "./components/ServiceReviewsSection"
 import {
   DEFAULT_STUDIO_WEEKLY_HOURS,
   STUDIO_WEEK_DAYS,
@@ -47,15 +44,40 @@ import {
   PICKUP_MAPS_URL,
 } from "@/lib/constants/contact"
 import { navSticky } from "@/lib/nav-sticky"
-import { SERVICIOS_GALLERY_FALLBACKS } from "@/lib/media-slots"
+import { STUDIO_REVIEWS } from "./reviews-data"
+import ServiceReviewsSection from "./components/ServiceReviewsSection"
+import type {
+  ServiceReviewRow,
+  ServiceReviewSummary,
+} from "@/lib/supabase/service-reviews"
 
-const SECTION_TABS = [
+const GALLERY_FALLBACK = [
+  "https://picsum.photos/seed/servicios-studio-a/1200/900",
+  "https://picsum.photos/seed/servicios-studio-b/700/500",
+  "https://picsum.photos/seed/servicios-studio-c/700/500",
+  "https://picsum.photos/seed/servicios-studio-d/700/500",
+  "https://picsum.photos/seed/servicios-studio-e/700/500",
+]
+
+/** Orden móvil: Acerca arriba. PC: Acerca justo antes de ubicación. */
+const SECTION_TABS_MOBILE = [
+  { id: "fotos", label: "Fotos" },
+  { id: "acerca", label: "Acerca de" },
+  { id: "servicios", label: "Servicios" },
+  { id: "equipo", label: "Equipo" },
+  { id: "resenas", label: "Reseñas" },
+  { id: "portfolio", label: "Portfolio" },
+  { id: "ubicacion", label: "Ubicación" },
+] as const
+
+const SECTION_TABS_DESKTOP = [
   { id: "fotos", label: "Fotos" },
   { id: "servicios", label: "Servicios" },
   { id: "equipo", label: "Equipo" },
   { id: "resenas", label: "Reseñas" },
   { id: "portfolio", label: "Portfolio" },
   { id: "acerca", label: "Acerca de" },
+  { id: "ubicacion", label: "Ubicación" },
 ] as const
 
 const ABOUT_TEXT =
@@ -76,7 +98,7 @@ type Props = {
   reviewSummary: ServiceReviewSummary
   isAuthenticated: boolean
   ownReview: ServiceReviewRow | null
-  /** Galería Media (sección servicios); fallback a placeholders. */
+  /** Fotos del estudio desde Media (servicios_gallery_*); fallback a placeholders. */
   galleryImages?: string[]
 }
 
@@ -95,6 +117,13 @@ function formatDuration(min: number): string {
   const m = min % 60
   if (m === 0) return `${h} h`
   return `${h} h ${m} min`
+}
+
+/** Primera mayúscula, resto minúsculas (p. ej. Reflexología). */
+function sentenceCase(value: string): string {
+  const t = value.trim()
+  if (!t) return t
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()
 }
 
 function initials(name: string): string {
@@ -181,24 +210,37 @@ export default function ServiciosLanding({
   galleryImages,
 }: Props) {
   const gallery =
-    galleryImages && galleryImages.length > 0
-      ? galleryImages
-      : [...SERVICIOS_GALLERY_FALLBACKS]
+    galleryImages && galleryImages.length > 0 ? galleryImages : GALLERY_FALLBACK
+  // Header: promedio real si ya hay reseñas aprobadas; si no, placeholder 5,0
+  // con el conteo de STUDIO_REVIEWS (mismo comportamiento visual previo).
+  const hasRealReviews = reviewSummary.count > 0
+  const headerRatingLabel = hasRealReviews
+    ? reviewSummary.average.toFixed(1).replace(".", ",")
+    : "5,0"
+  const headerReviewCount = hasRealReviews
+    ? reviewSummary.count
+    : STUDIO_REVIEWS.length
   const [activeCategory, setActiveCategory] = useState("")
   const [activeTab, setActiveTab] = useState<string>("fotos")
   const [hoursOpen, setHoursOpen] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [mobileBookBar, setMobileBookBar] = useState(false)
-  const [tabsBarH, setTabsBarH] = useState(52)
+  const [tabsBarH, setTabsBarH] = useState(40)
   const [showSectionBar, setShowSectionBar] = useState(false)
+  const [goldBar, setGoldBar] = useState({ left: 0, width: 0, ready: false })
+  const [isDesktop, setIsDesktop] = useState(false)
   const tabClickLockRef = useRef(false)
   const bookCtaRef = useRef<HTMLDivElement>(null)
   const sectionTabsRef = useRef<HTMLElement>(null)
+  const tabsListRef = useRef<HTMLUListElement>(null)
+  const tabBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
+  /** Móvil: borde superior de la hoja blanca. Desktop: inicio del contenido. */
   const sectionBarSentinelRef = useRef<HTMLDivElement>(null)
+  const sectionBarSentinelDesktopRef = useRef<HTMLDivElement>(null)
 
-  // Sticky móvil superior (receta StickyCartBar de /tienda): aparece al pasar
-  // el CTA in-page y se oculta al llegar al footer.
+  // Sticky móvil inferior: aparece al pasar el encabezado y se oculta cuando
+  // el CTA inline ("Reservar ahora" bajo Información adicional) entra en vista.
   useEffect(() => {
     let raf: number | null = null
     const check = () => {
@@ -207,16 +249,15 @@ export default function ServiciosLanding({
         setMobileBookBar(false)
         return
       }
-      const trigger = bookCtaRef.current
+      const trigger = sectionBarSentinelRef.current
       if (!trigger) return
-      const pastCta = trigger.getBoundingClientRect().top < 100
-      const footer =
-        document.getElementById("footer-reveal-sentinel") ??
-        document.querySelector("footer")
-      const beforeFooter = footer
-        ? footer.getBoundingClientRect().top > window.innerHeight - 12
+      const pastHeader = trigger.getBoundingClientRect().top < 100
+      const inlineCta = bookCtaRef.current
+      // Cuando el botón fijo del final está a la vista, desaparece el sticky.
+      const beforeInlineCta = inlineCta
+        ? inlineCta.getBoundingClientRect().top > window.innerHeight - 16
         : true
-      setMobileBookBar(pastCta && beforeFooter)
+      setMobileBookBar(pastHeader && beforeInlineCta)
     }
     const onScroll = () => {
       if (raf !== null) return
@@ -232,22 +273,19 @@ export default function ServiciosLanding({
     }
   }, [])
 
+  // Todas las categorías activas (p. ej. Otros), ordenadas; no ocultar las vacías.
   const availableCategories = useMemo(() => {
-    const used = new Set(
-      services.map((s) => s.filter_slug).filter((slug): slug is string => Boolean(slug))
-    )
-    // Solo categorías que realmente tienen servicios. Si ningún servicio trae
-    // filter_slug, no inventamos tabs que dejarían la lista vacía.
-    return filters.filter((f) => f.is_active && used.has(f.slug))
-  }, [filters, services])
+    return filters
+      .filter((f) => f.is_active)
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order)
+  }, [filters])
 
-  // Sin categorías útiles: mostrar todos. Con categorías: filtrar por la activa.
+  // Sin "Todos": arranca en la primera categoría y siempre filtra por una.
   const currentCategory = activeCategory || availableCategories[0]?.slug || ""
   const visibleServices = useMemo(() => {
     if (!currentCategory) return services
-    const filtered = services.filter((s) => s.filter_slug === currentCategory)
-    // Evita lista vacía si hubo desfase de slugs: muestra todo como fallback.
-    return filtered.length > 0 ? filtered : services
+    return services.filter((s) => s.filter_slug === currentCategory)
   }, [services, currentCategory])
 
   const activePros = useMemo(
@@ -255,12 +293,19 @@ export default function ServiciosLanding({
     [professionals]
   )
 
-  // Tabs visibles: omitir Equipo si no hay profesionales.
-  const sectionTabs = useMemo(
-    () =>
-      SECTION_TABS.filter((tab) => (tab.id === "equipo" ? activePros.length > 0 : true)),
-    [activePros.length]
-  )
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)")
+    const sync = () => setIsDesktop(mq.matches)
+    sync()
+    mq.addEventListener("change", sync)
+    return () => mq.removeEventListener("change", sync)
+  }, [])
+
+  // Tabs: móvil mantiene Acerca arriba; PC lo deja antes de ubicación.
+  const sectionTabs = useMemo(() => {
+    const tabs = isDesktop ? SECTION_TABS_DESKTOP : SECTION_TABS_MOBILE
+    return tabs.filter((tab) => (tab.id === "equipo" ? activePros.length > 0 : true))
+  }, [activePros.length, isDesktop])
 
   // Altura real de la barra de tabs → el sticky de Reservar se ancla debajo.
   useEffect(() => {
@@ -273,28 +318,69 @@ export default function ServiciosLanding({
     return () => window.removeEventListener("resize", measure)
   }, [sectionTabs])
 
-  // La barra de secciones solo se revela al llegar al contenido: se desliza
-  // desde abajo del navbar cuando el sentinel (fin de la galería) lo cruza.
+  // Línea dorada + scroll horizontal para que el tab activo (p. ej. Acerca de) se vea.
   useEffect(() => {
-    const sentinel = sectionBarSentinelRef.current
-    if (!sentinel) return
-    const navbarH =
+    const btn = tabBtnRefs.current.get(activeTab)
+    const list = tabsListRef.current
+    if (!btn || !list || !showSectionBar) {
+      setGoldBar((g) => ({ ...g, ready: false, width: 0 }))
+      return
+    }
+    // La barra dorada vive dentro del <ul> (position: relative), así que
+    // usamos coordenadas del contenido (offsetLeft) y se desliza sola con el
+    // scroll. La transición CSS [left,width] hace el movimiento suave.
+    const position = () => {
+      setGoldBar({ left: btn.offsetLeft, width: btn.offsetWidth, ready: true })
+    }
+    position()
+    // Centrar el tab activo con desplazamiento SUAVE (no de golpe) y solo al
+    // cambiar de sección — no reaccionamos al scroll del propio list para no
+    // pelear con el gesto del usuario.
+    const target = btn.offsetLeft - (list.clientWidth - btn.offsetWidth) / 2
+    const max = list.scrollWidth - list.clientWidth
+    list.scrollTo({
+      left: Math.max(0, Math.min(target, max)),
+      behavior: "smooth",
+    })
+    window.addEventListener("resize", position)
+    return () => window.removeEventListener("resize", position)
+  }, [activeTab, showSectionBar, sectionTabs])
+
+  // Barra de secciones: nace cuando el inicio de lo blanco TOCA el navbar
+  // (no el tope del viewport). Misma animación desde debajo del navbar.
+  useEffect(() => {
+    let raf: number | null = null
+    const navbarH = () =>
       parseFloat(
         getComputedStyle(document.documentElement).getPropertyValue(
           "--navbar-actual-h"
         )
       ) || 64
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Se revela cuando el sentinel sale por ARRIBA (bajo el navbar).
-        setShowSectionBar(
-          !entry.isIntersecting && entry.boundingClientRect.top < navbarH
-        )
-      },
-      { rootMargin: `-${navbarH}px 0px 0px 0px`, threshold: 0 }
-    )
-    observer.observe(sentinel)
-    return () => observer.disconnect()
+    const check = () => {
+      raf = null
+      const isLg = window.matchMedia("(min-width: 1024px)").matches
+      const sentinel = isLg
+        ? sectionBarSentinelDesktopRef.current
+        : sectionBarSentinelRef.current
+      if (!sentinel) {
+        setShowSectionBar(false)
+        return
+      }
+      // top del blanco <= borde inferior del navbar → ya lo tocó.
+      setShowSectionBar(sentinel.getBoundingClientRect().top <= navbarH())
+    }
+    const onScroll = () => {
+      if (raf !== null) return
+      raf = requestAnimationFrame(check)
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("resize", onScroll)
+    check()
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("resize", onScroll)
+      if (raf !== null) cancelAnimationFrame(raf)
+    }
   }, [])
 
   // Scroll-spy: el underline sigue la sección visible (no queda hardcodeado).
@@ -387,16 +473,17 @@ export default function ServiciosLanding({
 
   return (
     <main className="min-h-screen bg-ivory text-[#1a1a1a]">
-      <div className="site-container pb-24 pt-5 lg:pb-20">
-        {/* ── Encabezado tipo ficha (Fresha/Google Business): nombre del estudio
-            + rating, estado abierto/cerrado y ubicación en una sola línea. ── */}
-        <header className="mb-5">
+      <div className="site-container pb-24 pt-5 max-lg:pt-0 lg:pb-20">
+        {/* ── Encabezado desktop (en móvil vive dentro de la hoja bajo la foto). ── */}
+        <header className="mb-5 hidden lg:block">
           <h1 className="font-[family-name:var(--font-playfair),serif] text-[clamp(30px,5vw,46px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">
             Liz Cabriales
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-[#5a5a5a]">
-            <span className="inline-flex items-center gap-1.5 text-[13px]">
-              <ServiceReviewsAverage summary={reviewSummary} />
+            <span className="inline-flex items-center gap-1.5">
+              <span className="font-semibold text-[#111]">{headerRatingLabel}</span>
+              <Stars />
+              <span className="text-[#8a6d26]">({headerReviewCount})</span>
             </span>
             <span className="text-neutral-300" aria-hidden>
               ·
@@ -418,26 +505,53 @@ export default function ServiciosLanding({
           </div>
         </header>
 
-        {/* ── Galería collage: 1 imagen grande (2/3) a la izquierda + 2 chicas
-            apiladas a la derecha. La píldora abre el lightbox compartido. ── */}
+        {/* ── Galería: móvil = foto full-bleed; desktop = collage. ── */}
         <section
           id="fotos"
-          className="relative mb-8 scroll-mt-28 md:mb-10"
+          className="relative scroll-mt-28 max-lg:mb-0 lg:mb-0"
           aria-label="Galería del estudio"
         >
-          <div className="grid gap-2 overflow-hidden rounded-2xl sm:h-[440px] sm:grid-cols-3 sm:grid-rows-2">
+          {/* Móvil: imagen de borde a borde (rompe el padding del contenedor). */}
+          <div className="relative -mx-[var(--site-px)] w-[calc(100%+2*var(--site-px))] max-w-none lg:hidden">
             <button
               type="button"
               onClick={() => openLightbox(0)}
               aria-label="Ampliar galería"
-              className="relative aspect-[4/3] cursor-zoom-in overflow-hidden sm:col-span-2 sm:row-span-2 sm:aspect-auto"
+              className="relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden"
+            >
+              <SmoothImage
+                src={gallery[0]}
+                alt="Estudio Liz Cabriales"
+                fill
+                className="object-cover"
+                sizes="100vw"
+                priority
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => openLightbox(0)}
+              aria-label={`Ver galería, ${gallery.length} imágenes`}
+              className="absolute bottom-11 right-4 z-20 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-white backdrop-blur-sm"
+            >
+              1/{gallery.length}
+            </button>
+          </div>
+
+          {/* Desktop: collage 2/3 + 2 apiladas. */}
+          <div className="hidden gap-2 overflow-hidden rounded-2xl lg:grid lg:h-[440px] lg:grid-cols-3 lg:grid-rows-2">
+            <button
+              type="button"
+              onClick={() => openLightbox(0)}
+              aria-label="Ampliar galería"
+              className="relative col-span-2 row-span-2 cursor-zoom-in overflow-hidden"
             >
               <SmoothImage
                 src={gallery[0]}
                 alt="Estudio Liz Cabriales"
                 fill
                 className="object-cover transition-transform duration-500 hover:scale-[1.02]"
-                sizes="(max-width: 640px) 100vw, 66vw"
+                sizes="66vw"
                 priority
               />
             </button>
@@ -445,7 +559,7 @@ export default function ServiciosLanding({
               type="button"
               onClick={() => openLightbox(1)}
               aria-label="Ampliar galería"
-              className="relative hidden cursor-zoom-in overflow-hidden sm:block"
+              className="relative cursor-zoom-in overflow-hidden"
             >
               <SmoothImage
                 src={gallery[1]}
@@ -460,7 +574,7 @@ export default function ServiciosLanding({
               type="button"
               onClick={() => openLightbox(2)}
               aria-label="Ampliar galería"
-              className="relative hidden cursor-zoom-in overflow-hidden sm:block"
+              className="relative cursor-zoom-in overflow-hidden"
             >
               <SmoothImage
                 src={gallery[2]}
@@ -473,22 +587,55 @@ export default function ServiciosLanding({
             </button>
           </div>
 
-          {/* Píldora que abre el lightbox con toda la galería. */}
           <button
             type="button"
             onClick={() => openLightbox(0)}
-            className="absolute bottom-4 right-4 rounded-full bg-white/95 px-4 py-2 text-[12px] font-semibold text-[#111] shadow-sm backdrop-blur transition-colors hover:bg-white"
+            className="absolute bottom-4 right-4 hidden rounded-full bg-white/95 px-4 py-2 text-[12px] font-semibold text-[#111] shadow-sm backdrop-blur transition-colors hover:bg-white lg:block"
           >
             Ver todas las imágenes
           </button>
         </section>
 
-        {/* Sentinel: marca el fin de la galería. Al cruzar bajo el navbar se
-            revela la barra de secciones (no aparece durante header/galería). */}
-        <div ref={sectionBarSentinelRef} aria-hidden className="h-0" />
+        {/* ── Móvil: hoja full-width (NO card) que solapa la foto con bordes
+            superiores redondeados. Título + rating + ubicación → Acerca de.
+            El sentinel va en el borde superior blanco: ahí nace la barra de tabs. ── */}
+        <div className="relative z-10 -mx-[var(--site-px)] -mt-8 w-[calc(100%+2*var(--site-px))] max-w-none overflow-hidden rounded-t-[1.75rem] bg-ivory px-[var(--site-px)] pt-6 lg:hidden">
+          <div ref={sectionBarSentinelRef} aria-hidden className="h-0" />
+          <header className="mb-8">
+            <h1 className="font-[family-name:var(--font-playfair),serif] text-[32px] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">
+              Liz Cabriales
+            </h1>
+            <p className="mt-1 text-[14px] text-[#8a8a8a]">Estudio de uñas</p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[13px] text-[#5a5a5a]">
+              <span className="inline-flex items-center gap-1.5">
+                <Star
+                  className="h-3.5 w-3.5 fill-[#8a6d26] text-[#8a6d26]"
+                  aria-hidden
+                />
+                <span className="font-semibold text-[#111]">{headerRatingLabel}</span>
+                <span className="text-[#8a6d26]">({headerReviewCount})</span>
+              </span>
+              <span className="text-neutral-300" aria-hidden>
+                ·
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className={`h-2 w-2 rounded-full ${openNow ? "bg-emerald-500" : "bg-neutral-400"}`}
+                  aria-hidden
+                />
+                <span className={openNow ? "text-emerald-700" : undefined}>{status}</span>
+              </span>
+            </div>
+            <div className="mt-4 inline-flex w-fit max-w-full items-center gap-2 rounded-full bg-neutral-100 px-3.5 py-2 text-[13px] text-[#3a3a3a]">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-[#111]" aria-hidden />
+              <span>Unidad Nacional, Cd. Madero</span>
+            </div>
+          </header>
+        </div>
 
-        {/* ── Tabs de sección: barra FIJA bajo el navbar, oculta hasta llegar al
-            contenido; se desliza desde abajo del navbar (no nace de golpe). ── */}
+        {/* ── Tabs de sección: barra FIJA bajo el navbar. Solo nace al llegar a
+            la primera sección (pasando la imagen); se desliza desde abajo del
+            navbar (misma animación de siempre). ── */}
         <nav
           ref={sectionTabsRef}
           aria-label="Secciones"
@@ -507,26 +654,40 @@ export default function ServiciosLanding({
           }}
         >
           <div className="site-container">
-            <ul className="flex gap-1 overflow-x-auto py-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ul
+              ref={tabsListRef}
+              className="relative flex gap-0.5 overflow-x-auto py-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-1"
+            >
+              {/* Línea dorada tipo megamenú: se desliza con la sección activa. */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute bottom-0 h-[1.5px] bg-[#c6a75e]"
+                style={{
+                  left: goldBar.left,
+                  width: goldBar.ready ? goldBar.width : 0,
+                  transition:
+                    "left 300ms cubic-bezier(0.22,1,0.36,1), width 300ms cubic-bezier(0.22,1,0.36,1)",
+                }}
+              />
               {sectionTabs.map((tab) => {
                 const active = activeTab === tab.id
                 return (
                   <li key={tab.id} className="shrink-0">
                     <button
                       type="button"
+                      ref={(el) => {
+                        if (el) tabBtnRefs.current.set(tab.id, el)
+                        else tabBtnRefs.current.delete(tab.id)
+                      }}
                       onClick={() => onTabClick(tab.id)}
                       aria-current={active ? "true" : undefined}
-                      className={`relative px-3 py-3.5 text-[13px] font-medium transition-colors sm:px-4 ${
-                        active ? "text-[#111]" : "text-[#6b6b6b] hover:text-[#111]"
+                      className={`relative px-2.5 py-2 text-[12px] font-medium transition-colors sm:px-3.5 sm:py-2.5 sm:text-[13px] ${
+                        active
+                          ? "text-[#111]"
+                          : "text-[#6b6b6b] hover:text-[#111]"
                       }`}
                     >
                       {tab.label}
-                      {active && (
-                        <span
-                          className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-[#111] sm:inset-x-4"
-                          aria-hidden
-                        />
-                      )}
                     </button>
                   </li>
                 )
@@ -535,108 +696,45 @@ export default function ServiciosLanding({
           </div>
         </nav>
 
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12">
-          {/* Sidebar primero en DOM → visible arriba en móvil; a la derecha en desktop */}
-          <aside
-            {...navSticky(
-              "plain",
-              // Mismo chrome que BookingSummary del flujo de reserva.
-              "z-10 w-full max-w-[460px] justify-self-stretch rounded-xl border border-[#ececec] bg-[#fafafa] p-5 max-lg:static max-lg:top-auto max-lg:max-w-none lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:justify-self-end lg:p-6"
-            )}
-            // La barra de secciones (fixed, altura tabsBarH) vive bajo el navbar;
-            // la card se pega DEBAJO de ella para que no le tape el encabezado.
-            style={{ top: `calc(var(--navbar-actual-h) + ${tabsBarH + 16}px)` }}
-          >
-            <div className="flex items-start gap-3">
-              <div className="relative h-12 w-12 shrink-0">
-                <Image
-                  src="/images/logo.png"
-                  alt="Liz Cabriales Studio"
-                  width={48}
-                  height={48}
-                  className="h-full w-full object-contain"
-                />
-              </div>
-              <div className="min-w-0">
-                <p className="font-[family-name:var(--font-playfair),serif] text-[20px] leading-tight text-[#0a0a0a]">
-                  Liz Cabriales
-                </p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px]">
-                  <ServiceReviewsAverage summary={reviewSummary} />
-                </div>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 items-start gap-8 lg:mt-5 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-0">
+          {/* ── Columna principal ──
+              Móvil: Acerca → Servicios → … → ubicación.
+              PC: Servicios → … → Portfolio → Acerca → ubicación. */}
+          <div className="relative flex min-w-0 flex-col gap-14 lg:col-span-8 lg:col-start-1 lg:row-start-1">
+            {/* Sentinel fuera del flex gap: si va como hijo, gap-14 abre 56px
+                encima del primer bloque y rompe la alineación con la card. */}
+            <div
+              ref={sectionBarSentinelDesktopRef}
+              aria-hidden
+              className="pointer-events-none absolute top-0 left-0 hidden h-0 w-full lg:block"
+            />
 
-            <div className="mt-3 h-px w-full bg-[#ececec]" />
+            {/* Acerca de — arriba en móvil; en PC (order) justo antes de ubicación */}
+            <section
+              id="acerca"
+              className="scroll-mt-36 lg:order-5"
+              aria-labelledby="acerca-heading"
+            >
+              <h2
+                id="acerca-heading"
+                className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]"
+              >
+                Acerca de
+              </h2>
+              <p className="mt-5 max-w-[58ch] text-[14px] leading-relaxed text-[#5a5a5a]">
+                {ABOUT_TEXT}
+              </p>
+            </section>
 
-            <div className="mt-5 space-y-4 text-[13px] text-[#5a5a5a]">
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setHoursOpen((v) => !v)}
-                  className="flex w-full items-start gap-2.5 text-left"
-                  aria-expanded={hoursOpen}
-                >
-                  <Clock className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" aria-hidden />
-                  <span className="min-w-0 flex-1">
-                    <span className="font-medium text-[#0a0a0a]">{status}</span>
-                  </span>
-                  <ChevronDown
-                    className={`mt-0.5 h-4 w-4 shrink-0 text-neutral-400 transition-transform ${
-                      hoursOpen ? "rotate-180" : ""
-                    }`}
-                    aria-hidden
-                  />
-                </button>
-                {hoursOpen && (
-                  <ul className="mt-3 space-y-1.5 border-l border-neutral-100 pl-6">
-                    {hoursRows.map((row) => (
-                      <li
-                        key={row.label}
-                        className="flex items-baseline justify-between gap-3 text-[12px]"
-                      >
-                        <span className={row.isOpen ? "text-[#3a3a3a]" : "text-neutral-400"}>
-                          {row.label}
-                        </span>
-                        <span className={row.isOpen ? "text-[#6b6b6b]" : "text-neutral-400"}>
-                          {row.hours}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" aria-hidden />
-                <div>
-                  <p>{PICKUP_LOCATION_ADDRESS}</p>
-                  <a
-                    href={PICKUP_MAPS_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-1 inline-block text-sm font-medium text-neutral-700 underline decoration-neutral-400 underline-offset-4 transition-colors hover:text-[#0a0a0a]"
-                  >
-                    Cómo llegar
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div ref={bookCtaRef} className="mt-8">
-              <Link href="/servicios/agendar" className={bookNowClassName}>
-                Reservar ahora
-              </Link>
-            </div>
-          </aside>
-
-          {/* ── Columna principal ── */}
-          <div className="min-w-0 space-y-14 lg:col-span-8 lg:col-start-1 lg:row-start-1">
             {/* Servicios */}
-            <section id="servicios" className="scroll-mt-36" aria-labelledby="servicios-heading">
+            <section
+              id="servicios"
+              className="scroll-mt-36 lg:order-1"
+              aria-labelledby="servicios-heading"
+            >
               <h2
                 id="servicios-heading"
-                className="font-[family-name:var(--font-playfair),serif] text-[26px] font-medium leading-none text-[#111]"
+                className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]"
               >
                 Servicios
               </h2>
@@ -644,7 +742,7 @@ export default function ServiciosLanding({
               {availableCategories.length > 0 && (
                 <div className="mt-5">
                   <div
-                    className="flex flex-wrap gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+                    className="-mx-1 flex flex-nowrap gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                     role="tablist"
                     aria-label="Categorías"
                   >
@@ -658,13 +756,13 @@ export default function ServiciosLanding({
                           role="tab"
                           aria-selected={active}
                           onClick={() => setActiveCategory(tab.slug)}
-                          className={`inline-flex h-9 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-full border px-4 text-xs font-medium uppercase tracking-wide transition-colors ${
+                          className={`inline-flex h-8 shrink-0 cursor-pointer items-center justify-center rounded-full border px-3 text-[12px] font-medium normal-case tracking-normal transition-colors ${
                             active
                               ? "border-neutral-900 bg-neutral-900 text-white"
                               : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
                           }`}
                         >
-                          {tab.label}
+                          {sentenceCase(tab.label)}
                         </button>
                       )
                     })}
@@ -672,53 +770,45 @@ export default function ServiciosLanding({
                 </div>
               )}
 
-              <ul className="mt-6">
+              <ul className="mt-6 flex flex-col gap-3">
                 {visibleServices.length === 0 ? (
-                  <li className="py-10 text-center text-[14px] text-neutral-400">
+                  <li className="rounded-xl border border-neutral-200/80 bg-white/60 py-10 text-center text-[14px] text-neutral-400">
                     No hay servicios en esta categoría.
                   </li>
                 ) : (
-                  visibleServices.map((service, index) => (
-                    <li key={service.id}>
-                      <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-                        <div className="min-w-0">
-                          <h3 className="text-[16px] font-semibold leading-snug text-[#111]">
-                            {service.name}
-                          </h3>
-                          {!service.hide_duration_public && (
-                            <p className="mt-1 text-[13px] text-[#8a8a8a]">
-                              {formatDuration(service.duration_min)}
-                            </p>
-                          )}
-                          {!service.hide_price_public && (
-                            <p className="mt-2 text-[15px] font-semibold text-[#111]">
-                              {formatPrice(service.price)}
-                            </p>
-                          )}
-                        </div>
-                        <Link
-                          href={`/servicios/agendar?servicio=${encodeURIComponent(service.id)}`}
-                          className={`${storeInlineButtonClassName} shrink-0`}
-                        >
-                          Reservar
-                        </Link>
+                  visibleServices.map((service) => (
+                    <li
+                      key={service.id}
+                      className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200/80 bg-white/70 px-4 py-4 sm:gap-6 sm:px-5 sm:py-5"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-[15px] font-semibold leading-snug text-[#111] sm:text-[16px]">
+                          {service.name}
+                        </h3>
+                        {!service.hide_duration_public && (
+                          <p className="mt-1 text-[12px] text-[#8a8a8a] sm:text-[13px]">
+                            {formatDuration(service.duration_min)}
+                          </p>
+                        )}
+                        {!service.hide_price_public && (
+                          <p className="mt-1.5 text-[14px] font-semibold text-[#111] sm:mt-2 sm:text-[15px]">
+                            {formatPrice(service.price)}
+                          </p>
+                        )}
                       </div>
-                      {index < visibleServices.length - 1 ? (
-                        <div
-                          className="mx-2.5 h-px bg-[#c6a75e]"
-                          aria-hidden
-                        />
-                      ) : null}
+                      <Link
+                        href={`/servicios/agendar?servicio=${encodeURIComponent(service.id)}`}
+                        className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-neutral-900 bg-white px-3.5 text-[12px] font-normal normal-case tracking-normal text-neutral-900 transition-all duration-200 ease-out hover:bg-neutral-900 hover:text-white active:scale-[0.97]"
+                      >
+                        Reservar
+                      </Link>
                     </li>
                   ))
                 )}
               </ul>
 
               <div className="mt-6">
-                <Link
-                  href="/servicios/agendar"
-                  className="inline-flex h-9 items-center justify-center rounded-full border border-neutral-900 bg-neutral-900 px-4 text-xs font-medium uppercase tracking-wide text-white transition-colors hover:bg-neutral-800"
-                >
+                <Link href="/servicios/agendar" className={verTodoClassName}>
                   Ver todo
                 </Link>
               </div>
@@ -726,11 +816,15 @@ export default function ServiciosLanding({
 
             {/* Equipo */}
             {activePros.length > 0 && (
-              <section id="equipo" className="scroll-mt-36" aria-labelledby="equipo-heading">
+              <section
+                id="equipo"
+                className="scroll-mt-36 lg:order-2"
+                aria-labelledby="equipo-heading"
+              >
                 <div className="flex items-baseline justify-between gap-4">
                   <h2
                     id="equipo-heading"
-                    className="font-[family-name:var(--font-playfair),serif] text-[26px] font-medium leading-none text-[#111]"
+                    className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]"
                   >
                     Equipo
                   </h2>
@@ -766,71 +860,88 @@ export default function ServiciosLanding({
               </section>
             )}
 
-            {/* Reseñas */}
-            <ServiceReviewsSection
-              initialReviews={reviews}
-              initialSummary={reviewSummary}
-              isAuthenticated={isAuthenticated}
-              ownReview={ownReview}
-            />
+            {/* Reseñas — reales (moderadas) con fallback a placeholders */}
+            <div className="lg:order-3">
+              <ServiceReviewsSection
+                key={`${reviewSummary.count}-${ownReview?.id ?? "none"}-${ownReview?.rating ?? 0}`}
+                initialReviews={reviews}
+                initialSummary={reviewSummary}
+                isAuthenticated={isAuthenticated}
+                ownReview={ownReview}
+                fallbackReviews={STUDIO_REVIEWS}
+                viewAllHref="/servicios/resenas"
+                viewAllClassName={verTodoClassName}
+              />
+            </div>
 
-            {/* Portfolio */}
-            <section id="portfolio" className="scroll-mt-36" aria-labelledby="portfolio-heading">
-              <div className="flex items-baseline justify-between gap-4">
-                <h2
-                  id="portfolio-heading"
-                  className="min-w-0 flex-1 font-[family-name:var(--font-playfair),serif] text-[22px] font-medium leading-snug text-[#111] sm:text-[26px]"
-                >
-                  Inspírate con diseños hechos por productos de nuestro catálogo
-                </h2>
-                <Link
-                  href="/nail-art"
-                  className="shrink-0 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#8a6d26] transition-opacity hover:opacity-80"
-                >
-                  Ver todo
-                </Link>
-              </div>
-              <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                {portfolio.slice(0, 6).map((item) => {
-                  const inner = (
-                    <span className="relative aspect-square overflow-hidden rounded-2xl bg-neutral-100">
-                      <SmoothImage
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 640px) 50vw, 25vw"
-                      />
-                    </span>
-                  )
+            {/* Portfolio — carrusel horizontal, una fila de fotos chicas */}
+            <section
+              id="portfolio"
+              className="scroll-mt-36 lg:order-4"
+              aria-labelledby="portfolio-heading"
+            >
+              <h2
+                id="portfolio-heading"
+                className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]"
+              >
+                Portfolio{" "}
+                <span className="text-[16px] font-normal text-neutral-400">
+                  {portfolio.length}
+                </span>
+              </h2>
+              <ul className="mt-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto pb-1 pl-3 scroll-pl-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {Array.from({ length: PORTFOLIO_SLOTS }).map((_, i) => {
+                  const item = portfolio[i]
+                  if (item) {
+                    const inner = (
+                      <span className="relative h-[112px] w-[112px] overflow-hidden rounded-xl bg-neutral-100 sm:h-[128px] sm:w-[128px]">
+                        <SmoothImage
+                          src={item.image}
+                          alt={item.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="128px"
+                        />
+                      </span>
+                    )
+                    return (
+                      <li key={item.id} className="shrink-0 snap-start">
+                        {item.href ? (
+                          <Link href={item.href} className="group block">
+                            {inner}
+                          </Link>
+                        ) : (
+                          <div className="group">{inner}</div>
+                        )}
+                      </li>
+                    )
+                  }
                   return (
-                    <li key={item.id}>
-                      {item.href ? (
-                        <Link href={item.href} className="group block">
-                          {inner}
-                        </Link>
-                      ) : (
-                        <div className="group">{inner}</div>
-                      )}
+                    <li key={`slot-${i}`} className="shrink-0 snap-start">
+                      <Link
+                        href="/nail-art"
+                        className="relative flex h-[112px] w-[112px] items-center justify-center overflow-hidden rounded-xl border border-dashed border-neutral-300 bg-neutral-50 text-[11px] text-neutral-400 transition-colors hover:border-neutral-400 hover:text-neutral-600 sm:h-[128px] sm:w-[128px]"
+                      >
+                        Más fotos
+                      </Link>
                     </li>
                   )
                 })}
               </ul>
+              <div className="mt-5">
+                <Link href="/nail-art" className={verTodoClassName}>
+                  Ver todo
+                </Link>
+              </div>
             </section>
 
-            {/* Acerca de */}
-            <section id="acerca" className="scroll-mt-36" aria-labelledby="acerca-heading">
-              <h2
-                id="acerca-heading"
-                className="font-[family-name:var(--font-playfair),serif] text-[26px] font-medium leading-none text-[#111]"
-              >
-                Acerca de
-              </h2>
-              <p className="mt-5 max-w-[58ch] text-[14px] leading-relaxed text-[#5a5a5a]">
-                {ABOUT_TEXT}
-              </p>
-
-              <div className="relative mt-6 aspect-[16/10] overflow-hidden rounded-2xl border border-neutral-200/80 bg-neutral-100">
+            {/* Mapa, horarios e info — siempre al final */}
+            <section
+              id="ubicacion"
+              className="scroll-mt-36 lg:order-6"
+              aria-label="Ubicación y horarios"
+            >
+              <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-neutral-200/80 bg-neutral-100">
                 <iframe
                   title="Ubicación del estudio"
                   src={MAP_EMBED_SRC}
@@ -896,26 +1007,122 @@ export default function ServiciosLanding({
                   </li>
                 </ul>
               </div>
+
+              {/* CTA inline: al llegar aquí desaparece el sticky inferior */}
+              <div ref={bookCtaRef} className="mt-8 lg:hidden">
+                <Link href="/servicios/agendar" className={bookNowClassName}>
+                  Reservar ahora
+                </Link>
+              </div>
             </section>
           </div>
+
+          {/* Card lateral solo desktop; mismo tope de fila que Acerca de. */}
+          <aside
+            {...navSticky(
+              "plain",
+              "z-10 hidden w-full max-w-[460px] justify-self-stretch rounded-xl border border-neutral-200/80 bg-white/70 p-5 lg:col-span-4 lg:col-start-9 lg:row-start-1 lg:block lg:justify-self-end lg:p-6"
+            )}
+            style={{ top: `calc(var(--navbar-actual-h) + ${tabsBarH + 16}px)` }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="relative h-12 w-12 shrink-0">
+                <Image
+                  src="/images/logo.png"
+                  alt="Liz Cabriales Studio"
+                  width={48}
+                  height={48}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="font-[family-name:var(--font-playfair),serif] text-[20px] leading-tight text-[#0a0a0a]">
+                  Liz Cabriales
+                </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px]">
+                  <span className="font-semibold text-[#0a0a0a]">5,0</span>
+                  <Stars />
+                  <span className="text-neutral-500">({STUDIO_REVIEWS.length})</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 h-px w-full bg-[#ececec]" />
+
+            <div className="mt-5 space-y-4 text-[13px] text-[#5a5a5a]">
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setHoursOpen((v) => !v)}
+                  className="flex w-full items-start gap-2.5 text-left"
+                  aria-expanded={hoursOpen}
+                >
+                  <Clock className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" aria-hidden />
+                  <span className="min-w-0 flex-1">
+                    <span className="font-medium text-[#0a0a0a]">{status}</span>
+                  </span>
+                  <ChevronDown
+                    className={`mt-0.5 h-4 w-4 shrink-0 text-neutral-400 transition-transform ${
+                      hoursOpen ? "rotate-180" : ""
+                    }`}
+                    aria-hidden
+                  />
+                </button>
+                {hoursOpen && (
+                  <ul className="mt-3 space-y-1.5 border-l border-neutral-100 pl-6">
+                    {hoursRows.map((row) => (
+                      <li
+                        key={row.label}
+                        className="flex items-baseline justify-between gap-3 text-[12px]"
+                      >
+                        <span className={row.isOpen ? "text-[#3a3a3a]" : "text-neutral-400"}>
+                          {row.label}
+                        </span>
+                        <span className={row.isOpen ? "text-[#6b6b6b]" : "text-neutral-400"}>
+                          {row.hours}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" aria-hidden />
+                <div>
+                  <p>{PICKUP_LOCATION_ADDRESS}</p>
+                  <a
+                    href={PICKUP_MAPS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-block text-sm font-medium text-neutral-700 underline decoration-neutral-400 underline-offset-4 transition-colors hover:text-[#0a0a0a]"
+                  >
+                    Cómo llegar
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8">
+              <Link href="/servicios/agendar" className={bookNowClassName}>
+                Reservar ahora
+              </Link>
+            </div>
+          </aside>
         </div>
       </div>
 
-      {/* Sticky móvil bajo tabs (Fotos / Servicios / …) — no pegado al navbar */}
+      {/* Sticky móvil inferior — Reservar ahora */}
       {mobileBookBar && (
         <div
-          className="navbar-follow-collapse fixed left-0 right-0 z-20 border-b border-neutral-200 bg-ivory/85 backdrop-blur-md lg:hidden"
-          style={{
-            top: `calc(var(--navbar-actual-h, 64px) + ${tabsBarH}px)`,
-          }}
+          className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-200 bg-ivory/95 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden"
+          role="region"
+          aria-label="Reservar ahora"
         >
           <div className="site-container">
-            <div className="flex items-center gap-3 py-2.5">
-              <button
-                type="button"
-                onClick={() =>
-                  bookCtaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-                }
+            <div className="flex items-center gap-3 py-3">
+              <Link
+                href="/servicios/agendar"
                 className="flex min-w-0 flex-1 items-center gap-3 text-left"
               >
                 <span className="relative h-10 w-10 shrink-0 overflow-hidden">
@@ -937,7 +1144,7 @@ export default function ServiciosLanding({
                       : `${services.length} servicios disponibles`}
                   </span>
                 </span>
-              </button>
+              </Link>
               <Link
                 href="/servicios/agendar"
                 className={`${bookNowClassName} w-auto shrink-0 px-5`}

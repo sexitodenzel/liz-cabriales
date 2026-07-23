@@ -72,7 +72,7 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
 
   const handleDelete = async (course: CourseWithStats) => {
     const confirmed = window.confirm(
-      `¿Seguro que deseas despublicar el curso "${course.title}"? Dejará de ser visible para los alumnos.`
+      `¿Eliminar definitivamente el curso "${course.title}"?\n\nSe borrarán también sus inscripciones, pagos y fotos. Esta acción no se puede deshacer.`
     )
     if (!confirmed) return
 
@@ -86,12 +86,8 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
         toast.error(json?.error?.message ?? "No se pudo eliminar el curso")
         return
       }
-      setCourses((prev) =>
-        prev.map((c) =>
-          c.id === course.id ? { ...c, is_published: false } : c
-        )
-      )
-      toast.success("Curso despublicado")
+      setCourses((prev) => prev.filter((c) => c.id !== course.id))
+      toast.success("Curso eliminado")
       router.refresh()
     } catch {
       toast.error("Error de red al eliminar")

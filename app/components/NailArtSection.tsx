@@ -56,7 +56,7 @@ export default async function NailArtSection() {
   if (posts.length === 0) return null
 
   return (
-    <section className="py-12 md:py-16" aria-labelledby="home-nail-art-title">
+    <section className="hidden py-12 md:block md:py-16" aria-labelledby="home-nail-art-title">
       <SectionHeader
         id="home-nail-art-title"
         eyebrow="Inspiración"
