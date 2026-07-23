@@ -12,6 +12,11 @@ import {
   getApprovedServiceReviews,
   getOwnServiceReview,
 } from "@/lib/supabase/service-reviews"
+import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
+import {
+  SERVICIOS_GALLERY_SLOT_KEYS,
+  SERVICIOS_GALLERY_FALLBACKS,
+} from "@/lib/media-slots"
 
 import ServiciosLanding from "./ServiciosLanding"
 
@@ -43,6 +48,7 @@ export default async function ServiciosPage({ searchParams }: Props) {
     nailArtPosts,
     reviewsBundle,
     ownReview,
+    galleryImages,
   ] = await Promise.all([
     getServices(),
     getProfessionals(),
@@ -51,6 +57,10 @@ export default async function ServiciosPage({ searchParams }: Props) {
     getNailArtPosts(6).catch(() => []),
     getApprovedServiceReviews(),
     user ? getOwnServiceReview(user.id) : Promise.resolve(null),
+    getOrderedSlotUrls(
+      [...SERVICIOS_GALLERY_SLOT_KEYS],
+      SERVICIOS_GALLERY_FALLBACKS
+    ),
   ])
 
   let servicesRes = servicesWithOptionsRes
@@ -95,6 +105,7 @@ export default async function ServiciosPage({ searchParams }: Props) {
       reviewSummary={reviewsBundle.summary}
       isAuthenticated={Boolean(user)}
       ownReview={ownReview}
+      galleryImages={galleryImages}
     />
   )
 }

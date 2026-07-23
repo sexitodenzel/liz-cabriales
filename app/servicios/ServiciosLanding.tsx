@@ -51,7 +51,7 @@ import type {
   ServiceReviewSummary,
 } from "@/lib/supabase/service-reviews"
 
-const GALLERY = [
+const GALLERY_FALLBACK = [
   "https://picsum.photos/seed/servicios-studio-a/1200/900",
   "https://picsum.photos/seed/servicios-studio-b/700/500",
   "https://picsum.photos/seed/servicios-studio-c/700/500",
@@ -98,6 +98,8 @@ type Props = {
   reviewSummary: ServiceReviewSummary
   isAuthenticated: boolean
   ownReview: ServiceReviewRow | null
+  /** Fotos del estudio desde Media (servicios_gallery_*); fallback a placeholders. */
+  galleryImages?: string[]
 }
 
 function formatPrice(v: number): string {
@@ -205,7 +207,10 @@ export default function ServiciosLanding({
   reviewSummary,
   isAuthenticated,
   ownReview,
+  galleryImages,
 }: Props) {
+  const gallery =
+    galleryImages && galleryImages.length > 0 ? galleryImages : GALLERY_FALLBACK
   // Header: promedio real si ya hay reseñas aprobadas; si no, placeholder 5,0
   // con el conteo de STUDIO_REVIEWS (mismo comportamiento visual previo).
   const hasRealReviews = reviewSummary.count > 0
@@ -446,7 +451,7 @@ export default function ServiciosLanding({
   const portfolio: PortfolioItem[] =
     portfolioItems.length > 0
       ? portfolioItems
-      : GALLERY.slice(0, 3).map((image, i) => ({
+      : gallery.slice(0, 3).map((image, i) => ({
           id: `ph-${i}`,
           title: `Trabajo ${i + 1}`,
           image,
@@ -515,7 +520,7 @@ export default function ServiciosLanding({
               className="relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden"
             >
               <SmoothImage
-                src={GALLERY[0]}
+                src={gallery[0]}
                 alt="Estudio Liz Cabriales"
                 fill
                 className="object-cover"
@@ -526,10 +531,10 @@ export default function ServiciosLanding({
             <button
               type="button"
               onClick={() => openLightbox(0)}
-              aria-label={`Ver galería, ${GALLERY.length} imágenes`}
+              aria-label={`Ver galería, ${gallery.length} imágenes`}
               className="absolute bottom-11 right-4 z-20 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-white backdrop-blur-sm"
             >
-              1/{GALLERY.length}
+              1/{gallery.length}
             </button>
           </div>
 
@@ -542,7 +547,7 @@ export default function ServiciosLanding({
               className="relative col-span-2 row-span-2 cursor-zoom-in overflow-hidden"
             >
               <SmoothImage
-                src={GALLERY[0]}
+                src={gallery[0]}
                 alt="Estudio Liz Cabriales"
                 fill
                 className="object-cover transition-transform duration-500 hover:scale-[1.02]"
@@ -557,7 +562,7 @@ export default function ServiciosLanding({
               className="relative cursor-zoom-in overflow-hidden"
             >
               <SmoothImage
-                src={GALLERY[1]}
+                src={gallery[1]}
                 alt=""
                 fill
                 className="object-cover transition-transform duration-500 hover:scale-[1.02]"
@@ -572,7 +577,7 @@ export default function ServiciosLanding({
               className="relative cursor-zoom-in overflow-hidden"
             >
               <SmoothImage
-                src={GALLERY[2]}
+                src={gallery[2]}
                 alt=""
                 fill
                 className="object-cover transition-transform duration-500 hover:scale-[1.02]"
@@ -1153,7 +1158,7 @@ export default function ServiciosLanding({
 
       {lightboxOpen && (
         <ImageLightbox
-          images={GALLERY}
+          images={gallery}
           startIndex={lightboxIndex}
           alt="Galería del estudio"
           onClose={() => setLightboxOpen(false)}
