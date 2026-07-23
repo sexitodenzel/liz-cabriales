@@ -1,18 +1,12 @@
 import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
-import {
-  getUserActiveAppointment,
-  cancelExpiredPendingAppointments,
-  completePastAppointments,
-  getProfessionals,
-} from "@/lib/supabase/appointments"
+import { getProfessionals } from "@/lib/supabase/appointments"
 import {
   getServicesCached,
   getServicesWithOptionsCached as getServices,
 } from "@/lib/supabase/cache"
 import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
 import { getStudioWeeklyHoursCached } from "@/lib/supabase/studio-hours"
-import { getStudioSettingsCached } from "@/lib/supabase/studio-settings"
 
 import ServiciosClient from "../ServiciosClient"
 
@@ -43,17 +37,6 @@ export default async function ServiciosAgendarPage() {
     }
   }
 
-  let activeAppointment = null
-  if (user) {
-    await cancelExpiredPendingAppointments({ userId: user.id })
-    await completePastAppointments({ userId: user.id })
-
-    const active = await getUserActiveAppointment(user.id)
-    if (active.data) activeAppointment = active.data
-  }
-
-  const studioSettings = await getStudioSettingsCached()
-
   if (!servicesRes.data || !profsRes.data) {
     return (
       <main className="min-h-screen bg-ivory site-container py-16 text-[#0a0a0a]">
@@ -77,8 +60,6 @@ export default async function ServiciosAgendarPage() {
         professionals={profsRes.data}
         studioWeeklyHours={studioWeeklyHours}
         isAuthenticated={Boolean(user)}
-        activeAppointment={activeAppointment}
-        transferAccountNumber={studioSettings.transfer_account_number}
       />
     </Suspense>
   )

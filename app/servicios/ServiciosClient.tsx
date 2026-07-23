@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Check, ChevronDown, Plus, User } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import type {
-  AppointmentRecord,
   ProfessionalRow,
   ServiceFilterRow,
   ServiceWithOptions,
@@ -14,7 +13,6 @@ import type {
 import { professionalMatchesServiceFilters } from "@/lib/professionalFilters"
 import { navSticky } from "@/lib/nav-sticky"
 import ServiceOptionsPicker, {
-  buildServiceSelections,
   resolveServiceOptions,
   sumSelectedOptions,
 } from "@/components/shared/ServiceOptionsPicker"
@@ -27,7 +25,9 @@ import BookingSummary from "./components/BookingSummary"
 import FullCalendarModal from "./components/FullCalendarModal"
 import ServiceDetailSheet from "./components/ServiceDetailSheet"
 import StickyContinueBar from "./components/StickyContinueBar"
-import TransferPaymentModal from "./components/TransferPaymentModal"
+import WhatsAppBookingModal, {
+  type BookingDraft,
+} from "./components/WhatsAppBookingModal"
 
 type Slot = {
   start_time: string
@@ -43,8 +43,6 @@ type Props = {
   professionals: ProfessionalRow[]
   studioWeeklyHours: StudioWeeklyHourRow[]
   isAuthenticated: boolean
-  activeAppointment: AppointmentRecord | null
-  transferAccountNumber: string
 }
 
 const STEP_LABELS: Record<Step, string> = {
@@ -300,16 +298,10 @@ export default function ServiciosClient({
   professionals,
   studioWeeklyHours,
   isAuthenticated,
-  activeAppointment: initialActiveAppointment,
-  transferAccountNumber: initialTransferAccountNumber,
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [transferAccountNumber, setTransferAccountNumber] = useState(
-    initialTransferAccountNumber
-  )
-  const [modalAppointment, setModalAppointment] =
-    useState<AppointmentRecord | null>(initialActiveAppointment)
+  const [bookingDraft, setBookingDraft] = useState<BookingDraft | null>(null)
 
   const [step, setStep] = useState<Step>(1)
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([])
@@ -324,8 +316,6 @@ export default function ServiciosClient({
   const [slots, setSlots] = useState<Slot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
   const [activeCategory, setActiveCategory] = useState("")
   const categoryClickLockRef = useRef(false)
   const [detailService, setDetailService] = useState<ServiceWithOptions | null>(
@@ -572,10 +562,6 @@ export default function ServiciosClient({
     setDetailService(service)
   }
 
-  const serviceSelections = useMemo(
-    () => buildServiceSelections(selectedServiceIds, selectedOptionsByService),
-    [selectedServiceIds, selectedOptionsByService]
-  )
 
   const servicesMissingOptions = useMemo(() => {
     const missing = new Set<string>()
@@ -657,85 +643,6 @@ export default function ServiciosClient({
     }
   }, [isAuthenticated])
 
-  useEffect(() => {
-    let cancelled = false
-
-    const restorePendingAppointment = () => {
-      if (cancelled) return
-
-      try {
-        const raw = sessionStorage.getItem("pendingAppointment")
-        if (!raw) return
-
-        const data = JSON.parse(raw) as {
-          service_ids?: string[]
-          service_selections?: Array<{
-            service_id: string
-            option_ids: string[]
-          }>
-          professional_id?: string | "any"
-          date?: string
-          start_time?: string
-          client_phone?: string
-        }
-
-        if (data.service_ids?.length) {
-          const serviceId = data.service_ids[0]
-          setSelectedServiceIds([serviceId])
-          if (data.service_selections?.length) {
-            const row = data.service_selections.find(
-              (s) => s.service_id === serviceId
-            )
-            if (row) {
-              setSelectedOptionsByService({ [serviceId]: row.option_ids })
-            }
-          }
-        } else if (data.service_selections?.length) {
-          const row = data.service_selections[0]
-          setSelectedServiceIds([row.service_id])
-          setSelectedOptionsByService({ [row.service_id]: row.option_ids })
-        }
-        if (data.professional_id) {
-          setSelectedProfessionalId(data.professional_id)
-        }
-        if (data.date) setSelectedDate(data.date)
-        if (data.start_time && data.professional_id) {
-          setSelectedSlot({
-            start_time: data.start_time,
-            end_time: "",
-            professional_id:
-              data.professional_id === "any" ? "" : data.professional_id,
-          })
-        }
-        if (data.client_phone) {
-          setPhone(data.client_phone.replace(/\D/g, "").slice(0, 10))
-        }
-
-        let targetStep: Step = 1
-        if (data.service_ids?.length) {
-          if (data.date && data.start_time && data.professional_id) {
-            targetStep = 4
-          } else if (data.date && data.professional_id) {
-            targetStep = 3
-          } else if (data.professional_id) {
-            targetStep = 2
-          }
-        }
-        setStep(targetStep)
-
-        sessionStorage.removeItem("pendingAppointment")
-      } catch {
-        // noop
-      }
-    }
-
-    const frameId = requestAnimationFrame(restorePendingAppointment)
-
-    return () => {
-      cancelled = true
-      cancelAnimationFrame(frameId)
-    }
-  }, [])
 
   const phoneDigits = phone.replace(/\D/g, "")
   const hasValidPhone = phoneDigits.length === 10
@@ -805,137 +712,62 @@ export default function ServiciosClient({
     }
   }, [proPickerOpen])
 
-  const hasBlockingAppointment = Boolean(
-    modalAppointment &&
-      (modalAppointment.status === "pending" ||
-        modalAppointment.status === "paid")
-  )
-
-  const handleTransferCancelled = useCallback(() => {
-    setModalAppointment(null)
-    router.refresh()
-  }, [router])
-
-  const handleTransferStatusChange = useCallback(
-    (status: AppointmentRecord["status"]) => {
-      setModalAppointment((prev) => (prev ? { ...prev, status } : prev))
-    },
-    []
-  )
-
-  useEffect(() => {
-    setTransferAccountNumber(initialTransferAccountNumber)
-  }, [initialTransferAccountNumber])
-
-  useEffect(() => {
-    setModalAppointment(initialActiveAppointment)
-  }, [initialActiveAppointment])
-
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!hasValidPhone) {
       setPhoneError("Ingresa tu número de celular (10 dígitos)")
       return
     }
     setPhoneError(null)
 
-    if (!isAuthenticated) {
-      try {
-        sessionStorage.setItem(
-          "pendingAppointment",
-          JSON.stringify({
-            service_ids: selectedServiceIds,
-            service_selections: serviceSelections,
-            professional_id: selectedProfessionalId,
-            date: selectedDate,
-            start_time: selectedSlot?.start_time,
-            client_phone: phoneDigits,
-          })
-        )
-      } catch {
-        // noop
-      }
-      router.push("/login?redirect=/servicios/agendar")
-      return
-    }
-
     if (!selectedSlot || !selectedDate || !selectedProfessionalId) return
-    if (hasBlockingAppointment) {
-      setSubmitError("Ya tienes una cita activa. Completa o cancela tu reserva actual.")
-      return
-    }
 
-    setSubmitting(true)
-    setSubmitError(null)
-    try {
-      const profToSend =
+    // Agendado por WhatsApp: sin login obligatorio, sin cita en BD ni pago de
+    // anticipo: se arma un borrador y la
+    // clienta lo envía por WhatsApp para que el estudio confirme a mano.
+    const draft: BookingDraft = {
+      date: selectedDate,
+      start_time: selectedSlot.start_time,
+      end_time: selectedSlot.end_time,
+      professional_name:
         selectedProfessionalId === "any"
-          ? "any"
-          : selectedSlot.professional_id
-
-      const res = await fetch("/api/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          service_ids: selectedServiceIds,
-          service_selections: serviceSelections,
-          professional_id: profToSend,
-          date: selectedDate,
-          start_time: selectedSlot.start_time,
-          client_phone: phoneDigits,
-        }),
-      })
-      const json = await res.json()
-      if (!res.ok || json.error) {
-        setSubmitError(json?.error?.message ?? "No se pudo crear la cita")
-        return
-      }
-
-      const appointmentId = json.data.appointment_id
-
-      const activeRes = await fetch("/api/appointments/active")
-      const activeJson = await activeRes.json()
-      if (activeRes.ok && activeJson.data?.appointment) {
-        setModalAppointment(activeJson.data.appointment)
-        if (typeof activeJson.data.transfer_account_number === "string") {
-          setTransferAccountNumber(activeJson.data.transfer_account_number)
+          ? "Cualquier profesional"
+          : (selectedProfessional?.name ?? null),
+      client_phone: phoneDigits,
+      total: totalPrice,
+      showPrice: true,
+      services: selectedServices.map((s) => {
+        const opts = resolveServiceOptions(s, selectedOptionsByService)
+        return {
+          service_name: s.name,
+          options: opts.map((o) => o.label),
+          unit_price: s.hide_price_public
+            ? null
+            : s.price + opts.reduce((sum, o) => sum + o.price_delta, 0),
+          duration_min: s.hide_duration_public
+            ? null
+            : s.duration_min +
+              opts.reduce((sum, o) => sum + o.duration_delta, 0),
         }
-      } else {
-        setModalAppointment((prev) =>
-          prev ??
-          ({
-            id: appointmentId,
-            user_id: null,
-            professional_id: selectedSlot.professional_id,
-            professional_name: selectedProfessional?.name ?? null,
-            appointment_type: "individual",
-            date: selectedDate,
-            start_time: selectedSlot.start_time,
-            end_time: selectedSlot.end_time,
-            total: json.data.total,
-            status: "pending",
-            cancelled_by: null,
-            created_at: new Date().toISOString(),
-            services: selectedServices.map((s) => ({
-              service_id: s.id,
-              service_name: s.name,
-              unit_price: s.price,
-              duration_min: s.duration_min,
-            })),
-          } satisfies AppointmentRecord)
-        )
-      }
-
-      setStep(1)
-      setSelectedServiceIds([])
-      setSelectedOptionsByService({})
-      setSelectedProfessionalId(null)
-      setSelectedDate(null)
-      setSelectedSlot(null)
-    } catch {
-      setSubmitError("Error de red al reservar")
-    } finally {
-      setSubmitting(false)
+      }),
     }
+
+    setBookingDraft(draft)
+  }
+
+  const handleEditBooking = () => {
+    setBookingDraft(null)
+    setStep(4)
+  }
+
+  const handleGoHomeWithoutSaving = () => {
+    setBookingDraft(null)
+    setStep(1)
+    setSelectedServiceIds([])
+    setSelectedOptionsByService({})
+    setSelectedProfessionalId(null)
+    setSelectedDate(null)
+    setSelectedSlot(null)
+    router.push("/")
   }
 
   const summaryProps = {
@@ -957,7 +789,7 @@ export default function ServiciosClient({
     onContinue: handleContinue,
     onConfirm: handleConfirm,
     canContinue,
-    submitting,
+    submitting: false,
     clientPhone: phone,
   }
 
@@ -1645,7 +1477,7 @@ export default function ServiciosClient({
               <div>
                 <StepHeading
                   title="Revisar y confirmar"
-                  subtitle="Verifica los detalles de tu cita antes de proceder al pago."
+                  subtitle="Verifica los detalles. Al confirmar podrás enviar tu cita por WhatsApp para que el estudio la confirme contigo."
                 />
 
                 <div className="space-y-8">
@@ -1672,10 +1504,10 @@ export default function ServiciosClient({
                               />
                               <span>
                                 <strong className="font-semibold text-[#111]">
-                                  Anticipo no reembolsable.
+                                  Confirmación por WhatsApp.
                                 </strong>{" "}
-                                El anticipo de tu cita no es reembolsable una
-                                vez realizado el pago.
+                                Tu cita queda apartada cuando el estudio la
+                                confirma contigo por WhatsApp.
                               </span>
                             </li>
                             <li className="flex gap-3">
@@ -1808,11 +1640,6 @@ export default function ServiciosClient({
                     </div>
                   </section>
 
-                  {submitError && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                      <p className="text-sm text-red-700">{submitError}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -1851,7 +1678,7 @@ export default function ServiciosClient({
         serviceLabel={stickyServiceLabel}
         onContinue={step < 4 ? handleContinue : handleConfirm}
         canContinue={canContinue}
-        submitting={submitting}
+        submitting={false}
         isConfirmStep={step === 4}
       />
 
@@ -1871,24 +1698,16 @@ export default function ServiciosClient({
         formatDuration={formatDuration}
       />
 
-      {modalAppointment &&
-        (modalAppointment.status === "pending" ||
-          modalAppointment.status === "paid") && (
-          <TransferPaymentModal
-            appointment={modalAppointment}
-            formatPrice={formatPrice}
-            formatTimeLabel={formatTimeLabel}
-            prettyDate={prettyDate}
-            onExpired={handleTransferCancelled}
-            onStatusChange={handleTransferStatusChange}
-            onCancelled={handleTransferCancelled}
-            onDismiss={
-              modalAppointment.status === "paid"
-                ? () => setModalAppointment(null)
-                : undefined
-            }
-          />
-        )}
+      {bookingDraft && (
+        <WhatsAppBookingModal
+          draft={bookingDraft}
+          formatPrice={formatPrice}
+          formatTimeLabel={formatTimeLabel}
+          prettyDate={prettyDate}
+          onEdit={handleEditBooking}
+          onGoHome={handleGoHomeWithoutSaving}
+        />
+      )}
     </div>
   )
 }
