@@ -886,23 +886,109 @@ export async function updateCourse(
 }
 
 /**
- * Soft delete: despublica el curso para que deje de aparecer al público,
- * pero conserva inscripciones e históricos.
+ * Hard delete: elimina el curso y sus dependencias.
+ * Orden requerido porque course_registrations/payments no tienen ON DELETE CASCADE.
  */
 export async function deleteCourse(id: string): Promise<Result<null>> {
-  const { error } = await supabaseAdmin
+  const { data: course, error: fetchError } = await supabaseAdmin
     .from("courses")
-    .update({
-      is_published: false,
-      updated_at: new Date().toISOString(),
-    })
+    .select("id, title, cover_image, start_date")
     .eq("id", id)
+    .maybeSingle()
+
+  if (fetchError) {
+    return { data: null, error: { message: fetchError.message, code: fetchError.code } }
+  }
+  if (!course) {
+    return { data: null, error: { message: "Curso no encontrado", code: "NOT_FOUND" } }
+  }
+
+  const { data: registrations, error: regsError } = await supabaseAdmin
+    .from("course_registrations")
+    .select("id")
+    .eq("course_id", id)
+
+  if (regsError) {
+    return { data: null, error: { message: regsError.message, code: regsError.code } }
+  }
+
+  const regIds = (registrations ?? []).map((r) => r.id)
+
+  if (regIds.length > 0) {
+    const { error: paymentsError } = await supabaseAdmin
+      .from("payments")
+      .delete()
+      .in("course_reg_id", regIds)
+
+    if (paymentsError) {
+      return {
+        data: null,
+        error: { message: paymentsError.message, code: paymentsError.code },
+      }
+    }
+
+    const { error: deleteRegsError } = await supabaseAdmin
+      .from("course_registrations")
+      .delete()
+      .eq("course_id", id)
+
+    if (deleteRegsError) {
+      return {
+        data: null,
+        error: { message: deleteRegsError.message, code: deleteRegsError.code },
+      }
+    }
+  }
+
+  // Día de curso en calendario de citas (blocked_slots con reason "[curso] · Título")
+  if (course.title && course.start_date) {
+    await supabaseAdmin
+      .from("blocked_slots")
+      .delete()
+      .eq("date", course.start_date)
+      .eq("reason", `[curso] · ${course.title}`)
+  }
+
+  const { data: imageRows } = await supabaseAdmin
+    .from("course_images")
+    .select("image_url")
+    .eq("course_id", id)
+
+  const { data: galleryRows } = await supabaseAdmin
+    .from("course_gallery")
+    .select("url, thumbnail_url")
+    .eq("course_id", id)
+
+  const { error } = await supabaseAdmin.from("courses").delete().eq("id", id)
 
   if (error) {
     return { data: null, error: { message: error.message, code: error.code } }
   }
 
+  const storagePaths = collectCourseStoragePaths([
+    course.cover_image,
+    ...(imageRows ?? []).map((r) => r.image_url),
+    ...(galleryRows ?? []).flatMap((r) => [r.url, r.thumbnail_url]),
+  ])
+
+  if (storagePaths.length > 0) {
+    await supabaseAdmin.storage.from("images").remove(storagePaths)
+  }
+
   return { data: null, error: null }
+}
+
+function collectCourseStoragePaths(urls: Array<string | null | undefined>): string[] {
+  const paths = new Set<string>()
+  for (const url of urls) {
+    if (!url) continue
+    const marker = "/storage/v1/object/public/images/"
+    const idx = url.indexOf(marker)
+    if (idx === -1) continue
+    const path = url.slice(idx + marker.length)
+    if (path.startsWith("courses/")) paths.add(path)
+  }
+  return [...paths]
 }
 
 /* ──────────────────────────────────────────────────────────────────────────

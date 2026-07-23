@@ -7,6 +7,7 @@ import EventsGallery, { type EventGalleryItem } from "./components/EventsGallery
 import VerifiedReviews, { type VerifiedReviewsData } from "./components/VerifiedReviews"
 import PressMentions, { type PressMention } from "./components/PressMentions"
 import SobreLizStats from "./components/SobreLizStats"
+import TrajectoryTimeline from "./components/TrajectoryTimeline"
 import { resolveSobreLizBrandPhoto } from "@/lib/sobre-liz/brand-photo"
 import { getLandingPageDataCached } from "@/lib/supabase/landing-slots"
 import {
@@ -541,94 +542,7 @@ export default async function SobreLizPage() {
           </h2>
         </div>
 
-        <div className="relative">
-          <ol className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {TIMELINE.map((item, index) => {
-              // Serpentina (S): las filas impares se leen de derecha a izquierda
-              const perRow = 3
-              const row = Math.floor(index / perRow)
-              const colInRow = index % perRow
-              const visualCol = row % 2 === 0 ? colInRow : perRow - 1 - colInRow
-              const colStart = ["lg:col-start-1", "lg:col-start-2", "lg:col-start-3"][visualCol]
-              const rowStart = ["lg:row-start-1", "lg:row-start-2", "lg:row-start-3"][row]
-              // Flecha hacia la siguiente tarjeta siguiendo el recorrido de la S
-              const isLast = index === TIMELINE.length - 1
-              const staysInRow = Math.floor((index + 1) / perRow) === row
-              const arrow = isLast
-                ? null
-                : staysInRow
-                  ? row % 2 === 0
-                    ? "right"
-                    : "left"
-                  : "down"
-              const arrowPos =
-                arrow === "right"
-                  ? "top-1/2 -right-5 -translate-y-1/2"
-                  : arrow === "left"
-                    ? "top-1/2 -left-5 -translate-y-1/2"
-                    : "left-1/2 -bottom-5 -translate-x-1/2"
-              const arrowRotate =
-                arrow === "right" ? "" : arrow === "left" ? "rotate-180" : "rotate-90"
-              return (
-                <li
-                  key={item.year}
-                  className={`relative flex flex-col rounded-2xl border border-[#c6a75e]/15 bg-white/50 p-5 sm:p-6 ${colStart} ${rowStart}`}
-                >
-                  {arrow ? (
-                    <span
-                      className={`pointer-events-none absolute z-10 hidden text-[#c6a75e] lg:block ${arrowPos}`}
-                      aria-hidden
-                    >
-                      <svg
-                        width="22"
-                        height="22"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={arrowRotate}
-                      >
-                        <path d="M5 12h14M13 6l6 6-6 6" />
-                      </svg>
-                    </span>
-                  ) : null}
-                  <div className="mb-3 flex items-center gap-3">
-                    <span
-                      className="block h-3 w-3 shrink-0 rounded-full border-2 border-white bg-[#c6a75e] shadow-[0_0_0_1px_rgba(201,168,76,0.5)]"
-                      aria-hidden
-                    />
-                    <p className="font-display text-[26px] font-medium leading-none text-gold">
-                      {item.year}
-                    </p>
-                  </div>
-                  <h3 className="text-[16px] font-semibold text-[#111]">{item.title}</h3>
-                  <p className="mt-2 text-[13.5px] leading-[1.6] text-[#5a5a5a]">
-                    {item.description}
-                  </p>
-                  {"bullets" in item && item.bullets ? (
-                    <ul className="mt-3 flex flex-col gap-2">
-                      {item.bullets.map((bullet) => (
-                        <li
-                          key={bullet.label}
-                          className="relative pl-4 text-[13.5px] leading-[1.6] text-[#5a5a5a]"
-                        >
-                          <span
-                            className="absolute left-0 top-[8px] block h-1.5 w-1.5 rounded-full bg-[#c6a75e]"
-                            aria-hidden
-                          />
-                          <span className="font-semibold text-[#111]">{bullet.label}</span>{" "}
-                          {bullet.text}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              )
-            })}
-          </ol>
-        </div>
+        <TrajectoryTimeline items={TIMELINE} />
       </section>
 
       {/* ── TESTIMONIALS ── */}

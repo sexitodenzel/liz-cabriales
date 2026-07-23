@@ -108,7 +108,8 @@ export async function DELETE(
     const { id } = await params
     const result = await deleteCourse(id)
     if (result.error) {
-      return errorResponse(result.error.message, 500, result.error.code)
+      const status = result.error.code === "NOT_FOUND" ? 404 : 500
+      return errorResponse(result.error.message, status, result.error.code)
     }
 
     return NextResponse.json({ data: { ok: true }, error: null })

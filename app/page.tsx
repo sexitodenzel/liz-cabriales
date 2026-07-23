@@ -8,6 +8,7 @@ import {
 import HomeHeroTriCards from "./components/home/HomeHeroTriCards"
 import CategoriasSection from "./components/home/CategoriasSection"
 import DestacadosSection from "./components/home/DestacadosSection"
+import AcademiaShowcase from "./components/home/AcademiaShowcase"
 import HomeTopSections from "./components/home/HomeTopSections"
 import NailArtSection from "./components/NailArtSection"
 import InstagramFeed from "./components/InstagramFeed"
@@ -46,6 +47,9 @@ export default async function Home() {
           </Suspense>
         </InView>
       </div>
+      <Suspense fallback={null}>
+        <AcademiaShowcase />
+      </Suspense>
       <div className="site-container">
         <InView>
           <Suspense fallback={null}>
