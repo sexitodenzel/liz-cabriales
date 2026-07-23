@@ -4,9 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
-import { NAV_COLLAPSE_EVENT, type NavCollapseEventDetail } from "@/lib/nav-sticky"
 import { HOME_TRI_FALLBACKS } from "@/lib/media-slots"
-
 import InView from "../ui/motion/in-view"
 
 type Card = {
@@ -46,17 +44,6 @@ const RIGHT_BASE: Omit<Card, "image"> = {
   alt: "Servicios de cabina",
 }
 
-const ABOUT: Card = {
-  href: "/sobre-liz",
-  eyebrow: "Conócenos",
-  title: "La historia detrás de la marca",
-  subtitle: "Quiénes somos y por qué lo hacemos.",
-  cta: "Conócenos",
-  image:
-    "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=800&q=75",
-  alt: "Sobre Liz Cabriales",
-}
-
 type Props = {
   /** [tienda, academia, cabina] desde Media; fallback a Unsplash. */
   images?: [string, string, string] | string[]
@@ -77,29 +64,15 @@ const DELAY_SIDES = 700 // ms — laterales esperan a que central avance (stagin
 const DUR_CENTER_REVERSE = 700
 const DUR_SIDES_REVERSE = 700
 
-// ── Dos modos de disparo ──────────────────────────────────────────────────
-// ≥1200px (modo NAV): el hero NO decide con umbrales propios de scroll — se
-// acopla al colapso Hermès del navbar (evento NAV_COLLAPSE_EVENT). Una sola
-// fuente de verdad = una sola coreografía: el -56px del follow-collapse, las
-// cortinas y los laterales arrancan en el mismo frame, y el estado compacto
-// solo existe con navbar colapsado. Antes, con umbrales independientes
-// (forward a 5px vs colapso pasada la zona top), quedaba un estado intermedio
-// sin pulir: hero compacto + navbar expandido → el borde inferior seguía 32px
-// bajo el fold (la geometría de --home-hero-inset asume navbar colapsado) y
-// los CTAs de las cards laterales se cortaban; el -56px llegaba después como
-// un movimiento suelto.
-// <1200px (modo SCROLL): no hay colapso; se mantiene la lógica de umbrales.
-//
-// Hysteresis del modo scroll: thresholds distintos para forward (down) y
-// reverse (up). REVERSE_TRIGGER_VH bajo (0.25) hace que reverse dispare cerca
-// del top, cuando el sticky todavía está pinned y la sección no se está
-// alejando con el scroll.
+// Hysteresis: thresholds distintos para forward (down) y reverse (up).
+// REVERSE_TRIGGER_VH bajo (0.25) hace que reverse dispare cerca del top, cuando
+// el sticky todavía está pinned y la sección no se está alejando con el scroll.
+// Con 0.85 antes, el reverse arrancaba muy temprano y peleaba con el scroll.
 const FORWARD_TRIGGER_PX = 5
 const REVERSE_TRIGGER_VH = 0.25
 const MIN_INTENT_DELTA = 5
 
-// computeTarget (solo modo scroll) devuelve el estado deseado dada la
-// (y actual, y previa).
+// computeTarget devuelve el estado deseado dada la (y actual, y previa).
 // - Si no hubo movimiento real (delta < MIN_INTENT_DELTA), mantiene el estado
 //   actual: evita que un re-eval post-lock dispare animación cuando el
 //   usuario está quieto en una posición no exactamente 0.
@@ -154,11 +127,6 @@ export default function HomeHeroTriCards({ images }: Props) {
   const animLockUntilRef = useRef(0)
   const lockStartYRef = useRef(0)
   const expandedRef = useRef(expanded)
-  // Modo NAV (≥1200px): expanded sigue al colapso del navbar; desiredRef
-  // guarda el último estado anunciado por el evento para que la re-evaluación
-  // post-lock aplique el estado final aunque hubiera toggles durante el lock.
-  const navModeRef = useRef(false)
-  const desiredRef = useRef(false)
 
   useEffect(() => {
     expandedRef.current = expanded
@@ -167,19 +135,9 @@ export default function HomeHeroTriCards({ images }: Props) {
     lockStartYRef.current = window.scrollY
 
     const timer = window.setTimeout(() => {
-      // Modo NAV: el target vigente es el último estado del colapso que
-      // anunció el navbar (los eventos durante el lock solo actualizan
-      // desiredRef; aquí se aplica el final).
-      if (navModeRef.current) {
-        if (desiredRef.current !== expandedRef.current) {
-          setExpanded(desiredRef.current)
-        }
-        return
-      }
-      // Modo scroll: re-evalúa con (scroll actual, scroll al inicio del
-      // lock). Si durante la animación el usuario se movió overall hacia
-      // arriba (o hacia abajo) lo suficiente como para cambiar de estado,
-      // disparamos la siguiente.
+      // Re-evalúa con (scroll actual, scroll al inicio del lock). Si durante
+      // la animación el usuario se movió overall hacia arriba (o hacia abajo)
+      // lo suficiente como para cambiar de estado, disparamos la siguiente.
       const y = window.scrollY
       const startY = lockStartYRef.current
       const target = computeTarget(y, startY, expandedRef.current)
@@ -191,8 +149,6 @@ export default function HomeHeroTriCards({ images }: Props) {
   }, [expanded])
 
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1200px)")
-
     const evaluate = () => {
       tickingRef.current = false
       const y = window.scrollY
@@ -212,54 +168,23 @@ export default function HomeHeroTriCards({ images }: Props) {
     }
 
     const onScroll = () => {
-      // Modo NAV: el scroll no decide — decide el evento de colapso.
-      if (navModeRef.current) return
       if (tickingRef.current) return
       tickingRef.current = true
       window.requestAnimationFrame(evaluate)
     }
 
-    const onNavCollapse = (event: Event) => {
-      if (!navModeRef.current) return
-      const collapsed = Boolean(
-        (event as CustomEvent<NavCollapseEventDetail>).detail?.collapsed
-      )
-      desiredRef.current = collapsed
-      // Con lock activo solo registramos la intención; la re-evaluación al
-      // expirar aplica el estado final (mismo patrón que el modo scroll).
-      if (performance.now() < animLockUntilRef.current) return
-      if (collapsed !== expandedRef.current) setExpanded(collapsed)
+    lastYRef.current = window.scrollY
+    // Si la página carga ya scrolleada (reload a media página), arranca
+    // expandida. Vía rAF para no hacer setState síncrono dentro del effect.
+    let initRaf: number | null = null
+    if (window.scrollY > FORWARD_TRIGGER_PX) {
+      initRaf = requestAnimationFrame(() => setExpanded(true))
     }
-
-    // syncMode corre al montar y en cada cruce del breakpoint. Adopta el
-    // estado que corresponde al modo SIN respetar el lock (es un snap de
-    // arranque/resize, no una animación en curso que interrumpir).
-    const syncMode = () => {
-      navModeRef.current = mq.matches
-      if (mq.matches) {
-        const collapsed = document.documentElement.classList.contains(
-          "lc-nav-collapsed"
-        )
-        desiredRef.current = collapsed
-        if (collapsed !== expandedRef.current) setExpanded(collapsed)
-        return
-      }
-      lastYRef.current = window.scrollY
-      // Modo scroll: si la página ya está scrolleada (reload a media página,
-      // resize cruzando 1200px), arranca expandida.
-      if (window.scrollY > FORWARD_TRIGGER_PX && !expandedRef.current) {
-        setExpanded(true)
-      }
-    }
-    syncMode()
 
     window.addEventListener("scroll", onScroll, { passive: true })
-    window.addEventListener(NAV_COLLAPSE_EVENT, onNavCollapse)
-    mq.addEventListener("change", syncMode)
     return () => {
       window.removeEventListener("scroll", onScroll)
-      window.removeEventListener(NAV_COLLAPSE_EVENT, onNavCollapse)
-      mq.removeEventListener("change", syncMode)
+      if (initRaf !== null) cancelAnimationFrame(initRaf)
     }
   }, [])
 
@@ -279,25 +204,12 @@ export default function HomeHeroTriCards({ images }: Props) {
   useEffect(() => {
     const el = sectionRef.current
     if (!el) return
-    // prefers-reduced-motion: el navbar ya desactiva su transition en CSS;
-    // el hero (transitions inline) debe snapear igual o quedaría animando
-    // solo, desincronizado del colapso.
-    const reducedMq = window.matchMedia("(prefers-reduced-motion: reduce)")
-    let intersecting = true
-    const apply = () => setAnimEnabled(intersecting && !reducedMq.matches)
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        intersecting = entry.isIntersecting
-        apply()
-      },
+      ([entry]) => setAnimEnabled(entry.isIntersecting),
       { threshold: 0 }
     )
     observer.observe(el)
-    reducedMq.addEventListener("change", apply)
-    return () => {
-      observer.disconnect()
-      reducedMq.removeEventListener("change", apply)
-    }
+    return () => observer.disconnect()
   }, [])
 
   // Duraciones: forward premium (1.3s) / reverse responsivo (0.7s).
@@ -477,47 +389,26 @@ export default function HomeHeroTriCards({ images }: Props) {
         </div>
       </section>
 
-      {/* MOBILE: hero editorial que RESPIRA (~86svh, no 100) para que la tira
-          de pilares asome bajo el fold e invite a scrollear — entrada Ken Burns
-          sutil (GPU) + fade-rise del texto. Debajo, Academia/Cabina en una
-          TIRA HORIZONTAL con scroll-snap (gesto nativo de móvil, estilo
-          Aesop/Dior) en lugar de dos cards gigantes apiladas. */}
-      <section aria-label="Tienda, academia y servicios" className="md:hidden">
+      {/* MOBILE: editorial full-bleed (Dior-style) — hero a pantalla completa
+          (100svh menos navbar) con entrada Ken Burns sutil en la imagen (GPU)
+          y fade-rise del texto; Academia/Cabina a lo ancho completo debajo,
+          con reveal escalonado (InView). Los gaps de 3px dejan ver el marfil
+          del fondo como hairlines entre cards. */}
+      <section
+        aria-label="Tienda, academia y servicios"
+        className="flex flex-col gap-[3px] md:hidden"
+      >
         <CardBlock
           card={CENTER}
           hero
           entrance
-          className="h-[calc(86svh-var(--navbar-mobile-h,64px))]"
+          className="h-[100svh] -mt-[var(--navbar-mobile-h,64px)]"
         />
-
         <InView>
-          <div className="bg-ivory pt-9 pb-11">
-            <div className="mb-5 flex items-baseline justify-between px-6">
-              <h3 className="font-display text-2xl font-normal">Explora</h3>
-              <span className="text-[10px] uppercase tracking-[0.28em] text-neutral-400">
-                Desliza →
-              </span>
-            </div>
-            {/* snap-x + scrollbar-hide: cada card ocupa ~78% y la siguiente
-                asoma como pista visual de que hay más. */}
-            <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-6 px-6 scrollbar-hide">
-              <CardBlock
-                card={LEFT}
-                compact
-                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
-              />
-              <CardBlock
-                card={RIGHT}
-                compact
-                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
-              />
-              <CardBlock
-                card={ABOUT}
-                compact
-                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
-              />
-            </div>
-          </div>
+          <CardBlock card={LEFT} compact className="h-[60svh]" />
+        </InView>
+        <InView delay={0.1}>
+          <CardBlock card={RIGHT} compact className="h-[60svh]" />
         </InView>
       </section>
     </>
