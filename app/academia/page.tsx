@@ -1,4 +1,9 @@
 import { getPublishedCoursesCached } from "@/lib/supabase/courses"
+import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
+import {
+  ACADEMIA_HERO_SLOT_KEYS,
+  ACADEMIA_HERO_FALLBACKS,
+} from "@/lib/media-slots"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
 
@@ -14,7 +19,10 @@ export const revalidate = 60
 
 export default async function AcademiaPage() {
 
-  const result = await getPublishedCoursesCached()
+  const [result, heroImages] = await Promise.all([
+    getPublishedCoursesCached(),
+    getOrderedSlotUrls([...ACADEMIA_HERO_SLOT_KEYS], ACADEMIA_HERO_FALLBACKS),
+  ])
 
 
 
@@ -56,7 +64,7 @@ export default async function AcademiaPage() {
 
         />
 
-        <AcademiaHero />
+        <AcademiaHero images={heroImages} />
 
         <CourseGrid courses={result.data} />
 

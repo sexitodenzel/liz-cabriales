@@ -3,14 +3,19 @@
 import { useState } from "react"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import ImageLightbox from "@/app/components/shared/ImageLightbox"
+import { ACADEMIA_HERO_FALLBACKS } from "@/lib/media-slots"
 
-const HERO_IMAGES = [
-  "https://picsum.photos/seed/academia-hero-a/1200/900",
-  "https://picsum.photos/seed/academia-hero-b/700/500",
-  "https://picsum.photos/seed/academia-hero-c/700/500",
-]
+type Props = {
+  /** [grande, chica sup., chica inf.] desde Media; fallback a placeholders. */
+  images?: string[]
+}
 
-export default function AcademiaHero() {
+export default function AcademiaHero({ images }: Props) {
+  const HERO_IMAGES = [
+    images?.[0] || ACADEMIA_HERO_FALLBACKS[0],
+    images?.[1] || ACADEMIA_HERO_FALLBACKS[1],
+    images?.[2] || ACADEMIA_HERO_FALLBACKS[2],
+  ]
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
 

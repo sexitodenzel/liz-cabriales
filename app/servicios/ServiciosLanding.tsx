@@ -780,12 +780,16 @@ export default function ServiciosLanding({
                         <h3 className="text-[15px] font-semibold leading-snug text-[#111] sm:text-[16px]">
                           {service.name}
                         </h3>
-                        <p className="mt-1 text-[12px] text-[#8a8a8a] sm:text-[13px]">
-                          {formatDuration(service.duration_min)}
-                        </p>
-                        <p className="mt-1.5 text-[14px] font-semibold text-[#111] sm:mt-2 sm:text-[15px]">
-                          {formatPrice(service.price)}
-                        </p>
+                        {!service.hide_duration_public && (
+                          <p className="mt-1 text-[12px] text-[#8a8a8a] sm:text-[13px]">
+                            {formatDuration(service.duration_min)}
+                          </p>
+                        )}
+                        {!service.hide_price_public && (
+                          <p className="mt-1.5 text-[14px] font-semibold text-[#111] sm:mt-2 sm:text-[15px]">
+                            {formatPrice(service.price)}
+                          </p>
+                        )}
                       </div>
                       <Link
                         href={`/servicios/agendar?servicio=${encodeURIComponent(service.id)}`}

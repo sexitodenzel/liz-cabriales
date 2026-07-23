@@ -98,12 +98,16 @@ export default function ServiceDetailSheet({
             <div className="shrink-0 border-t border-neutral-200/80 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="text-[17px] font-semibold text-[#0a0a0a]">
-                    {formatPrice(service.price)}
-                  </p>
-                  <p className="mt-0.5 text-[13px] text-neutral-500">
-                    {formatDuration(service.duration_min)}
-                  </p>
+                  {!service.hide_price_public && (
+                    <p className="text-[17px] font-semibold text-[#0a0a0a]">
+                      {formatPrice(service.price)}
+                    </p>
+                  )}
+                  {!service.hide_duration_public && (
+                    <p className="mt-0.5 text-[13px] text-neutral-500">
+                      {formatDuration(service.duration_min)}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"

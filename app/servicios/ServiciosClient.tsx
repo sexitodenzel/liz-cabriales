@@ -734,7 +734,8 @@ export default function ServiciosClient({
           : (selectedProfessional?.name ?? null),
       client_phone: phoneDigits,
       total: totalPrice,
-      showPrice: true,
+      // Si algún servicio oculta su precio, no exponemos el total en el mensaje.
+      showPrice: selectedServices.every((s) => !s.hide_price_public),
       services: selectedServices.map((s) => {
         const opts = resolveServiceOptions(s, selectedOptionsByService)
         return {
@@ -972,15 +973,19 @@ export default function ServiciosClient({
                                   <h3 className="truncate text-[15px] font-semibold leading-snug text-[#111] sm:text-[16px]">
                                     {s.name}
                                   </h3>
-                                  <p className="mt-1 text-[12px] text-[#8a8a8a] sm:text-[13px]">
-                                    {formatDuration(s.duration_min)}
-                                  </p>
+                                  {!s.hide_duration_public && (
+                                    <p className="mt-1 text-[12px] text-[#8a8a8a] sm:text-[13px]">
+                                      {formatDuration(s.duration_min)}
+                                    </p>
+                                  )}
                                   <p className="mt-2 line-clamp-2 min-h-[2.5em] text-[13px] leading-relaxed text-[#6b6b6b]">
                                     {s.description?.trim() || "\u00a0"}
                                   </p>
-                                  <p className="mt-1.5 text-[14px] font-semibold text-[#111] sm:mt-2 sm:text-[15px]">
-                                    {formatPrice(s.price)}
-                                  </p>
+                                  {!s.hide_price_public && (
+                                    <p className="mt-1.5 text-[14px] font-semibold text-[#111] sm:mt-2 sm:text-[15px]">
+                                      {formatPrice(s.price)}
+                                    </p>
+                                  )}
                                 </div>
 
                                 {/* + (añadir/quitar) + pestañita si hay opciones */}
