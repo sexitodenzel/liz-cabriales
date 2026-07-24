@@ -3,6 +3,22 @@
 import Image, { type ImageProps } from "next/image"
 import { useEffect, useRef, useState } from "react"
 
+/** ¿next/image puede construir una URL a partir de este src sin lanzar? */
+function isRenderableSrc(src: ImageProps["src"]): boolean {
+  // StaticImport (import estático de imagen) siempre es válido.
+  if (typeof src !== "string") return Boolean(src)
+  const s = src.trim()
+  if (!s) return false
+  // Rutas locales / data / blob las acepta next/image sin construir URL remota.
+  if (s.startsWith("/") || s.startsWith("data:") || s.startsWith("blob:")) return true
+  try {
+    new URL(s)
+    return true
+  } catch {
+    return false
+  }
+}
+
 /* Wrapper de next/image con el fade-in de la tienda (ProductImageScroller):
    opacity 0 → 100 en 700ms al terminar de cargar. Reutilizable en todo el
    sitio para que las imágenes entren parejas y suaves en vez de aparecer de
@@ -35,6 +51,14 @@ export default function SmoothImage({
   useEffect(() => {
     if (imgRef.current?.complete) setLoaded(true)
   }, [])
+
+  // Guarda contra src inválido: next/image hace `new URL(src)` internamente y
+  // un src vacío / undefined / ruta relativa no-absoluta lanza
+  // "Failed to construct 'URL': Invalid URL", que tumba TODO el árbol de React.
+  // Un wrapper compartido no debe reventar la página por una imagen faltante;
+  // si no hay src usable no renderiza nada (los contenedores ya traen su
+  // placeholder bg-neutral-100).
+  if (!isRenderableSrc(src)) return null
 
   return (
     <Image

@@ -207,7 +207,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   // “slim bar”: al ocultar sale toda la barra.
   useEffect(() => {
     const mqDesktopNav = window.matchMedia("(min-width: 1200px)")
-    const COLLAPSE_AFTER = 24
+    const COLLAPSE_AFTER = 40
     const EXPAND_AFTER = -8
     let lastY = window.scrollY
     let acc = 0

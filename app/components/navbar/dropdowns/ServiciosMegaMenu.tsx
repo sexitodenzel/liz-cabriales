@@ -31,9 +31,10 @@ export default function ServiciosMegaMenu({
     let isMounted = true
     void fetch("/api/navbar/servicios-menu")
       .then((res) => (res.ok ? res.json() : null))
-      .then((json: { data?: TiendaCategory[] } | null) => {
+      .then((json: { data?: { categories?: TiendaCategory[] } } | null) => {
         if (!isMounted) return
-        setCategories(Array.isArray(json?.data) ? json.data : [])
+        const cats = json?.data?.categories
+        setCategories(Array.isArray(cats) ? cats : [])
       })
       .catch(() => {
         if (isMounted) setCategories([])
