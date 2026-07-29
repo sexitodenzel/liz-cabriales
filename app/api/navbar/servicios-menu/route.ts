@@ -7,6 +7,7 @@ import {
 import { serviciosMenuToCategories, buildServiciosMenuGroups } from "@/lib/navbar/servicios-menu"
 import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
 import { getServicesCached } from "@/lib/supabase/cache"
+import { getNailArtPosts } from "@/lib/supabase/nail-art"
 import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
 
 export const dynamic = "force-dynamic"
@@ -26,14 +27,29 @@ type ApiResponse =
   | { data: null; error: { message: string; code?: string } }
 
 export async function GET(): Promise<NextResponse<ApiResponse>> {
-  const [filtersRes, servicesRes, gallery] = await Promise.all([
+  const [filtersRes, servicesRes, portadas, nailArt] = await Promise.all([
     getPublicServiceFilters(),
     getServicesCached(),
+    // "Portadas" curadas de la sección Servicios (las que sube Mildred).
     getOrderedSlotUrls(
       [...SERVICIOS_GALLERY_SLOT_KEYS],
       SERVICIOS_GALLERY_FALLBACKS
     ),
+    // Portadas de las publicaciones de Nail Art (editorial, activas).
+    getNailArtPosts(24, "featured").catch(() => []),
   ])
+
+  // Pool de fotos reales para los tiles del megamenú: primero las portadas de
+  // Nail Art, luego las portadas curadas de Servicios. Deduplicado y sin vacíos.
+  const nailArtCovers = nailArt
+    .map((post) => post.cover_image)
+    .filter((url): url is string => Boolean(url && url.trim()))
+
+  const gallery = Array.from(
+    new Set(
+      [...nailArtCovers, ...portadas].filter((url) => url.trim().length > 0)
+    )
+  )
 
   if (!servicesRes.data) {
     return NextResponse.json(
@@ -55,7 +71,7 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
     {
       data: {
         categories,
-        gallery: gallery.filter((url) => url.trim().length > 0),
+        gallery,
       },
       error: null,
     },

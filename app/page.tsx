@@ -15,7 +15,10 @@ import HomeVlogSection from "./components/home/HomeVlogSection"
 import InstagramFeed from "./components/InstagramFeed"
 import InView from "./components/ui/motion/in-view"
 
-export const revalidate = 60
+// Dinámica en cada request: evita que el build pre-genere esta página llamando
+// a Supabase (las queries tardaban >60s y tumbaban el deploy por timeout). El
+// sitio se sirve como antes, con datos frescos. El cache rápido se retoma luego.
+export const dynamic = "force-dynamic"
 
 /* Orden narrativo de la landing:
    hero (3 pilares) → marcas → en oferta/nuevos/best sellers → compra por

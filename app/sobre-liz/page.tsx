@@ -21,7 +21,9 @@ export const metadata: Metadata = {
     "Conoce a Liz Cabriales, fundadora de la Academia y Distribuidora Profesional de Uñas. Más de 7 años formando profesionales en Tampico y México.",
 }
 
-export const revalidate = 300
+// Dinámica en cada request: evita el timeout de build por pre-generar con
+// queries lentas a Supabase. Ver nota en app/page.tsx.
+export const dynamic = "force-dynamic"
 
 const SOCIAL = {
   instagram: "https://instagram.com/liz_cabriales",

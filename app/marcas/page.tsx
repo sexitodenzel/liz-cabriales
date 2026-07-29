@@ -6,7 +6,9 @@ import { getAllBrandsFullCached } from "@/lib/supabase/cache"
 
 import BrandCard from "./BrandCard"
 
-export const revalidate = 300
+// Dinámica en cada request: evita el timeout de build por pre-generar con
+// queries lentas a Supabase. Ver nota en app/page.tsx.
+export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Marcas | Liz Cabriales",

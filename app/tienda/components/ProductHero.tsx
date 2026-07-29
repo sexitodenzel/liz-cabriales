@@ -76,6 +76,32 @@ export default function ProductHero({ product, reviewSummary }: Props) {
                 min-height: calc(100cqw - 648px);
               }
             }
+            /* El panel sigue al navbar SOLO en >=1200px: ahí es un sidebar
+               sticky y el colapso sube apenas 56px (la fila de módulos
+               permanece), con useNavFollowParked gestionando el fin de columna.
+               En <1200px NO debe llevar la clase global .navbar-follow-collapse:
+               en movil el panel esta en flujo y esa clase (regla max-width:
+               1199.98px) lo traslada -(navbar + 100% de su alto) ≈ -487px sobre
+               las imagenes y le pone pointer-events:none (boton Agregar
+               inclickeable al hacer scroll). */
+            @media (min-width: 1200px) {
+              .lc-product-info-pane {
+                transform: translate3d(0, 0, 0);
+                transition: transform 360ms cubic-bezier(0.33, 1, 0.68, 1);
+                will-change: transform;
+              }
+              html.lc-nav-collapsed .lc-product-info-pane {
+                transform: translate3d(0, calc(-1 * var(--navbar-collapse-shift)), 0);
+              }
+              html.lc-nav-collapsed .lc-product-info-pane.lc-follow-parked {
+                transform: translate3d(0, 0, 0);
+              }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .lc-product-info-pane {
+                transition: none;
+              }
+            }
           `,
         }}
       />
@@ -88,7 +114,7 @@ export default function ProductHero({ product, reviewSummary }: Props) {
         </div>
         <aside
           ref={infoPaneRef}
-          className="lc-product-info-pane navbar-follow-collapse md:max-w-[380px]"
+          className="lc-product-info-pane md:max-w-[380px]"
         >
           <ProductInfoPanel
             product={product}

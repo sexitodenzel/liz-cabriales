@@ -13,7 +13,9 @@ import CourseGrid from "./CourseGrid"
 
 
 
-export const revalidate = 60
+// Dinámica en cada request: evita el timeout de build por pre-generar con
+// queries lentas a Supabase. Ver nota en app/page.tsx.
+export const dynamic = "force-dynamic"
 
 
 
