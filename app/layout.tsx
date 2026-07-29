@@ -4,12 +4,10 @@
 
 import "./globals.css";
 import { Suspense } from "react";
-import { headers } from "next/headers";
 import { CartProvider } from "./components/cart/CartContext";
 import { WishlistProvider } from "./components/wishlist/WishlistContext";
 import { NailArtFavoritesProvider } from "./components/wishlist/NailArtFavoritesContext";
 import SiteNavbar from "./components/SiteNavbar";
-import SiteNavbarAuth from "./components/SiteNavbarAuth";
 import SiteCurtainLayout from "./components/footer/SiteCurtainLayout";
 import AnnouncementBar from "./components/AnnouncementBar";
 import SiteChromeMetrics from "./components/SiteChromeMetrics";
@@ -50,18 +48,17 @@ const outfit = Outfit({
    (NO TOCAR estructura base)
    ========================= */
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Overlay home desde el HTML del servidor (proxy → x-lc-pathname):
-  // evita el flash ivory al refrescar /.
-  const pathname = (await headers()).get("x-lc-pathname") ?? ""
-  const homeOverlay = pathname === "/"
-  const htmlClass = homeOverlay
-    ? "lc-nav-guard-free lc-home-overlay"
-    : "lc-nav-guard-free"
+  // La clase lc-home-overlay la aplica el script inline de <head> antes de
+  // pintar (según location.pathname + scrollY), así que el layout ya NO lee
+  // headers(). Leer headers() aquí opta a TODA la app a render dinámico
+  // (no-store) y anula el cache ISR de las páginas; sin él, home/tienda/blog
+  // se sirven cacheadas y cargan mucho más rápido.
+  const htmlClass = "lc-nav-guard-free"
 
   return (
     /* lc-nav-guard-free de inicio: el escudo ::before de las barras
@@ -92,9 +89,7 @@ export default async function RootLayout({
             <Suspense fallback={null}>
               <AnnouncementBar />
             </Suspense>
-            <Suspense fallback={<SiteNavbar />}>
-              <SiteNavbarAuth />
-            </Suspense>
+            <SiteNavbar />
             <SiteCurtainLayout>{children}</SiteCurtainLayout>
             </NailArtFavoritesProvider>
           </WishlistProvider>

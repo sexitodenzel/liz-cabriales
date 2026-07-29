@@ -9,6 +9,7 @@ import type {
   ServiceRow,
 } from "@/lib/supabase/appointments"
 import { toast } from "@/app/components/ui/motion/toast-provider"
+import ImageUploader from "@/app/admin/components/ImageUploader"
 
 type Props = {
   services: ServiceRow[]
@@ -27,6 +28,7 @@ type ServiceForm = {
   hide_price_public: boolean
   hide_duration_public: boolean
   filter_id: string
+  image_url: string
 }
 
 const EMPTY_SERVICE: ServiceForm = {
@@ -38,6 +40,7 @@ const EMPTY_SERVICE: ServiceForm = {
   hide_price_public: false,
   hide_duration_public: false,
   filter_id: "",
+  image_url: "",
 }
 
 function formatPrice(v: number): string {
@@ -146,6 +149,7 @@ export default function ServicesPanel({
       hide_price_public: service.hide_price_public,
       hide_duration_public: service.hide_duration_public,
       filter_id: service.filter_id ?? "",
+      image_url: service.image_url ?? "",
     })
     setShowServiceModal(true)
   }
@@ -180,6 +184,7 @@ export default function ServicesPanel({
         hide_price_public: serviceForm.hide_price_public,
         hide_duration_public: serviceForm.hide_duration_public,
         filter_id: serviceForm.filter_id || null,
+        image_url: serviceForm.image_url || null,
       }
 
       const res = editingService
@@ -850,6 +855,46 @@ export default function ServicesPanel({
                   rows={3}
                   className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#c9a84c]"
                 />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+                  Foto del servicio
+                </label>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Aparece en el megamenú de Servicios. Recomendado vertical (4:5).
+                </p>
+                <div className="mt-2 flex items-center gap-3">
+                  {serviceForm.image_url ? (
+                    <div className="relative shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={serviceForm.image_url}
+                        alt="Foto del servicio"
+                        className="h-16 w-[52px] rounded-lg object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setServiceForm((f) => ({ ...f, image_url: "" }))
+                        }
+                        className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white shadow"
+                        aria-label="Quitar foto"
+                        title="Quitar foto"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : null}
+                  <ImageUploader
+                    folder="services"
+                    compact
+                    buttonLabel={serviceForm.image_url ? "Cambiar foto" : "Subir foto"}
+                    onUpload={(url) =>
+                      setServiceForm((f) => ({ ...f, image_url: url }))
+                    }
+                    onError={(msg) => toast.error(msg)}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>

@@ -9,7 +9,12 @@ export type MenuItem = {
   href: string
 }
 
-export type TiendaSubcategory = { label: string; href: string }
+export type TiendaSubcategory = {
+  label: string
+  href: string
+  /** Foto opcional (usada en los tiles del megamenú de Servicios). */
+  image?: string | null
+}
 
 export type TiendaCategory = {
   label: string

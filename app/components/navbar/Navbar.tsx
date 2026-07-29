@@ -23,6 +23,7 @@ import {
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
+import { createClient as createSupabaseBrowser } from "@/lib/supabase/client"
 import { useCart } from "../cart/CartContext"
 import { useWishlist } from "../wishlist/WishlistContext"
 import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
@@ -105,6 +106,26 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [hasMounted, setHasMounted] = useState(false)
   useEffect(() => {
     setHasMounted(true)
+  }, [])
+
+  // Estado de sesión resuelto en CLIENTE (antes venía por prop desde el
+  // servidor, lo que forzaba render dinámico de toda la app). getSession lee
+  // la sesión local sin round-trip; onAuthStateChange mantiene el icono de
+  // usuario en sync tras login/logout. Solo controla el href /perfil vs /login.
+  const [loggedIn, setLoggedIn] = useState(isLoggedIn)
+  useEffect(() => {
+    const supabase = createSupabaseBrowser()
+    let active = true
+    void supabase.auth.getSession().then(({ data }) => {
+      if (active) setLoggedIn(Boolean(data.session?.user))
+    })
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(Boolean(session?.user))
+    })
+    return () => {
+      active = false
+      sub.subscription.unsubscribe()
+    }
   }, [])
 
   const cartBadgeCount = hasMounted && !cartLoading ? itemCount : 0
@@ -793,11 +814,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                   </Link>
 
                   <Link
-                    href={isLoggedIn ? "/perfil" : "/login"}
+                    href={loggedIn ? "/perfil" : "/login"}
                     onClick={() => setActiveMenu(null)}
                     className={`${iconBtnBase} h-9 w-9 justify-center`}
                     tabIndex={hideChrome ? -1 : 0}
-                    aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
+                    aria-label={loggedIn ? "Mi cuenta" : "Iniciar sesión"}
                   >
                     <User className="h-5 w-5" strokeWidth={1.75} />
                   </Link>
@@ -934,7 +955,7 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       <MobileDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        isLoggedIn={isLoggedIn}
+        isLoggedIn={loggedIn}
         tiendaCategories={tiendaDesktopCategories}
         brands={brandMenuItems}
       />

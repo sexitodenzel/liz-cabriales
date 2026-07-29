@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 
+import SmoothImage from "@/app/components/shared/SmoothImage"
+
 import type { TiendaCategory } from "../menuData"
 
 type ServiciosMegaMenuProps = {
@@ -80,14 +82,18 @@ export default function ServiciosMegaMenu({
   }, [categories, activeSlug, defaultSlug])
 
   const visibleSubs = activeCat?.subcategories ?? []
-  // Placeholders etiquetados: los servicios de la categoría activa (o la propia
-  // categoría si no tiene servicios). Cuando llegue el contenido de nail art /
-  // fotos de servicios, se cambia el fondo de estos tiles por la imagen real.
-  const tiles = (
+  // Tiles de la categoría activa: los servicios (o la propia categoría si no
+  // tiene servicios). Cada servicio puede traer su foto (image), subida desde
+  // el panel de admin. Si no hay foto, se muestra el placeholder "Próximamente".
+  const tiles: Array<{ label: string; href: string; image: string | null }> = (
     visibleSubs.length > 0
-      ? visibleSubs.map((sub) => sub.label)
+      ? visibleSubs.map((sub) => ({
+          label: sub.label,
+          href: sub.href,
+          image: sub.image ?? null,
+        }))
       : activeCat
-        ? [activeCat.label]
+        ? [{ label: activeCat.label, href: activeCat.href, image: null }]
         : []
   ).slice(0, 2)
 
@@ -200,8 +206,14 @@ export default function ServiciosMegaMenu({
                     Nuestros servicios
                   </p>
                   <div className="grid grid-cols-2 gap-4">
-                    {tiles.map((label) => (
-                      <ServicePlaceholderTile key={label} label={label} />
+                    {tiles.map((tile) => (
+                      <ServiceTile
+                        key={tile.label}
+                        label={tile.label}
+                        href={tile.href}
+                        image={tile.image}
+                        onClose={onClose}
+                      />
                     ))}
                   </div>
                 </div>
@@ -215,22 +227,47 @@ export default function ServiciosMegaMenu({
 }
 
 /**
- * Tile placeholder — misma caja que FlyerCard de AcademiaMegaMenu
- * (aspect 4/5, rounded-md, título debajo). Cuando lleguen fotos reales,
- * sustituir el fondo por <SmoothImage>.
+ * Tile de servicio — misma caja que FlyerCard de AcademiaMegaMenu
+ * (aspect 4/5, rounded-md, título debajo). Muestra la foto del servicio
+ * (subida desde /admin) o un placeholder "Próximamente" si aún no tiene.
  */
-function ServicePlaceholderTile({ label }: { label: string }) {
+function ServiceTile({
+  label,
+  href,
+  image,
+  onClose,
+}: {
+  label: string
+  href: string
+  image: string | null
+  onClose: () => void
+}) {
   return (
-    <div className="group block w-full">
+    <Link href={href} onClick={onClose} className="group block w-full">
       <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md bg-neutral-100">
-        <div className="absolute inset-0 bg-gradient-to-b from-neutral-100 to-neutral-200" />
-        <span className="absolute left-2 top-2 rounded-full bg-white/80 px-2 py-[3px] text-[9px] font-semibold uppercase tracking-[0.14em] text-neutral-600">
-          Próximamente
-        </span>
+        {image ? (
+          <>
+            <SmoothImage
+              src={image}
+              alt={label}
+              fill
+              sizes="160px"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/25" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-b from-neutral-100 to-neutral-200" />
+            <span className="absolute left-2 top-2 rounded-full bg-white/80 px-2 py-[3px] text-[9px] font-semibold uppercase tracking-[0.14em] text-neutral-600">
+              Próximamente
+            </span>
+          </>
+        )}
       </div>
       <p className="mt-2 text-[12px] leading-snug text-[#1a1a1a] line-clamp-2">
         {label}
       </p>
-    </div>
+    </Link>
   )
 }
