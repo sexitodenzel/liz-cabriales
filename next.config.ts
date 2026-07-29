@@ -57,6 +57,11 @@ const nextConfig: NextConfig = {
   // Fija la raíz del workspace a este proyecto para evitar que Next elija
   // el lockfile de C:\Users\migue como raíz (había múltiples package-lock.json).
   outputFileTracingRoot: __dirname,
+  // Mismo motivo para Turbopack (dev): sin esto infería la raíz en ...\app y
+  // no resolvía el paquete next → "Turbopack build failed" al arrancar.
+  turbopack: {
+    root: __dirname,
+  },
   images: {
     // Vercel NO transforma imágenes: se sirven tal cual desde su origen
     // (Supabase Storage CDN, /public, etc.). El plan Hobby limita las Image
