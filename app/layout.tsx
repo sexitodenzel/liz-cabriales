@@ -13,6 +13,7 @@ import SiteNavbarAuth from "./components/SiteNavbarAuth";
 import SiteCurtainLayout from "./components/footer/SiteCurtainLayout";
 import AnnouncementBar from "./components/AnnouncementBar";
 import SiteChromeMetrics from "./components/SiteChromeMetrics";
+import { Analytics } from "@vercel/analytics/next";
 
 /* =========================
    IMPORTACIÓN DE FUENTES
@@ -99,6 +100,7 @@ export default async function RootLayout({
             </NailArtFavoritesProvider>
           </WishlistProvider>
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );
