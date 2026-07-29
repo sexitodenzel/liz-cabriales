@@ -199,16 +199,22 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     }
   }, [activeMenu])
 
-  // Auto-hide del navbar (todas las vistas): bajar oculta toda la barra
-  // (logo + módulos), subir la vuelve a mostrar. CSS mueve con transform
-  // html.lc-nav-collapsed (ver globals.css) — 100% GPU.
-  // Umbrales ACUMULADOS por dirección: micro-scrolls no togglean.
-  // Cerca del top queda siempre visible. hideChrome ya no aplica a un
-  // “slim bar”: al ocultar sale toda la barra.
+  // Auto-hide del navbar (todas las vistas): bajar colapsa, subir muestra.
+  // En ≥1200px sube solo la fila superior y queda la fila de módulos como
+  // barra delgada; en vistas de una sola fila se va toda la barra. CSS mueve
+  // con transform html.lc-nav-collapsed (ver globals.css, --navbar-collapse-
+  // shift) — 100% GPU. Umbrales ACUMULADOS por dirección: micro-scrolls no
+  // togglean. Cerca del top queda siempre visible. hideChrome apaga la fila
+  // superior (aria/tabIndex) cuando hay barra delgada.
   useEffect(() => {
     const mqDesktopNav = window.matchMedia("(min-width: 1200px)")
     const COLLAPSE_AFTER = 40
-    const EXPAND_AFTER = -8
+    // Histéresis simétrica: expandir exige un gesto hacia arriba COMPROMETIDO,
+    // no un micro-rebote. Con -8 (gatillo de pelo) subir/bajar rápido revertía
+    // el colapso a media transición de 360ms y se sentía un "latigazo": el
+    // navbar y la barra follow oscilaban en ráfaga. Con -28 el jitter de un
+    // scrub rápido ya no togglea; solo un scroll arriba deliberado reabre.
+    const EXPAND_AFTER = -28
     let lastY = window.scrollY
     let acc = 0
     // Barra sticky de la página que sigue el hide (marcada con
@@ -222,8 +228,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
     const setCollapsed = (collapsed: boolean) => {
       document.documentElement.classList.toggle("lc-nav-collapsed", collapsed)
-      // Ocultamos toda la barra: no hay fila de módulos residual ni logo compacto.
-      setHideChrome(false)
+      // ≥1200px conserva la fila de módulos (barra delgada): solo sube la fila
+      // superior, así que su aria/tabIndex se apagan con hideChrome y aparece
+      // el logo compacto a la izquierda del nav. En vistas de una sola fila se
+      // va toda la barra, sin fila residual → hideChrome queda en false.
+      setHideChrome(collapsed && mqDesktopNav.matches)
     }
 
     const update = () => {
@@ -245,52 +254,58 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       const collapsed =
         !inTopZone && root.classList.contains("lc-nav-collapsed")
 
-      // Guard dock solo aplica en desktop wide (sticky filters bajo navbar 104px).
-      if (mqDesktopNav.matches) {
-        if (!collapsed && (!guardEl || !guardEl.isConnected)) {
-          guardEl = document.querySelector<HTMLElement>("[data-nav-collapse-guard]")
-          if (guardEl) {
-            const dockTop = parseFloat(getComputedStyle(guardEl).top)
-            guardDockTop = Number.isFinite(dockTop) ? dockTop : navbarBottom
+      // Guard dock (móvil + desktop): no colapsar hasta que la barra sticky
+      // con [data-nav-collapse-guard] se haya pegado. Si el navbar se oculta
+      // mientras la barra aún baja por el hero, el follow-collapse la traslada
+      // en flujo y queda "pegada" rara / con hueco (academia/tienda móvil).
+      if (!collapsed && (!guardEl || !guardEl.isConnected)) {
+        // El streaming SSR de Next deja una copia OCULTA de la página dentro de
+        // <div hidden id="S:x"> (plantilla de un boundary Suspense). Esa copia
+        // duplica el [data-nav-collapse-guard] con tamaño 0 y offsetParent null.
+        // Tomar el primero por querySelector funciona por orden de documento,
+        // pero es frágil: si la copia oculta quedara primero, su rect top=0
+        // haría creer que el guard ya dockeó y el navbar colapsaría sobre el
+        // hero. Elegimos el que está REALMENTE renderizado (offsetParent).
+        const candidates = document.querySelectorAll<HTMLElement>(
+          "[data-nav-collapse-guard]"
+        )
+        guardEl =
+          Array.from(candidates).find((el) => el.offsetParent !== null) ??
+          candidates[0] ??
+          null
+        if (guardEl) {
+          const dockTop = parseFloat(getComputedStyle(guardEl).top)
+          guardDockTop = Number.isFinite(dockTop) ? dockTop : navbarBottom
+        }
+      }
+      let guardTop = Number.POSITIVE_INFINITY
+      if (!collapsed && guardEl && guardEl.isConnected) {
+        guardTop = guardEl.getBoundingClientRect().top
+        if (inTopZone) {
+          const transform = getComputedStyle(guardEl).transform
+          if (transform && transform !== "none") {
+            guardTop -= new DOMMatrixReadOnly(transform).m42
           }
         }
-        let guardTop = Number.POSITIVE_INFINITY
-        if (!collapsed && guardEl && guardEl.isConnected) {
-          guardTop = guardEl.getBoundingClientRect().top
-          if (inTopZone) {
-            const transform = getComputedStyle(guardEl).transform
-            if (transform && transform !== "none") {
-              guardTop -= new DOMMatrixReadOnly(transform).m42
-            }
-          }
-        }
-        const guardDocked =
-          collapsed ||
-          !guardEl ||
-          !guardEl.isConnected ||
-          guardTop <= guardDockTop + 1
+      }
+      const guardDocked =
+        collapsed ||
+        !guardEl ||
+        !guardEl.isConnected ||
+        guardTop <= guardDockTop + 1
 
-        root.classList.toggle("lc-nav-guard-free", !guardDocked)
+      // lc-nav-guard-free solo tiene CSS en ≥1200px; en móvil el toggle es no-op visual.
+      root.classList.toggle("lc-nav-guard-free", !guardDocked)
 
-        if (inTopZone) {
-          acc = 0
-          setCollapsed(false)
-          return
-        }
-        // No ocultar hasta que la barra sticky se haya pegado: si el navbar
-        // sube entero mientras la barra aún baja por el hero, queda un hueco.
-        if (!guardDocked) {
-          acc = 0
-          setCollapsed(false)
-          return
-        }
-      } else {
-        root.classList.remove("lc-nav-guard-free")
-        if (inTopZone) {
-          acc = 0
-          setCollapsed(false)
-          return
-        }
+      if (inTopZone) {
+        acc = 0
+        setCollapsed(false)
+        return
+      }
+      if (!guardDocked) {
+        acc = 0
+        setCollapsed(false)
+        return
       }
 
       if (delta > 0 !== acc > 0) acc = 0
@@ -416,6 +431,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => window.clearTimeout(timer)
   }, [mobileSearchOpen, isCompactDesktop])
 
+  // Al cerrar (X, overlay, Escape), el foco a veces vuelve al input porque el
+  // botón X deja de ser focusable. Si el input queda focused, el siguiente
+  // click no dispara onFocus y el menú no se reabre.
+  useEffect(() => {
+    if (mobileSearchOpen) return
+    desktopSearchInputRef.current?.blur()
+  }, [mobileSearchOpen])
+
   // Tienda no incluye marcas ni en desktop ni en el drawer móvil: Marcas es su
   // propia entrada de primer nivel (con su megamenú en desktop y su panel con
   // logos en el drawer).
@@ -538,6 +561,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       setMobileSearchOpen(false)
       return
     }
+    closeCart()
+    setDrawerOpen(false)
+    setMobileSearchOpen(true)
+  }
+
+  const openDesktopSearch = () => {
+    if (mobileSearchOpen) return
+    setActiveMenu(null)
     closeCart()
     setDrawerOpen(false)
     setMobileSearchOpen(true)
@@ -673,8 +704,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                       setSearchQuery("")
                       setMobileSearchOpen(false)
                     }}
-                    className={`relative flex min-w-0 items-center gap-2 border-b border-neutral-900 pb-1 ${
-                      mobileSearchOpen ? "flex-1" : "w-1/2 shrink-0"
+                    className={`relative flex min-w-0 shrink-0 items-center gap-2 border-b border-neutral-900 pb-1 transition-[width] duration-200 ease-out ${
+                      mobileSearchOpen
+                        ? "w-[min(100%,320px)]"
+                        : "w-[min(100%,220px)]"
                     }`}
                   >
                     <div className="relative min-w-0 w-full flex-1">
@@ -690,14 +723,8 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                         autoComplete="off"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={() => {
-                          if (!mobileSearchOpen) {
-                            setActiveMenu(null)
-                            closeCart()
-                            setDrawerOpen(false)
-                            setMobileSearchOpen(true)
-                          }
-                        }}
+                        onFocus={openDesktopSearch}
+                        onClick={openDesktopSearch}
                         placeholder=""
                         tabIndex={hideChrome ? -1 : 0}
                         className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-[12px] tracking-normal text-neutral-900 outline-none lg:text-[13px]"
@@ -709,8 +736,10 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
                       onClick={() => {
                         if (searchQuery.length > 0) {
                           setSearchQuery("")
+                          desktopSearchInputRef.current?.focus()
                         } else if (mobileSearchOpen) {
                           setMobileSearchOpen(false)
+                          desktopSearchInputRef.current?.blur()
                         }
                       }}
                       tabIndex={mobileSearchOpen || searchQuery.length > 0 ? 0 : -1}

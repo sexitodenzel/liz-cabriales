@@ -23,6 +23,7 @@ function toShopperProducts(products: ProductWithCategory[]): ShopperProduct[] {
     base_price: product.base_price,
     discount_percent: product.discount_percent,
     image: product.images?.[0] ?? null,
+    variants: product.variants ?? [],
   }))
 }
 
@@ -36,9 +37,9 @@ export default async function DestacadosSection() {
   const candidates: ShopperTab[] = [
     {
       id: "best-sellers",
-      name: "Best sellers",
+      name: "Más vendidos",
       href: "/tienda/mas-vendidos",
-      badge: "Best seller",
+      badge: "Más vendido",
       products: toShopperProducts(bestResult.error ? [] : bestResult.data),
     },
     {
@@ -56,16 +57,20 @@ export default async function DestacadosSection() {
     },
   ]
 
-  const tabs = candidates.filter((tab) => tab.products.length > 0)
-  if (tabs.length === 0) return null
+  // Siempre las 3 pestañas (Más vendidos / En oferta / Nuevos), aunque alguna
+  // venga vacía: evita que desaparezcan del header en móvil.
+  if (candidates.every((tab) => tab.products.length === 0)) return null
 
   return (
     <section
       id="home-destacados-title"
       className="py-12 md:py-16"
-      aria-label="En oferta, nuevos y best sellers"
+      aria-label="Más vendidos, en oferta y nuevos"
     >
-      <TabbedShopper tabs={tabs} />
+      <TabbedShopper
+        tabs={candidates}
+        title="Compra los productos"
+      />
     </section>
   )
 }

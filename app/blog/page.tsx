@@ -1,5 +1,6 @@
 import Link from "next/link"
 import SmoothImage from "@/app/components/shared/SmoothImage"
+import BlogRail from "./BlogRail"
 import { getBlogPosts } from "@/lib/supabase/blog"
 import type { BlogPost } from "@/lib/supabase/blog"
 import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
@@ -59,28 +60,34 @@ function CategoryTag({ label }: { label: string }) {
   )
 }
 
-/** Card estándar (portada + tag + título + extracto), estilo academia/tienda. */
-function BlogCard({ post }: { post: BlogPost }) {
+/** Card estándar, estilo editorial OPI: imagen limpia, tag en versalitas,
+ *  título Playfair y mucho aire. `inRail` fija el ancho para el carrusel. */
+function BlogCard({ post, inRail = false }: { post: BlogPost; inRail?: boolean }) {
   const coverImage = post.cover_image || pickPlaceholder(post.slug)
 
   return (
-    <Link href={`/blog/${post.slug}`} className="group flex flex-col gap-4">
-      <div className="relative overflow-hidden rounded-2xl bg-neutral-100" style={{ aspectRatio: "3/2" }}>
+    <Link
+      href={`/blog/${post.slug}`}
+      className={`group flex flex-col gap-4 ${
+        inRail ? "w-[80%] shrink-0 snap-start sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]" : ""
+      }`}
+    >
+      <div className="relative overflow-hidden rounded-[14px] bg-neutral-100" style={{ aspectRatio: "3/2" }}>
         <SmoothImage
           src={coverImage}
           alt={post.title}
           fill
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          className="object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.04]"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         <div className="flex items-center gap-3">
           <CategoryTag label={post.category} />
-          <span className="text-[11px] text-[#6b6b6b]">{formatDate(post.published_at)}</span>
+          <span className="text-[11px] tracking-wide text-[#8a8a8a]">{formatDate(post.published_at)}</span>
         </div>
-        <h3 className="font-[family-name:var(--font-playfair),serif] text-[19px] font-medium leading-snug text-[#111] transition-colors group-hover:text-[#8a6d26]">
+        <h3 className="font-[family-name:var(--font-playfair),serif] text-[20px] font-medium leading-snug text-[#111] transition-colors group-hover:text-[#8a6d26]">
           {post.title}
         </h3>
         {post.excerpt && (
@@ -88,7 +95,7 @@ function BlogCard({ post }: { post: BlogPost }) {
             {post.excerpt}
           </p>
         )}
-        <span className="group/cta mt-1 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a6d26]">
+        <span className="group/cta mt-0.5 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a6d26]">
           Leer más
           <span className="transition-transform duration-[280ms] ease-out group-hover/cta:translate-x-1">
             <ArrowCta />
@@ -99,35 +106,40 @@ function BlogCard({ post }: { post: BlogPost }) {
   )
 }
 
-/** Artículo destacado: imagen grande a la izquierda, texto a la derecha. */
-function FeaturedCard({ post }: { post: BlogPost }) {
+/** Banda spotlight a todo el ancho (full-bleed), estilo 'Featured Article' de
+ *  OPI. El destacado de la categoría rompe el margen del contenedor. `flip`
+ *  alterna el lado de la imagen para dar ritmo. */
+function SpotlightBand({ post, flip = false }: { post: BlogPost; flip?: boolean }) {
   const coverImage = post.cover_image || pickPlaceholder(post.slug)
 
   return (
     <Link
       href={`/blog/${post.slug}`}
-      className="group grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8"
+      className="group relative -mx-[var(--site-px)] grid grid-cols-1 overflow-hidden md:grid-cols-2"
     >
-      <div className="relative overflow-hidden rounded-2xl bg-neutral-100" style={{ aspectRatio: "16/11" }}>
+      <div className={`relative min-h-[280px] bg-neutral-100 md:min-h-[420px] ${flip ? "md:order-2" : ""}`}>
         <SmoothImage
           src={coverImage}
           alt={post.title}
           fill
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, 50vw"
+          className="object-cover transition-transform duration-[800ms] ease-out group-hover:scale-[1.04]"
+          sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
 
-      <div className="flex flex-col justify-center gap-3">
+      <div className="flex flex-col justify-center gap-4 bg-ivory px-[var(--site-px)] py-12 md:px-14 md:py-16">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#8a6d26]">
+          Destacado
+        </span>
         <div className="flex items-center gap-3">
           <CategoryTag label={post.category} />
-          <span className="text-[11px] text-[#6b6b6b]">{formatDate(post.published_at)}</span>
+          <span className="text-[11px] text-[#8a8a8a]">{formatDate(post.published_at)}</span>
         </div>
-        <h3 className="font-[family-name:var(--font-playfair),serif] text-[clamp(22px,2.4vw,30px)] font-medium leading-[1.15] text-[#111] transition-colors group-hover:text-[#8a6d26]">
+        <h3 className="font-[family-name:var(--font-playfair),serif] text-[clamp(24px,2.8vw,36px)] font-medium leading-[1.12] text-[#111] transition-colors group-hover:text-[#8a6d26]">
           {post.title}
         </h3>
         {post.excerpt && (
-          <p className="max-w-[46ch] text-[14px] leading-relaxed text-[#6b6b6b]">
+          <p className="max-w-[46ch] text-[14px] leading-relaxed text-[#5a5a5a]">
             {post.excerpt}
           </p>
         )}
@@ -142,23 +154,25 @@ function FeaturedCard({ post }: { post: BlogPost }) {
   )
 }
 
-/** Sección editorial de una categoría: encabezado + destacado + fila de 3. */
+/** Sección editorial de una categoría: encabezado + banda spotlight del
+ *  destacado (full-bleed) + riel horizontal con el resto. */
 function CategorySection({
   category,
   posts,
+  index,
 }: {
   category: BlogCategory
   posts: BlogPost[]
+  index: number
 }) {
   if (posts.length === 0) return null
   const [featured, ...rest] = posts
-  const row = rest.slice(0, 3)
 
   return (
-    <section className="border-t border-[#ececec] pt-12">
-      <div className="mb-8 flex items-baseline justify-between gap-4">
+    <section className="border-t border-[#ececec] pt-14">
+      <div className="mb-9 flex items-baseline justify-between gap-4">
         <div>
-          <h2 className="font-[family-name:var(--font-playfair),serif] text-[26px] font-medium leading-none text-[#111]">
+          <h2 className="font-[family-name:var(--font-playfair),serif] text-[28px] font-medium leading-none text-[#111]">
             {category.label}
           </h2>
           <p className="mt-2 text-[12px] text-[#8a8a8a]">{category.tagline}</p>
@@ -174,13 +188,15 @@ function CategorySection({
         </Link>
       </div>
 
-      <FeaturedCard post={featured} />
+      <SpotlightBand post={featured} flip={index % 2 === 1} />
 
-      {row.length > 0 && (
-        <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-          {row.map((post) => (
-            <BlogCard key={post.id} post={post} />
-          ))}
+      {rest.length > 0 && (
+        <div className="mt-14">
+          <BlogRail>
+            {rest.map((post) => (
+              <BlogCard key={post.id} post={post} inRail />
+            ))}
+          </BlogRail>
         </div>
       )}
     </section>
@@ -320,11 +336,13 @@ export default async function BlogPage({ searchParams }: Props) {
     else byCategory.set(post.category, [post])
   }
 
-  // Portada de cada círculo = primera publicación de esa categoría.
+  // Portada de cada círculo = primera publicación de esa categoría (usando
+  // todos los posts, incluido el líder, para que ningún círculo quede sin foto).
   const covers = new Map<string, string>()
-  for (const [label, list] of byCategory) {
-    const cover = list[0]?.cover_image || (list[0] && pickPlaceholder(list[0].slug))
-    if (cover) covers.set(label, cover)
+  for (const post of allPosts) {
+    if (!covers.has(post.category)) {
+      covers.set(post.category, post.cover_image || pickPlaceholder(post.slug))
+    }
   }
 
   const activePosts = activeCategory
@@ -384,11 +402,12 @@ export default async function BlogPage({ searchParams }: Props) {
         ) : (
           /* ── Vista principal: una sección editorial por categoría ──────── */
           <div className="flex flex-col gap-16">
-            {BLOG_CATEGORIES.map((cat) => (
+            {BLOG_CATEGORIES.map((cat, i) => (
               <CategorySection
                 key={cat.slug}
                 category={cat}
                 posts={byCategory.get(cat.label) ?? []}
+                index={i}
               />
             ))}
           </div>

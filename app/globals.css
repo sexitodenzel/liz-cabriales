@@ -49,6 +49,11 @@
   --home-hero-inset: calc(var(--navbar-mobile-h) + 24px);
   /* Borde inferior del chrome (anuncios + navbar); SiteChromeMetrics.tsx */
   --site-chrome-bottom: var(--navbar-actual-h);
+  /* Cuánto sube el navbar al colapsar. Por defecto (móvil / ≤1199px, una sola
+     fila) se va TODA la barra. En ≥1200px se traslada solo la fila superior
+     (56px) y queda la fila de módulos (Tienda/Servicios/Academia…) pegada
+     arriba como barra delgada. Ver media query abajo. */
+  --navbar-collapse-shift: var(--navbar-actual-h);
   /* Contenedor horizontal unificado (navbar + páginas públicas en desktop) */
   --site-max-w: 1600px;
   /* Respiro lateral estándar de todo el sitio: escala con el ancho de pantalla.
@@ -122,11 +127,13 @@ html {
 }
 
 /* Auto-hide del navbar por dirección de scroll.
-   Binario: bajar oculta TODA la barra (logo + módulos), subir la muestra.
-   Navbar.tsx togglea html.lc-nav-collapsed; el movimiento es `transform`
-   (GPU). --navbar-actual-h se mantiene ESTÁTICA para que los stickys no
-   disparen reflow. Barras .navbar-follow-collapse viajan con la misma
-   transition. */
+   Bajar colapsa (translate hacia arriba), subir muestra. Cuánto sube lo
+   define --navbar-collapse-shift: en ≥1200px solo la fila superior (56px),
+   dejando la fila de módulos como barra delgada; en vistas de una sola fila
+   se va toda la barra. Navbar.tsx togglea html.lc-nav-collapsed; el
+   movimiento es `transform` (GPU). --navbar-actual-h se mantiene ESTÁTICA
+   para que los stickys no disparen reflow. Barras .navbar-follow-collapse
+   viajan con la misma transition. */
 #site-navbar,
 .navbar-follow-collapse {
   transform: translate3d(0, 0, 0);
@@ -139,8 +146,28 @@ html {
 
 html.lc-nav-collapsed #site-navbar,
 html.lc-nav-collapsed .navbar-follow-collapse {
-  transform: translate3d(0, calc(-1 * var(--navbar-actual-h)), 0);
-  pointer-events: none;
+  transform: translate3d(0, calc(-1 * var(--navbar-collapse-shift)), 0);
+}
+
+/* ≤1199px: navbar y barras follow salen del viewport → sin interacción.
+   En ≥1200px NO se aplica: la fila de módulos (y las barras follow docked
+   bajo ella) siguen visibles y deben poder clicarse.
+
+   Sticky follow a top:navbar-h: con solo -shift queda en y=0 (pegada arriba
+   e inerte). Hay que sumar -100% (su propia altura) para que salga del todo. */
+@media (max-width: 1199.98px) {
+  html.lc-nav-collapsed #site-navbar {
+    pointer-events: none;
+  }
+
+  html.lc-nav-collapsed .navbar-follow-collapse {
+    transform: translate3d(
+      0,
+      calc(-1 * var(--navbar-collapse-shift) - 100%),
+      0
+    );
+    pointer-events: none;
+  }
 }
 
 /* Follow con FIN DE RECORRIDO (sidebar de curso/producto): al agotar el
@@ -155,6 +182,9 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
 @media (min-width: 1200px) {
   :root {
     --navbar-actual-h: 104px;
+    /* Al colapsar sube solo la fila superior (56px): la fila de módulos queda
+       pegada arriba como barra delgada (Tienda/Servicios/Academia…). */
+    --navbar-collapse-shift: 56px; /* fila superior */
     /* Navbar se oculta por completo al scrollear: solo queda el respiro. */
     --home-hero-inset: 24px;
   }
@@ -580,6 +610,78 @@ body {
 
 .animate-fade-up {
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* =====================================
+   TABBED SHOPPER — carrusel de productos (Best Sellers) con tabs.
+   Reveal escalonado on-scroll, fade del track al cambiar de tab y
+   zoom de imagen en hover. Todo respeta prefers-reduced-motion.
+===================================== */
+
+@keyframes lc-card-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lc-track-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Track: oculta las cards hasta que la sección entra al viewport. El JS
+   añade `.is-revealed` (vía IntersectionObserver o fallback) para disparar. */
+.lc-shopper-track .lc-card {
+  opacity: 0;
+}
+.lc-shopper-track.is-revealed {
+  animation: lc-track-fade 0.28s ease both;
+}
+.lc-shopper-track.is-revealed .lc-card {
+  /* animation-delay se asigna inline para el stagger (~70ms por card).
+     Duración topada a 400ms para respetar el límite global (el spec pedía
+     ~500ms, pero también "ninguna animación >400ms" — gana el límite duro). */
+  animation: lc-card-reveal 0.4s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* Zoom de imagen en hover: solo puntero fino (desktop), contenido por
+   overflow:hidden del contenedor. */
+.lc-card-img {
+  transform-origin: center;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lc-card-img {
+    will-change: transform;
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .group:hover .lc-card-img {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc-shopper-track .lc-card {
+    opacity: 1;
+  }
+  .lc-shopper-track.is-revealed,
+  .lc-shopper-track.is-revealed .lc-card {
+    animation: none;
+  }
+  .lc-card-img {
+    transition: none;
+  }
+  .group:hover .lc-card-img {
+    transform: none;
+  }
 }
 
 /* =====================================

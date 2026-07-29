@@ -42,6 +42,7 @@ export default async function CategoriasSection() {
       base_price: product.base_price,
       discount_percent: product.discount_percent,
       image: product.images?.[0] ?? null,
+      variants: product.variants ?? [],
     })
     byCategory.set(product.category_id, list)
   }
@@ -60,18 +61,9 @@ export default async function CategoriasSection() {
   return (
     <section
       className="py-12 md:py-16"
-      aria-labelledby="home-categorias-title"
+      aria-label="Compra por colección"
     >
-      <header className="mb-8 text-center md:mb-10">
-        <h2
-          id="home-categorias-title"
-          className="font-display text-[clamp(20px,2.4vw,28px)] font-medium tracking-[-0.01em] text-ink"
-        >
-          Compra por colección
-        </h2>
-        <div className="mx-auto mt-3 h-px w-12 bg-gold-soft" aria-hidden />
-      </header>
-      <TabbedShopper tabs={tabs} />
+      <TabbedShopper tabs={tabs} title="Compra por colección" />
     </section>
   )
 }

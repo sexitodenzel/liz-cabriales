@@ -151,9 +151,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (!isMounted) return
       setIsLoading(true)
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      let user: Awaited<
+        ReturnType<typeof supabase.auth.getUser>
+      >["data"]["user"] = null
+      try {
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser()
+        user = authUser
+      } catch {
+        // Fallo de red transitorio (p. ej. HMR/StrictMode aborta el fetch en
+        // dev): trátalo como invitado en vez de dejar que la promesa rechace
+        // sin capturar y reviente el overlay de Next.
+        user = null
+      }
 
       if (!isMounted) return
 

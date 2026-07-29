@@ -19,9 +19,10 @@
  *   · guard: true → si hay contenido ENCIMA de la barra (hero, título de paso)
  *                   que aún scrollea cuando el header superior ya dockeó.
  *                   Evita que el navbar colapse antes de que ESTA barra dockee
- *                   (si no, follow-collapse la traslada -56px en flujo y abre
- *                   hueco / recorta el título). Marca data-nav-collapse-guard,
- *                   que el motor de colapso de Navbar.tsx lee genéricamente.
+ *                   (si no, follow-collapse la traslada en flujo y abre hueco /
+ *                   deja la barra “pegada” rara en móvil). Marca
+ *                   data-nav-collapse-guard; Navbar.tsx lo lee en todas las
+ *                   vistas (no solo ≥1200px).
  *   · park       → si la barra agota su columna y al final el -56px la deja
  *                  descansando 56px arriba del borde, usa el hook
  *                  useNavFollowParked (necesita ref/efecto, no cabe en className).

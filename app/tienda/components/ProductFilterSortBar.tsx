@@ -44,13 +44,13 @@ function ActiveFilterChipPill({
   onRemove: () => void
 }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-neutral-100 py-2 pl-4 pr-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#0a0a0a]">
-      <span className="max-w-[200px] truncate">{label}</span>
+    <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-[#0a0a0a] px-2.5 text-[11px] font-medium tracking-wide text-white">
+      <span className="max-w-[200px] truncate uppercase">{label}</span>
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Quitar filtro ${label}`}
-        className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-neutral-500 transition-colors hover:text-[#0a0a0a]"
+        className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-white/70 transition-colors hover:text-white"
       >
         <X className="h-3 w-3" strokeWidth={2.5} />
       </button>
@@ -104,7 +104,30 @@ export default function ProductFilterSortBar({
           isCartOpen ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
-        <div className="flex items-center justify-end gap-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0 flex flex-1 flex-wrap items-center gap-2 sm:gap-3">
+            {hasActiveChips && (
+              <>
+                {activeChips.map((chip) => (
+                  <ActiveFilterChipPill
+                    key={chip.id}
+                    label={chip.label}
+                    onRemove={chip.onRemove}
+                  />
+                ))}
+                {onClearFilters && (
+                  <button
+                    type="button"
+                    onClick={handleClearFilters}
+                    className="text-[11px] font-medium text-[#0a0a0a] underline underline-offset-2 transition-colors hover:text-neutral-600"
+                  >
+                    Limpiar todo
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
           <div className="flex shrink-0 items-center gap-2">
             <div className="inline-flex items-center rounded-full border border-neutral-200 p-0.5">
               <button
@@ -164,27 +187,6 @@ export default function ProductFilterSortBar({
             )}
           </div>
         </div>
-
-        {hasActiveChips && (
-          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-neutral-100 pt-3">
-            {activeChips.map((chip) => (
-              <ActiveFilterChipPill
-                key={chip.id}
-                label={chip.label}
-                onRemove={chip.onRemove}
-              />
-            ))}
-            {onClearFilters && (
-              <button
-                type="button"
-                onClick={handleClearFilters}
-                className="text-[11px] font-medium text-[#0a0a0a] underline underline-offset-2 transition-colors hover:text-neutral-600"
-              >
-                Limpiar todo
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
       <StoreFilterPanel

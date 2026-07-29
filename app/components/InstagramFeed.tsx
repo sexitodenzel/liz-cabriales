@@ -149,7 +149,7 @@ export default function InstagramFeed() {
   return (
     <section
       ref={ref}
-      className="site-container pb-24 pt-14 text-ink md:pt-20"
+      className="site-container pb-24 pt-6 text-ink md:pt-20"
       aria-labelledby="home-instagram-title"
     >
       {/* Eyebrow */}
@@ -240,14 +240,9 @@ export default function InstagramFeed() {
           href={INSTAGRAM_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="group inline-flex items-center justify-center gap-2 rounded-full border border-gold-soft/60 px-7 py-3 text-[12px] font-semibold uppercase tracking-[0.16em] text-gold transition-colors duration-300 hover:bg-gold-soft/10"
+          className="inline-flex items-center justify-center rounded-full bg-ink px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-white transition-colors duration-300 hover:bg-neutral-800"
         >
           Ver más en Instagram
-          <span className="transition-transform duration-[280ms] ease-out group-hover:translate-x-1">
-            <svg width="15" height="10" viewBox="0 0 18 12" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-              <path d="M1 6 H16 M12 1.5 L16.5 6 L12 10.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
         </a>
       </div>
     </section>

@@ -38,6 +38,7 @@ const ALLOWED_FOLDERS = new Set([
   "professionals",
   "hero",
   "landing",
+  "home-spotlight",
   "events",
   "brands",
   "nail-art",

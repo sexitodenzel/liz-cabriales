@@ -61,39 +61,39 @@ function CourseCard({
   return (
     <Link
       href={`/academia/${course.id}`}
-      className="group relative block aspect-[3/4] w-[74vw] shrink-0 snap-start overflow-hidden rounded-card bg-neutral-100 sm:w-[300px] lg:w-[320px]"
+      className="group flex w-[74vw] shrink-0 snap-start flex-col sm:w-[300px] lg:w-[320px]"
     >
-      {cover ? (
-        <SmoothImage
-          src={cover}
-          alt={course.title}
-          fill
-          sizes="(max-width: 640px) 74vw, 320px"
-          className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.05]"
-          loading={eager ? undefined : "lazy"}
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center text-[11px] uppercase tracking-wider text-neutral-400">
-          Sin imagen
-        </div>
-      )}
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent transition-opacity duration-500 group-hover:from-black/80"
-        aria-hidden
-      />
-      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#e2c06f] [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
+      {/* Foto */}
+      <div className="relative aspect-[3/4] overflow-hidden rounded-card bg-neutral-100">
+        {cover ? (
+          <SmoothImage
+            src={cover}
+            alt={course.title}
+            fill
+            sizes="(max-width: 640px) 74vw, 320px"
+            className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.05]"
+            loading={eager ? undefined : "lazy"}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[11px] uppercase tracking-wider text-neutral-400">
+            Sin imagen
+          </div>
+        )}
+      </div>
+
+      {/* Texto debajo de la foto, en el espacio blanco */}
+      <div className="pt-4">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">
           {cardEyebrow(course)}
         </p>
-        {/* Sans semibold blanco: Playfair sobre foto ruidosa se ve "Times". */}
-        <h3 className="text-[18px] font-semibold leading-[1.15] tracking-[-0.01em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)] sm:text-[20px]">
+        <h3 className="text-[17px] font-semibold leading-[1.2] tracking-[-0.01em] text-ink sm:text-[18px]">
           {course.title}
         </h3>
-        <span className="mt-3 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+        <span className="mt-3 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink">
           <span className="relative">
             Descubrir
             <span
-              className="absolute -bottom-0.5 left-0 h-px w-full bg-white/50 transition-colors duration-300 group-hover:bg-white"
+              className="absolute -bottom-0.5 left-0 h-px w-full bg-ink/30 transition-colors duration-300 group-hover:bg-ink"
               aria-hidden
             />
           </span>
@@ -149,43 +149,46 @@ export default function AcademiaShowcaseScroll({
   function scrollByPage(dir: -1 | 1) {
     const el = scrollerRef.current
     if (!el) return
+    // Avanza por un número entero de cards que quepan en el viewport, para que
+    // cada paso caiga limpio en el borde de una card (sin cortes a media card).
+    const first = el.firstElementChild as HTMLElement | null
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 24
+    const cardW = first ? first.offsetWidth + gap : el.clientWidth * 0.9
+    const step = Math.max(1, Math.floor(el.clientWidth / cardW)) * cardW
     el.scrollBy({
-      left: dir * el.clientWidth * 0.9,
+      left: dir * step,
       behavior: reducedMotion ? "auto" : "smooth",
     })
   }
 
-  // Máscara: el texto y las cards se DESVANECEN al ser empujados a la izquierda
-  // conforme scrolleas (solo cuando ya hay algo scrolleado). Borde derecho:
-  // corte duro = "hay más" (bleed Dior). En reposo (atStart) sin fade para que
-  // el texto arranque nítido alineado al borde del sitio.
-  const fadeLeft = atStart ? "0px" : "clamp(64px, 8vw, 120px)"
-  const maskImage = `linear-gradient(to right, transparent 0px, #000 ${fadeLeft}, #000 100%)`
+  // La intro queda FIJA a la izquierda; solo el riel de cursos scrollea.
+  // Borde derecho: fade cuando hay más (bleed Dior); desaparece al llegar al final.
+  const fadeRight = atEnd ? "0px" : "clamp(48px, 6vw, 96px)"
+  const maskImage = `linear-gradient(to right, #000 0px, #000 calc(100% - ${fadeRight}), transparent 100%)`
   const showControls = pages > 1
 
   return (
     <div className="mx-auto max-w-[var(--site-max-w)] py-16 md:py-24">
-      {/* Riel horizontal: el TEXTO es el primer slide y se empuja a la
-          izquierda (ocultándose con el fade) al scrollear. */}
-      <div
-        ref={scrollerRef}
-        className="scrollbar-hide flex snap-x snap-mandatory items-center gap-4 overflow-x-auto pb-1 pl-[var(--site-px)] pr-[var(--site-px)] [scroll-padding-inline-start:var(--site-px)] sm:gap-6"
-        style={{
-          maskImage,
-          WebkitMaskImage: maskImage,
-          transition: "mask-image 450ms ease, -webkit-mask-image 450ms ease",
-        }}
-      >
-        {/* Slide de texto (reveal editorial) */}
-        <div className="shrink-0 snap-start pr-2 sm:pr-6 lg:pr-10">
-          <div className="w-[78vw] max-w-[440px] sm:w-[360px] lg:w-[400px]">
-            <AcademiaShowcaseIntro />
-          </div>
+      <div className="flex items-stretch gap-4 pl-[var(--site-px)] sm:gap-6">
+        {/* Card fija: no scrollea con el riel. */}
+        <div className="shrink-0">
+          <AcademiaShowcaseIntro />
         </div>
 
-        {courses.map((course, i) => (
-          <CourseCard key={course.id} course={course} eager={i < 2} />
-        ))}
+        {/* Riel horizontal: solo las cards de cursos se mueven. */}
+        <div
+          ref={scrollerRef}
+          className="scrollbar-hide flex snap-x snap-proximity items-start gap-4 overflow-x-auto overscroll-x-contain pb-1 pr-[var(--site-px)] [scroll-padding-inline-end:var(--site-px)] sm:gap-6"
+          style={{
+            maskImage,
+            WebkitMaskImage: maskImage,
+            transition: "mask-image 450ms ease, -webkit-mask-image 450ms ease",
+          }}
+        >
+          {courses.map((course, i) => (
+            <CourseCard key={course.id} course={course} eager={i < 2} />
+          ))}
+        </div>
       </div>
 
       {showControls && (

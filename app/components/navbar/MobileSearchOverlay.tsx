@@ -84,6 +84,11 @@ export default function MobileSearchOverlay({
   }
 
   const isEmpty = query.trim().length < 2
+  const hasResults =
+    products.length > 0 || brands.length > 0 || categories.length > 0
+  // Sin resultados aún y todavía cargando: no mostramos el separador para que
+  // la cortina crezca solo cuando hay algo que mostrar.
+  const showDesktopResults = hasResults || !suggestionsLoading
 
   const overlayContent = (
     <>
@@ -133,13 +138,37 @@ export default function MobileSearchOverlay({
             : "min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
         }`}
       >
-        {isEmpty ? (
+        {useDesktopBranch ? (
+          <>
+            <EmptyStatePanel
+              topSearches={topSearches}
+              bestSellers={bestSellers}
+              loading={emptyLoading}
+              onClose={onClose}
+              variant="desktop-dropdown"
+            />
+
+            {!isEmpty && showDesktopResults && (
+              <div className="mt-6 border-t border-neutral-200 pt-6">
+                <SearchSuggestionsContent
+                  query={query}
+                  products={products}
+                  brands={brands}
+                  categories={categories}
+                  loading={suggestionsLoading}
+                  onClose={onClose}
+                  variant="desktop-dropdown"
+                />
+              </div>
+            )}
+          </>
+        ) : isEmpty ? (
           <EmptyStatePanel
             topSearches={topSearches}
             bestSellers={bestSellers}
             loading={emptyLoading}
             onClose={onClose}
-            variant={useDesktopBranch ? "desktop-dropdown" : "mobile"}
+            variant="mobile"
           />
         ) : (
           <SearchSuggestionsContent
@@ -149,7 +178,7 @@ export default function MobileSearchOverlay({
             categories={categories}
             loading={suggestionsLoading}
             onClose={onClose}
-            variant={useDesktopBranch ? "desktop-dropdown" : "mobile"}
+            variant="mobile"
           />
         )}
       </div>
@@ -159,7 +188,7 @@ export default function MobileSearchOverlay({
   if (useDesktopBranch) {
     return (
       <div
-        className={`bg-white transition-opacity will-change-[opacity] ${
+        className={`bg-ivory transition-opacity will-change-[opacity] ${
           open
             ? "opacity-100 pointer-events-auto duration-200 ease-out"
             : "opacity-0 pointer-events-none duration-150 ease-in"

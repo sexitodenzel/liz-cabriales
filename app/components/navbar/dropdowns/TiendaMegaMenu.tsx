@@ -109,11 +109,11 @@ export default function TiendaMegaMenu({
   // Prefetch: al abrir el menú, traer en paralelo los productos de todas las
   // categorías reales (aún no cacheadas) y calentar sus imágenes. Así al pasar
   // el mouse por una categoría el showcase ya está listo, sin lag de red.
+  // Prefetch al MONTAR el navbar (en tiempo ocioso), no solo al abrir el menú:
+  // traer en paralelo los productos de todas las categorías reales (aún no
+  // cacheadas) y calentar sus imágenes. Así el primer hover ya encuentra el
+  // showcase listo, sin lag de red.
   useEffect(() => {
-    if (!isOpen) {
-      prefetchStartedRef.current = false
-      return
-    }
     if (prefetchStartedRef.current) return
     prefetchStartedRef.current = true
 
@@ -123,27 +123,38 @@ export default function TiendaMegaMenu({
     if (targets.length === 0) return
 
     let cancelled = false
-    void Promise.all(
-      targets.map(async ({ key, param }) => {
-        try {
-          const res = await fetch(
-            `/api/products/by-category?categoria=${encodeURIComponent(param)}`
-          )
-          if (!res.ok || cancelled) return
-          const json = (await res.json()) as { data?: CategoryProduct[] }
-          if (cancelled) return
-          const list = Array.isArray(json.data) ? json.data : []
-          setProductsBySlug((prev) => (prev[key] ? prev : { ...prev, [key]: list }))
-          warmImages(list)
-        } catch {
-          /* ignore */
-        }
-      })
-    )
+    const run = () => {
+      void Promise.all(
+        targets.map(async ({ key, param }) => {
+          try {
+            const res = await fetch(
+              `/api/products/by-category?categoria=${encodeURIComponent(param)}`
+            )
+            if (!res.ok || cancelled) return
+            const json = (await res.json()) as { data?: CategoryProduct[] }
+            if (cancelled) return
+            const list = Array.isArray(json.data) ? json.data : []
+            setProductsBySlug((prev) => (prev[key] ? prev : { ...prev, [key]: list }))
+            warmImages(list)
+          } catch {
+            /* ignore */
+          }
+        })
+      )
+    }
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    const id = w.requestIdleCallback
+      ? w.requestIdleCallback(run, { timeout: 2000 })
+      : window.setTimeout(run, 300)
     return () => {
       cancelled = true
+      if (w.cancelIdleCallback) w.cancelIdleCallback(id)
+      else window.clearTimeout(id)
     }
-  }, [isOpen, categories])
+  }, [categories])
 
   // Solo las categorías reales de la tienda traen productos (href con
   // `categoria=`); las virtuales (cursos, etc.) no consultan.
@@ -200,8 +211,8 @@ export default function TiendaMegaMenu({
         bg-ivory border-t border-neutral-200
         transition-opacity ease-out
         ${isOpen
-          ? "opacity-100 pointer-events-auto duration-300"
-          : "opacity-0 pointer-events-none duration-100"
+          ? "opacity-100 pointer-events-auto duration-500 delay-200"
+          : "opacity-0 pointer-events-none duration-500"
         }
       `}
     >

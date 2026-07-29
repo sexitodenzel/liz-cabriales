@@ -58,6 +58,13 @@ const nextConfig: NextConfig = {
   // el lockfile de C:\Users\migue como raíz (había múltiples package-lock.json).
   outputFileTracingRoot: __dirname,
   images: {
+    // Vercel NO transforma imágenes: se sirven tal cual desde su origen
+    // (Supabase Storage CDN, /public, etc.). El plan Hobby limita las Image
+    // Transformations a 5,000/mes; al toparlo el optimizer se atora y las
+    // imágenes tardaban 15s+ o no cargaban. Los uploads del admin ya se
+    // comprimen en cliente (<0.5MB vía lib/image-compress.ts), así que servir
+    // el original directo es más rápido que el optimizer topado.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

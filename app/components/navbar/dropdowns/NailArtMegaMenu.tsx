@@ -35,26 +35,47 @@ export default function NailArtMegaMenu({
     return () => cancelAnimationFrame(raf)
   }, [isOpen])
 
+  // Precargamos los diseños al montar el navbar (en tiempo ocioso), no al
+  // pasar el mouse: así el showcase ya está en caché y aparece al instante en
+  // el primer hover, sin lag de red. Las imágenes se calientan al recibirlas.
   useEffect(() => {
-    if (!isOpen || loaded) return
+    if (loaded) return
     let cancelled = false
-    void fetch("/api/nail-art/list?sort=likes&limit=6")
-      .then((r) => (r.ok ? r.json() : { data: [] }))
-      .then((json: { data?: PreviewPost[] }) => {
-        if (cancelled) return
-        setPosts(Array.isArray(json?.data) ? json.data.slice(0, 6) : [])
-        setLoaded(true)
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setPosts([])
+    const run = () => {
+      void fetch("/api/nail-art/list?sort=likes&limit=6")
+        .then((r) => (r.ok ? r.json() : { data: [] }))
+        .then((json: { data?: PreviewPost[] }) => {
+          if (cancelled) return
+          const list = Array.isArray(json?.data) ? json.data.slice(0, 6) : []
+          setPosts(list)
           setLoaded(true)
-        }
-      })
+          for (const post of list) {
+            if (post.cover_image) {
+              const img = new window.Image()
+              img.src = post.cover_image
+            }
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setPosts([])
+            setLoaded(true)
+          }
+        })
+    }
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    const id = w.requestIdleCallback
+      ? w.requestIdleCallback(run, { timeout: 2000 })
+      : window.setTimeout(run, 300)
     return () => {
       cancelled = true
+      if (w.cancelIdleCallback) w.cancelIdleCallback(id)
+      else window.clearTimeout(id)
     }
-  }, [isOpen, loaded])
+  }, [loaded])
 
   useEffect(() => {
     if (!isOpen) return
@@ -75,25 +96,20 @@ export default function NailArtMegaMenu({
         overflow-y-auto bg-ivory border-t border-neutral-200
         transition-opacity ease-out
         ${isOpen
-          ? "opacity-100 pointer-events-auto duration-300"
-          : "opacity-0 pointer-events-none duration-100"
+          ? "opacity-100 pointer-events-auto duration-500 delay-200"
+          : "opacity-0 pointer-events-none duration-500"
         }
       `}
     >
       <div className="site-container pt-6 pb-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <Link
-              href="/nail-art"
-              onClick={onClose}
-              className="flex w-fit items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e] transition-opacity hover:opacity-80"
-            >
-              Ver todo
-            </Link>
-            <p className="mt-2 max-w-md text-[13px] leading-relaxed text-neutral-500">
-              Inspírate con diseños hechos por productos de nuestro catálogo
-            </p>
-          </div>
+          <Link
+            href="/nail-art"
+            onClick={onClose}
+            className="flex w-fit items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e] transition-opacity hover:opacity-80"
+          >
+            Ver todo
+          </Link>
           <Link
             href="/nail-art#subir"
             onClick={onClose}

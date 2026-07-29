@@ -614,25 +614,30 @@ export default function ServiciosClient({
     async function loadProfilePhone() {
       if (!isAuthenticated) return
 
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (cancelled || !user) return
+      try {
+        const supabase = createClient()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (cancelled || !user) return
 
-      const { data: profile } = await supabase
-        .from("users")
-        .select("phone")
-        .eq("id", user.id)
-        .single()
+        const { data: profile } = await supabase
+          .from("users")
+          .select("phone")
+          .eq("id", user.id)
+          .single()
 
-      if (cancelled || !profile?.phone) return
+        if (cancelled || !profile?.phone) return
 
-      const digits = String(profile.phone)
-        .replace(/^\+52/, "")
-        .replace(/\D/g, "")
-      if (digits.length >= 10) {
-        setPhone(digits.slice(0, 10))
+        const digits = String(profile.phone)
+          .replace(/^\+52/, "")
+          .replace(/\D/g, "")
+        if (digits.length >= 10) {
+          setPhone(digits.slice(0, 10))
+        }
+      } catch {
+        // Prefill opcional: ante un fallo de red transitorio simplemente no
+        // autocompletamos el teléfono, sin romper con una excepción sin capturar.
       }
     }
 

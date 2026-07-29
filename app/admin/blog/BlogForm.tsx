@@ -335,6 +335,17 @@ Un párrafo normal con **palabras en negrita**.`}
           <code className="rounded bg-neutral-100 px-1">**texto**</code> para
           negritas.
         </p>
+        <p className="text-[11px] text-neutral-400">
+          Imágenes dentro del texto (en su propio renglón):{" "}
+          <code className="rounded bg-neutral-100 px-1">![texto](url)</code> a todo
+          el ancho.{" "}
+          <code className="rounded bg-neutral-100 px-1">![texto](url){"{izq}"}</code> o{" "}
+          <code className="rounded bg-neutral-100 px-1">{"{der}"}</code> para que el
+          texto la envuelva a un lado (como el flyer en el documento). Varias
+          seguidas con{" "}
+          <code className="rounded bg-neutral-100 px-1">{"{fila}"}</code> se ponen en
+          una fila.
+        </p>
       </div>
 
       {/* Productos */}

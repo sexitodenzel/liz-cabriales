@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react"
 
-/** Frases del typewriter (ortografía corregida). */
+/** Frases del typewriter — cortas para caber en el input desktop sin recorte. */
 export const SEARCH_TYPEWRITER_PHRASES = [
-  "Compra en lizcabriales.com",
-  "Explora nuestro módulo de tienda",
-  "Todo lo que necesitas para tus uñas está aquí",
-  "Explora nuestros diferentes servicios",
+  "Buscar en la tienda",
+  "Ver servicios",
+  "Productos para uñas",
+  "Buscar en Liz",
 ] as const
 
 const IDLE_LABEL = "Buscar"

@@ -136,8 +136,8 @@ export default function BrandsMegaMenu({
         overflow-hidden bg-ivory border-t border-neutral-200
         transition-opacity ease-out
         ${isOpen
-          ? "opacity-100 pointer-events-auto duration-300"
-          : "opacity-0 pointer-events-none duration-200"
+          ? "opacity-100 pointer-events-auto duration-500 delay-200"
+          : "opacity-0 pointer-events-none duration-500"
         }
       `}
     >

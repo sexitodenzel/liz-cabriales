@@ -28,10 +28,28 @@ function renderInline(text: string): ReactNode {
   })
 }
 
+type ImageAlign = "full" | "left" | "right" | "row"
+
 type Block =
   | { type: "heading"; text: string }
   | { type: "list"; items: string[] }
   | { type: "paragraph"; text: string }
+  | { type: "image"; src: string; alt: string; align: ImageAlign }
+  | { type: "imagerow"; images: { src: string; alt: string }[] }
+
+// Imagen en una línea propia, con alineación opcional al final:
+//   ![alt](url)          → a todo el ancho (default)
+//   ![alt](url){izq}     → flotada a la izquierda, el texto la envuelve
+//   ![alt](url){der}     → flotada a la derecha
+//   ![alt](url){fila}    → se agrupa con otras {fila} contiguas en una fila
+const IMAGE_RE = /^!\[([^\]]*)\]\(([^)]+)\)(?:\{(izq|izquierda|der|derecha|fila)\})?$/
+
+function parseAlign(token: string | undefined): ImageAlign {
+  if (token === "izq" || token === "izquierda") return "left"
+  if (token === "der" || token === "derecha") return "right"
+  if (token === "fila") return "row"
+  return "full"
+}
 
 function parseBlocks(src: string): Block[] {
   const lines = src.replace(/\r\n/g, "\n").split("\n")
@@ -52,6 +70,20 @@ function parseBlocks(src: string): Block[] {
     }
   }
 
+  // Agrupa imágenes {fila} contiguas en un solo bloque de fila.
+  const pushImage = (src: string, alt: string, align: ImageAlign) => {
+    if (align === "row") {
+      const last = blocks[blocks.length - 1]
+      if (last && last.type === "imagerow") {
+        last.images.push({ src, alt })
+        return
+      }
+      blocks.push({ type: "imagerow", images: [{ src, alt }] })
+      return
+    }
+    blocks.push({ type: "image", src, alt, align })
+  }
+
   for (const raw of lines) {
     const line = raw.trim()
     if (!line) {
@@ -59,9 +91,14 @@ function parseBlocks(src: string): Block[] {
       flushList()
       continue
     }
+    const image = line.match(IMAGE_RE)
     const heading = line.match(/^#{1,3}\s+(.*)$/)
     const bullet = line.match(/^[-•*]\s+(.*)$/)
-    if (heading) {
+    if (image) {
+      flushParagraph()
+      flushList()
+      pushImage(image[2], image[1], parseAlign(image[3]))
+    } else if (heading) {
       flushParagraph()
       flushList()
       blocks.push({ type: "heading", text: heading[1] })
@@ -91,7 +128,7 @@ export default function RichText({
 }) {
   const blocks = parseBlocks(text)
   return (
-    <div className={className}>
+    <div className={`[display:flow-root] ${className}`}>
       {blocks.map((block, i) => {
         if (block.type === "heading") {
           return (
@@ -105,6 +142,54 @@ export default function RichText({
             >
               {renderInline(block.text)}
             </h3>
+          )
+        }
+        if (block.type === "image") {
+          if (block.align === "left" || block.align === "right") {
+            const floatClass =
+              block.align === "left"
+                ? "sm:float-left sm:mr-6 sm:w-[44%]"
+                : "sm:float-right sm:ml-6 sm:w-[44%]"
+            return (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={block.src}
+                alt={block.alt}
+                loading="lazy"
+                className={`my-4 w-full rounded-xl object-cover sm:my-2 ${floatClass}`}
+              />
+            )
+          }
+          return (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={i}
+              src={block.src}
+              alt={block.alt}
+              loading="lazy"
+              className="my-6 w-full rounded-xl object-cover clear-both"
+            />
+          )
+        }
+        if (block.type === "imagerow") {
+          return (
+            <div
+              key={i}
+              className="my-6 grid gap-3 clear-both"
+              style={{ gridTemplateColumns: `repeat(${block.images.length}, minmax(0, 1fr))` }}
+            >
+              {block.images.map((img, j) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={j}
+                  src={img.src}
+                  alt={img.alt}
+                  loading="lazy"
+                  className="w-full rounded-xl object-cover"
+                />
+              ))}
+            </div>
           )
         }
         if (block.type === "list") {
@@ -122,14 +207,17 @@ export default function RichText({
             </ul>
           )
         }
-        return (
-          <p
-            key={i}
-            className="mb-4 text-[15px] leading-[1.7] text-[#3a3a3a] last:mb-0"
-          >
-            {renderInline(block.text)}
-          </p>
-        )
+        if (block.type === "paragraph") {
+          return (
+            <p
+              key={i}
+              className="mb-4 text-[15px] leading-[1.7] text-[#3a3a3a] last:mb-0"
+            >
+              {renderInline(block.text)}
+            </p>
+          )
+        }
+        return null
       })}
     </div>
   )

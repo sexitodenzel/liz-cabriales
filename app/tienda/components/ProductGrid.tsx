@@ -20,7 +20,6 @@ import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
 import { slugifyText } from "@/lib/slug"
 import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 import BrandHeaderInfo from "./BrandHeaderInfo"
-import TiendaHero from "./TiendaHero"
 import ProductCard from "./ProductCard"
 import ProductFilterSortBar from "./ProductFilterSortBar"
 import StoreDiscoverySections from "./StoreDiscoverySections"
@@ -456,7 +455,6 @@ export default function ProductGrid({
 
   return (
     <div>
-      {!singleSelectedBrand ? <TiendaHero /> : null}
       {singleSelectedBrand ? (
         <BrandHeaderInfo
           brand={singleSelectedBrand}

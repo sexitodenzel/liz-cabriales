@@ -11,6 +11,7 @@ import {
   ClipboardList,
   GraduationCap,
   Image as ImageIcon,
+  LayoutGrid,
   Megaphone,
   Newspaper,
   Package,
@@ -71,6 +72,13 @@ const actionCards: ActionCard[] = [
     description: "Sube y actualiza banners, fotos y GIFs de la landing page.",
     cta: "Ir a media",
     icon: ImageIcon,
+  },
+  {
+    href: "/admin/home-spotlight",
+    title: "Spotlight del home",
+    description: "Collage editorial de la página principal: nail art, estudio o promos.",
+    cta: "Editar spotlight",
+    icon: LayoutGrid,
   },
   {
     href: "/admin/announcements",
