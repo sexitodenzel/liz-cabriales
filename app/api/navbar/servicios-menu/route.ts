@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server"
 
-import {
-  SERVICIOS_GALLERY_FALLBACKS,
-  SERVICIOS_GALLERY_SLOT_KEYS,
-} from "@/lib/media-slots"
+import { SERVICIOS_GALLERY_SLOT_KEYS } from "@/lib/media-slots"
 import { serviciosMenuToCategories, buildServiciosMenuGroups } from "@/lib/navbar/servicios-menu"
 import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
 import { getServicesCached } from "@/lib/supabase/cache"
-import { getNailArtPosts } from "@/lib/supabase/nail-art"
 import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
 
 export const dynamic = "force-dynamic"
@@ -27,28 +23,18 @@ type ApiResponse =
   | { data: null; error: { message: string; code?: string } }
 
 export async function GET(): Promise<NextResponse<ApiResponse>> {
-  const [filtersRes, servicesRes, portadas, nailArt] = await Promise.all([
+  const [filtersRes, servicesRes, portadas] = await Promise.all([
     getPublicServiceFilters(),
     getServicesCached(),
-    // "Portadas" curadas de la sección Servicios (las que sube Mildred).
-    getOrderedSlotUrls(
-      [...SERVICIOS_GALLERY_SLOT_KEYS],
-      SERVICIOS_GALLERY_FALLBACKS
-    ),
-    // Portadas de las publicaciones de Nail Art (editorial, activas).
-    getNailArtPosts(24, "featured").catch(() => []),
+    // Fotos del megamenú de Servicios = SOLO la "Galería del estudio en
+    // /servicios" que cura Mildred en /admin/media (slots servicios_gallery_*).
+    // Sin fallbacks: los slots vacíos quedan como "" y se filtran, así nunca
+    // aparecen placeholders ni fotos de Nail Art.
+    getOrderedSlotUrls([...SERVICIOS_GALLERY_SLOT_KEYS]),
   ])
 
-  // Pool de fotos reales para los tiles del megamenú: primero las portadas de
-  // Nail Art, luego las portadas curadas de Servicios. Deduplicado y sin vacíos.
-  const nailArtCovers = nailArt
-    .map((post) => post.cover_image)
-    .filter((url): url is string => Boolean(url && url.trim()))
-
   const gallery = Array.from(
-    new Set(
-      [...nailArtCovers, ...portadas].filter((url) => url.trim().length > 0)
-    )
+    new Set(portadas.filter((url) => url.trim().length > 0))
   )
 
   if (!servicesRes.data) {
