@@ -90,15 +90,16 @@ export default async function NailArtSection() {
   )
 
   return (
-    <section className="py-12 md:py-16" aria-label="Inspiración Nail Art">
-      <NailArtShowcase
-        tabs={tabs}
-        eyebrow="Inspiración"
-        title="Nail Art"
-        subtitle="Diseños creados con productos de nuestro catálogo. Encuentra el tuyo y recréalo en casa."
-        ctaHref="/nail-art"
-        ctaLabel="Ver todo el Nail Art"
-      />
+    <section className="bg-neutral-100 py-14 md:py-20" aria-label="Inspiración Nail Art">
+      <div className="site-container">
+        <NailArtShowcase
+          tabs={tabs}
+          title="Nail Art del Momento"
+          subtitle="Los diseños que están marcando tendencia."
+          ctaHref="/nail-art"
+          ctaLabel="Ver todo el Nail Art"
+        />
+      </div>
     </section>
   )
 }

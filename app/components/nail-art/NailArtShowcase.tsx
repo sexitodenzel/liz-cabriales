@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { Star } from "lucide-react"
+import { Heart } from "lucide-react"
 
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import { useNailArtFavorites } from "@/app/components/wishlist/NailArtFavoritesContext"
@@ -38,7 +38,7 @@ function prefersReducedMotion() {
   )
 }
 
-function FavoriteStar({ postId }: { postId: string }) {
+function FavoriteHeart({ postId }: { postId: string }) {
   const { has, toggle, hydrated } = useNailArtFavorites()
   const [burst, setBurst] = useState(false)
   const favorited = hydrated ? has(postId) : false
@@ -59,15 +59,13 @@ function FavoriteStar({ postId }: { postId: string }) {
       onClick={onClick}
       aria-label={favorited ? "Quitar de favoritos" : "Agregar a favoritos"}
       aria-pressed={favorited}
-      className={`absolute right-2.5 top-2.5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-sm transition-transform duration-200 active:scale-90 ${
-        favorited
-          ? "bg-white text-[#c6a75e] shadow-md"
-          : "bg-white/85 text-[#111] hover:bg-white hover:scale-105"
+      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-transform duration-200 active:scale-90 ${
+        favorited ? "text-[#e0607a]" : "text-ink-soft/60 hover:text-[#e0607a]"
       }`}
     >
-      <Star
+      <Heart
         className={`h-[18px] w-[18px] transition-transform ${
-          favorited ? "fill-[#c6a75e] text-[#c6a75e]" : ""
+          favorited ? "fill-[#e0607a]" : ""
         } ${burst ? "scale-125" : ""}`}
         strokeWidth={1.75}
         aria-hidden
@@ -87,7 +85,7 @@ function ShowcaseCard({ post, index }: { post: NailArtPost; index: number }) {
 
   return (
     <div
-      className="lc-card group w-[62vw] max-w-[260px] shrink-0 snap-start sm:w-[220px] lg:w-[calc((100%-72px)/4)] lg:max-w-none"
+      className="lc-card group w-[62vw] max-w-[260px] shrink-0 snap-start sm:w-[220px] lg:w-[calc((100%-96px)/5)] lg:max-w-none"
       style={{ animationDelay: `${index * 70}ms` }}
     >
       <div
@@ -104,25 +102,31 @@ function ShowcaseCard({ post, index }: { post: NailArtPost; index: number }) {
             alt={post.title}
             fill
             className="lc-card-img object-cover"
-            sizes="(max-width: 640px) 62vw, (max-width: 1024px) 220px, 25vw"
+            sizes="(max-width: 640px) 62vw, (max-width: 1024px) 220px, 20vw"
           />
         </Link>
 
         {post.is_editorial && (
-          <span className="pointer-events-none absolute left-2.5 top-2.5 z-10 rounded-full bg-white/95 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#8a6d26] shadow-sm">
+          <span className="pointer-events-none absolute left-2.5 top-2.5 z-10 rounded-full bg-white/95 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-ink shadow-sm">
             Por Nosotros
           </span>
         )}
-
-        <FavoriteStar postId={post.id} />
       </div>
 
       <div className="pt-3">
-        <h3 className="line-clamp-1 font-display text-[15px] font-medium italic leading-snug text-ink">
-          <Link href={`/nail-art/${post.slug}`} className="transition-colors hover:text-gold">
-            {post.title}
-          </Link>
-        </h3>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="line-clamp-1 font-sans text-[15px] font-semibold leading-snug tracking-[-0.01em] text-ink">
+            <Link href={`/nail-art/${post.slug}`} className="transition-colors hover:text-gold">
+              {post.title}
+            </Link>
+          </h3>
+          <FavoriteHeart postId={post.id} />
+        </div>
+        {post.author_display_name && (
+          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-soft/70">
+            Por {post.author_display_name}
+          </p>
+        )}
         {chips.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {chips.map((lp) => (
@@ -255,7 +259,7 @@ export default function NailArtShowcase({
       {/* Header estilo OPI "Summer Nail Art": título + subtítulo editoriales a la
           izquierda, pestañas-píldora a la derecha. */}
       <div className="mb-8 flex flex-col gap-y-6 md:flex-row md:items-end md:justify-between md:gap-x-10">
-        <div className="max-w-[520px]">
+        <div className="max-w-[640px]">
           {eyebrow && (
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
               {eyebrow}
@@ -263,12 +267,12 @@ export default function NailArtShowcase({
           )}
           <h2
             id="nail-art-showcase-title"
-            className="font-display text-[clamp(28px,4vw,44px)] font-medium leading-[1.05] tracking-[-0.01em] text-ink"
+            className="font-sans text-[clamp(26px,3.4vw,38px)] font-semibold leading-[1.1] tracking-[-0.02em] text-ink"
           >
             {title}
           </h2>
           {subtitle && (
-            <p className="mt-3 max-w-[440px] text-[15px] leading-[1.6] text-ink-soft">
+            <p className="mt-0.5 text-[clamp(22px,3vw,34px)] font-normal leading-[1.15] tracking-[-0.015em] text-ink-soft">
               {subtitle}
             </p>
           )}

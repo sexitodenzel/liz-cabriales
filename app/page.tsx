@@ -10,7 +10,7 @@ import CategoriasSection from "./components/home/CategoriasSection"
 import DestacadosSection from "./components/home/DestacadosSection"
 import AcademiaShowcase from "./components/home/AcademiaShowcase"
 import HomeTopSections from "./components/home/HomeTopSections"
-// import NailArtSection from "./components/NailArtSection" // desactivada en la landing
+import NailArtSection from "./components/NailArtSection"
 import HomeVlogSection from "./components/home/HomeVlogSection"
 import InstagramFeed from "./components/InstagramFeed"
 import InView from "./components/ui/motion/in-view"
@@ -54,14 +54,12 @@ export default async function Home() {
       <Suspense fallback={null}>
         <AcademiaShowcase />
       </Suspense>
+      <InView>
+        <Suspense fallback={null}>
+          <NailArtSection />
+        </Suspense>
+      </InView>
       <div className="site-container">
-        {/* Sección Nail Art desactivada temporalmente en la landing.
-            <InView>
-              <Suspense fallback={null}>
-                <NailArtSection />
-              </Suspense>
-            </InView>
-        */}
         <InView>
           <Suspense fallback={null}>
             <HomeVlogSection />
