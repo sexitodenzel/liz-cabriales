@@ -17,14 +17,6 @@ export const adminServiceCreateSchema = z.object({
   hide_price_public: z.boolean().optional(),
   hide_duration_public: z.boolean().optional(),
   filter_id: uuid.optional().nullable(),
-  image_url: z
-    .string()
-    .trim()
-    .url("URL de imagen inválida")
-    .max(2000)
-    .optional()
-    .nullable()
-    .or(z.literal("")),
 })
 
 export const adminServiceUpdateSchema = z
@@ -38,14 +30,6 @@ export const adminServiceUpdateSchema = z
     hide_price_public: z.boolean().optional(),
     hide_duration_public: z.boolean().optional(),
     filter_id: uuid.optional().nullable(),
-    image_url: z
-      .string()
-      .trim()
-      .url("URL de imagen inválida")
-      .max(2000)
-      .optional()
-      .nullable()
-      .or(z.literal("")),
   })
   .refine(
     (value) =>
@@ -57,8 +41,7 @@ export const adminServiceUpdateSchema = z
       value.show_options !== undefined ||
       value.hide_price_public !== undefined ||
       value.hide_duration_public !== undefined ||
-      value.filter_id !== undefined ||
-      value.image_url !== undefined,
+      value.filter_id !== undefined,
     { message: "Debes indicar al menos un campo a actualizar" }
   )
 

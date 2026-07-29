@@ -5,26 +5,19 @@ export type ServiciosMenuGroup = {
   id: string
   name: string
   slug: string
-  services: Array<{ id: string; name: string; image: string | null }>
+  services: Array<{ id: string; name: string }>
 }
 
 export function buildServiciosMenuGroups(
   filters: ServiceFilterRow[],
   services: ServiceRow[]
 ): ServiciosMenuGroup[] {
-  const servicesByFilter = new Map<
-    string,
-    Array<{ id: string; name: string; image: string | null }>
-  >()
+  const servicesByFilter = new Map<string, Array<{ id: string; name: string }>>()
 
   for (const service of services) {
     if (!service.is_active || !service.filter_id) continue
     const list = servicesByFilter.get(service.filter_id) ?? []
-    list.push({
-      id: service.id,
-      name: service.name,
-      image: service.image_url ?? null,
-    })
+    list.push({ id: service.id, name: service.name })
     servicesByFilter.set(service.filter_id, list)
   }
 
@@ -54,7 +47,6 @@ export function serviciosMenuToCategories(groups: ServiciosMenuGroup[]): TiendaC
     subcategories: group.services.map((service) => ({
       label: service.name,
       href: `/servicios/agendar?servicio=${encodeURIComponent(service.id)}`,
-      image: service.image ?? null,
     })),
   }))
 }
