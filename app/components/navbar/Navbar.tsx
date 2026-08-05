@@ -209,12 +209,18 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   useEffect(() => {
     const mqDesktopNav = window.matchMedia("(min-width: 1200px)")
     const COLLAPSE_AFTER = 40
-    // Histéresis simétrica: expandir exige un gesto hacia arriba COMPROMETIDO,
-    // no un micro-rebote. Con -8 (gatillo de pelo) subir/bajar rápido revertía
-    // el colapso a media transición de 360ms y se sentía un "latigazo": el
-    // navbar y la barra follow oscilaban en ráfaga. Con -28 el jitter de un
-    // scrub rápido ya no togglea; solo un scroll arriba deliberado reabre.
-    const EXPAND_AFTER = -28
+    // Umbral de REAPARICIÓN (acumulado hacia arriba), dependiente del viewport:
+    //  · Desktop (≥1200px): -28. Ahí el colapso deja una barra delgada (fila de
+    //    módulos) + barras follow; con un gatillo de pelo (-8) un scrub rápido
+    //    revertía el colapso a media transición de 360ms y navbar+follow
+    //    oscilaban en ráfaga (latigazo). -28 exige un gesto COMPROMETIDO y el
+    //    jitter de un scrub ya no togglea.
+    //  · Móvil/tablet (<1200px, una sola fila que se oculta ENTERA): se quiere
+    //    el patrón tipo X/Twitter — el navbar reaparece al MENOR gesto hacia
+    //    arriba. -8 ignora el jitter de 1-2px del momentum pero se siente
+    //    inmediato (sin barra delgada ni follow visible que puedan oscilar).
+    const EXPAND_AFTER_DESKTOP = -28
+    const EXPAND_AFTER_COMPACT = -8
     let lastY = window.scrollY
     let acc = 0
     // Barra sticky de la página que sigue el hide (marcada con
@@ -308,10 +314,13 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         return
       }
 
+      const expandAfter = mqDesktopNav.matches
+        ? EXPAND_AFTER_DESKTOP
+        : EXPAND_AFTER_COMPACT
       if (delta > 0 !== acc > 0) acc = 0
       acc += delta
       if (acc > COLLAPSE_AFTER) setCollapsed(true)
-      else if (acc < EXPAND_AFTER) setCollapsed(false)
+      else if (acc < expandAfter) setCollapsed(false)
     }
 
     const handleModeChange = () => {

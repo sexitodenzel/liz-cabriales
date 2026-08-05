@@ -205,10 +205,25 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
      del todo): Navbar.tsx marca html.lc-nav-guard-free. Sin transition, la barra
      descansa en su sitio al instante en vez de arrastrar la transición de 480ms
      del hide (si no, al frenar arriba seguía deslizándose ~0.1s). Solo se
-     marca con el transform ya en ~0, así que el snap no produce salto. Pegada
-     bajo el navbar mantiene su transición para viajar junto a él sin abrir
-     hueco. */
-  html.lc-nav-guard-free [data-nav-collapse-guard] {
+     marca con el transform ya en ~0, así que el snap no produce salto.
+
+     Bajo guard-free se corta la transición del navbar Y de TODAS las barras follow
+     (no solo la guard): un flick hacia arriba "de golpe" llega al tope en ~2-3
+     frames y dispara el expand (setCollapsed(false), 360ms) justo cuando la barra
+     guard se despega y marca guard-free. Si solo la barra guard cortara su
+     transición, saltaría ~45px de una a su sitio de flujo mientras el navbar (y
+     cualquier header follow adyacente, p.ej. el del wizard de /servicios) siguen
+     deslizándose ~300ms → desfase = latigazo (la barra de filtros y el breadcrumb
+     "aparecen de la nada"; en servicios se abriría hueco navbar↔header). Cortando
+     el grupo COMPLETO, navbar y todas las barras que lo siguen hacen snap en
+     lockstep y el asentado instantáneo en el tope se ve natural. guard-free solo
+     se activa cerca del tope / pre-dock (donde el guard impide el colapso), así
+     que nunca corta un colapso suave en curso: fuera de guard-free (colapso normal
+     a media página) todo conserva su transición y viaja junto. En home no hay
+     barra guard → guard-free nunca se activa → la transición de color del overlay
+     del navbar queda intacta. */
+  html.lc-nav-guard-free #site-navbar,
+  html.lc-nav-guard-free .navbar-follow-collapse {
     transition: none;
   }
 
