@@ -17,7 +17,7 @@ export function buildPasswordResetSuccessHtml(
   const displayName = data.firstName?.trim() || "cliente"
 
   const body = `
-    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9b8b65;">
+    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9a9a;">
       Hola, ${displayName}
     </p>
     <p style="margin: 0 0 20px; font-size: 16px; color: ${BRAND_BLACK}; line-height: 1.5;">

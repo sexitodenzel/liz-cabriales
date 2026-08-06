@@ -15,6 +15,7 @@ import type { ProductWithCategory, Category } from "@/lib/supabase/products"
 
 import ProductGrid from "./components/ProductGrid"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import Eyebrow from "@/app/components/ui/Eyebrow"
 
 export const revalidate = 120
 
@@ -123,12 +124,18 @@ export default async function StorePage({
 
   return (
     <main className="min-h-screen bg-ivory text-[#0a0a0a]">
-      <h1 className="sr-only">Tienda</h1>
+      <h1 className="sr-only lg:hidden">Tienda</h1>
       <div className="site-container pb-12 pt-5 max-lg:pt-0">
         <Breadcrumb
           items={[{ label: "Inicio", href: "/" }, { label: "Tienda" }]}
           className="mb-4 hidden lg:flex"
         />
+        <header className="mb-8 hidden border-b border-neutral-200 pb-6 lg:block">
+          <Eyebrow>Catálogo profesional</Eyebrow>
+          <h1 className="mt-3 font-display text-[clamp(28px,4vw,44px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">
+            Tienda
+          </h1>
+        </header>
         <ProductGrid
           products={products}
           categories={categories}

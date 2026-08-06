@@ -30,7 +30,7 @@ const SERVICE_COLUMNS_BASE =
   "id, name, description, price, duration_min, is_active"
 const SERVICE_COLUMNS_FULL = `${SERVICE_COLUMNS_BASE}, show_options`
 const SERVICE_COLUMNS_FILTER = `${SERVICE_COLUMNS_FULL}, filter_id`
-const SERVICE_COLUMNS_DISPLAY = `${SERVICE_COLUMNS_FILTER}, hide_price_public, hide_duration_public`
+const SERVICE_COLUMNS_DISPLAY = `${SERVICE_COLUMNS_FILTER}, hide_price_public, hide_duration_public, image_url`
 const SERVICE_SELECT_WITH_JOIN = `${SERVICE_COLUMNS_DISPLAY}, service_filters ( id, name, slug )`
 const SERVICE_SELECT_JOIN_NO_DISPLAY = `${SERVICE_COLUMNS_FILTER}, service_filters ( id, name, slug )`
 
@@ -78,8 +78,9 @@ function selectNeedsDisplayFallback(error: {
   return (
     isMissingColumnError(error, "hide_price_public") ||
     isMissingColumnError(error, "hide_duration_public") ||
+    isMissingColumnError(error, "image_url") ||
     ((error.code === "PGRST204" || error.code === "42703") &&
-      /hide_(price|duration)_public/i.test(error.message ?? ""))
+      /hide_(price|duration)_public|image_url/i.test(error.message ?? ""))
   )
 }
 
@@ -125,6 +126,7 @@ function mapServiceRow(r: Record<string, unknown>): ServiceRow {
     filter_id: (r.filter_id as string | null) ?? null,
     filter_slug: filterJoin?.slug ?? (r.filter_slug as string | null) ?? null,
     filter_name: filterJoin?.name ?? (r.filter_name as string | null) ?? null,
+    image_url: (r.image_url as string | null) ?? null,
   }
 }
 
@@ -217,6 +219,7 @@ export async function createService(
     filter_id: input.filter_id ?? null,
     hide_price_public: input.hide_price_public ?? false,
     hide_duration_public: input.hide_duration_public ?? false,
+    image_url: input.image_url ?? null,
   }
 
   let insertResult = await supabaseAdmin
@@ -228,10 +231,15 @@ export async function createService(
   if (
     insertResult.error &&
     (isMissingColumnError(insertResult.error, "hide_price_public") ||
-      isMissingColumnError(insertResult.error, "hide_duration_public"))
+      isMissingColumnError(insertResult.error, "hide_duration_public") ||
+      isMissingColumnError(insertResult.error, "image_url"))
   ) {
-    const { hide_price_public: _hp, hide_duration_public: _hd, ...legacy } =
-      payload
+    const {
+      hide_price_public: _hp,
+      hide_duration_public: _hd,
+      image_url: _img,
+      ...legacy
+    } = payload
     insertResult = await supabaseAdmin
       .from("services")
       .insert(legacy)
@@ -275,6 +283,7 @@ export async function updateService(
     updates.hide_duration_public = input.hide_duration_public
   }
   if (input.filter_id !== undefined) updates.filter_id = input.filter_id
+  if (input.image_url !== undefined) updates.image_url = input.image_url
   updates.updated_at = new Date().toISOString()
 
   let updateResult = await supabaseAdmin
@@ -287,11 +296,13 @@ export async function updateService(
   if (
     updateResult.error &&
     (isMissingColumnError(updateResult.error, "hide_price_public") ||
-      isMissingColumnError(updateResult.error, "hide_duration_public"))
+      isMissingColumnError(updateResult.error, "hide_duration_public") ||
+      isMissingColumnError(updateResult.error, "image_url"))
   ) {
     const {
       hide_price_public: _hp,
       hide_duration_public: _hd,
+      image_url: _img,
       ...legacyUpdates
     } = updates
     updateResult = await supabaseAdmin

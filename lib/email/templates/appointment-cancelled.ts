@@ -38,7 +38,7 @@ export async function sendAppointmentCancelledByClientEmail(
     .trim()
 
   const body = `
-    <p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9b8b65;">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9a9a9a;">
       Hola, ${appt.client_first_name ?? "cliente"}
     </p>
     <p style="margin:0 0 24px;font-size:16px;color:${BRAND_BLACK};line-height:1.5;">
@@ -46,7 +46,7 @@ export async function sendAppointmentCancelledByClientEmail(
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
-      style="border:1px solid #e8e1d3;border-radius:12px;margin-bottom:24px;">
+      style="border:1px solid #ececec;border-radius:12px;margin-bottom:24px;">
       <tr><td style="padding:16px 20px;">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
           <tr>
@@ -129,7 +129,7 @@ export async function sendAppointmentCancelledByAdminEmail(
     .trim()
 
   const body = `
-    <p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9b8b65;">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9a9a9a;">
       Hola, ${appt.client_first_name ?? "cliente"}
     </p>
     <p style="margin:0 0 24px;font-size:16px;color:${BRAND_BLACK};line-height:1.5;">
@@ -137,7 +137,7 @@ export async function sendAppointmentCancelledByAdminEmail(
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
-      style="border:1px solid #e8e1d3;border-radius:12px;margin-bottom:24px;">
+      style="border:1px solid #ececec;border-radius:12px;margin-bottom:24px;">
       <tr><td style="padding:16px 20px;">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
           <tr>

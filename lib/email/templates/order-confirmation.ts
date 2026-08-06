@@ -1,3 +1,5 @@
+import { EMAIL_BUTTON_STYLE_TAG, emailButton } from "./_shared"
+
 export type OrderConfirmationData = {
   customerFirstName: string
   customerLastName: string
@@ -60,7 +62,7 @@ const MONO_FONT =
 function dottedDivider(): string {
   return `
     <tr>
-      <td style="padding:14px 0;">
+      <td colspan="2" style="padding:14px 0;">
         <div style="border-top:1px dashed #d4d4d4;font-size:0;line-height:0;">&nbsp;</div>
       </td>
     </tr>`
@@ -69,7 +71,7 @@ function dottedDivider(): string {
 function solidDivider(): string {
   return `
     <tr>
-      <td style="padding:14px 0;">
+      <td colspan="2" style="padding:14px 0;">
         <div style="border-top:1px solid #0a0a0a;font-size:0;line-height:0;">&nbsp;</div>
       </td>
     </tr>`
@@ -165,13 +167,14 @@ ${escapeHtml(data.shippingAddress)}${
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Confirmación de pedido — Liz Cabriales</title>
+  ${EMAIL_BUTTON_STYLE_TAG}
 </head>
-<body style="margin:0;padding:0;background-color:#f4f0e8;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<body style="margin:0;padding:0;background-color:#f5f5f5;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
     Tu ticket digital del pedido #${data.orderShortId} · Total ${formatPrice(data.total)}
   </div>
 
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f4f0e8;padding:32px 16px;">
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#f5f5f5;padding:32px 16px;">
     <tr>
       <td align="center">
 
@@ -191,11 +194,11 @@ ${escapeHtml(data.shippingAddress)}${
               <!-- Encabezado -->
               <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
-                  <td style="text-align:center;font-family:${MONO_FONT};">
-                    <div style="font-size:16px;font-weight:700;letter-spacing:0.26em;color:#0a0a0a;">
+                  <td colspan="2" style="text-align:center;font-family:${MONO_FONT};">
+                    <div style="font-size:16px;font-weight:700;letter-spacing:0.26em;text-indent:0.26em;color:#0a0a0a;">
                       LIZ CABRIALES
                     </div>
-                    <div style="margin-top:6px;font-size:10px;letter-spacing:0.32em;color:#8a8a8a;text-transform:uppercase;">
+                    <div style="margin-top:6px;font-size:10px;letter-spacing:0.32em;text-indent:0.32em;color:#8a8a8a;text-transform:uppercase;">
                       Studio · Ticket digital
                     </div>
                   </td>
@@ -237,12 +240,12 @@ ${escapeHtml(data.shippingAddress)}${
 
                 <!-- Footer ticket -->
                 <tr>
-                  <td colspan="2" style="text-align:center;font-family:${MONO_FONT};font-size:10px;letter-spacing:0.3em;color:#8a8a8a;text-transform:uppercase;padding-top:4px;">
+                  <td colspan="2" style="text-align:center;font-family:${MONO_FONT};font-size:10px;letter-spacing:0.3em;text-indent:0.3em;color:#8a8a8a;text-transform:uppercase;padding-top:4px;">
                     Gracias por tu compra
                   </td>
                 </tr>
                 <tr>
-                  <td colspan="2" style="text-align:center;font-family:${MONO_FONT};font-size:10px;letter-spacing:0.2em;color:#b0b0b0;text-transform:uppercase;padding-top:4px;">
+                  <td colspan="2" style="text-align:center;font-family:${MONO_FONT};font-size:10px;letter-spacing:0.2em;text-indent:0.2em;color:#b0b0b0;text-transform:uppercase;padding-top:4px;">
                     Te esperamos pronto
                   </td>
                 </tr>
@@ -254,17 +257,14 @@ ${escapeHtml(data.shippingAddress)}${
           <!-- Borde dentado (recibo) -->
           <tr>
             <td style="line-height:0;font-size:0;">
-              <div style="height:14px;background-color:#f4f0e8;background-image:url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22480%22%20height%3D%2214%22%20viewBox%3D%220%200%20480%2014%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M0%200h480v7L470%2014%20460%207%20450%2014%20440%207%20430%2014%20420%207%20410%2014%20400%207%20390%2014%20380%207%20370%2014%20360%207%20350%2014%20340%207%20330%2014%20320%207%20310%2014%20300%207%20290%2014%20280%207%20270%2014%20260%207%20250%2014%20240%207%20230%2014%20220%207%20210%2014%20200%207%20190%2014%20180%207%20170%2014%20160%207%20150%2014%20140%207%20130%2014%20120%207%20110%2014%20100%207%2090%2014%2080%207%2070%2014%2060%207%2050%2014%2040%207%2030%2014%2020%207%2010%2014%200%207V0z%22%2F%3E%3C%2Fsvg%3E');background-repeat:no-repeat;background-size:100% 100%;">&nbsp;</div>
+              <div style="height:14px;background-color:#f5f5f5;background-image:url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22480%22%20height%3D%2214%22%20viewBox%3D%220%200%20480%2014%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M0%200h480v7L470%2014%20460%207%20450%2014%20440%207%20430%2014%20420%207%20410%2014%20400%207%20390%2014%20380%207%20370%2014%20360%207%20350%2014%20340%207%20330%2014%20320%207%20310%2014%20300%207%20290%2014%20280%207%20270%2014%20260%207%20250%2014%20240%207%20230%2014%20220%207%20210%2014%20200%207%20190%2014%20180%207%20170%2014%20160%207%20150%2014%20140%207%20130%2014%20120%207%20110%2014%20100%207%2090%2014%2080%207%2070%2014%2060%207%2050%2014%2040%207%2030%2014%2020%207%2010%2014%200%207V0z%22%2F%3E%3C%2Fsvg%3E');background-repeat:no-repeat;background-size:100% 100%;">&nbsp;</div>
             </td>
           </tr>
 
           <!-- CTA -->
           <tr>
             <td style="padding:24px 0 0;text-align:center;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://lizcabriales.com"}/perfil/pedidos"
-                style="display:inline-block;padding:12px 26px;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#0a0a0a;background-color:#c6a75e;text-decoration:none;border-radius:999px;">
-                Ver mis pedidos
-              </a>
+              ${emailButton(`${process.env.NEXT_PUBLIC_APP_URL ?? "https://lizcabriales.com"}/perfil/pedidos`, "Ver mis pedidos")}
             </td>
           </tr>
 
@@ -280,7 +280,7 @@ ${escapeHtml(data.shippingAddress)}${
 
           <!-- Footer brand -->
           <tr>
-            <td style="padding:24px 0 0;text-align:center;font-size:11px;color:#9b8b65;">
+            <td style="padding:24px 0 0;text-align:center;font-size:11px;color:#9a9a9a;">
               © 2026 Liz Cabriales · Tampico, Tamaulipas
             </td>
           </tr>

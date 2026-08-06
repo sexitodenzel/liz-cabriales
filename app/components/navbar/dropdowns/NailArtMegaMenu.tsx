@@ -102,20 +102,13 @@ export default function NailArtMegaMenu({
       `}
     >
       <div className="site-container pt-6 pb-10">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-6">
           <Link
             href="/nail-art"
             onClick={onClose}
             className="flex w-fit items-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c6a75e] transition-opacity hover:opacity-80"
           >
             Ver todo
-          </Link>
-          <Link
-            href="/nail-art#subir"
-            onClick={onClose}
-            className="inline-flex h-9 items-center justify-center rounded-full border border-neutral-900 bg-neutral-900 px-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-neutral-800"
-          >
-            Subir inspiración
           </Link>
         </div>
 

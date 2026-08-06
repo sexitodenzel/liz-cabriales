@@ -43,7 +43,7 @@ export async function sendOrderShippedEmail(orderId: string): Promise<void> {
   const trackingBlock = hasTracking
     ? `
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
-        style="border:1px solid #e8e1d3;border-radius:12px;margin-bottom:24px;">
+        style="border:1px solid #ececec;border-radius:12px;margin-bottom:24px;">
         <tr><td style="padding:16px 20px;">
           <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
             ${raw.carrier ? `<tr>
@@ -60,14 +60,14 @@ export async function sendOrderShippedEmail(orderId: string): Promise<void> {
     : ""
 
   const body = `
-    <p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9b8b65;">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9a9a9a;">
       Hola, ${user.first_name}
     </p>
     <p style="margin:0 0 24px;font-size:16px;color:${BRAND_BLACK};line-height:1.5;">
       Tu pedido <strong>#${shortId(raw.id)}</strong> ya está en camino. ¡Pronto lo tendrás!
     </p>
 
-    ${hasTracking ? `<p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9b8b65;">Datos de envío</p>` : ""}
+    ${hasTracking ? `<p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9a9a9a;">Datos de envío</p>` : ""}
     ${trackingBlock}
 
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation"

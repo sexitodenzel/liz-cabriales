@@ -7,6 +7,7 @@ import {
 import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
 import { getStudioWeeklyHoursCached } from "@/lib/supabase/studio-hours"
 import { getNailArtPosts } from "@/lib/supabase/nail-art"
+import { nailArtImageApiPath } from "@/lib/nail-art-image"
 import { createClient } from "@/lib/supabase/server"
 import {
   getApprovedServiceReviews,
@@ -85,12 +86,14 @@ export default async function ServiciosPage({ searchParams }: Props) {
     )
   }
 
+  // Misma ruta proxy que /nail-art y el mega-menú: sirve covers UGC (signed)
+  // y editoriales (redirect) sin depender del path crudo en Storage.
   const portfolioItems = nailArtPosts
     .filter((p) => p.cover_image)
     .map((p) => ({
       id: p.id,
       title: p.title,
-      image: p.cover_image as string,
+      image: nailArtImageApiPath(p.id),
       href: `/nail-art/${p.slug}`,
     }))
 

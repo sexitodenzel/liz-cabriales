@@ -991,8 +991,60 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // MercadoPago opens in a new tab (window.open in callPaymentEndpoint), so
-  // this page never gets navigated away from. No bfcache mitigation needed.
+  // MercadoPago abre en una pestaña nueva; esta pestaña de checkout se queda en
+  // "Pago en proceso". Sondeamos el estado de la orden para reaccionar solo
+  // cuando el webhook confirma el resultado:
+  //   • paid      → redirigir al ticket de la orden
+  //   • cancelled → mostrar error con opción de reintentar (pago rechazado o cancelado)
+  //   • pending   → seguir esperando
+  useEffect(() => {
+    const orderId = createdOrder?.order_id
+    if (!orderId || !paymentUrl || paymentError) return
+
+    let active = true
+    let attempts = 0
+
+    const check = async () => {
+      attempts += 1
+      try {
+        const res = await fetch(`/api/orders/${orderId}/status`, { cache: "no-store" })
+        if (res.ok) {
+          const json = (await res.json()) as ApiResponse<{ status: string }>
+          const status = json.data?.status
+          if (active && status === "paid") {
+            active = false
+            clearInterval(interval)
+            router.push(`/orden/${orderId}?status=success`)
+            return
+          }
+          if (active && status === "cancelled") {
+            active = false
+            clearInterval(interval)
+            setPaymentError(
+              "El pago no se completó o fue rechazado. Puedes reintentar el pago."
+            )
+            return
+          }
+        }
+      } catch {
+        /* error de red transitorio: reintentamos en el siguiente tick */
+      }
+      // Tope de seguridad (~15 min) para no sondear indefinidamente si el
+      // usuario abandona la pestaña sin pagar.
+      if (active && attempts >= 225) {
+        active = false
+        clearInterval(interval)
+      }
+    }
+
+    const interval = setInterval(check, 4000)
+    check()
+
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
+  }, [createdOrder, paymentUrl, paymentError, router])
 
   // Auto-fill address data on mount (only once)
   useEffect(() => {

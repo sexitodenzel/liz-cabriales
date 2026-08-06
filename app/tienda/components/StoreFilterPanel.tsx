@@ -326,7 +326,7 @@ export default function StoreFilterPanel({
                               key={sub.label}
                               href={sub.href}
                               onClick={onClose}
-                              className="block py-2 text-xs text-neutral-500 transition-colors hover:text-[#a8862f]"
+                              className="block py-2 text-xs text-neutral-500 transition-colors hover:text-[#c6a75e]"
                             >
                               {sub.label}
                             </Link>

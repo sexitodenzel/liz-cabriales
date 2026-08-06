@@ -109,7 +109,7 @@ function PostCard({ post }: { post: InstagramPost }) {
 
       {post.caption && (
         <div className="absolute bottom-0 left-0 right-0 z-10 translate-y-2 p-5 text-white opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100">
-          <p className="overflow-hidden font-display text-[15px] italic leading-[1.4] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] [display:-webkit-box]">
+          <p className="overflow-hidden text-center text-[15px] leading-[1.4] [-webkit-box-orient:vertical] [-webkit-line-clamp:3] [display:-webkit-box]">
             {post.caption}
           </p>
         </div>
@@ -166,7 +166,7 @@ export default function InstagramFeed() {
       {/* Title */}
       <h2
         id="home-instagram-title"
-        className={`text-center font-display text-[clamp(44px,6.5vw,88px)] font-medium leading-none tracking-[-0.02em] text-ink transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        className={`text-center text-[clamp(44px,6.5vw,88px)] font-semibold leading-none tracking-[-0.02em] text-ink transition-all duration-700 ease-out ${inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
         style={{ transitionDelay: "80ms" }}
       >
         #lizcabriales

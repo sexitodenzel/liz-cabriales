@@ -33,7 +33,7 @@ export function buildAppointmentRescheduledHtml(
     .join(" · ")
 
   const body = `
-    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9b8b65;">
+    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9a9a;">
       Hola, ${data.customerFirstName}
     </p>
     <p style="margin: 0 0 24px; font-size: 16px; color: ${BRAND_BLACK}; line-height: 1.5;">
@@ -41,11 +41,11 @@ export function buildAppointmentRescheduledHtml(
     </p>
 
     <!-- Horario anterior -->
-    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9b8b65;">
+    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9a9a;">
       Horario anterior
     </p>
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
-      style="border: 1px solid #e8e1d3; border-radius: 12px; margin-bottom: 20px; background-color: #f9f7f1;">
+      style="border: 1px solid #ececec; border-radius: 12px; margin-bottom: 20px; background-color: #fafafa;">
       <tr>
         <td style="padding: 14px 20px;">
           <p style="margin: 0; font-size: 13px; color: #555; text-decoration: line-through;">

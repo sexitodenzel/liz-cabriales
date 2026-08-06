@@ -38,7 +38,7 @@ export async function sendOrderDeliveredEmail(orderId: string): Promise<void> {
   const recipientName = `${user.first_name} ${user.last_name}`.trim()
 
   const body = `
-    <p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9b8b65;">
+    <p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#9a9a9a;">
       Hola, ${user.first_name}
     </p>
     <p style="margin:0 0 24px;font-size:16px;color:${BRAND_BLACK};line-height:1.5;">

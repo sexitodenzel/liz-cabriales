@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server"
 
 import { SERVICIOS_GALLERY_SLOT_KEYS } from "@/lib/media-slots"
-import { serviciosMenuToCategories, buildServiciosMenuGroups } from "@/lib/navbar/servicios-menu"
+import {
+  serviciosMenuToCategories,
+  serviciosMenuToTiles,
+  buildServiciosMenuGroups,
+} from "@/lib/navbar/servicios-menu"
 import { getOrderedSlotUrls } from "@/lib/supabase/landing-slots"
 import { getServicesCached } from "@/lib/supabase/cache"
 import { getPublicServiceFilters } from "@/lib/supabase/servicesAdmin"
@@ -15,9 +19,19 @@ type ServiciosMenuItem = {
   subcategories: Array<{ label: string; href: string }>
 }
 
+type ServiciosMenuTile = {
+  label: string
+  image: string | null
+  href: string
+}
+
 type ApiResponse =
   | {
-      data: { categories: ServiciosMenuItem[]; gallery: string[] }
+      data: {
+        categories: ServiciosMenuItem[]
+        services: ServiciosMenuTile[]
+        gallery: string[]
+      }
       error: null
     }
   | { data: null; error: { message: string; code?: string } }
@@ -52,11 +66,13 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
 
   const groups = buildServiciosMenuGroups(filtersRes.data ?? [], servicesRes.data)
   const categories = serviciosMenuToCategories(groups)
+  const services = serviciosMenuToTiles(groups)
 
   return NextResponse.json(
     {
       data: {
         categories,
+        services,
         gallery,
       },
       error: null,

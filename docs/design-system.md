@@ -45,7 +45,7 @@ Definidos como CSS vars en `app/globals.css`:
 |---|---|---|
 | **H1 de página pública** | Playfair · `font-display text-[clamp(30px,5vw,46px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]` (móvil: `text-[32px]`, mismo resto) | "Servicios", "Tienda", "Academia" |
 | Subtítulo bajo H1 | `mt-1 text-[14px] text-[#8a8a8a]` (o meta row `text-[13px] text-[#5a5a5a]`) | "Talleres y formación profesional" |
-| **H2 de sección landing/home** | Componente `SectionHeader` (Playfair grande + eyebrow dorado + línea). **Solo en la home** | Home, destacados |
+| **H2 de sección landing/home** | Playfair grande + `<Eyebrow>` dorado arriba (`app/components/ui/Eyebrow.tsx`) + línea. Se arma a mano en cada sección de la home. **Solo en la home** | Home, destacados |
 | **H2 de sección funcional** (dentro de página) | Sans · `text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]` (opcional eyebrow dorado uppercase arriba). Es el default fuera de la home — incluye `/sobre-liz` (decisión 2026-07-17: el usuario no quiere serifs grandes en secciones) | "Elige tu servicio", "Tres pilares" |
 | Título de card/item | `text-[15px] font-semibold text-[#111]` (`sm:text-[16px]` si respira) | Nombre de servicio en lista |
 | Título de card feature (grande) | `text-[20px] font-semibold text-[#111]` | Pilares de `/sobre-liz` |

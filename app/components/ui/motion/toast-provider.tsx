@@ -12,9 +12,11 @@ import {
 // `toast.success("...")` desde cualquier handler sin Context ni prop-drill.
 // El ToastViewport se suscribe vía useSyncExternalStore.
 
-const DEFAULT_DURATION_SUCCESS = 3500
-const DEFAULT_DURATION_ERROR = 4500
-const DEFAULT_DURATION_INFO = 3500
+const DEFAULT_DURATION_SUCCESS = 4000
+// Los errores no se auto-cierran: se quedan hasta que el usuario les da ✕
+// (o los desliza). Así da tiempo de leerlos con calma. duration 0 = manual.
+const DEFAULT_DURATION_ERROR = 0
+const DEFAULT_DURATION_INFO = 4000
 
 let state: AnimatedToast[] = []
 const listeners = new Set<() => void>()

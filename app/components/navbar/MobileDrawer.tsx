@@ -49,6 +49,12 @@ type NailArtTile = {
   cover_image: string | null
 }
 
+type ServicioTile = {
+  label: string
+  image: string | null
+  href: string
+}
+
 type AcademiaCourse = {
   id: string
   title: string
@@ -116,6 +122,7 @@ export default function MobileDrawer({
   const [nailArtPosts, setNailArtPosts] = useState<NailArtTile[] | null>(null)
   const [academiaCourses, setAcademiaCourses] = useState<AcademiaCourse[] | null>(null)
   const [serviciosMenuCategories, setServiciosMenuCategories] = useState<TiendaCategory[] | null>(null)
+  const [servicioTiles, setServicioTiles] = useState<ServicioTile[] | null>(null)
   const [mounted, setMounted] = useState(false)
   const prevPathname = useRef(pathname)
 
@@ -156,13 +163,20 @@ export default function MobileDrawer({
         const payload = json?.data
         if (Array.isArray(payload)) {
           setServiciosMenuCategories(payload)
+          setServicioTiles([])
           return
         }
         setServiciosMenuCategories(
           Array.isArray(payload?.categories) ? payload.categories : []
         )
+        setServicioTiles(
+          Array.isArray(payload?.services) ? payload.services : []
+        )
       })
-      .catch(() => setServiciosMenuCategories([]))
+      .catch(() => {
+        setServiciosMenuCategories([])
+        setServicioTiles([])
+      })
   }, [serviciosMenuCategories])
 
   useEffect(() => {
@@ -255,6 +269,7 @@ export default function MobileDrawer({
                 <SectionPanel
                   section={findSection(view.section)}
                   academiaCourses={academiaCourses}
+                  servicioTiles={servicioTiles}
                   onBack={pop}
                   onClose={onClose}
                   onPushCategory={(slug) =>
@@ -454,19 +469,33 @@ function RootPanel({ onPushSection, onPushNailArt, onPushMarcas, onPushConocenos
 type SectionPanelProps = {
   section: { key: SectionKey; href: string; sectionLabel: string; data: TiendaCategory[] }
   academiaCourses: AcademiaCourse[] | null
+  servicioTiles: ServicioTile[] | null
   onBack: () => void
   onClose: () => void
   onPushCategory: (categorySlug: string) => void
 }
 
-function SectionPanel({ section, academiaCourses, onBack, onClose, onPushCategory }: SectionPanelProps) {
-  // Placeholders etiquetados para Servicios: primeros servicios (o categorías)
-  // que llenan el espacio hasta que existan fotos reales.
-  const servicioTiles =
+function SectionPanel({
+  section,
+  academiaCourses,
+  servicioTiles,
+  onBack,
+  onClose,
+  onPushCategory,
+}: SectionPanelProps) {
+  // Tiles de Servicios: cada servicio con su foto (image_url) cuando existe.
+  // Fallback a etiquetas (primeros servicios o categorías) mientras carga o si
+  // aún no hay fotos, para llenar el espacio con el recuadro "Próximamente".
+  const serviceTileData =
     section.key === "Servicios"
-      ? (section.data.flatMap((c) => c.subcategories.map((s) => s.label)).length > 0
-          ? section.data.flatMap((c) => c.subcategories.map((s) => s.label))
-          : section.data.map((c) => c.label)
+      ? (servicioTiles && servicioTiles.length > 0
+          ? servicioTiles
+          : (section.data.flatMap((c) =>
+                c.subcategories.map((s) => s.label)
+              ).length > 0
+              ? section.data.flatMap((c) => c.subcategories.map((s) => s.label))
+              : section.data.map((c) => c.label)
+            ).map((label) => ({ label, image: null, href: "" }))
         ).slice(0, 4)
       : []
 
@@ -530,14 +559,18 @@ function SectionPanel({ section, academiaCourses, onBack, onClose, onPushCategor
           </div>
         )}
 
-        {section.key === "Servicios" && servicioTiles.length > 0 && (
+        {section.key === "Servicios" && serviceTileData.length > 0 && (
           <div className="mt-2 px-3 pb-5 pt-3 md:px-4">
             <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
               Nuestros servicios
             </p>
             <div className="grid grid-cols-2 gap-x-3 gap-y-4">
-              {servicioTiles.map((label) => (
-                <ServicioPlaceholderTile key={label} label={label} />
+              {serviceTileData.map((tile) => (
+                <ServicioTile
+                  key={tile.href || tile.label}
+                  tile={tile}
+                  onClose={onClose}
+                />
               ))}
             </div>
           </div>
@@ -594,7 +627,35 @@ function CourseFlyerTile({
   )
 }
 
-function ServicioPlaceholderTile({ label }: { label: string }) {
+function ServicioTile({
+  tile,
+  onClose,
+}: {
+  tile: ServicioTile
+  onClose: () => void
+}) {
+  // Con foto y enlace → tile navegable con imagen. Sin foto → recuadro
+  // "Próximamente" (mismo look que antes) hasta que el estudio le suba una.
+  if (tile.image && tile.href) {
+    return (
+      <Link href={tile.href} onClick={onClose} className="group flex flex-col gap-2">
+        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-sm bg-neutral-100">
+          <Image
+            src={tile.image}
+            alt={tile.label}
+            fill
+            sizes="(max-width: 640px) 40vw, 180px"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+          <span className="absolute bottom-1.5 left-1.5 right-1.5 text-[11px] font-medium leading-snug text-white line-clamp-2 [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]">
+            {tile.label}
+          </span>
+        </div>
+      </Link>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="relative flex aspect-[3/4] w-full items-end overflow-hidden rounded-sm bg-neutral-100">
@@ -603,7 +664,7 @@ function ServicioPlaceholderTile({ label }: { label: string }) {
           Próximamente
         </span>
         <p className="relative z-10 p-2 text-[11px] font-medium leading-snug text-neutral-600 line-clamp-2">
-          {label}
+          {tile.label}
         </p>
       </div>
     </div>

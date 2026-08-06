@@ -5,6 +5,7 @@ import {
   BRAND_GOLD,
   EMAIL_FROM,
   buildEmailShell,
+  emailButton,
   formatDateES,
   formatTimeES,
   getResend,
@@ -35,7 +36,7 @@ export function buildAppointmentReminderHtml(
   })
 
   const body = `
-    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9b8b65;">
+    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9a9a;">
       Hola, ${data.customerFirstName}
     </p>
     <p style="margin: 0 0 24px; font-size: 16px; color: ${BRAND_BLACK}; line-height: 1.5;">
@@ -43,7 +44,7 @@ export function buildAppointmentReminderHtml(
       a las <strong>${formatTimeES(data.startTime)}</strong> en Academia Liz Cabriales.
     </p>
 
-    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9b8b65;">
+    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9a9a;">
       Detalles de la cita
     </p>
     ${infoBlock}
@@ -51,10 +52,7 @@ export function buildAppointmentReminderHtml(
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px;">
       <tr>
         <td align="center">
-          <a href="${data.manageUrl}"
-            style="display: inline-block; padding: 12px 24px; background-color: ${BRAND_BLACK}; color: ${BRAND_GOLD}; font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; border-radius: 10px;">
-            Gestionar o cancelar cita
-          </a>
+          ${emailButton(data.manageUrl, "Gestionar o cancelar cita")}
         </td>
       </tr>
     </table>

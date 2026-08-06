@@ -80,6 +80,85 @@ function dbAdminReadonly() {
 
 type DbError = { message: string; code?: string }
 type Result<T> = { data: T; error: null } | { data: null; error: DbError }
+
+/**
+ * Ejecuta una consulta que devuelve `{ data, error }` reintentando ante fallos
+ * transitorios (timeouts, cold starts, límites de conexión de Supabase). Si tras
+ * los reintentos sigue fallando, LANZA — a propósito, para que `unstable_cache`
+ * NO cachee el error (evita envenenar la caché y mostrar el mensaje de error a
+ * todos los visitantes durante toda la ventana de revalidación).
+ */
+async function withRetry<T>(
+  fn: () => PromiseLike<{ data: T | null; error: DbError | null }>,
+  opts: { tries?: number; passthroughCodes?: string[] } = {}
+): Promise<T | null> {
+  const { tries = 3, passthroughCodes = [] } = opts
+  let lastError: DbError | null = null
+  for (let attempt = 0; attempt < tries; attempt++) {
+    try {
+      const { data, error } = await fn()
+      if (!error) return data
+      // Errores esperados (p. ej. tabla/columna inexistente): no reintentar ni
+      // lanzar; degradar en `null` para que el llamador use un valor por defecto.
+      if (error.code && passthroughCodes.includes(error.code)) return null
+      lastError = error
+    } catch (e) {
+      lastError = { message: e instanceof Error ? e.message : "query failed" }
+    }
+    if (attempt < tries - 1) {
+      await new Promise((res) => setTimeout(res, 150 * (attempt + 1)))
+    }
+  }
+  throw new Error(lastError?.message ?? "query failed")
+}
+
+/**
+ * Envuelve una función que LANZA ante error en una versión cacheada que devuelve
+ * el contrato `Result`. Como la función interna lanza (en vez de devolver un
+ * error), `unstable_cache` nunca cachea fallos: el siguiente request reintenta.
+ */
+function cachedResult<A extends unknown[], T>(
+  fn: (...args: A) => Promise<T>,
+  keyParts: string[],
+  opts: { revalidate: number; tags: string[] }
+): (...args: A) => Promise<Result<T>> {
+  const inner = unstable_cache(fn, keyParts, opts)
+  return async (...args: A) => {
+    try {
+      return { data: await inner(...args), error: null }
+    } catch (e) {
+      return {
+        data: null,
+        error: { message: e instanceof Error ? e.message : "query failed" },
+      }
+    }
+  }
+}
+
+/**
+ * Ejecuta un constructor de consulta de Supabase con reintentos y devuelve las
+ * filas tipadas. `make` DEBE reconstruir la consulta en cada llamada (los
+ * builders de Supabase solo se ejecutan una vez), por eso recibe una fábrica.
+ */
+function retryRows<T>(
+  make: () => PromiseLike<unknown>,
+  passthroughCodes?: string[]
+): Promise<T[] | null> {
+  return withRetry<T[]>(
+    () => make() as unknown as PromiseLike<{ data: T[] | null; error: DbError | null }>,
+    { passthroughCodes }
+  )
+}
+
+// Ejecuta una consulta de catálogo (PRODUCT_SELECT) con reintentos y mapea filas.
+async function retryProductList(
+  make: () => PromiseLike<unknown>
+): Promise<ProductWithCategory[]> {
+  const rows = await retryRows<ProductRow>(make)
+  return (rows ?? [])
+    .map(mapProduct)
+    .filter((p): p is ProductWithCategory => p !== null)
+}
 export type HomeBrandItem = {
   id: string
   name: string
@@ -194,14 +273,15 @@ function mapProduct(row: ProductRow): ProductWithCategory | null {
 
 /* ── Categories ──────────────────────────────────────────────────────────── */
 
-export const getCategoriesCached = unstable_cache(
-  async (): Promise<Result<Category[]>> => {
-    const { data, error } = await db()
-      .from("categories")
-      .select("id, name, slug")
-      .order("name", { ascending: true })
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    return { data: (data ?? []) as Category[], error: null }
+export const getCategoriesCached = cachedResult(
+  async (): Promise<Category[]> => {
+    const data = await withRetry<Category[]>(() =>
+      db()
+        .from("categories")
+        .select("id, name, slug")
+        .order("name", { ascending: true })
+    )
+    return (data ?? []) as Category[]
   },
   ["categories"],
   { revalidate: 300, tags: ["categories"] }
@@ -209,17 +289,14 @@ export const getCategoriesCached = unstable_cache(
 
 /* ── Brands ──────────────────────────────────────────────────────────────── */
 
-export const getBrandsCached = unstable_cache(
-  async (): Promise<Result<string[]>> => {
-    const { data, error } = await dbAdminReadonly()
-      .from("brands")
-      .select("name")
-      .order("name", { ascending: true })
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    const names = (data ?? []).flatMap((row) =>
-      typeof row.name === "string" && row.name.trim() ? [row.name as string] : []
+export const getBrandsCached = cachedResult(
+  async (): Promise<string[]> => {
+    const rows = await retryRows<{ name: string | null }>(() =>
+      dbAdminReadonly().from("brands").select("name").order("name", { ascending: true })
     )
-    return { data: names, error: null }
+    return (rows ?? []).flatMap((row) =>
+      typeof row.name === "string" && row.name.trim() ? [row.name] : []
+    )
   },
   ["brands"],
   { revalidate: 300, tags: ["brands"] }
@@ -245,184 +322,115 @@ function mapBrandRow(row: BrandRow): HomeBrandItem {
   }
 }
 
-async function fetchBrandsWithLogo(): Promise<Result<HomeBrandItem[]>> {
-  const withDescription = await dbAdminReadonly()
-    .from("brands")
-    .select("id, name, slug, logo_url, show_on_home, description")
-    .not("logo_url", "is", null)
-    .neq("logo_url", "")
-    .order("name", { ascending: true })
-
-  if (withDescription.error && withDescription.error.code !== "42703") {
-    return {
-      data: null,
-      error: {
-        message: withDescription.error.message,
-        code: withDescription.error.code,
-      },
-    }
-  }
-
-  if (!withDescription.error) {
-    const rows = (withDescription.data ?? []) as unknown as BrandRow[]
-    const brands = rows
-      .map(mapBrandRow)
-      .filter(
-        (b) =>
-          typeof b.name === "string" &&
-          b.name.trim().length > 0 &&
-          typeof b.logo_url === "string" &&
-          b.logo_url.trim().length > 0
-      )
-    return { data: brands, error: null }
-  }
-
-  // Columna description no existe — fallback sin ella.
-  const fallback = await dbAdminReadonly()
-    .from("brands")
-    .select("id, name, slug, logo_url, show_on_home")
-    .not("logo_url", "is", null)
-    .neq("logo_url", "")
-    .order("name", { ascending: true })
-
-  if (fallback.error) {
-    if (fallback.error.code === "42703") return { data: [], error: null }
-    return {
-      data: null,
-      error: { message: fallback.error.message, code: fallback.error.code },
-    }
-  }
-
-  const rows = (fallback.data ?? []) as unknown as BrandRow[]
-  const brands = rows
-    .map(mapBrandRow)
-    .filter(
-      (b) =>
-        typeof b.name === "string" &&
-        b.name.trim().length > 0 &&
-        typeof b.logo_url === "string" &&
-        b.logo_url.trim().length > 0
-    )
-  return { data: brands, error: null }
+// Filtra marcas válidas; opcionalmente exige logo.
+function normalizeBrandRows(
+  rows: BrandRow[] | null,
+  requireLogo: boolean
+): HomeBrandItem[] {
+  return (rows ?? []).map(mapBrandRow).filter((b) => {
+    if (typeof b.name !== "string" || b.name.trim().length === 0) return false
+    if (!requireLogo) return true
+    return typeof b.logo_url === "string" && b.logo_url.trim().length > 0
+  })
 }
 
-export const getBrandsWithLogoCached = unstable_cache(
-  async (): Promise<Result<HomeBrandItem[]>> => {
-    return fetchBrandsWithLogo()
-  },
+async function fetchBrandsWithLogo(): Promise<HomeBrandItem[]> {
+  const withDescription = await retryRows<BrandRow>(
+    () =>
+      dbAdminReadonly()
+        .from("brands")
+        .select("id, name, slug, logo_url, show_on_home, description")
+        .not("logo_url", "is", null)
+        .neq("logo_url", "")
+        .order("name", { ascending: true }),
+    ["42703"]
+  )
+  if (withDescription) return normalizeBrandRows(withDescription, true)
+
+  // Columna description no existe — fallback sin ella.
+  const fallback = await retryRows<BrandRow>(
+    () =>
+      dbAdminReadonly()
+        .from("brands")
+        .select("id, name, slug, logo_url, show_on_home")
+        .not("logo_url", "is", null)
+        .neq("logo_url", "")
+        .order("name", { ascending: true }),
+    ["42703"]
+  )
+  return normalizeBrandRows(fallback, true)
+}
+
+export const getBrandsWithLogoCached = cachedResult(
+  fetchBrandsWithLogo,
   ["brands-with-logo"],
   { revalidate: 300, tags: ["brands"] }
 )
 
-async function fetchAllBrandsFull(): Promise<Result<HomeBrandItem[]>> {
-  const withDescription = await dbAdminReadonly()
-    .from("brands")
-    .select("id, name, slug, logo_url, show_on_home, description")
-    .order("name", { ascending: true })
+async function fetchAllBrandsFull(): Promise<HomeBrandItem[]> {
+  const withDescription = await retryRows<BrandRow>(
+    () =>
+      dbAdminReadonly()
+        .from("brands")
+        .select("id, name, slug, logo_url, show_on_home, description")
+        .order("name", { ascending: true }),
+    ["42703"]
+  )
+  if (withDescription) return normalizeBrandRows(withDescription, false)
 
-  if (withDescription.error && withDescription.error.code !== "42703") {
-    return {
-      data: null,
-      error: {
-        message: withDescription.error.message,
-        code: withDescription.error.code,
-      },
-    }
-  }
-
-  if (!withDescription.error) {
-    const rows = (withDescription.data ?? []) as unknown as BrandRow[]
-    return {
-      data: rows
-        .map(mapBrandRow)
-        .filter((b) => typeof b.name === "string" && b.name.trim().length > 0),
-      error: null,
-    }
-  }
-
-  const fallback = await dbAdminReadonly()
-    .from("brands")
-    .select("id, name, slug, logo_url, show_on_home")
-    .order("name", { ascending: true })
-
-  if (fallback.error) {
-    if (fallback.error.code === "42703") return { data: [], error: null }
-    return {
-      data: null,
-      error: { message: fallback.error.message, code: fallback.error.code },
-    }
-  }
-
-  const rows = (fallback.data ?? []) as unknown as BrandRow[]
-  return {
-    data: rows
-      .map(mapBrandRow)
-      .filter((b) => typeof b.name === "string" && b.name.trim().length > 0),
-    error: null,
-  }
+  const fallback = await retryRows<BrandRow>(
+    () =>
+      dbAdminReadonly()
+        .from("brands")
+        .select("id, name, slug, logo_url, show_on_home")
+        .order("name", { ascending: true }),
+    ["42703"]
+  )
+  return normalizeBrandRows(fallback, false)
 }
 
-export const getAllBrandsFullCached = unstable_cache(
-  async (): Promise<Result<HomeBrandItem[]>> => {
-    return fetchAllBrandsFull()
-  },
+export const getAllBrandsFullCached = cachedResult(
+  fetchAllBrandsFull,
   ["brands-all-full"],
   { revalidate: 300, tags: ["brands"] }
 )
 
-export const getHomeBrandsCached = unstable_cache(
-  async (): Promise<Result<HomeBrandItem[]>> => {
-    const { data, error } = await dbAdminReadonly()
-      .from("brands")
-      .select("id, name, slug, logo_url, show_on_home")
-      .eq("show_on_home", true)
-      .order("name", { ascending: true })
-
-    if (!error) {
-      const brands: HomeBrandItem[] = (data ?? [])
-        .map((row) => ({
-          id: row.id as string,
-          name: row.name as string,
-          slug: row.slug as string,
-          logo_url: (row.logo_url as string | null) ?? null,
-          show_on_home: Boolean(row.show_on_home),
-          description: null,
-        }))
-        .filter((brand) => typeof brand.name === "string" && brand.name.trim().length > 0)
-      return { data: brands, error: null }
+export const getHomeBrandsCached = cachedResult(
+  async (): Promise<HomeBrandItem[]> => {
+    const primary = await retryRows<BrandRow>(
+      () =>
+        dbAdminReadonly()
+          .from("brands")
+          .select("id, name, slug, logo_url, show_on_home")
+          .eq("show_on_home", true)
+          .order("name", { ascending: true }),
+      ["42703"]
+    )
+    if (primary) {
+      return primary
+        .map(mapBrandRow)
+        .filter((b) => typeof b.name === "string" && b.name.trim().length > 0)
     }
 
-    if (error.code === "42703") {
-      const { data: fallbackData, error: fallbackError } = await dbAdminReadonly()
-        .from("brands")
-        .select("id, name, slug, logo_url")
-        .order("name", { ascending: true })
-
-      if (fallbackError) {
+    // Columna show_on_home no existe — deriva de la presencia de logo.
+    const fallback = await retryRows<BrandRow>(
+      () =>
+        dbAdminReadonly()
+          .from("brands")
+          .select("id, name, slug, logo_url")
+          .order("name", { ascending: true }),
+      ["42703"]
+    )
+    return (fallback ?? [])
+      .map((row) => {
+        const item = mapBrandRow(row)
         return {
-          data: null,
-          error: { message: fallbackError.message, code: fallbackError.code },
+          ...item,
+          show_on_home:
+            typeof item.logo_url === "string" && item.logo_url.trim().length > 0,
         }
-      }
-
-      const brands: HomeBrandItem[] = (fallbackData ?? [])
-        .map((row) => {
-          const logo = (row.logo_url as string | null) ?? null
-          return {
-            id: row.id as string,
-            name: row.name as string,
-            slug: row.slug as string,
-            logo_url: logo,
-            show_on_home: typeof logo === "string" && logo.trim().length > 0,
-            description: null,
-          }
-        })
-        .filter((brand) => brand.show_on_home)
-
-      return { data: brands, error: null }
-    }
-
-    return { data: null, error: { message: error.message, code: error.code } }
+      })
+      .filter((b) => b.show_on_home)
   },
   ["home-brands"],
   { revalidate: 300, tags: ["brands"] }
@@ -432,62 +440,55 @@ export const getHomeBrandsCached = unstable_cache(
 
 export const RECENT_PRODUCTS_LIMIT = 21
 
-export const getAllProductsCached = unstable_cache(
-  async (): Promise<Result<ProductWithCategory[]>> => {
-    const { data, error } = await db()
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .order("name", { ascending: true })
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    const products = (data ?? [])
-      .map((row) => mapProduct(row as unknown as ProductRow))
-      .filter((p): p is ProductWithCategory => p !== null)
-    return { data: products, error: null }
-  },
+export const getAllProductsCached = cachedResult(
+  async (): Promise<ProductWithCategory[]> =>
+    retryProductList(() =>
+      db()
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("name", { ascending: true })
+    ),
   ["products-all"],
   { revalidate: 120, tags: ["products"] }
 )
 
 /* ── Newest products (mega menu + /tienda/nuevos) ──────────────────────── */
 
-export const getNewestProductsCached = unstable_cache(
-  async (): Promise<Result<ProductWithCategory[]>> => {
-    const { data, error } = await db()
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .limit(RECENT_PRODUCTS_LIMIT)
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    const products = (data ?? [])
-      .map((row) => mapProduct(row as unknown as ProductRow))
-      .filter((p): p is ProductWithCategory => p !== null)
-    return { data: products, error: null }
-  },
+export const getNewestProductsCached = cachedResult(
+  async (): Promise<ProductWithCategory[]> =>
+    retryProductList(() =>
+      db()
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(RECENT_PRODUCTS_LIMIT)
+    ),
   ["products-newest"],
   { revalidate: 120, tags: ["products"] }
 )
 
 /* ── Featured products ───────────────────────────────────────────────────── */
 
-export const getFeaturedProductsCached = unstable_cache(
-  async (): Promise<Result<Product[]>> => {
-    const { data, error } = await db()
-      .from("products")
-      .select(
-        "id, category_id, name, slug, subcategory, description, long_description, application_text, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at"
-      )
-      .eq("is_featured", true)
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(12)
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    const products = (data ?? []).map((row) => ({
+export const getFeaturedProductsCached = cachedResult(
+  async (): Promise<Product[]> => {
+    const data = await retryRows<Record<string, unknown>>(() =>
+      db()
+        .from("products")
+        .select(
+          "id, category_id, name, slug, subcategory, description, long_description, application_text, base_price, discount_percent, images, desktop_image_mode, brand, abrasivity, is_featured, is_best_seller, is_active, updated_at, created_at"
+        )
+        .eq("is_featured", true)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("updated_at", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(12)
+    )
+    return (data ?? []).map((row) => ({
       id: row.id as string,
       category_id: row.category_id as string,
       name: row.name as string,
@@ -513,7 +514,6 @@ export const getFeaturedProductsCached = unstable_cache(
       updated_at: (row.updated_at as string | null) ?? null,
       created_at: (row.created_at as string | null) ?? null,
     }))
-    return { data: products, error: null }
   },
   ["products-featured"],
   { revalidate: 120, tags: ["products"] }
@@ -521,36 +521,34 @@ export const getFeaturedProductsCached = unstable_cache(
 
 /* ── On sale products (discount_percent > 0) ─────────────────────────────── */
 
-export const getOnSaleProductsCached = unstable_cache(
-  async (): Promise<Result<ProductWithCategory[]>> => {
-    const { data, error } = await db()
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .gt("discount_percent", 0)
-      .order("updated_at", { ascending: false })
-      .order("created_at", { ascending: false })
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    const products = (data ?? [])
-      .map((row) => mapProduct(row as unknown as ProductRow))
-      .filter((p): p is ProductWithCategory => p !== null)
-    return { data: products, error: null }
-  },
+export const getOnSaleProductsCached = cachedResult(
+  async (): Promise<ProductWithCategory[]> =>
+    retryProductList(() =>
+      db()
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .gt("discount_percent", 0)
+        .order("updated_at", { ascending: false })
+        .order("created_at", { ascending: false })
+    ),
   ["products-on-sale"],
   { revalidate: 120, tags: ["products", "on-sale"] }
 )
 
-export const getOnSaleCountCached = unstable_cache(
-  async (): Promise<Result<number>> => {
-    const { count, error } = await db()
-      .from("products")
-      .select("id", { count: "exact", head: true })
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .gt("discount_percent", 0)
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    return { data: count ?? 0, error: null }
+export const getOnSaleCountCached = cachedResult(
+  async (): Promise<number> => {
+    const count = await withRetry<number>(async () => {
+      const { count: c, error } = await db()
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .gt("discount_percent", 0)
+      return { data: c ?? 0, error: error ? { message: error.message, code: error.code } : null }
+    })
+    return count ?? 0
   },
   ["products-on-sale-count"],
   { revalidate: 120, tags: ["products", "on-sale"] }
@@ -558,23 +556,19 @@ export const getOnSaleCountCached = unstable_cache(
 
 /* ── Best sellers ────────────────────────────────────────────────────────── */
 
-export const getBestSellersCached = unstable_cache(
-  async (): Promise<Result<ProductWithCategory[]>> => {
-    const { data, error } = await db()
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("is_best_seller", true)
-      .eq("is_active", true)
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(12)
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    const products = (data ?? [])
-      .map((row) => mapProduct(row as unknown as ProductRow))
-      .filter((p): p is ProductWithCategory => p !== null)
-    return { data: products, error: null }
-  },
+export const getBestSellersCached = cachedResult(
+  async (): Promise<ProductWithCategory[]> =>
+    retryProductList(() =>
+      db()
+        .from("products")
+        .select(PRODUCT_SELECT)
+        .eq("is_best_seller", true)
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .order("updated_at", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(12)
+    ),
   ["products-best-sellers"],
   { revalidate: 120, tags: ["products", "best-sellers"] }
 )
@@ -587,21 +581,21 @@ export type TopSearchItem = {
   href: string | null
 }
 
-export const getTopSearchesCached = unstable_cache(
-  async (): Promise<Result<TopSearchItem[]>> => {
-    const { data, error } = await db()
-      .from("top_searches")
-      .select("id, label, href, position")
-      .eq("is_enabled", true)
-      .order("position", { ascending: true })
-      .limit(24)
-    if (error) return { data: null, error: { message: error.message, code: error.code } }
-    const items: TopSearchItem[] = (data ?? []).map((row) => ({
+export const getTopSearchesCached = cachedResult(
+  async (): Promise<TopSearchItem[]> => {
+    const data = await retryRows<Record<string, unknown>>(() =>
+      db()
+        .from("top_searches")
+        .select("id, label, href, position")
+        .eq("is_enabled", true)
+        .order("position", { ascending: true })
+        .limit(24)
+    )
+    return (data ?? []).map((row) => ({
       id: row.id as string,
       label: row.label as string,
       href: (row.href as string | null) ?? null,
     }))
-    return { data: items, error: null }
   },
   ["top-searches"],
   { revalidate: 300, tags: ["top-searches"] }
@@ -611,17 +605,27 @@ export const getTopSearchesCached = unstable_cache(
 
 export const getAnnouncementBarEnabledCached = unstable_cache(
   async (): Promise<boolean> => {
-    const { data, error } = await db()
-      .from("app_settings")
-      .select("value")
-      .eq("key", "announcement_bar_enabled")
-      .maybeSingle()
-    if (error) {
-      if (error.code === "42P01") return false
+    try {
+      const row = await withRetry<{ value: unknown }>(
+        async () => {
+          const { data, error } = await db()
+            .from("app_settings")
+            .select("value")
+            .eq("key", "announcement_bar_enabled")
+            .maybeSingle()
+          return {
+            data: data as { value: unknown } | null,
+            error: error ? { message: error.message, code: error.code } : null,
+          }
+        },
+        { passthroughCodes: ["42P01"] }
+      )
+      const value = row?.value
+      return value === true || value === "true"
+    } catch {
+      // Fallo persistente: degrada ocultando la barra (default seguro).
       return false
     }
-    if (!data?.value) return false
-    return data.value === true || data.value === "true"
   },
   ["announcement-bar-enabled"],
   { revalidate: 300, tags: ["announcement-bar-settings"] }
@@ -633,25 +637,24 @@ export type AnnouncementItem = {
   href: string | null
 }
 
-export const getAnnouncementsCached = unstable_cache(
-  async (): Promise<Result<AnnouncementItem[]>> => {
-    const { data, error } = await db()
-      .from("announcements")
-      .select("id, label, href, position")
-      .eq("is_enabled", true)
-      .order("position", { ascending: true })
-      .limit(12)
-    if (error) {
-      // Tabla inexistente: degrada en vacío en vez de romper el render.
-      if (error.code === "42P01") return { data: [], error: null }
-      return { data: null, error: { message: error.message, code: error.code } }
-    }
-    const items: AnnouncementItem[] = (data ?? []).map((row) => ({
+export const getAnnouncementsCached = cachedResult(
+  async (): Promise<AnnouncementItem[]> => {
+    // 42P01 (tabla inexistente): degrada en vacío en vez de romper el render.
+    const data = await retryRows<Record<string, unknown>>(
+      () =>
+        db()
+          .from("announcements")
+          .select("id, label, href, position")
+          .eq("is_enabled", true)
+          .order("position", { ascending: true })
+          .limit(12),
+      ["42P01"]
+    )
+    return (data ?? []).map((row) => ({
       id: row.id as string,
       label: row.label as string,
       href: (row.href as string | null) ?? null,
     }))
-    return { data: items, error: null }
   },
   ["announcements"],
   { revalidate: 300, tags: ["announcements"] }
@@ -659,24 +662,28 @@ export const getAnnouncementsCached = unstable_cache(
 
 /* ── Product by slug ─────────────────────────────────────────────────────── */
 
-export const getProductBySlugCached = unstable_cache(
-  async (slug: string): Promise<Result<ProductWithVariants>> => {
-    const { data, error } = await db()
-      .from("products")
-      .select(PRODUCT_SELECT)
-      .eq("slug", slug)
-      .is("deleted_at", null)
-      .single()
-    if (error || !data) {
-      return {
-        data: null,
-        error: { message: error?.message ?? "Producto no encontrado", code: error?.code },
-      }
-    }
-    const row = data as unknown as ProductRow
+export const getProductBySlugCached = cachedResult(
+  async (slug: string): Promise<ProductWithVariants> => {
+    // PGRST116 (0 filas) es un "no encontrado" legítimo, no un fallo transitorio.
+    const row = await withRetry<ProductRow>(
+      async () => {
+        const { data, error } = await db()
+          .from("products")
+          .select(PRODUCT_SELECT)
+          .eq("slug", slug)
+          .is("deleted_at", null)
+          .single()
+        return {
+          data: data as unknown as ProductRow | null,
+          error: error ? { message: error.message, code: error.code } : null,
+        }
+      },
+      { passthroughCodes: ["PGRST116"] }
+    )
+    if (!row) throw new Error("Producto no encontrado")
     const cat = row.categories
     if (!cat?.id) {
-      return { data: null, error: { message: "Producto sin categoría", code: "MISSING_CATEGORY" } }
+      throw new Error("Producto sin categoría")
     }
     const raw = row.product_variants
     const variants = Array.isArray(raw) ? raw : raw ? [raw] : []
@@ -703,7 +710,7 @@ export const getProductBySlugCached = unstable_cache(
       category: { id: cat.id, name: cat.name, slug: cat.slug },
       variants: variants.map(mapVariant),
     }
-    return { data: product, error: null }
+    return product
   },
   ["product-slug"],
   { revalidate: 120, tags: ["products"] }
@@ -711,19 +718,18 @@ export const getProductBySlugCached = unstable_cache(
 
 /* ── Related products ────────────────────────────────────────────────────── */
 
-export const getRelatedProductsCached = unstable_cache(
+export const getRelatedProductsCached = cachedResult(
   async (
     categoryId: string,
     brand: string | null | undefined,
     excludeId: string,
     limit: number = 4
-  ): Promise<Result<ProductWithCategory[]>> => {
-    const supabase = db()
+  ): Promise<ProductWithCategory[]> => {
     const collected: ProductWithCategory[] = []
     const seen = new Set<string>([excludeId])
 
     const baseQ = () =>
-      supabase
+      db()
         .from("products")
         .select(PRODUCT_SELECT)
         .eq("is_active", true)
@@ -731,40 +737,42 @@ export const getRelatedProductsCached = unstable_cache(
         .neq("id", excludeId)
         .limit(limit * 3)
 
-    const absorb = (rows: unknown[] | null) => {
+    const absorb = (rows: ProductRow[] | null) => {
       for (const row of rows ?? []) {
         if (collected.length >= limit) break
-        const p = mapProduct(row as ProductRow)
+        const p = mapProduct(row)
         if (!p || seen.has(p.id)) continue
         seen.add(p.id)
         collected.push(p)
       }
     }
 
-    const { data: byCat, error: e1 } = await baseQ()
-      .eq("category_id", categoryId)
-      .order("is_featured", { ascending: false })
-      .order("name", { ascending: true })
-    if (e1) return { data: null, error: { message: e1.message, code: e1.code } }
-    absorb(byCat)
+    absorb(
+      await retryRows<ProductRow>(() =>
+        baseQ()
+          .eq("category_id", categoryId)
+          .order("is_featured", { ascending: false })
+          .order("name", { ascending: true })
+      )
+    )
 
     if (collected.length < limit && brand) {
-      const { data: byBrand, error: e2 } = await baseQ()
-        .eq("brand", brand)
-        .order("name", { ascending: true })
-      if (e2) return { data: null, error: { message: e2.message, code: e2.code } }
-      absorb(byBrand)
+      absorb(
+        await retryRows<ProductRow>(() =>
+          baseQ().eq("brand", brand).order("name", { ascending: true })
+        )
+      )
     }
 
     if (collected.length < limit) {
-      const { data: featured, error: e3 } = await baseQ()
-        .eq("is_featured", true)
-        .order("updated_at", { ascending: false })
-      if (e3) return { data: null, error: { message: e3.message, code: e3.code } }
-      absorb(featured)
+      absorb(
+        await retryRows<ProductRow>(() =>
+          baseQ().eq("is_featured", true).order("updated_at", { ascending: false })
+        )
+      )
     }
 
-    return { data: collected.slice(0, limit), error: null }
+    return collected.slice(0, limit)
   },
   ["related-products"],
   { revalidate: 120, tags: ["products"] }
@@ -772,22 +780,30 @@ export const getRelatedProductsCached = unstable_cache(
 
 /* ── Services ────────────────────────────────────────────────────────────── */
 
-export const getServicesCached = unstable_cache(
-  async (): Promise<Result<ServiceRow[]>> => {
-    const result = await queryServiceRows(db(), { activeOnly: true })
-    if (!result.data) {
-      return { data: null, error: result.error }
-    }
-    const rows = result.data.map(mapServiceRecord)
-    return { data: rows, error: null }
+export const getServicesCached = cachedResult(
+  async (): Promise<ServiceRow[]> => {
+    const rows = await withRetry(async () => {
+      const result = await queryServiceRows(db(), { activeOnly: true })
+      return {
+        data: result.data,
+        error: result.error
+          ? { message: result.error.message, code: result.error.code }
+          : null,
+      }
+    })
+    return (rows ?? []).map(mapServiceRecord)
   },
   ["services"],
   { revalidate: 300, tags: ["services"] }
 )
 
-export const getServicesWithOptionsCached = unstable_cache(
-  async (): Promise<Result<ServiceWithOptions[]>> => {
-    return getPublicServicesWithOptions()
+export const getServicesWithOptionsCached = cachedResult(
+  async (): Promise<ServiceWithOptions[]> => {
+    const data = await withRetry(async () => {
+      const result = await getPublicServicesWithOptions()
+      return { data: result.data, error: result.error ?? null }
+    })
+    return data ?? []
   },
   ["services-with-options"],
   { revalidate: 300, tags: ["services"] }
@@ -795,22 +811,21 @@ export const getServicesWithOptionsCached = unstable_cache(
 
 /* ── Professionals ───────────────────────────────────────────────────────── */
 
-export const getProfessionalsCached = unstable_cache(
-  async (): Promise<Result<ProfessionalRow[]>> => {
-    const { data, error } = await adminDb()
-      .from("professionals")
-      .select("id, name, bio, photo_url, is_active")
-      .eq("is_active", true)
-      .order("name", { ascending: true })
-    if (error) {
-      return { data: null, error: { message: error.message, code: error.code } }
-    }
+export const getProfessionalsCached = cachedResult(
+  async (): Promise<ProfessionalRow[]> => {
+    const data = await retryRows<Record<string, unknown>>(() =>
+      adminDb()
+        .from("professionals")
+        .select("id, name, bio, photo_url, is_active")
+        .eq("is_active", true)
+        .order("name", { ascending: true })
+    )
 
     const professionalIds = (data ?? []).map((row) => row.id as string)
     const filterIdsByProfessional =
       await loadProfessionalFilterIdsMap(professionalIds)
 
-    const rows = (data ?? []).map((r) => ({
+    return (data ?? []).map((r) => ({
       id: r.id as string,
       name: r.name as string,
       bio: (r.bio as string | null) ?? null,
@@ -818,7 +833,6 @@ export const getProfessionalsCached = unstable_cache(
       is_active: Boolean(r.is_active),
       filter_ids: filterIdsByProfessional.get(r.id as string) ?? [],
     }))
-    return { data: rows, error: null }
   },
   ["professionals"],
   { revalidate: 60, tags: ["professionals"] }

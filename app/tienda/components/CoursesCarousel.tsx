@@ -109,7 +109,7 @@ export default function CoursesCarousel({ courses }: Props) {
                   )}
                   <span className="truncate text-[11px] text-neutral-500">{instructorName}</span>
                   {course.show_price_public ? (
-                    <span className="ml-auto shrink-0 text-[12px] font-semibold text-[#8a6d26]">
+                    <span className="ml-auto shrink-0 text-[12px] font-semibold text-[#c6a75e]">
                       {formatPrice(course.price)}
                     </span>
                   ) : (

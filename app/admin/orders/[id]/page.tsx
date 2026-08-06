@@ -71,7 +71,12 @@ function shippingPaymentStatusLabel(s: string): string {
 
 type ShippingQuoteFormProps = {
   orderId: string
-  onSuccess: (paymentUrl: string) => void
+  onSuccess: (quote: {
+    paymentUrl: string
+    shipping_amount_final: number
+    carrier: string | null
+    tracking_number: string | null
+  }) => void
 }
 
 function ShippingQuoteForm({ orderId, onSuccess }: ShippingQuoteFormProps) {
@@ -115,7 +120,12 @@ function ShippingQuoteForm({ orderId, onSuccess }: ShippingQuoteFormProps) {
       }
 
       toast.success("Cobro de envío registrado")
-      onSuccess(json.data.payment_url)
+      onSuccess({
+        paymentUrl: json.data.payment_url,
+        shipping_amount_final: parsedAmount,
+        carrier: carrier || null,
+        tracking_number: trackingNumber || null,
+      })
     } catch {
       const message = "Error de red. Intenta de nuevo."
       setError(message)
@@ -290,14 +300,14 @@ export default function AdminOrderDetailPage() {
     }
   }
 
-  async function saveStatus() {
+  async function saveStatus(status: ManualStatus) {
     if (!id || !order) return
     setSaving(true)
     try {
       const res = await fetch(`/api/admin/orders/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: selectedStatus }),
+        body: JSON.stringify({ status }),
       })
 
       const json = await res.json()
@@ -308,7 +318,7 @@ export default function AdminOrderDetailPage() {
       }
 
       setOrder((prev) =>
-        prev ? { ...prev, status: selectedStatus } : prev
+        prev ? { ...prev, status } : prev
       )
       toast.success("Estado actualizado correctamente.")
     } catch {
@@ -373,6 +383,16 @@ export default function AdminOrderDetailPage() {
     order.status !== "paid" &&
     order.status !== "pending" &&
     order.status !== "cancelled"
+
+  // Prevención: mientras falte cobrar el envío (orden de envío en estado paid),
+  // solo se puede "Cancelar" — se ocultan "Enviado"/"Entregado" para que no se
+  // pueda marcar como despachada saltándose el cobro de envío.
+  const availableStatuses: readonly ManualStatus[] = showShippingQuoteForm
+    ? (["cancelled"] as const)
+    : MANUAL_STATUSES
+  const effectiveStatus: ManualStatus = availableStatuses.includes(selectedStatus)
+    ? selectedStatus
+    : availableStatuses[0]
 
   return (
     <div className="min-h-screen bg-white text-[#1a1a1a]">
@@ -520,11 +540,19 @@ export default function AdminOrderDetailPage() {
                   ) : (
                     <ShippingQuoteForm
                       orderId={id}
-                      onSuccess={(url) => {
-                        setQuoteSuccess(url)
+                      onSuccess={(quote) => {
+                        setQuoteSuccess(quote.paymentUrl)
                         setOrder((prev) =>
                           prev
-                            ? { ...prev, status: "awaiting_shipping_payment" }
+                            ? {
+                                ...prev,
+                                status: "awaiting_shipping_payment",
+                                shipping_payment_status: "pending",
+                                shipping_payment_url: quote.paymentUrl,
+                                shipping_amount_final: quote.shipping_amount_final,
+                                carrier: quote.carrier,
+                                tracking_number: quote.tracking_number,
+                              }
                             : prev
                         )
                       }}
@@ -690,19 +718,51 @@ export default function AdminOrderDetailPage() {
               </span>
             </div>
 
+            {showShippingQuoteForm && (
+              <div className="mt-4 flex gap-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="mt-0.5 shrink-0 text-amber-600"
+                  aria-hidden="true"
+                >
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                  <line x1="12" x2="12" y1="9" y2="13" />
+                  <line x1="12" x2="12.01" y1="17" y2="17" />
+                </svg>
+                <div className="text-sm">
+                  <p className="font-semibold text-amber-900">
+                    Falta cobrar el envío de esta orden.
+                  </p>
+                  <p className="mt-1 text-amber-800">
+                    Primero usa <strong>&ldquo;Enviar cobro de envío al cliente&rdquo;</strong> (sección{" "}
+                    <em>Guía y envío</em>, arriba) y espera a que el cliente lo pague. Si cambias el
+                    estado a <strong>&ldquo;Enviado&rdquo;</strong> ahora, la orden dejará de estar en{" "}
+                    <code>paid</code> y <strong>ya no podrás generar el cobro de envío</strong>.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-[#6b6b6b]">
                   Cambiar estado (envío / entrega / cancelación)
                 </label>
                 <select
-                  value={selectedStatus}
+                  value={effectiveStatus}
                   onChange={(e) =>
                     setSelectedStatus(e.target.value as ManualStatus)
                   }
                   className="rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
                 >
-                  {MANUAL_STATUSES.map((s) => (
+                  {availableStatuses.map((s) => (
                     <option key={s} value={s}>
                       {manualStatusLabel(s)}
                     </option>
@@ -711,7 +771,7 @@ export default function AdminOrderDetailPage() {
               </div>
               <button
                 type="button"
-                onClick={saveStatus}
+                onClick={() => saveStatus(effectiveStatus)}
                 disabled={saving}
                 className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
               >

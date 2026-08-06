@@ -225,7 +225,7 @@ export default function LoginPage() {
   return (
     <div className="w-full max-w-3xl">
       <div className="bg-neutral-100 px-6 py-10 sm:px-14 sm:py-14">
-        <h1 className="mb-8 font-display text-xl tracking-[0.25em] text-neutral-900 sm:text-2xl">
+        <h1 className="mb-8 text-xl font-semibold tracking-[0.25em] text-neutral-900 sm:text-2xl">
           MI CUENTA
         </h1>
 
@@ -314,15 +314,28 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="order-1 ml-auto inline-flex h-12 w-full items-center justify-center bg-neutral-900 px-12 text-[13px] tracking-[0.2em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2 sm:w-auto"
+              className="order-1 ml-auto inline-flex h-12 w-full items-center justify-center gap-2.5 bg-neutral-900 px-12 text-[13px] tracking-[0.2em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2 sm:w-auto"
             >
-              {loading
-                ? step === "email"
-                  ? "VERIFICANDO…"
-                  : "ENTRANDO…"
-                : !captchaReady
-                  ? "VERIFICANDO…"
-                  : "CONTINUAR"}
+              {loading || !captchaReady ? (
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" opacity="0.25" />
+                  <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              ) : null}
+              <span>
+                {loading
+                  ? step === "email"
+                    ? "VERIFICANDO…"
+                    : "ENTRANDO…"
+                  : !captchaReady
+                    ? "VERIFICANDO…"
+                    : "CONTINUAR"}
+              </span>
             </button>
           </div>
         </form>

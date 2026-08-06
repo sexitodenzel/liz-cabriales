@@ -202,7 +202,7 @@ export default function ProductCard({ product, layout = "grid", badge }: Props) 
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h3 className="line-clamp-2 text-sm font-medium leading-snug text-[#0a0a0a] sm:text-base md:text-lg">
-                <Link href={`/tienda/${product.slug}`} className="hover:text-[#a8862f]">
+                <Link href={`/tienda/${product.slug}`} className="hover:text-[#c6a75e]">
                   {product.name}
                 </Link>
               </h3>

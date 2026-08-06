@@ -1,7 +1,7 @@
 "use client"
 
 import Image, { type ImageProps } from "next/image"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 /** ¿next/image puede construir una URL a partir de este src sin lanzar? */
 function isRenderableSrc(src: ImageProps["src"]): boolean {
@@ -29,18 +29,27 @@ function isRenderableSrc(src: ImageProps["src"]): boolean {
    otras transiciones — opacity y transform conviven sin pelearse por
    `transition-property`.
 
-   Maneja imágenes YA cacheadas: cuando el navegador la tiene en caché,
-   `onLoad` puede dispararse antes de que React ligue el handler, así que en el
-   mount revisamos `img.complete` para marcarla cargada sin parpadeo. */
+   Maneja imágenes YA cacheadas o lazy: el onLoad de React a veces se pierde
+   (caché / loading=lazy / hydration), así que en el mount revisamos
+   `img.complete` y además escuchamos los eventos load/error nativos. */
 export default function SmoothImage({
   onLoad,
+  onError,
   style,
   unoptimized,
   src,
   ...props
 }: ImageProps) {
   const [loaded, setLoaded] = useState(false)
-  const imgRef = useRef<HTMLImageElement>(null)
+  const imgRef = useRef<HTMLImageElement | null>(null)
+
+  // Callback ref: se ejecuta con el <img> real en cuanto monta (más fiable que
+  // useRef+useEffect para "ya estaba cargada al montar"). Si next/image sí
+  // forwardea el ref, revelamos al instante sin esperar eventos.
+  const setImgEl = useCallback((el: HTMLImageElement | null) => {
+    imgRef.current = el
+    if (el && el.complete && el.naturalWidth > 0) setLoaded(true)
+  }, [])
 
   // /api/nail-art/image/* responde 302 a signed URL: el optimizer de Next
   // no debe intentar reescribir esa ruta (rompe covers UGC).
@@ -49,8 +58,35 @@ export default function SmoothImage({
     Boolean(unoptimized) || srcStr.startsWith("/api/nail-art/image/")
 
   useEffect(() => {
-    if (imgRef.current?.complete) setLoaded(true)
-  }, [])
+    const img = imgRef.current
+    const reveal = () => setLoaded(true)
+
+    if (img) {
+      // Ya cargó antes de que ligáramos eventos (caché / hydration / eager):
+      // revélala de una.
+      if (img.complete) {
+        setLoaded(true)
+        return
+      }
+      // `error` también revela: una imagen rota no debe quedar invisible eterna.
+      img.addEventListener("load", reveal)
+      img.addEventListener("error", reveal)
+    }
+
+    // Fallback duro, INDEPENDIENTE del ref y de los eventos. Garantiza que
+    // NINGUNA imagen quede invisible: si el ref no se forwardeó o el `load` se
+    // perdió (p. ej. covers /api/nail-art/image con redirect 302, o imágenes
+    // que cargaron antes de hidratar), la revela igual tras un breve margen.
+    const fallback = window.setTimeout(() => setLoaded(true), 300)
+
+    return () => {
+      if (img) {
+        img.removeEventListener("load", reveal)
+        img.removeEventListener("error", reveal)
+      }
+      window.clearTimeout(fallback)
+    }
+  }, [srcStr])
 
   // Guarda contra src inválido: next/image hace `new URL(src)` internamente y
   // un src vacío / undefined / ruta relativa no-absoluta lanza
@@ -62,13 +98,17 @@ export default function SmoothImage({
 
   return (
     <Image
-      ref={imgRef}
+      ref={setImgEl}
       src={src}
       {...props}
       unoptimized={skipOptimize}
       onLoad={(event) => {
         setLoaded(true)
         onLoad?.(event)
+      }}
+      onError={(event) => {
+        setLoaded(true)
+        onError?.(event)
       }}
       style={{
         ...style,

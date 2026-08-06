@@ -62,7 +62,7 @@ export async function sendShippingPaidAdminEmail(orderId: string): Promise<void>
       El cliente pagó el envío de su pedido. Ya puedes comprar la guía y preparar el paquete.
     </p>
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
-      style="border:1px solid #e8e1d3;border-radius:12px;margin-bottom:20px;">
+      style="border:1px solid #ececec;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
           <tr>

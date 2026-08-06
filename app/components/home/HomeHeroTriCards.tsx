@@ -369,7 +369,7 @@ export default function HomeHeroTriCards({ images }: Props) {
               <span className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white/90">
                 {CENTER.eyebrow}
               </span>
-              <h2 className="lc-text-shimmer-gold max-w-[14ch] font-display text-xl font-normal leading-[1.1] md:text-3xl lg:text-4xl">
+              <h2 className="lc-text-shimmer-gold max-w-[14ch] text-xl font-semibold leading-[1.1] tracking-[-0.02em] md:text-3xl lg:text-4xl">
                 {CENTER.title}
               </h2>
               <p className="mt-2 max-w-xs text-[11px] text-white/85 md:text-xs">
@@ -411,13 +411,13 @@ export default function HomeHeroTriCards({ images }: Props) {
           card={CENTER}
           hero
           entrance
-          className="h-[calc(86svh-var(--navbar-mobile-h,64px))]"
+          className="h-[calc(100svh-var(--navbar-mobile-h,64px))]"
         />
 
         <InView>
           <div className="bg-ivory pt-9 pb-11">
             <div className="mb-5 flex items-baseline justify-between px-6">
-              <h3 className="font-display text-2xl font-normal">Explora</h3>
+              <h3 className="text-2xl font-semibold tracking-[-0.02em]">Explora</h3>
               <span className="text-[10px] uppercase tracking-[0.28em] text-neutral-400">
                 Desliza →
               </span>
@@ -513,7 +513,7 @@ function CardBlock({
             <span className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white/90">
               {card.eyebrow}
             </span>
-            <h2 className="lc-text-shimmer-gold max-w-[14ch] font-display text-4xl font-normal leading-[1.05] md:text-6xl lg:text-7xl">
+            <h2 className="lc-text-shimmer-gold max-w-[14ch] text-4xl font-semibold leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-7xl">
               {card.title}
             </h2>
             <p className="mt-5 max-w-md text-sm text-white/85 md:text-base">
@@ -542,7 +542,7 @@ function CardBlock({
           <span className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white/80">
             {card.eyebrow}
           </span>
-          <h2 className="font-display text-3xl font-normal leading-tight md:text-3xl">
+          <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-3xl">
             {card.title}
           </h2>
           <span className="mt-3 inline-flex w-fit items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">

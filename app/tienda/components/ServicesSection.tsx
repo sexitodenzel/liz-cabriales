@@ -30,7 +30,7 @@ export default function ServicesSection({ services }: Props) {
           <h2 className="text-xl font-semibold">
             <Link
               href="/servicios"
-              className="transition-colors hover:text-[#a8862f]"
+              className="transition-colors hover:text-[#c6a75e]"
             >
               Servicios profesionales
             </Link>
@@ -38,7 +38,7 @@ export default function ServicesSection({ services }: Props) {
         </div>
         <Link
           href="/servicios/agendar"
-          className="hidden text-sm font-medium text-[#a8862f] hover:underline sm:block"
+          className="hidden text-sm font-medium text-[#c6a75e] hover:underline sm:block"
         >
           Agendar cita →
         </Link>
@@ -60,7 +60,7 @@ export default function ServicesSection({ services }: Props) {
       <div className="mt-4 sm:hidden">
         <Link
           href="/servicios/agendar"
-          className="text-sm font-medium text-[#a8862f] hover:underline"
+          className="text-sm font-medium text-[#c6a75e] hover:underline"
         >
           Agendar cita →
         </Link>
@@ -104,7 +104,7 @@ function ServiceRowItem({ service }: { service: ServiceRow }) {
     <div className="group flex items-center gap-4 border-b border-neutral-200 py-4">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h3 className="text-[15px] font-medium leading-snug text-[#0a0a0a] transition-colors group-hover:text-[#a8862f]">
+          <h3 className="text-[15px] font-medium leading-snug text-[#0a0a0a] transition-colors group-hover:text-[#c6a75e]">
             {service.name}
           </h3>
           <span className="text-[11px] uppercase tracking-[0.14em] text-neutral-400">

@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { getBestSellersCached } from "@/lib/supabase/cache"
 import type { ProductWithCategory } from "@/lib/supabase/products"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import Eyebrow from "@/app/components/ui/Eyebrow"
 import ProductListingSection from "../components/ProductListingSection"
 
 export const revalidate = 120
@@ -18,9 +19,8 @@ export default async function BestSellersPage() {
     return (
       <main className="min-h-screen bg-ivory text-[#0a0a0a]">
         <div className="site-container pt-5 pb-12">
-          <h1 className="text-2xl font-semibold">
-            <span className="text-[#8a6d26]">Best</span>{" "}
-            <span className="text-[#0a0a0a]">Sellers</span>
+          <h1 className="font-display text-[clamp(28px,4vw,44px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">
+            <span className="text-gold-soft">Best</span> Sellers
           </h1>
           <p className="mt-4 text-sm text-red-600">
             Ocurrió un error al cargar los productos. Intenta de nuevo más tarde.
@@ -44,9 +44,9 @@ export default async function BestSellersPage() {
         />
 
         <header className="mb-10 space-y-3 border-b border-neutral-200 pb-6">
-          <h1 className="text-2xl font-semibold md:text-3xl">
-            <span className="text-[#8a6d26]">Best</span>{" "}
-            <span className="text-[#0a0a0a]">Sellers</span>
+          <Eyebrow>Tienda</Eyebrow>
+          <h1 className="font-display text-[clamp(28px,4vw,44px)] font-medium leading-[1.05] tracking-[-0.01em] text-[#111]">
+            <span className="text-gold-soft">Best</span> Sellers
           </h1>
           <p className="max-w-2xl text-sm text-neutral-500">
             Los productos favoritos de nuestra comunidad de profesionales.

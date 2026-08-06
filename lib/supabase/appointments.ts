@@ -143,6 +143,7 @@ export type ServiceRow = {
   filter_id: string | null
   filter_slug: string | null
   filter_name: string | null
+  image_url: string | null
 }
 
 export type ServiceOptionRow = {

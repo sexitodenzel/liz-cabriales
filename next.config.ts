@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
 
+// Solo dev: permite recursos de Next desde un túnel público (cloudflared/ngrok)
+// para probar webhooks de MercadoPago que no llegan a localhost. Se pasa el host
+// vía `DEV_TUNNEL_HOST` al arrancar `npm run dev`. En prod/dev normal es no-op.
+const devTunnelHost = process.env.DEV_TUNNEL_HOST;
+
 /** Hostname de Storage (sin https://). Fallback al proyecto actual si falta env en build. */
 function supabaseStorageHostname(): string {
   const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -54,6 +59,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  ...(isDev && devTunnelHost ? { allowedDevOrigins: [devTunnelHost] } : {}),
   // Fija la raíz del workspace a este proyecto para evitar que Next elija
   // el lockfile de C:\Users\migue como raíz (había múltiples package-lock.json).
   outputFileTracingRoot: __dirname,

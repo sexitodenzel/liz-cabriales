@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Heart, ShoppingBag } from "lucide-react"
 
 import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
@@ -240,6 +241,7 @@ export default function TabbedShopper({
   /** Flechas del carrusel de productos (‹ ›). Default: visibles. */
   showArrows?: boolean
 }) {
+  const router = useRouter()
   const [activeId, setActiveId] = useState(tabs[0]?.id ?? "")
   const scrollerRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -320,8 +322,16 @@ export default function TabbedShopper({
 
   if (!active) return null
 
+  // 1er click: activa la pestaña (muestra sus productos). 2º click sobre la
+  // pestaña YA activa: navega a la búsqueda filtrada de esa categoría (su
+  // href). Igual en móvil y desktop. Un doble click cae aquí también: el 2º
+  // click encuentra la pestaña ya activa y navega.
   const selectTab = (id: string) => {
-    if (id === activeId) return
+    if (id === activeId) {
+      const tab = tabs.find((t) => t.id === id)
+      if (tab) router.push(tab.href)
+      return
+    }
     setActiveId(id)
     scrollerRef.current?.scrollTo({
       left: 0,

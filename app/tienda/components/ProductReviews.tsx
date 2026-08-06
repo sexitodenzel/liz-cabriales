@@ -100,7 +100,7 @@ function ReviewForm({
       onSubmit={handleSubmit}
       className="rounded-2xl border border-[#c6a75e]/25 bg-neutral-100 p-6"
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-soft">
         Compra verificada
       </p>
       <h3 className="mt-1 text-[15px] font-semibold leading-snug text-[#111] sm:text-[16px]">
@@ -134,7 +134,7 @@ function ReviewForm({
 
       {error && <p className="mt-2 text-[13px] text-red-600">{error}</p>}
       {saved && !error && (
-        <p className="mt-2 text-[13px] text-gold">
+        <p className="mt-2 text-[13px] text-gold-soft">
           ¡Gracias! Tu reseña quedó guardada.
         </p>
       )}
@@ -142,7 +142,7 @@ function ReviewForm({
       <button
         type="submit"
         disabled={submitting}
-        className="mt-4 inline-flex items-center rounded-full bg-[#1a1a1a] px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#a8862f] disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-4 inline-flex items-center rounded-full bg-[#1a1a1a] px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#c6a75e] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting
           ? "Guardando…"
@@ -236,7 +236,7 @@ export default function ProductReviews({
                 <li key={r.id} className="py-5 first:pt-0 last:pb-0">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[#c6a75e]/15 text-[13px] font-semibold text-gold">
+                      <span className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-[#c6a75e]/15 text-[13px] font-semibold text-gold-soft">
                         {r.author_name[0]?.toUpperCase() ?? "C"}
                       </span>
                       <div>

@@ -894,13 +894,16 @@ export default function ServiciosLanding({
                   const item = portfolio[i]
                   if (item) {
                     const inner = (
-                      <span className="relative h-[112px] w-[112px] overflow-hidden rounded-xl bg-neutral-100 sm:h-[128px] sm:w-[128px]">
+                      <span className="relative block h-[112px] w-[112px] overflow-hidden rounded-xl bg-neutral-100 sm:h-[128px] sm:w-[128px]">
                         <SmoothImage
                           src={item.image}
                           alt={item.title}
                           fill
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                           sizes="128px"
+                          // Thumbs chicos del carrusel: eager evita que loading=lazy
+                          // + opacity:0 dejen las fotos invisibles bajo el fold.
+                          loading="eager"
                         />
                       </span>
                     )

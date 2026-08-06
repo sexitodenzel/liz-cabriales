@@ -2,6 +2,7 @@ import {
   BRAND_GOLD,
   EMAIL_FROM,
   buildEmailShell,
+  emailButton,
   formatPriceMXN,
   getResend,
   getSupabaseAdmin,
@@ -26,7 +27,7 @@ function buildBody(d: InvoiceIssuedData): string {
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0"
-      style="border:1px solid #e8e1d3;border-radius:12px;margin-bottom:20px;">
+      style="border:1px solid #ececec;border-radius:12px;margin-bottom:20px;">
       <tr><td style="padding:16px 20px;">
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
@@ -63,12 +64,7 @@ function buildBody(d: InvoiceIssuedData): string {
     </p>
 
     <div style="text-align:center;margin-top:24px;">
-      <a href="${d.orderUrl}"
-        style="display:inline-block;background:#0a0a0a;color:#fff;text-decoration:none;
-               font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-               padding:12px 28px;border-radius:999px;">
-        Ver mi orden
-      </a>
+      ${emailButton(d.orderUrl, "Ver mi orden")}
     </div>
   `
 }

@@ -1,7 +1,9 @@
 import {
   ADMIN_EMAIL,
   BRAND_GOLD,
+  EMAIL_BUTTON_STYLE_TAG,
   EMAIL_FROM,
+  emailButton,
   formatPriceMXN,
   getResend,
   getSupabaseAdmin,
@@ -23,33 +25,33 @@ type InvoiceReceivedData = {
 function buildHtml(d: InvoiceReceivedData): string {
   return `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">${EMAIL_BUTTON_STYLE_TAG}</head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px;">
   <tr><td align="center">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
       <tr>
-        <td style="background:#0a0a0a;border-radius:16px 16px 0 0;padding:24px 32px;text-align:center;">
-          <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:${BRAND_GOLD};">
+        <td style="background:#ffffff;border:1px solid #ececec;border-bottom:none;border-radius:18px 18px 0 0;padding:38px 40px 30px;text-align:center;">
+          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:${BRAND_GOLD};">
             Panel Admin — Liz Cabriales
           </p>
-          <p style="margin:8px 0 0;font-size:20px;font-weight:700;color:#fff;">
+          <p style="margin:14px 0 0;font-size:24px;font-weight:600;color:#1a1a1a;letter-spacing:-0.015em;">
             Nueva solicitud de factura
           </p>
-          <p style="margin:12px 0 0;">
-            <span style="display:inline-block;padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#0a0a0a;background:${BRAND_GOLD};border-radius:999px;">
+          <p style="margin:18px 0 0;">
+            <span style="display:inline-block;padding:6px 13px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#ffffff;background:#0a0a0a;border:1px solid #0a0a0a;border-radius:999px;">
               Orden #${shortId(d.orderId)}
             </span>
           </p>
         </td>
       </tr>
       <tr>
-        <td style="background:#fff;padding:28px 32px;border-left:1px solid #e8e1d3;border-right:1px solid #e8e1d3;">
+        <td style="background:#fff;padding:28px 32px;border-left:1px solid #ececec;border-right:1px solid #ececec;">
           <p style="margin:0 0 20px;font-size:14px;color:#555;">
             Un cliente solicitó factura CFDI para su pedido. Aquí están sus datos:
           </p>
 
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e1d3;border-radius:12px;margin-bottom:20px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #ececec;border-radius:12px;margin-bottom:20px;">
             <tr><td style="padding:16px 20px;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
@@ -102,15 +104,13 @@ function buildHtml(d: InvoiceReceivedData): string {
           </p>
 
           <div style="text-align:center;margin-top:24px;">
-            <a href="${d.adminOrderUrl}" style="display:inline-block;background:#0a0a0a;color:#fff;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:12px 28px;border-radius:999px;">
-              Ver orden en panel admin
-            </a>
+            ${emailButton(d.adminOrderUrl, "Ver orden en panel admin")}
           </div>
         </td>
       </tr>
       <tr>
-        <td style="background:#f4f0e8;border:1px solid #e8e1d3;border-top:none;border-radius:0 0 16px 16px;padding:16px 32px;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#9b8b65;">Academia Liz Cabriales · Panel administrativo</p>
+        <td style="background:#f5f5f5;border:1px solid #ececec;border-top:none;border-radius:0 0 16px 16px;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#9a9a9a;">Academia Liz Cabriales · Panel administrativo</p>
         </td>
       </tr>
     </table>

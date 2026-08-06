@@ -73,15 +73,15 @@ export default function OrderInfo({ hasCourseToday, courseSlot }: OrderInfoProps
         </h4>
         <ul className="mt-3 space-y-1.5">
           <li className="flex gap-2">
-            <span className="text-[#a8862f]">•</span>
+            <span className="text-[#c6a75e]">•</span>
             <span>Tarjeta de crédito y débito (Visa, MasterCard, American Express)</span>
           </li>
           <li className="flex gap-2">
-            <span className="text-[#a8862f]">•</span>
+            <span className="text-[#c6a75e]">•</span>
             <span>Transferencia / SPEI</span>
           </li>
           <li className="flex gap-2">
-            <span className="text-[#a8862f]">•</span>
+            <span className="text-[#c6a75e]">•</span>
             <span>Pago en tienda al recoger</span>
           </li>
         </ul>

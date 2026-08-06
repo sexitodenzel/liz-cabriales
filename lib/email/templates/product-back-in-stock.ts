@@ -3,6 +3,7 @@ import {
   BRAND_GOLD,
   EMAIL_FROM,
   buildEmailShell,
+  emailButton,
   getResend,
 } from "./_shared"
 
@@ -25,7 +26,7 @@ export function buildProductBackInStockHtml(data: ProductBackInStockData): strin
   const productLabel = displayProductName(data)
 
   const body = `
-    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9b8b65;">
+    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9a9a;">
       Hola, ${data.firstName}
     </p>
     <p style="margin: 0 0 24px; font-size: 16px; color: ${BRAND_BLACK}; line-height: 1.5;">
@@ -35,7 +36,7 @@ export function buildProductBackInStockHtml(data: ProductBackInStockData): strin
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px; background: #faf8f3; border: 1px solid #ead8a2; border-radius: 12px;">
       <tr>
         <td style="padding: 16px 20px;">
-          <p style="margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #9b8b65;">
+          <p style="margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #9a9a9a;">
             Producto disponible
           </p>
           <p style="margin: 0; font-size: 16px; font-weight: 600; color: ${BRAND_BLACK}; line-height: 1.5;">
@@ -48,10 +49,7 @@ export function buildProductBackInStockHtml(data: ProductBackInStockData): strin
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px;">
       <tr>
         <td align="center">
-          <a href="${data.productUrl}"
-            style="display: inline-block; padding: 12px 24px; background-color: ${BRAND_BLACK}; color: ${BRAND_GOLD}; font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; border-radius: 10px;">
-            Ver en la tienda
-          </a>
+          ${emailButton(data.productUrl, "Ver en la tienda")}
         </td>
       </tr>
     </table>

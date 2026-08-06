@@ -34,14 +34,14 @@ export function buildAppointmentConfirmationHtml(
   })
 
   const body = `
-    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9b8b65;">
+    <p style="margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9a9a;">
       Hola, ${data.customerFirstName}
     </p>
     <p style="margin: 0 0 24px; font-size: 16px; color: ${BRAND_BLACK}; line-height: 1.5;">
       Tu cita quedó registrada y confirmada. Te esperamos con gusto.
     </p>
 
-    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9b8b65;">
+    <p style="margin: 0 0 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #9a9a9a;">
       Detalles de la cita
     </p>
     ${infoBlock}

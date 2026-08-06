@@ -122,7 +122,7 @@ export default function SectionCarousel({
             <h2 className="text-xl font-semibold">
               <Link
                 href={titleHref}
-                className="transition-colors hover:text-[#a8862f]"
+                className="transition-colors hover:text-[#c6a75e]"
               >
                 {title}
               </Link>

@@ -222,7 +222,7 @@ export default function HomeSpotlight({
 
           <h2
             id="home-spotlight-title"
-            className="font-display text-[clamp(34px,5.2vw,60px)] font-medium leading-[1.02] tracking-[-0.015em] text-ink"
+            className="text-[clamp(34px,5.2vw,60px)] font-semibold leading-[1.02] tracking-[-0.02em] text-ink"
           >
             {titleLines.map((line, i) => (
               <span key={i} className="block overflow-hidden pb-[0.04em]">

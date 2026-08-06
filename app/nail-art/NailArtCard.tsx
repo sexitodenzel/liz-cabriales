@@ -3,9 +3,8 @@
 import { useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Heart, Star } from "lucide-react"
+import { Heart } from "lucide-react"
 import SmoothImage from "@/app/components/shared/SmoothImage"
-import { useNailArtFavorites } from "@/app/components/wishlist/NailArtFavoritesContext"
 import { nailArtImageApiPath } from "@/lib/nail-art-image"
 import type { NailArtPost } from "@/lib/supabase/nail-art"
 
@@ -25,27 +24,21 @@ type Props = {
   post: NailArtPost
   isLoggedIn: boolean
   initialLiked: boolean
-  onFavoriteChange?: (postId: string, favorited: boolean) => void
 }
 
 export default function NailArtCard({
   post,
   isLoggedIn,
   initialLiked,
-  onFavoriteChange,
 }: Props) {
   const router = useRouter()
-  const { has: hasFavorite, toggle: toggleFavoriteId, hydrated } = useNailArtFavorites()
   const coverImage = nailArtImageApiPath(post.id)
   const author = post.author_display_name || (post.is_editorial ? "Liz Cabriales" : "Usuario")
   const [liked, setLiked] = useState(initialLiked)
   const [count, setCount] = useState(post.likes_count)
   const [busyLike, setBusyLike] = useState(false)
   const [heartBurst, setHeartBurst] = useState(false)
-  const [starBurst, setStarBurst] = useState(false)
   const likeLock = useRef(false)
-
-  const favorited = hydrated ? hasFavorite(post.id) : false
 
   function requireAuth() {
     router.push(`/login?next=${encodeURIComponent("/nail-art")}`)
@@ -93,17 +86,6 @@ export default function NailArtCard({
     }
   }
 
-  function toggleFavorite(e?: React.MouseEvent) {
-    e?.preventDefault()
-    e?.stopPropagation()
-    const next = toggleFavoriteId(post.id)
-    onFavoriteChange?.(post.id, next)
-    if (next) {
-      setStarBurst(true)
-      window.setTimeout(() => setStarBurst(false), 520)
-    }
-  }
-
   function onDoubleClick(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
@@ -113,8 +95,6 @@ export default function NailArtCard({
       window.setTimeout(() => setHeartBurst(false), 520)
     }
   }
-
-  const showActions = liked || favorited
 
   return (
     <article className="group flex flex-col gap-3">
@@ -141,30 +121,12 @@ export default function NailArtCard({
 
         <div
           className={`pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/55 via-black/15 to-transparent px-3 pb-3 pt-16 transition-opacity duration-300 ${
-            showActions
+            liked
               ? "opacity-100"
               : "opacity-100 md:opacity-0 md:group-hover:opacity-100"
           }`}
         >
           <div className="pointer-events-auto flex items-end justify-end gap-2">
-            <button
-              type="button"
-              onClick={toggleFavorite}
-              aria-label={favorited ? "Quitar de favoritos" : "Agregar a favoritos"}
-              aria-pressed={favorited}
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-sm transition-transform duration-200 active:scale-90 ${
-                favorited
-                  ? "bg-white text-[#c6a75e] shadow-md"
-                  : "bg-white/90 text-[#111] hover:bg-white hover:scale-105"
-              }`}
-            >
-              <Star
-                className={`h-5 w-5 transition-transform ${
-                  favorited ? "fill-[#c6a75e] text-[#c6a75e] scale-110" : ""
-                } ${starBurst ? "animate-pulse scale-125" : ""}`}
-                strokeWidth={1.75}
-              />
-            </button>
             <button
               type="button"
               onClick={(e) => void toggleLike(e)}
@@ -195,14 +157,6 @@ export default function NailArtCard({
             <Heart className="h-16 w-16 fill-white text-white drop-shadow-lg animate-ping opacity-80" />
           </span>
         )}
-        {starBurst && (
-          <span
-            className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center"
-            aria-hidden
-          >
-            <Star className="h-16 w-16 fill-[#c6a75e] text-[#c6a75e] drop-shadow-lg animate-ping opacity-90" />
-          </span>
-        )}
       </div>
 
       <div className="flex flex-col gap-1 px-0.5">
@@ -213,38 +167,22 @@ export default function NailArtCard({
           {author}
         </Link>
         <div className="flex items-center justify-between gap-2 text-[12px] text-neutral-500">
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={toggleFavorite}
-              className={`inline-flex items-center transition-colors ${
-                favorited ? "text-[#c6a75e]" : "hover:text-[#111]"
-              }`}
-              aria-label={favorited ? "Quitar de favoritos" : "Agregar a favoritos"}
-            >
-              <Star
-                className={`h-3.5 w-3.5 ${favorited ? "fill-[#c6a75e] text-[#c6a75e]" : ""}`}
-                strokeWidth={1.75}
-                aria-hidden
-              />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => void toggleLike(e)}
-              disabled={busyLike}
-              className={`inline-flex items-center gap-1 tabular-nums transition-colors ${
-                liked ? "text-[#111]" : "hover:text-[#111]"
-              }`}
-              aria-label={liked ? "Quitar like" : "Dar like"}
-            >
-              <Heart
-                className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`}
-                strokeWidth={1.75}
-                aria-hidden
-              />
-              {count}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={(e) => void toggleLike(e)}
+            disabled={busyLike}
+            className={`inline-flex items-center gap-1 tabular-nums transition-colors ${
+              liked ? "text-[#111]" : "hover:text-[#111]"
+            }`}
+            aria-label={liked ? "Quitar like" : "Dar like"}
+          >
+            <Heart
+              className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`}
+              strokeWidth={1.75}
+              aria-hidden
+            />
+            {count}
+          </button>
           <time dateTime={post.created_at}>{formatDate(post.created_at)}</time>
         </div>
       </div>

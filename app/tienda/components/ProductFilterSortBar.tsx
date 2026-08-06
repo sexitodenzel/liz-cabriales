@@ -104,31 +104,29 @@ export default function ProductFilterSortBar({
           isCartOpen ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0 flex flex-1 flex-wrap items-center gap-2 sm:gap-3">
-            {hasActiveChips && (
-              <>
-                {activeChips.map((chip) => (
-                  <ActiveFilterChipPill
-                    key={chip.id}
-                    label={chip.label}
-                    onRemove={chip.onRemove}
-                  />
-                ))}
-                {onClearFilters && (
-                  <button
-                    type="button"
-                    onClick={handleClearFilters}
-                    className="text-[11px] font-medium text-[#0a0a0a] underline underline-offset-2 transition-colors hover:text-neutral-600"
-                  >
-                    Limpiar todo
-                  </button>
-                )}
-              </>
-            )}
-          </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          {hasActiveChips && (
+            <div className="order-2 flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:order-none sm:gap-3">
+              {activeChips.map((chip) => (
+                <ActiveFilterChipPill
+                  key={chip.id}
+                  label={chip.label}
+                  onRemove={chip.onRemove}
+                />
+              ))}
+              {onClearFilters && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="inline-flex h-7 shrink-0 items-center rounded-full border border-neutral-300 px-3 text-[11px] font-medium text-neutral-600 transition-colors hover:border-neutral-400 hover:text-[#0a0a0a]"
+                >
+                  Limpiar todo
+                </button>
+              )}
+            </div>
+          )}
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
             <div className="inline-flex items-center rounded-full border border-neutral-200 p-0.5">
               <button
                 type="button"

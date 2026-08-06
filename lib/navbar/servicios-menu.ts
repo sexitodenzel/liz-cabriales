@@ -5,19 +5,32 @@ export type ServiciosMenuGroup = {
   id: string
   name: string
   slug: string
-  services: Array<{ id: string; name: string }>
+  services: Array<{ id: string; name: string; image: string | null }>
+}
+
+export type ServiciosMenuTile = {
+  label: string
+  image: string | null
+  href: string
 }
 
 export function buildServiciosMenuGroups(
   filters: ServiceFilterRow[],
   services: ServiceRow[]
 ): ServiciosMenuGroup[] {
-  const servicesByFilter = new Map<string, Array<{ id: string; name: string }>>()
+  const servicesByFilter = new Map<
+    string,
+    Array<{ id: string; name: string; image: string | null }>
+  >()
 
   for (const service of services) {
     if (!service.is_active || !service.filter_id) continue
     const list = servicesByFilter.get(service.filter_id) ?? []
-    list.push({ id: service.id, name: service.name })
+    list.push({
+      id: service.id,
+      name: service.name,
+      image: service.image_url ?? null,
+    })
     servicesByFilter.set(service.filter_id, list)
   }
 
@@ -49,4 +62,25 @@ export function serviciosMenuToCategories(groups: ServiciosMenuGroup[]): TiendaC
       href: `/servicios/agendar?servicio=${encodeURIComponent(service.id)}`,
     })),
   }))
+}
+
+/**
+ * Tiles del menú móvil de Servicios: un mosaico por servicio activo, con su
+ * foto (image_url) cuando existe. Mantiene el orden de los grupos (filtros) y,
+ * dentro de cada uno, el orden alfabético ya aplicado en los grupos.
+ */
+export function serviciosMenuToTiles(
+  groups: ServiciosMenuGroup[]
+): ServiciosMenuTile[] {
+  const tiles: ServiciosMenuTile[] = []
+  for (const group of groups) {
+    for (const service of group.services) {
+      tiles.push({
+        label: service.name,
+        image: service.image,
+        href: `/servicios/agendar?servicio=${encodeURIComponent(service.id)}`,
+      })
+    }
+  }
+  return tiles
 }
