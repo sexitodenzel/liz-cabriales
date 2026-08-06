@@ -22,7 +22,8 @@ export default function ServiciosMegaMenu({
 }: ServiciosMegaMenuProps) {
   const [contentVisible, setContentVisible] = useState(false)
   const [categories, setCategories] = useState<TiendaCategory[]>([])
-  const [gallery, setGallery] = useState<string[]>([])
+  // Mapa href → foto del servicio (image_url), para los tiles del panel derecho.
+  const [serviceImages, setServiceImages] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
 
@@ -37,20 +38,29 @@ export default function ServiciosMegaMenu({
       .then(
         (
           json: {
-            data?: { categories?: TiendaCategory[]; gallery?: string[] }
+            data?: {
+              categories?: TiendaCategory[]
+              services?: Array<{ label: string; image: string | null; href: string }>
+            }
           } | null
         ) => {
           if (!isMounted) return
           const cats = json?.data?.categories
-          const gal = json?.data?.gallery
+          const svcs = json?.data?.services
           setCategories(Array.isArray(cats) ? cats : [])
-          setGallery(Array.isArray(gal) ? gal : [])
+          const map: Record<string, string> = {}
+          if (Array.isArray(svcs)) {
+            for (const svc of svcs) {
+              if (svc.image && svc.href) map[svc.href] = svc.image
+            }
+          }
+          setServiceImages(map)
         }
       )
       .catch(() => {
         if (isMounted) {
           setCategories([])
-          setGallery([])
+          setServiceImages({})
         }
       })
       .finally(() => {
@@ -95,15 +105,10 @@ export default function ServiciosMegaMenu({
 
   const visibleSubs = activeCat?.subcategories ?? []
 
-  // Tiles de la categoría activa. Las fotos salen del pool real (portadas de
-  // Nail Art + portadas de Servicios que sube Mildred), no de cada servicio.
-  // El caption es el nombre del servicio (o la categoría) y el enlace lleva a
-  // agendar. Cada categoría arranca en un offset distinto del pool para que no
-  // se repitan siempre las mismas fotos.
-  const activeIndex = Math.max(
-    0,
-    categories.findIndex((c) => c.slug === activeCat?.slug)
-  )
+  // Tiles de la categoría activa. La foto es la de CADA servicio (image_url que
+  // sube Mildred/Liz en Admin → Citas → Servicios), buscada por su href. Si el
+  // servicio aún no tiene foto, cae al recuadro "Próximamente". El caption es el
+  // nombre del servicio (o la categoría) y el enlace lleva a agendar.
   const captions =
     visibleSubs.length > 0
       ? visibleSubs.slice(0, 2).map((sub) => ({ label: sub.label, href: sub.href }))
@@ -112,13 +117,10 @@ export default function ServiciosMegaMenu({
         : []
 
   const tiles: Array<{ label: string; href: string; image: string | null }> =
-    captions.map((caption, i) => ({
+    captions.map((caption) => ({
       label: caption.label,
       href: caption.href,
-      image:
-        gallery.length > 0
-          ? gallery[(activeIndex * 2 + i) % gallery.length]
-          : null,
+      image: serviceImages[caption.href] ?? null,
     }))
 
   return (
