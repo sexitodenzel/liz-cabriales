@@ -101,6 +101,47 @@ export async function claimApprovedPaymentForOrder(
   }
 }
 
+/**
+ * Fallback de acreditación cuando no hay fila reclamable en `payments`
+ * (p. ej. el INSERT falló al crear la preferencia, o el cron ya canceló la
+ * orden). Hace compare-and-swap sobre el estado de la orden: solo la primera
+ * llamada encuentra filas, así que dos webhooks concurrentes no duplican
+ * correo ni descuento de stock.
+ *
+ * Solo debe llamarse cuando ya se confirmó con MercadoPago que el pago está
+ * aprobado.
+ */
+export async function claimPendingOrderByStatusSwap(
+  orderId: string
+): Promise<Result<ClaimApprovedPaymentResult>> {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .update({
+      status: "paid",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .in("status", ["pending", "cancelled"])
+    .select("user_id")
+
+  if (error) {
+    return {
+      data: null,
+      error: { message: error.message, code: error.code },
+    }
+  }
+
+  const rows = (data ?? []) as Array<{ user_id: string }>
+  if (rows.length === 0) {
+    return { data: { claimed: false }, error: null }
+  }
+
+  return {
+    data: { claimed: true, userId: rows[0].user_id },
+    error: null,
+  }
+}
+
 export async function updateOrderStatusToPaid(
   orderId: string
 ): Promise<Result<null>> {

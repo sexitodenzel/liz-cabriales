@@ -606,9 +606,14 @@ export const getTopSearchesCached = cachedResult(
 export const getAnnouncementBarEnabledCached = unstable_cache(
   async (): Promise<boolean> => {
     try {
+      // dbAdminReadonly (no db()): `app_settings` tiene RLS sin política de
+      // lectura pública, así que con la anon key esta consulta devuelve SIEMPRE
+      // vacío → el flag se leía como false y la barra no podía encenderse por
+      // más que el panel la marcara. Es una lectura de servidor, cacheada y de
+      // un único valor booleano público; el service key nunca sale de aquí.
       const row = await withRetry<{ value: unknown }>(
         async () => {
-          const { data, error } = await db()
+          const { data, error } = await dbAdminReadonly()
             .from("app_settings")
             .select("value")
             .eq("key", "announcement_bar_enabled")

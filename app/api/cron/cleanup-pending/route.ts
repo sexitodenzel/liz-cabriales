@@ -66,6 +66,7 @@ export async function GET(
 
   const results = {
     orders: 0,
+    orders_kept_paid: 0,
     appointments: 0,
     appointments_completed: 0,
     registrations: 0,
@@ -73,17 +74,62 @@ export async function GET(
   }
 
   // ── Órdenes abandonadas ──────────────────────────────────────────────────
+  // Nunca se cancela una orden que ya tiene un pago aprobado: si sigue en
+  // `pending` con el cobro hecho, es que el webhook no alcanzó a acreditarla.
+  // Cancelarla borraría una compra real; se deja viva para reconciliarla desde
+  // el panel (botón "Verificar pago en MercadoPago").
   try {
-    const { data, error } = await supabaseAdmin
+    const { data: candidates, error: candidatesError } = await supabaseAdmin
       .from("orders")
-      .update({ status: "cancelled" })
+      .select("id")
       .eq("status", "pending")
       .lt("created_at", hoursAgo(ordersHours))
-      .select("id")
-    if (error) {
-      results.errors.push(`orders: ${error.message}`)
+
+    if (candidatesError) {
+      results.errors.push(`orders: ${candidatesError.message}`)
     } else {
-      results.orders = data?.length ?? 0
+      const candidateIds = (candidates ?? []).map(
+        (o) => (o as { id: string }).id
+      )
+
+      if (candidateIds.length > 0) {
+        const { data: approvedPayments, error: paymentsError } =
+          await supabaseAdmin
+            .from("payments")
+            .select("order_id")
+            .in("order_id", candidateIds)
+            .eq("status", "approved")
+
+        if (paymentsError) {
+          // Sin poder distinguir las pagadas, no cancelamos nada: es preferible
+          // dejar órdenes abandonadas de más que cancelar una cobrada.
+          results.errors.push(`orders: ${paymentsError.message}`)
+        } else {
+          const paidIds = new Set(
+            (approvedPayments ?? [])
+              .map((p) => (p as { order_id: string | null }).order_id)
+              .filter((id): id is string => Boolean(id))
+          )
+          results.orders_kept_paid = paidIds.size
+
+          const cancellableIds = candidateIds.filter((id) => !paidIds.has(id))
+
+          if (cancellableIds.length > 0) {
+            const { data, error } = await supabaseAdmin
+              .from("orders")
+              .update({ status: "cancelled" })
+              .in("id", cancellableIds)
+              .eq("status", "pending")
+              .select("id")
+
+            if (error) {
+              results.errors.push(`orders: ${error.message}`)
+            } else {
+              results.orders = data?.length ?? 0
+            }
+          }
+        }
+      }
     }
   } catch (err) {
     results.errors.push(`orders: ${(err as Error).message}`)
@@ -137,6 +183,9 @@ export async function GET(
       appointments_completed: results.appointments_completed,
       registrations: results.registrations,
     },
+    // Órdenes vencidas que NO se cancelaron porque ya tenían pago aprobado:
+    // si esto sube, hay pagos que el webhook no está acreditando.
+    kept_with_approved_payment: results.orders_kept_paid,
     thresholds: {
       orders_hours: ordersHours,
       appointments_hours: appointmentsHours,

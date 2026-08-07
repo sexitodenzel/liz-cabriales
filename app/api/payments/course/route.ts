@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { MercadoPagoConfig, Preference } from "mercadopago"
+import { Preference } from "mercadopago"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
+import { getMercadoPagoClient, resolveCheckoutUrl } from "@/lib/mercadopago"
 import { createClient } from "@/lib/supabase/server"
 import { getRegistrationForPayment } from "@/lib/supabase/courses"
 import { createCoursePaymentSchema } from "@/lib/validations/courses"
@@ -160,10 +161,7 @@ export async function POST(
       appUrl
     )
 
-    const mpClient = new MercadoPagoConfig({
-      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
-    })
-    const preferenceClient = new Preference(mpClient)
+    const preferenceClient = new Preference(getMercadoPagoClient())
 
     const isDeposit = amount < totalCourse
     const itemTitle = isDeposit
@@ -238,10 +236,7 @@ export async function POST(
       )
     }
 
-    const paymentUrl =
-      preferenceResponse.sandbox_init_point ??
-      preferenceResponse.init_point ??
-      ""
+    const paymentUrl = resolveCheckoutUrl(preferenceResponse)
 
     return NextResponse.json({
       data: {

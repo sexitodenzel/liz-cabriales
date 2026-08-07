@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { MercadoPagoConfig, Preference } from "mercadopago"
+import { Preference } from "mercadopago"
 
+import { getMercadoPagoClient, resolveCheckoutUrl } from "@/lib/mercadopago"
 import { createClient } from "@/lib/supabase/server"
 import { getOrderForPayment } from "@/lib/supabase/orders"
 import { createPayment } from "@/lib/supabase/payments"
@@ -127,11 +128,7 @@ export async function POST(
       appUrl
     )
 
-    const client = new MercadoPagoConfig({
-      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
-    })
-
-    const preferenceClient = new Preference(client)
+    const preferenceClient = new Preference(getMercadoPagoClient())
 
     let preferenceResponse
     try {
@@ -183,18 +180,33 @@ export async function POST(
       provider_ref: preferenceResponse.id,
     })
 
+    // Fallar cerrado: el webhook acredita el pago actualizando esta fila
+    // (`claimApprovedPaymentForOrder`). Si no existe, el cliente pagaría y la
+    // orden se quedaría en `pending`, así que no lo mandamos a MercadoPago.
     if (!paymentResult.data) {
       console.error(
         "[mercadopago] Error guardando registro de pago:",
         paymentResult.error
       )
+      return errorResponse(
+        "No se pudo registrar el pago. Intenta de nuevo.",
+        500,
+        "PAYMENT_ERROR"
+      )
     }
 
-    // sandbox_init_point para tokens TEST-, init_point para producción
-    const paymentUrl =
-      preferenceResponse.sandbox_init_point ??
-      preferenceResponse.init_point ??
-      ""
+    const paymentUrl = resolveCheckoutUrl(preferenceResponse)
+
+    if (!paymentUrl) {
+      console.error(
+        "[mercadopago] La preferencia no trae URL de checkout para el tipo de credencial configurada."
+      )
+      return errorResponse(
+        "Error al conectar con MercadoPago. Intenta de nuevo.",
+        502,
+        "PAYMENT_ERROR"
+      )
+    }
 
     return NextResponse.json({
       data: {

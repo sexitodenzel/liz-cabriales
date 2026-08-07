@@ -1,14 +1,10 @@
 import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
-import { MercadoPagoConfig, Payment } from "mercadopago"
+import { Payment } from "mercadopago"
 
-import {
-  claimApprovedPaymentForOrder,
-  clearCartForUser,
-  deductStockForOrder,
-  updateOrderStatusToPaid,
-  updatePaymentStatusByOrderId,
-} from "@/lib/supabase/payments"
+import { getMercadoPagoClient } from "@/lib/mercadopago"
+import { creditApprovedOrder } from "@/lib/payments/credit-order"
+import { updatePaymentStatusByOrderId } from "@/lib/supabase/payments"
 import {
   claimApprovedPaymentForAppointment,
   markAppointmentPaymentRejected,
@@ -21,7 +17,6 @@ import {
   updateRegistrationStatusToCancelledFromPayment,
   updateRegistrationStatusToPaid,
 } from "@/lib/supabase/courses"
-import { sendOrderConfirmationEmail } from "@/lib/email/resend"
 import { sendAppointmentConfirmationEmail } from "@/lib/email/templates/appointment-confirmation"
 import { sendCourseRegistrationEmail } from "@/lib/email/templates/course-registration"
 import {
@@ -31,13 +26,9 @@ import {
 import {
   sendAdminNewAppointmentEmail,
   sendAdminNewCourseRegistrationEmail,
-  sendAdminNewOrderEmail,
 } from "@/lib/email/admin"
 import { claimShippingPayment } from "@/lib/supabase/adminOrders"
-import {
-  sendNewOrderAlerts,
-  sendShippingPaidAlert,
-} from "@/lib/notifications/order-notifications"
+import { sendShippingPaidAlert } from "@/lib/notifications/order-notifications"
 import { sendShippingPaidAdminEmail } from "@/lib/email/templates/shipping-paid-admin"
 import { sendShippingPaidClientEmail } from "@/lib/email/templates/shipping-paid-client"
 
@@ -201,11 +192,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Obtener información del pago desde MercadoPago
-    const client = new MercadoPagoConfig({
-      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
-    })
-
-    const paymentClient = new Payment(client)
+    const paymentClient = new Payment(getMercadoPagoClient())
     let paymentInfo
     try {
       paymentInfo = await paymentClient.get({ id: dataId })
@@ -416,64 +403,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const orderId = externalRef
 
     if (mpStatus === "approved") {
-      const claimResult = await claimApprovedPaymentForOrder(orderId)
-      if (claimResult.error) {
-        console.error(
-          `[webhook] Error al reclamar pago aprobado para orden ${orderId}:`,
-          claimResult.error
-        )
-        return NextResponse.json({ received: true }, { status: 200 })
-      }
-
-      if (!claimResult.data.claimed) {
-        return NextResponse.json({ ok: true }, { status: 200 })
-      }
-
-      const userId = claimResult.data.userId
-
-      const orderPaidResult = await updateOrderStatusToPaid(orderId)
-      if (orderPaidResult.error) {
-        console.error(
-          `[webhook] Error marcando orden ${orderId} como pagada:`,
-          orderPaidResult.error
-        )
-      }
-
-      await deductStockForOrder(orderId)
-
-      try {
-        await clearCartForUser(userId)
-      } catch (cartError) {
-        console.error(
-          `[webhook] Error vaciando carrito para usuario ${userId}:`,
-          cartError
-        )
-      }
-
-      try {
-        await sendOrderConfirmationEmail(orderId)
-      } catch (emailError) {
-        console.error(
-          `[webhook] Error enviando email de confirmación para orden ${orderId}:`,
-          emailError
-        )
-      }
-
-      sendAdminNewOrderEmail(orderId).catch((err) =>
-        console.error(
-          `[webhook] Error enviando alerta admin para orden ${orderId}:`,
-          err
-        )
-      )
-
-      try {
-        await sendNewOrderAlerts(orderId)
-      } catch (waError) {
-        console.error(
-          `[webhook] Error enviando alertas WhatsApp para orden ${orderId}:`,
-          waError
-        )
-      }
+      await creditApprovedOrder(orderId, "[webhook]")
     } else if (mpStatus === "rejected" || mpStatus === "cancelled") {
       const updateResult = await updatePaymentStatusByOrderId(
         orderId,

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { MercadoPagoConfig, Preference } from "mercadopago"
+import { Preference } from "mercadopago"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
+import { getMercadoPagoClient, resolveCheckoutUrl } from "@/lib/mercadopago"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/admin"
 import { shippingQuoteSchema } from "@/lib/validations/shippingQuote"
@@ -119,10 +120,7 @@ export async function POST(
       .replace(/\/$/, "")
     const isLocal = /:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/i.test(appUrl)
 
-    const mpClient = new MercadoPagoConfig({
-      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
-    })
-    const preferenceClient = new Preference(mpClient)
+    const preferenceClient = new Preference(getMercadoPagoClient())
 
     let preferenceResponse
     try {
@@ -167,10 +165,7 @@ export async function POST(
       )
     }
 
-    const paymentUrl =
-      preferenceResponse.sandbox_init_point ??
-      preferenceResponse.init_point ??
-      ""
+    const paymentUrl = resolveCheckoutUrl(preferenceResponse)
 
     // Actualizar la orden con el costo de envío y la referencia de pago
     const { error: updateError } = await supabaseAdmin
