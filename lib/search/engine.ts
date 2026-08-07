@@ -98,7 +98,7 @@ function buildField(text: string, tokenLimit?: number): FieldIndex {
   return { tokens, variants, text: folded }
 }
 
-export function prepareDoc(doc: SearchDoc): PreparedDoc {
+function prepareDoc(doc: SearchDoc): PreparedDoc {
   return {
     doc,
     title: buildField(doc.title),
@@ -211,21 +211,12 @@ function scoreDoc(prepared: PreparedDoc, query: PreparedQuery): SearchHit | null
   return { doc: prepared.doc, score: total * prepared.doc.boost, coverage }
 }
 
-export type SearchOptions = {
-  /** Máximo de resultados devueltos (antes de agrupar por tipo). */
-  limit?: number
-}
-
 /**
  * Ejecuta la consulta. Primero exige que el documento cubra TODOS los tokens
  * (semántica AND, la que espera cualquier comprador); si nadie los cubre,
  * degrada al mejor cubrimiento parcial en vez de devolver vacío.
  */
-export function searchDocs(
-  docs: PreparedDoc[],
-  rawQuery: string,
-  options: SearchOptions = {}
-): SearchHit[] {
+export function searchDocs(docs: PreparedDoc[], rawQuery: string): SearchHit[] {
   const query = prepareQuery(rawQuery)
   if (query.tokens.length === 0) return []
 
@@ -249,7 +240,7 @@ export function searchDocs(
       a.doc.title.localeCompare(b.doc.title, "es")
   )
 
-  return options.limit ? filtered.slice(0, options.limit) : filtered
+  return filtered
 }
 
 export type GroupedHits = Record<SearchDocType, SearchDoc[]>

@@ -80,7 +80,6 @@ export type ProductFilters = {
    * Ejemplo: "Exotic,Miss Nails"
    */
   brand?: string
-  search?: string
 }
 
 type ProductVariantRow = {
@@ -323,10 +322,6 @@ export async function getProducts(
     } else if (brands.length > 1) {
       query = query.in("brand", brands)
     }
-  }
-
-  if (filters.search) {
-    query = query.ilike("name", `%${filters.search}%`)
   }
 
   const { data, error } = await query

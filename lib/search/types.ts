@@ -14,17 +14,6 @@ export type SearchPayload = {
   total: number
 }
 
-export const EMPTY_SEARCH_PAYLOAD: SearchPayload = {
-  query: "",
-  products: [],
-  courses: [],
-  services: [],
-  categories: [],
-  brands: [],
-  pages: [],
-  total: 0,
-}
-
 export function isEmptyPayload(payload: SearchPayload | null): boolean {
   if (!payload) return true
   return (

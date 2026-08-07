@@ -237,37 +237,3 @@ export default function BrandsMegaMenu({
     </div>
   )
 }
-
-/**
- * Tile editorial — mismo footprint que el FlyerCard de AcademiaMegaMenu
- * (aspect 4/5, rounded-md, caption debajo) pero sin imagen: fondo con
- * degradado marfil→dorado tenue y texto de sello.
- */
-function BrandNoteTile({
-  overline,
-  title,
-  caption,
-}: {
-  overline: string
-  title: string
-  caption: string
-}) {
-  return (
-    <div className="block w-full">
-      <div className="relative flex aspect-[4/5] w-full flex-col justify-end overflow-hidden rounded-md bg-gradient-to-b from-[#f6f1e6] to-[#ece2ce] p-3">
-        <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#c6a75e]">
-          {overline}
-        </span>
-        <span
-          className="mt-1 text-[13px] font-medium leading-tight text-[#1a1a1a]"
-          style={{ fontFamily: "var(--font-playfair), serif" }}
-        >
-          {title}
-        </span>
-      </div>
-      <p className="mt-2 text-[12px] leading-snug text-[#1a1a1a] line-clamp-2">
-        {caption}
-      </p>
-    </div>
-  )
-}
