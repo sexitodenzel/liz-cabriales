@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { CalendarX2, Pencil, X } from "lucide-react"
 
@@ -16,6 +15,7 @@ import type {
 import type { AppointmentStatus } from "@/types"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import DatePicker from "@/components/shared/DatePicker"
 import NewAppointmentModal from "./components/NewAppointmentModal"
 import AvailabilitySchedulePanel from "./components/AvailabilitySchedulePanel"
@@ -355,24 +355,7 @@ export default function AdminAppointmentsClient({
           ]}
         />
 
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#c9a84c]">
-              Panel administrador
-            </p>
-            <h1 className="mt-2 font-[family-name:var(--font-playfair),serif] text-3xl font-medium tracking-tight text-[#111] md:text-4xl">
-              Servicios
-            </h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/admin"
-              className="px-2 text-sm text-neutral-500 transition-colors hover:text-[#111]"
-            >
-              ← Volver al panel
-            </Link>
-          </div>
-        </div>
+        <AdminPageHeader eyebrow="Estudio" title="Servicios" />
 
         <ServicesPanel
           services={managedServices}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import NailArtForm, { type NailArtFormData } from "./NailArtForm"
 import type { NailArtPost } from "@/lib/supabase/nail-art"
 import { nailArtImageApiPath } from "@/lib/nail-art-image"
@@ -180,19 +180,12 @@ export default function AdminNailArtPage() {
     <div className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="mx-auto max-w-[1400px] px-6 py-10">
 
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">PANEL ADMINISTRADOR</p>
-            <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">Nail Art</h1>
-            <p className="mt-1 text-sm text-[#6b6b6b]">
-              Publicaciones del estudio e inspiraciones de usuarias pendientes de aprobación.
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-4">
-            <Link href="/admin" className="text-sm font-medium text-[#6b6b6b] transition-colors hover:text-[#1a1a1a]">
-              ← Volver al panel
-            </Link>
-            {!panel && (
+        <AdminPageHeader
+          eyebrow="Contenido"
+          title="Nail Art"
+          description="Publicaciones del estudio e inspiraciones de usuarias pendientes de aprobación."
+          actions={
+            !panel && (
               <button
                 type="button"
                 onClick={() => { setPanel({ mode: "create" }); setSaveError(null) }}
@@ -203,9 +196,9 @@ export default function AdminNailArtPage() {
                 </svg>
                 Nuevo Nail Art
               </button>
-            )}
-          </div>
-        </div>
+            )
+          }
+        />
 
         {panel && (
           <div className="mb-10 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">

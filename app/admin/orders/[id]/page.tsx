@@ -224,6 +224,7 @@ export default function AdminOrderDetailPage() {
   const [quoteSuccess, setQuoteSuccess] = useState<string | null>(null)
   const [issuingInvoice, setIssuingInvoice] = useState(false)
   const [invoiceIssued, setInvoiceIssued] = useState(false)
+  const [reconciling, setReconciling] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -297,6 +298,35 @@ export default function AdminOrderDetailPage() {
       toast.error("Error de red al emitir la factura.")
     } finally {
       setIssuingInvoice(false)
+    }
+  }
+
+  async function handleReconcilePayment() {
+    if (!id || !order) return
+    setReconciling(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${id}/reconcile-payment`, {
+        method: "POST",
+      })
+      const json = await res.json()
+
+      if (!res.ok || json.error) {
+        toast.error(
+          json?.error?.message ?? "No se pudo verificar el pago en MercadoPago."
+        )
+        return
+      }
+
+      if (json.data.credited) {
+        setOrder((prev) => (prev ? { ...prev, status: "paid" } : prev))
+        toast.success(json.data.message)
+      } else {
+        toast.info(json.data.message)
+      }
+    } catch {
+      toast.error("Error de red al verificar el pago.")
+    } finally {
+      setReconciling(false)
     }
   }
 
@@ -377,6 +407,11 @@ export default function AdminOrderDetailPage() {
 
   const showShippingQuoteForm =
     order.delivery_type === "shipping" && order.status === "paid"
+
+  // Solo tiene sentido reconciliar una orden que no se acreditó: pendiente, o
+  // cancelada por el cron de limpieza aunque el cliente sí haya pagado.
+  const showReconcile =
+    order.status === "pending" || order.status === "cancelled"
 
   const showShippingInfo =
     order.delivery_type === "shipping" &&
@@ -717,6 +752,34 @@ export default function AdminOrderDetailPage() {
                 {statusLabel(order.status)}
               </span>
             </div>
+
+            {showReconcile && (
+              <div className="mt-4 rounded-xl border border-[#ececec] bg-neutral-100 p-4">
+                <p className="text-sm font-semibold text-[#1a1a1a]">
+                  ¿El cliente dice que ya pagó?
+                </p>
+                <p className="mt-1 text-sm text-neutral-700">
+                  Esto le pregunta a MercadoPago si hay un pago aprobado para
+                  esta orden. Si lo hay, la orden pasa a pagada y se envían los
+                  correos de confirmación. Si no lo hay, no cambia nada.
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleReconcilePayment}
+                    disabled={reconciling}
+                    className="rounded-lg border border-[#c9a84c] px-4 py-2 text-sm font-semibold text-[#a8893a] transition-colors hover:bg-[#c9a84c] hover:text-white disabled:opacity-60"
+                  >
+                    Verificar pago en MercadoPago
+                  </button>
+                  {reconciling && (
+                    <AnimatedBadge status="loading" size="md">
+                      Consultando
+                    </AnimatedBadge>
+                  )}
+                </div>
+              </div>
+            )}
 
             {showShippingQuoteForm && (
               <div className="mt-4 flex gap-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-4">

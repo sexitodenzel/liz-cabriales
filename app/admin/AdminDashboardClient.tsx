@@ -3,7 +3,6 @@
 import type { LucideProps } from "lucide-react"
 import type { FC } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import {
   AlertTriangle,
   ArrowRight,
@@ -20,7 +19,6 @@ import {
 } from "lucide-react"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
-import { createClient } from "@/lib/supabase/client"
 
 type Props = {
   userName: string
@@ -167,20 +165,11 @@ export default function AdminDashboardClient({
   ordersThisMonth,
   activeClients,
 }: Props) {
-  const router = useRouter()
-  const supabase = createClient()
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.replace("/login")
-    router.refresh()
-  }
-
   const hasLowStock = lowStockCount > 0
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <main className="px-6 pt-5 pb-10">
+    <div className="text-[var(--foreground)]">
+      <main className="px-6 pt-6 pb-12 sm:px-8 lg:px-10">
         <div className="mx-auto max-w-[1400px] space-y-8">
           <Breadcrumb
             items={[
@@ -190,40 +179,21 @@ export default function AdminDashboardClient({
             ]}
           />
 
-          <div className="flex flex-col gap-4 border-b border-neutral-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
-                Gestión general
-              </p>
-              <h1
-                className="mt-2 text-3xl font-medium tracking-tight text-neutral-900 sm:text-4xl"
-                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-              >
-                Panel Administrador
-              </h1>
-              <p className="mt-2 text-sm text-neutral-600">
-                Hola de nuevo,{" "}
-                <span className="font-medium text-neutral-900">{userName}</span>
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-3 sm:gap-4">
-              <div className="hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--gold)]/30 bg-[#faf8f5] text-sm font-medium text-[var(--gold)] sm:flex">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-              <span className="text-sm text-neutral-600">
-                Bienvenido {userName}{" "}
-                <span className="font-medium uppercase tracking-[0.04em] text-neutral-800">
-                  (ADMINISTRADOR)
-                </span>
-              </span>
-              <button
-                type="button"
-                onClick={() => void handleSignOut()}
-                className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-800 transition-colors hover:border-[var(--gold)]"
-              >
-                Cerrar sesión
-              </button>
-            </div>
+          <div className="border-b border-neutral-200 pb-6">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-neutral-500">
+              Gestión general
+            </p>
+            <h1
+              className="mt-2 text-3xl font-medium tracking-tight text-neutral-900 sm:text-4xl"
+              style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+            >
+              Inicio
+            </h1>
+            <p className="mt-2 text-sm text-neutral-600">
+              Hola de nuevo,{" "}
+              <span className="font-medium text-neutral-900">{userName}</span>
+              {" "}— esto es lo que pasa hoy en tu estudio.
+            </p>
           </div>
 
           <section aria-label="Resumen del mes">

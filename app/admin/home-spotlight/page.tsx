@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import ImageUploader from "@/app/admin/components/ImageUploader"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
@@ -254,30 +255,31 @@ export default function AdminHomeSpotlightPage() {
         items={[{ label: "Admin", href: "/admin" }, { label: "Spotlight del home" }]}
       />
 
-      <header className="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold text-neutral-900">
-            Spotlight del home
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">
+      <AdminPageHeader
+        eyebrow="Contenido"
+        title="Spotlight del home"
+        description={
+          <>
             El collage editorial que aparece en la página principal. Sube lo que
             quieras destacar —nail art, fotos del estudio, promos— y ordénalo.
             Cada imagen puede llevar una foto redonda (avatar) y una etiqueta.
-          </p>
-          <p className="mt-2 rounded-lg border border-[#e8dcb0] bg-[#f7f2e3] px-3 py-2 text-[13px] leading-snug text-[#7a5f21]">
-            Recomendado <strong>4 a 6 imágenes</strong> para que el collage se vea
-            balanceado. Las que ocultes no aparecen en el home pero se quedan aquí
-            guardadas.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="rounded-full bg-[#c9a84c] px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#a8893a]"
-        >
-          Agregar imagen
-        </button>
-      </header>
+            <span className="mt-2 block rounded-lg border border-[#e8dcb0] bg-[#f7f2e3] px-3 py-2 text-[13px] leading-snug text-[#7a5f21]">
+              Recomendado <strong>4 a 6 imágenes</strong> para que el collage se
+              vea balanceado. Las que ocultes no aparecen en el home pero se
+              quedan aquí guardadas.
+            </span>
+          </>
+        }
+        actions={
+          <button
+            type="button"
+            onClick={openCreate}
+            className="rounded-full bg-[#c9a84c] px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#a8893a]"
+          >
+            Agregar imagen
+          </button>
+        }
+      />
 
       <form
         onSubmit={saveSettings}

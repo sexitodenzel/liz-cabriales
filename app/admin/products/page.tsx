@@ -10,6 +10,7 @@ import type {
   AdminSubcategoryWithProductCount,
 } from "@/lib/supabase/admin"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import { createClient } from "@/lib/supabase/client"
 import ImageUploader from "@/app/admin/components/ImageUploader"
 import ImageLightbox from "@/app/components/shared/ImageLightbox"
@@ -1594,14 +1595,7 @@ export default function AdminProductsPage() {
             { label: "Productos" },
           ]}
         />
-        <div className="mb-10">
-          <p className="text-xs font-semibold tracking-[0.25em] text-center sm:text-left text-[#c9a84c]">
-            PANEL ADMINISTRADOR
-          </p>
-          <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-[#1a1a1a]">
-            Catálogo de productos
-          </h1>
-        </div>
+        <AdminPageHeader eyebrow="Tienda" title="Catálogo de productos" />
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.4fr)]">
           <section className="rounded-2xl bg-white shadow-sm border border-neutral-200/80">

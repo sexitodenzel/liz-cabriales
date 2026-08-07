@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import type { CourseWithStats } from "@/lib/supabase/courses"
 import type { CourseLevel } from "@/types"
 import { toast } from "@/app/components/ui/motion/toast-provider"
@@ -107,28 +108,18 @@ export default function AdminCoursesClient({ initialCourses }: Props) {
             { label: "Cursos" },
           ]}
         />
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
-              PANEL ADMINISTRADOR
-            </p>
-            <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">Cursos</h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+        <AdminPageHeader
+          eyebrow="Estudio"
+          title="Cursos"
+          actions={
             <Link
               href="/admin/courses/new"
               className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#a8893a]"
             >
               + Nuevo curso
             </Link>
-            <Link
-              href="/admin"
-              className="text-sm font-medium text-[#6b6b6b] transition-colors hover:text-[#1a1a1a]"
-            >
-              ← Volver al panel
-            </Link>
-          </div>
-        </div>
+          }
+        />
 
         {courses.length === 0 ? (
           <div className="rounded-xl border border-[#ececec] bg-[#fafafa] p-10 text-center text-sm text-[#6b6b6b]">

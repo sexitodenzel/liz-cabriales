@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 
 type AnnouncementRow = {
@@ -255,13 +256,11 @@ export default function AdminAnnouncementsPage() {
         ]}
       />
 
-      <header className="mt-2 mb-6">
-        <h1 className="text-2xl font-semibold text-neutral-900">Barra de anuncios</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Slides que aparecen en la franja negra superior de toda la tienda.
-          Rotan automáticamente cada 5 segundos. El link es opcional.
-        </p>
-      </header>
+      <AdminPageHeader
+        eyebrow="Contenido"
+        title="Barra de anuncios"
+        description="Slides que aparecen en la franja negra superior de toda la tienda. Rotan automáticamente cada 5 segundos. El link es opcional."
+      />
 
       <section className="mb-6 rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">

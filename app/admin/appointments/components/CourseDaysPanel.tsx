@@ -385,7 +385,7 @@ export default function CourseDaysPanel() {
                 <span className="mt-px shrink-0 text-[#c9a84c]">ℹ</span>
                 <span className="text-[#7a6020]">
                   Ya hay un curso registrado para esta fecha:{" "}
-                  <strong>"{matchedCourse.course.title}"</strong>.{" "}
+                  <strong>&ldquo;{matchedCourse.course.title}&rdquo;</strong>.{" "}
                   Habilítalo desde la sección de arriba.
                 </span>
               </div>

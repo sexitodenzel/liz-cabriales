@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 
 type MultiSelectOption = { value: string; label: string }
 
@@ -626,15 +627,11 @@ export default function AdminTopSearchesPage() {
         ]}
       />
 
-      <header className="mt-2 mb-6">
-        <h1 className="text-2xl font-semibold text-neutral-900">Más buscados</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Gestiona las interacciones del overlay de búsqueda: los chips de Más
-          buscados, los productos Best Seller y los Destacados. Agrega
-          categorías como chips o activa las interacciones de cada producto más
-          abajo.
-        </p>
-      </header>
+      <AdminPageHeader
+        eyebrow="Comunidad"
+        title="Más buscados"
+        description="Gestiona las interacciones del overlay de búsqueda: los chips de Más buscados, los productos Best Seller y los Destacados. Agrega categorías como chips o activa las interacciones de cada producto más abajo."
+      />
 
       <section className="mb-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <header className="flex items-center justify-between border-b border-neutral-100 px-6 py-4">

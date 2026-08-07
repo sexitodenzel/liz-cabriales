@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import ImageUploader from "@/app/admin/components/ImageUploader"
 import type { InstructorRow } from "@/lib/supabase/courses"
 import { toast } from "@/app/components/ui/motion/toast-provider"
@@ -141,21 +143,19 @@ export default function InstructorsClient({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-[#1a1a1a]">Instructores</h1>
-          <p className="mt-1 text-sm text-[#6b6b6b]">
-            Gestiona los técnicos e instructores que aparecen en los cursos.
-          </p>
-        </div>
-        <button
-          onClick={openCreate}
-          className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#a8893a]"
-        >
-          + Nuevo instructor
-        </button>
-      </div>
+      <AdminPageHeader
+        eyebrow="Estudio"
+        title="Instructores"
+        description="Gestiona los técnicos e instructores que aparecen en los cursos."
+        actions={
+          <button
+            onClick={openCreate}
+            className="rounded-lg bg-[#c9a84c] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#a8893a]"
+          >
+            + Nuevo instructor
+          </button>
+        }
+      />
 
       {/* List */}
       {instructors.length === 0 ? (

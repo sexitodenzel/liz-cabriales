@@ -1,10 +1,10 @@
 "use client"
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
-import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import type { AdminOrderSummary } from "@/lib/supabase/adminOrders"
 import type { OrderStatus } from "@/types"
 
@@ -167,40 +167,26 @@ function AdminOrdersList() {
             { label: "Órdenes" },
           ]}
         />
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
-              PANEL ADMINISTRADOR
-            </p>
-            <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">
-              Órdenes
-            </h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="text-xs font-medium text-[#6b6b6b]">
-              Estado
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) =>
-                setStatus(e.target.value as "all" | OrderStatus)
-              }
-              className="rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
-            >
-              {STATUS_FILTER_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <Link
-              href="/admin"
-              className="text-sm font-medium text-[#6b6b6b] hover:text-[#1a1a1a] transition-colors"
-            >
-              ← Volver al panel
-            </Link>
-          </div>
-        </div>
+        <AdminPageHeader
+          eyebrow="Tienda"
+          title="Órdenes"
+          actions={
+            <>
+              <label className="text-xs font-medium text-[#6b6b6b]">Estado</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatus(e.target.value as "all" | OrderStatus)}
+                className="rounded-lg border border-[#ececec] bg-white px-3 py-2 text-sm outline-none focus:border-[#c9a84c] transition-colors"
+              >
+                {STATUS_FILTER_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </>
+          }
+        />
 
         {error && (
           <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

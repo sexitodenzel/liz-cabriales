@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import Link from "next/link"
 import { compressImage } from "@/lib/image-compress"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import type { LinkType, TextPosition } from "@/lib/supabase/landing-slots"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
@@ -724,26 +724,11 @@ export default function AdminMediaPage() {
           ]}
         />
 
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
-              PANEL ADMINISTRADOR
-            </p>
-            <h1 className="mt-2 text-3xl font-bold text-[#1a1a1a]">Media</h1>
-            <p className="mt-1 text-sm text-[#6b6b6b]">
-              Imágenes organizadas por módulo. Cada sección indica dónde se ve
-              en el sitio. Los cambios se reflejan en menos de 1 minuto.
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Link
-              href="/admin"
-              className="text-sm font-medium text-[#6b6b6b] transition-colors hover:text-[#1a1a1a]"
-            >
-              ← Volver al panel
-            </Link>
-          </div>
-        </div>
+        <AdminPageHeader
+          eyebrow="Contenido"
+          title="Media"
+          description="Imágenes organizadas por módulo. Cada sección indica dónde se ve en el sitio. Los cambios se reflejan en menos de 1 minuto."
+        />
 
         {loading && (
           <div className="flex items-center gap-3 text-[#6b6b6b]">

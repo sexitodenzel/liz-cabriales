@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Breadcrumb from "@/components/shared/Breadcrumb"
+import AdminPageHeader from "@/app/admin/components/AdminPageHeader"
 import DatePicker from "@/components/shared/DatePicker"
 import ImageUploader from "@/app/admin/components/ImageUploader"
 import ImageLightbox from "@/app/components/shared/ImageLightbox"
@@ -129,29 +130,36 @@ export default function AdminSobreLizPage() {
         ]}
       />
 
-      <header className="mt-2 mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div className="max-w-2xl">
-          <h1 className="text-2xl font-semibold text-neutral-900">
-            Fotos sueltas <span className="font-normal text-neutral-400">(sin curso)</span>
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">
+      <AdminPageHeader
+        eyebrow="Contenido"
+        title={
+          <>
+            Fotos sueltas{" "}
+            <span className="font-normal text-neutral-400">(sin curso)</span>
+          </>
+        }
+        description={
+          <>
             Fotos individuales que aparecen en la galería de &ldquo;Conócenos&rdquo; y
             no pertenecen a ningún curso.
-          </p>
-          <p className="mt-2 rounded-lg border border-[#e8dcb0] bg-[#f7f2e3] px-3 py-2 text-[13px] leading-snug text-[#7a5f21]">
-            ¿Un evento con <strong>varias fotos</strong>? No lo subas aquí: créalo como
-            curso pasado en <strong>Cursos</strong> y súbele su galería. Ahí el multi-foto
-            sí funciona y aparece en Conócenos enlazado a la página del curso.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={openModal}
-          className="rounded-full bg-[#c9a84c] px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#a8893a]"
-        >
-          Agregar foto
-        </button>
-      </header>
+            <span className="mt-2 block rounded-lg border border-[#e8dcb0] bg-[#f7f2e3] px-3 py-2 text-[13px] leading-snug text-[#7a5f21]">
+              ¿Un evento con <strong>varias fotos</strong>? No lo subas aquí: créalo
+              como curso pasado en <strong>Cursos</strong> y súbele su galería. Ahí
+              el multi-foto sí funciona y aparece en Conócenos enlazado a la página
+              del curso.
+            </span>
+          </>
+        }
+        actions={
+          <button
+            type="button"
+            onClick={openModal}
+            className="rounded-full bg-[#c9a84c] px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white hover:bg-[#a8893a]"
+          >
+            Agregar foto
+          </button>
+        }
+      />
 
       <section className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <header className="border-b border-neutral-100 px-4 py-3">
