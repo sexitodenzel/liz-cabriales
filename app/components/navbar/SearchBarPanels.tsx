@@ -1,15 +1,26 @@
 "use client"
 
 import Link from "next/link"
+import type { ReactNode } from "react"
+import { Clock, Search, TrendingUp } from "lucide-react"
 
-import { getSearchDestination } from "@/lib/search-navigation"
+import { highlightSegments } from "@/lib/search/highlight"
+import {
+  SEARCH_TYPE_LABEL,
+  isEmptyPayload,
+  type SearchItem,
+  type SearchPayload,
+} from "@/lib/search/types"
 
-export type NavbarCategory = {
+/* ── Tipos compartidos con el navbar ─────────────────────────────────────── */
+
+export type TopSearchChip = {
   id: string
-  name: string
-  slug: string
+  label: string
+  href: string
 }
 
+/** Producto del estado vacío (endpoint /api/products/best-sellers). */
 export type SearchSuggestionProduct = {
   id: string
   name: string
@@ -18,36 +29,9 @@ export type SearchSuggestionProduct = {
   price: number
 }
 
-export type TopSearchChip = {
-  id: string
-  label: string
-  href: string
-}
+export type SearchPanelVariant = "overlay" | "mobile"
 
-export type SearchSuggestionBrand = {
-  id: string
-  name: string
-  slug: string
-  logoUrl: string | null
-  href: string
-}
-
-export type SearchSuggestionCategory = {
-  id: string
-  label: string
-  href: string
-  isSubcategory: boolean
-}
-
-const SEARCH_PRODUCT_PRICE_CLASS =
-  "text-[14px] font-semibold text-[#c6a75e] sm:text-[15px]"
-
-const SEARCH_SUGGESTION_LINKS = [
-  { label: "Tienda", href: "/tienda" },
-  { label: "Academia", href: "/academia" },
-  { label: "Servicios", href: "/servicios" },
-  { label: "Conócenos", href: "/sobre-liz" },
-] as const
+/* ── Utilidades de presentación ──────────────────────────────────────────── */
 
 function formatPrice(value: number): string {
   return new Intl.NumberFormat("es-MX", {
@@ -58,531 +42,468 @@ function formatPrice(value: number): string {
   }).format(value)
 }
 
-type DesktopCategoriesDropdownProps = {
-  open: boolean
-  categories: NavbarCategory[]
-  loading: boolean
-  onClose: () => void
-  onMouseEnter?: () => void
-  onMouseLeave?: () => void
+const HEADING_CLASS =
+  "mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500"
+
+const PRICE_CLASS = "text-[13px] font-semibold text-gold"
+
+/** Marca en negrita el tramo que la clienta ya escribió. */
+function Highlighted({ text, query }: { text: string; query: string }) {
+  const segments = highlightSegments(text, query)
+  return (
+    <>
+      {segments.map((segment, index) =>
+        segment.match ? (
+          <strong key={index} className="font-semibold text-neutral-900">
+            {segment.text}
+          </strong>
+        ) : (
+          <span key={index}>{segment.text}</span>
+        )
+      )}
+    </>
+  )
 }
 
-export function DesktopCategoriesDropdown({
-  open,
-  categories,
+export function searchOptionDomId(id: string): string {
+  return `search-option-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}`
+}
+
+/* ── Filas y tarjetas ────────────────────────────────────────────────────── */
+
+type RowProps = {
+  item: SearchItem
+  query: string
+  active: boolean
+  onSelect: (item: SearchItem) => void
+}
+
+/** Fila de texto: categorías, marcas, servicios, cursos y secciones. */
+function SuggestionRow({ item, query, active, onSelect }: RowProps) {
+  return (
+    <li>
+      <Link
+        id={searchOptionDomId(item.id)}
+        role="option"
+        aria-selected={active}
+        href={item.href}
+        onClick={() => onSelect(item)}
+        className={`flex items-center gap-3 rounded-lg px-2 py-2 transition-colors ${
+          active ? "bg-neutral-100" : "hover:bg-neutral-100"
+        }`}
+      >
+        {item.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.image}
+            alt=""
+            className="h-8 w-8 shrink-0 rounded-full border border-neutral-200 object-cover"
+          />
+        ) : null}
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[14px] font-light text-neutral-700">
+            <Highlighted text={item.title} query={query} />
+          </span>
+          {item.meta ? (
+            <span className="mt-0.5 block truncate text-[11px] text-neutral-500">
+              {item.meta}
+              {item.price !== null ? ` · ${formatPrice(item.price)}` : ""}
+            </span>
+          ) : null}
+        </span>
+        <span className="shrink-0 text-[10px] uppercase tracking-[0.14em] text-neutral-500">
+          {SEARCH_TYPE_LABEL[item.type]}
+        </span>
+      </Link>
+    </li>
+  )
+}
+
+/** Tarjeta de producto del panel. */
+function ProductCardMini({ item, query, active, onSelect }: RowProps) {
+  return (
+    <Link
+      id={searchOptionDomId(item.id)}
+      role="option"
+      aria-selected={active}
+      href={item.href}
+      onClick={() => onSelect(item)}
+      className={`group flex flex-col rounded-lg p-1.5 transition-colors ${
+        active ? "bg-neutral-100" : "hover:bg-neutral-100"
+      }`}
+    >
+      <span className="block aspect-square w-full overflow-hidden rounded-md border border-neutral-100 bg-neutral-50">
+        {item.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.image}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-500">
+            LC
+          </span>
+        )}
+      </span>
+      {item.subtitle ? (
+        <span className="mt-1.5 block truncate text-[10px] uppercase tracking-[0.12em] text-neutral-500">
+          {item.subtitle}
+        </span>
+      ) : null}
+      <span className="mt-0.5 line-clamp-2 text-[12px] font-light leading-snug text-[#1a1a1a]">
+        <Highlighted text={item.title} query={query} />
+      </span>
+      {item.price !== null ? (
+        <span className={`mt-1 ${PRICE_CLASS}`}>{formatPrice(item.price)}</span>
+      ) : null}
+    </Link>
+  )
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <section className="mb-6 last:mb-0">
+      <h3 className={HEADING_CLASS}>{title}</h3>
+      {children}
+    </section>
+  )
+}
+
+function RowsSkeleton() {
+  return (
+    <div className="space-y-2" aria-hidden>
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="h-8 animate-pulse rounded-lg bg-neutral-100" />
+      ))}
+    </div>
+  )
+}
+
+function CardsSkeleton({ count }: { count: number }) {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3" aria-hidden>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="space-y-2">
+          <div className="aspect-square w-full animate-pulse rounded-md bg-neutral-100" />
+          <div className="h-3 w-3/4 animate-pulse rounded bg-neutral-100" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ── Panel de resultados ─────────────────────────────────────────────────── */
+
+type SearchResultsPanelProps = {
+  query: string
+  payload: SearchPayload | null
+  loading: boolean
+  variant: SearchPanelVariant
+  activeId: string | null
+  onSelect: (item: SearchItem) => void
+  onSubmit: () => void
+}
+
+export function SearchResultsPanel({
+  query,
+  payload,
   loading,
-  onClose,
-  onMouseEnter,
-  onMouseLeave,
-}: DesktopCategoriesDropdownProps) {
+  variant,
+  activeId,
+  onSelect,
+  onSubmit,
+}: SearchResultsPanelProps) {
+  const trimmed = query.trim()
+  const isMobile = variant === "mobile"
+  const empty = isEmptyPayload(payload)
+
+  if (empty && loading) {
+    return (
+      <div className={isMobile ? "pb-8 pt-5" : "pb-8 pt-6"}>
+        <div
+          className={
+            isMobile ? "space-y-6" : "grid gap-x-10 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]"
+          }
+        >
+          <RowsSkeleton />
+          <CardsSkeleton count={isMobile ? 4 : 6} />
+        </div>
+      </div>
+    )
+  }
+
+  if (empty) {
+    return (
+      <div className={isMobile ? "pb-10 pt-6" : "pb-10 pt-6"}>
+        <p className="text-[15px] text-neutral-700">
+          Sin resultados para <span className="font-medium">«{trimmed}»</span>
+        </p>
+        <p className="mt-1 text-[13px] text-neutral-500">
+          Revisa la escritura o busca por marca, categoría o tipo de servicio.
+        </p>
+        <button
+          type="button"
+          onClick={onSubmit}
+          className="mt-4 inline-flex items-center justify-center rounded-full bg-neutral-900 px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#1a1a1a]"
+        >
+          Ver todos los resultados
+        </button>
+      </div>
+    )
+  }
+
+  const data = payload as SearchPayload
+  // Orden de lectura = orden que recorren las flechas (ver flattenPayload).
+  const suggestions = [...data.categories, ...data.brands, ...data.pages]
+  const hasProducts = data.products.length > 0
+
+  const rows = (items: SearchItem[]) => (
+    <ul className="-mx-2 flex flex-col" role="presentation">
+      {items.map((item) => (
+        <SuggestionRow
+          key={item.id}
+          item={item}
+          query={trimmed}
+          active={activeId === item.id}
+          onSelect={onSelect}
+        />
+      ))}
+    </ul>
+  )
+
+  const leftColumn = (
+    <div>
+      {suggestions.length > 0 && (
+        <Section title="Sugerencias">{rows(suggestions)}</Section>
+      )}
+      {data.services.length > 0 && (
+        <Section title="Servicios del estudio">{rows(data.services)}</Section>
+      )}
+      {data.courses.length > 0 && (
+        <Section title="Cursos">{rows(data.courses)}</Section>
+      )}
+    </div>
+  )
+
+  const productsColumn = hasProducts ? (
+    <div>
+      <h3 className={HEADING_CLASS}>Productos</h3>
+      <div
+        className={`-mx-1.5 grid gap-x-2 gap-y-3 ${
+          isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 xl:grid-cols-4"
+        }`}
+      >
+        {data.products.map((item) => (
+          <ProductCardMini
+            key={item.id}
+            item={item}
+            query={trimmed}
+            active={activeId === item.id}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    </div>
+  ) : null
+
+  const shown =
+    suggestions.length +
+    data.services.length +
+    data.courses.length +
+    data.products.length
+
   return (
     <div
-      className={`
-        absolute left-0 top-full z-50 min-w-[220px] pt-1
-        transition-all duration-500 ease-[cubic-bezier(.16,1,.3,1)]
-        ${
-          open
-            ? "pointer-events-auto opacity-100 translate-y-0"
-            : "pointer-events-none opacity-0 -translate-y-2"
-        }
-      `}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      role="menu"
+      className={isMobile ? "pb-8 pt-5" : "pb-8 pt-6"}
+      role="listbox"
+      aria-label="Sugerencias de búsqueda"
     >
-      <div className="max-h-[320px] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
-        <div className="py-1">
-          <Link
-            href="/tienda"
-            onClick={onClose}
-            className="block rounded-lg px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-[#c6a75e]"
-          >
-            Ver todo
-          </Link>
-          {loading ? (
-            <p className="px-3 py-2 text-sm text-neutral-500">Cargando...</p>
-          ) : categories.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-neutral-500">Sin categorías</p>
-          ) : (
-            categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/tienda?categoria=${category.slug}`}
-                onClick={onClose}
-                className="block rounded-lg px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-[#c6a75e]"
-              >
-                {category.name}
-              </Link>
-            ))
-          )}
-        </div>
+      {/* Lector de pantalla: sin esto, escribir no anuncia nada. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {`${shown} ${shown === 1 ? "sugerencia" : "sugerencias"} para ${trimmed}`}
+      </p>
+      <div
+        className={
+          isMobile
+            ? "space-y-7"
+            : "grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]"
+        }
+      >
+        {leftColumn}
+        {productsColumn}
+      </div>
+
+      <div className={`mt-8 flex ${isMobile ? "justify-center" : "justify-start"}`}>
+        <button
+          type="button"
+          onClick={onSubmit}
+          className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#1a1a1a]"
+        >
+          Ver todos los resultados
+          {data.total > 0 ? ` (${data.total})` : ""}
+        </button>
       </div>
     </div>
   )
 }
 
-type SearchSuggestionsContentProps = {
-  query: string
-  products: SearchSuggestionProduct[]
-  brands?: SearchSuggestionBrand[]
-  categories?: SearchSuggestionCategory[]
-  loading: boolean
+/* ── Estado vacío (aún sin escribir) ─────────────────────────────────────── */
+
+const FALLBACK_LINKS: TopSearchChip[] = [
+  { id: "fallback-tienda", label: "Tienda", href: "/tienda" },
+  { id: "fallback-academia", label: "Academia", href: "/academia" },
+  { id: "fallback-servicios", label: "Servicios", href: "/servicios" },
+  { id: "fallback-ofertas", label: "Ofertas", href: "/tienda/ofertas" },
+]
+
+type SearchEmptyPanelProps = {
+  variant: SearchPanelVariant
+  recent: string[]
+  topSearches: TopSearchChip[]
+  bestSellers: SearchSuggestionProduct[]
+  loading?: boolean
+  onPickRecent: (value: string) => void
+  onClearRecent: () => void
   onClose: () => void
-  variant?: "desktop" | "mobile" | "desktop-compact" | "desktop-dropdown"
 }
 
-export function SearchSuggestionsContent({
-  query,
-  products,
-  brands = [],
-  categories = [],
-  loading,
+export function SearchEmptyPanel({
+  variant,
+  recent,
+  topSearches,
+  bestSellers,
+  loading = false,
+  onPickRecent,
+  onClearRecent,
   onClose,
-  variant = "desktop",
-}: SearchSuggestionsContentProps) {
-  const trimmed = query.trim()
-  const hasProducts = products.length > 0
-  const hasBrands = brands.length > 0
-  const hasCategories = categories.length > 0
-  const hasAny = hasProducts || hasBrands || hasCategories
-  const searchHref = getSearchDestination(trimmed)
+}: SearchEmptyPanelProps) {
+  const isMobile = variant === "mobile"
+  const chips = topSearches.length > 0 ? topSearches : FALLBACK_LINKS
 
-  if (variant === "desktop-compact") {
-    const compactHeading =
-      "mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500"
-    const compactLink =
-      "text-[14px] text-neutral-900 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]"
+  return (
+    <div className={isMobile ? "pb-8 pt-5" : "pb-8 pt-6"}>
+      <div
+        className={
+          isMobile
+            ? "space-y-7"
+            : "grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]"
+        }
+      >
+        <div>
+          {recent.length > 0 && (
+            <section className="mb-6">
+              <div className="mb-3 flex items-baseline justify-between gap-3">
+                <h3 className={`${HEADING_CLASS} mb-0`}>Búsquedas recientes</h3>
+                <button
+                  type="button"
+                  onClick={onClearRecent}
+                  className="text-[11px] text-neutral-500 underline underline-offset-[3px] transition-colors hover:text-gold"
+                >
+                  Borrar
+                </button>
+              </div>
+              <ul className="-mx-2 flex flex-col">
+                {recent.map((value) => (
+                  <li key={value}>
+                    <button
+                      type="button"
+                      onClick={() => onPickRecent(value)}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-neutral-100"
+                    >
+                      <Clock
+                        className="h-3.5 w-3.5 shrink-0 text-neutral-500"
+                        strokeWidth={1.75}
+                      />
+                      <span className="truncate text-[14px] font-light text-neutral-700">
+                        {value}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-    if (loading && !hasAny) {
-      return <p className="py-6 text-sm text-neutral-500">Buscando...</p>
-    }
-
-    if (!hasAny) {
-      return (
-        <p className="py-6 text-sm text-neutral-500">
-          Sin resultados para &quot;{trimmed}&quot;
-        </p>
-      )
-    }
-
-    return (
-      <div className="pb-6 pt-2">
-        {hasCategories && (
-          <section className="mb-6">
-            <h3 className={compactHeading}>Categorías</h3>
-            <ul className="flex flex-col gap-2.5">
-              {categories.slice(0, 8).map((c) => (
-                <li key={c.id}>
-                  <Link href={c.href} onClick={onClose} className={compactLink}>
-                    {c.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {hasBrands && (
-          <section className="mb-6">
-            <h3 className={compactHeading}>Marcas</h3>
-            <ul className="flex flex-col gap-2.5">
-              {brands.slice(0, 8).map((b) => (
-                <li key={b.id}>
-                  <Link href={b.href} onClick={onClose} className={compactLink}>
-                    {b.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {hasProducts && (
-          <section className="mb-6">
-            <h3 className={compactHeading}>Productos</h3>
-            <ul className="flex flex-col gap-2.5">
-              {products.slice(0, 8).map((p) => (
-                <li key={p.id}>
-                  <Link
-                    href={`/tienda/${p.slug}`}
-                    onClick={onClose}
-                    className={compactLink}
-                  >
-                    {p.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <Link
-          href={searchHref}
-          onClick={onClose}
-          className="inline-flex text-[12px] font-semibold uppercase tracking-[0.14em] text-neutral-700 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]"
-        >
-          Ver todos los resultados
-        </Link>
-      </div>
-    )
-  }
-
-  if (variant === "desktop-dropdown") {
-    const dropdownHeading =
-      "mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500"
-    const dropdownChip =
-      "inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[12px] text-neutral-800 transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
-
-    if (loading && !hasAny) {
-      return null
-    }
-
-    if (!hasAny) {
-      return (
-        <p className="py-2 text-sm text-neutral-500">
-          Sin resultados para &quot;{trimmed}&quot;
-        </p>
-      )
-    }
-
-    return (
-      <div className="space-y-5">
-        {hasCategories && (
           <section>
-            <h3 className={dropdownHeading}>Categorías</h3>
+            <h3 className={HEADING_CLASS}>
+              {topSearches.length > 0 ? "Lo más buscado" : "Explorar"}
+            </h3>
             <div className="flex flex-wrap gap-2">
-              {categories.slice(0, 8).map((c) => (
-                <Link key={c.id} href={c.href} onClick={onClose} className={dropdownChip}>
-                  {c.label}
+              {chips.map((chip) => (
+                <Link
+                  key={chip.id}
+                  href={chip.href}
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[12px] text-neutral-800 transition-colors hover:border-[#c6a75e] hover:text-gold"
+                >
+                  <TrendingUp className="h-3 w-3 text-neutral-500" strokeWidth={2} />
+                  {chip.label}
                 </Link>
               ))}
             </div>
           </section>
-        )}
+        </div>
 
-        {hasBrands && (
-          <section>
-            <h3 className={dropdownHeading}>Marcas</h3>
-            <div className="flex flex-wrap gap-2">
-              {brands.slice(0, 8).map((b) => (
-                <Link key={b.id} href={b.href} onClick={onClose} className={dropdownChip}>
-                  {b.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={b.logoUrl}
-                      alt=""
-                      className="h-4 w-4 rounded-full object-cover"
-                    />
-                  ) : null}
-                  {b.name}
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {hasProducts && (
-          <section>
-            <h3 className={dropdownHeading}>Resultados de búsqueda</h3>
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {products.map((product) => (
+        <div>
+          <h3 className={HEADING_CLASS}>Más vendidos</h3>
+          {loading && bestSellers.length === 0 ? (
+            <CardsSkeleton count={isMobile ? 4 : 6} />
+          ) : bestSellers.length > 0 ? (
+            <div
+              className={`-mx-1.5 grid gap-x-2 gap-y-3 ${
+                isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 xl:grid-cols-4"
+              }`}
+            >
+              {bestSellers.map((product) => (
                 <Link
                   key={product.id}
                   href={`/tienda/${product.slug}`}
                   onClick={onClose}
-                  className="group flex w-[140px] shrink-0 flex-col"
+                  className="group flex flex-col rounded-lg p-1.5 transition-colors hover:bg-neutral-100"
                 >
-                  <div className="aspect-square w-full overflow-hidden rounded-md border border-neutral-100 bg-neutral-50">
+                  <span className="block aspect-square w-full overflow-hidden rounded-md border border-neutral-100 bg-neutral-50">
                     {product.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={product.image}
-                        alt={product.name}
+                        alt=""
+                        loading="lazy"
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-400">
+                      <span className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-500">
                         LC
-                      </div>
+                      </span>
                     )}
-                  </div>
-                  <p className="mt-1.5 truncate text-[11px] font-light leading-snug text-[#1a1a1a] transition-colors group-hover:text-[#c6a75e]">
+                  </span>
+                  <span className="mt-1.5 line-clamp-2 text-[12px] font-light leading-snug text-[#1a1a1a]">
                     {product.name}
-                  </p>
+                  </span>
+                  <span className={`mt-1 ${PRICE_CLASS}`}>
+                    {formatPrice(product.price)}
+                  </span>
                 </Link>
               ))}
             </div>
-          </section>
-        )}
-
-        <Link
-          href={searchHref}
-          onClick={onClose}
-          className="inline-flex text-[12px] font-semibold uppercase tracking-[0.14em] text-neutral-700 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]"
-        >
-          Ver todos los resultados
-        </Link>
-      </div>
-    )
-  }
-
-  const isMobile = variant === "mobile"
-
-  const sectionHeadingClass = isMobile
-    ? "mb-4 text-[20px] font-semibold tracking-tight text-neutral-900"
-    : "mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500"
-
-  const chipClass =
-    "inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-[12px] text-neutral-800 transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
-
-  return (
-    <div className={isMobile ? "pb-8 pt-5" : "px-4 py-4"}>
-      {loading && !hasAny ? (
-        <p className={isMobile ? "py-6 text-sm text-neutral-500" : "px-2 py-3 text-sm text-neutral-500"}>
-          Buscando...
-        </p>
-      ) : hasAny ? (
-        <>
-          {hasCategories && (
-            <section className={isMobile ? "mb-7" : "mb-5"}>
-              <h3 className={sectionHeadingClass}>Categorías</h3>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((c) => (
-                  <Link
-                    key={c.id}
-                    href={c.href}
-                    onClick={onClose}
-                    className={chipClass}
-                  >
-                    {c.label}
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {hasBrands && (
-            <section className={isMobile ? "mb-7" : "mb-5"}>
-              <h3 className={sectionHeadingClass}>Marcas</h3>
-              <div className="flex flex-wrap gap-2">
-                {brands.map((b) => (
-                  <Link
-                    key={b.id}
-                    href={b.href}
-                    onClick={onClose}
-                    className={chipClass}
-                  >
-                    {b.logoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={b.logoUrl}
-                        alt=""
-                        className="h-4 w-4 rounded-full object-cover"
-                      />
-                    ) : null}
-                    {b.name}
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {hasProducts ? (
-            <>
-              <h3 className={sectionHeadingClass}>Productos</h3>
-          <div
-            className={
-              isMobile
-                ? "grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 md:gap-5"
-                : "grid grid-cols-2 gap-3"
-            }
-          >
-            {products.map((product) => (
-              <Link
-                key={product.id}
-                href={`/tienda/${product.slug}`}
-                onClick={onClose}
-                className={isMobile ? "flex flex-col" : "group block overflow-hidden rounded-xl border border-neutral-200 bg-white transition-shadow hover:shadow-md"}
-              >
-                <div
-                  className={
-                    isMobile
-                      ? "aspect-square w-full overflow-hidden rounded-lg border border-neutral-100 bg-neutral-50 sm:aspect-[4/5]"
-                      : "aspect-square w-full overflow-hidden bg-neutral-100"
-                  }
-                >
-                  {product.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className={
-                        isMobile
-                          ? "h-full w-full object-cover"
-                          : "h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      }
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-neutral-400">
-                      LC
-                    </div>
-                  )}
-                </div>
-                <div className={isMobile ? "mt-2 flex flex-1 flex-col" : "px-2.5 py-2"}>
-                  <p
-                    className={
-                      isMobile
-                        ? "line-clamp-2 flex-1 text-[12px] font-light leading-snug text-[#1a1a1a]"
-                        : "line-clamp-2 text-[12px] font-medium text-neutral-900"
-                    }
-                  >
-                    {isMobile ? (
-                      <span className="underline decoration-neutral-700 decoration-[1px] underline-offset-[4px]">
-                        {product.name}
-                      </span>
-                    ) : (
-                      product.name
-                    )}
-                  </p>
-                  <p className={isMobile ? `mt-1 ${SEARCH_PRODUCT_PRICE_CLASS}` : `mt-0.5 ${SEARCH_PRODUCT_PRICE_CLASS}`}>
-                    {formatPrice(product.price)}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-            </>
-          ) : null}
-
-          <div className={isMobile ? "mt-7 flex justify-center" : "mt-4 flex justify-center"}>
+          ) : (
             <Link
-              href={searchHref}
+              href="/tienda"
               onClick={onClose}
-              className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#1a1a1a]"
+              className="inline-flex items-center gap-2 text-[13px] text-neutral-700 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-gold"
             >
-              Ver todos los resultados
+              <Search className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Ver todo el catálogo
             </Link>
-          </div>
-        </>
-      ) : (
-        <p className={isMobile ? "py-6 text-sm text-neutral-500" : "px-2 py-3 text-sm text-neutral-500"}>
-          Sin resultados para &quot;{trimmed}&quot;
-        </p>
-      )}
-    </div>
-  )
-}
-
-type EmptyStatePanelProps = {
-  topSearches?: TopSearchChip[]
-  bestSellers?: SearchSuggestionProduct[]
-  loading?: boolean
-  onClose: () => void
-  variant?: "desktop" | "mobile" | "desktop-compact" | "desktop-dropdown"
-}
-
-export function EmptyStatePanel({
-  onClose,
-  variant = "desktop",
-}: EmptyStatePanelProps) {
-  const isMobile = variant === "mobile"
-
-  const wrapperClass =
-    variant === "mobile"
-      ? "pb-8 pt-5"
-      : variant === "desktop-compact"
-        ? "pb-6"
-        : variant === "desktop-dropdown"
-          ? ""
-          : "px-4 py-4"
-
-  const headingClass = isMobile
-    ? "mb-4 text-[20px] font-semibold tracking-tight text-neutral-900"
-    : "mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500"
-
-  const linkClass = `w-fit ${
-    isMobile ? "text-[15px]" : "text-[13px]"
-  } text-neutral-800 underline decoration-neutral-400 underline-offset-[5px] transition-colors hover:text-[#c6a75e] hover:decoration-[#c6a75e]`
-
-  return (
-    <div className={wrapperClass}>
-      <section>
-        <h3 className={headingClass}>Sugerencias</h3>
-        <div className={`flex flex-col ${isMobile ? "gap-2.5" : "gap-1.5"}`}>
-          {SEARCH_SUGGESTION_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={onClose}
-              className={linkClass}
-            >
-              {link.label}
-            </Link>
-          ))}
+          )}
         </div>
-      </section>
-    </div>
-  )
-}
-
-type DesktopSearchSuggestionsProps = {
-  open: boolean
-  query: string
-  products: SearchSuggestionProduct[]
-  brands?: SearchSuggestionBrand[]
-  categories?: SearchSuggestionCategory[]
-  loading: boolean
-  onClose: () => void
-  topSearches?: TopSearchChip[]
-  bestSellers?: SearchSuggestionProduct[]
-  emptyLoading?: boolean
-}
-
-export function DesktopSearchSuggestions({
-  open,
-  query,
-  products,
-  brands = [],
-  categories = [],
-  loading,
-  onClose,
-  topSearches = [],
-  bestSellers = [],
-  emptyLoading = false,
-}: DesktopSearchSuggestionsProps) {
-  const trimmed = query.trim()
-  const isEmpty = trimmed.length < 2
-
-  return (
-    <div
-      className={`
-        absolute left-0 top-full z-50 w-full
-        transition-all duration-500 ease-[cubic-bezier(.16,1,.3,1)]
-        ${
-          open
-            ? "pointer-events-auto opacity-100 translate-y-0"
-            : "pointer-events-none opacity-0 -translate-y-2"
-        }
-      `}
-    >
-      <div className="overflow-hidden rounded-b-xl border border-t-0 border-neutral-200 bg-white shadow-xl">
-        {isEmpty ? (
-          <EmptyStatePanel
-            topSearches={topSearches}
-            bestSellers={bestSellers}
-            loading={emptyLoading}
-            onClose={onClose}
-          />
-        ) : (
-          <SearchSuggestionsContent
-            query={query}
-            products={products}
-            brands={brands}
-            categories={categories}
-            loading={loading}
-            onClose={onClose}
-          />
-        )}
       </div>
     </div>
   )

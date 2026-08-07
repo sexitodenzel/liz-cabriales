@@ -1,18 +1,22 @@
 "use client"
 
-import { useEffect, useRef, useState, type FormEvent } from "react"
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react"
 import { Search, X } from "lucide-react"
-import { useRouter } from "next/navigation"
 
 import {
-  EmptyStatePanel,
-  SearchSuggestionsContent,
-  type SearchSuggestionBrand,
-  type SearchSuggestionCategory,
+  SearchEmptyPanel,
+  SearchResultsPanel,
+  searchOptionDomId,
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
-import { getSearchDestination } from "@/lib/search-navigation"
+import type { SearchItem, SearchPayload } from "@/lib/search/types"
 import { SITE_CONTAINER_CLASS } from "@/lib/site-shell"
 import { MOBILE_CHROME_PANEL_CLASS } from "@/lib/site-chrome"
 
@@ -21,10 +25,15 @@ type Props = {
   onClose: () => void
   query: string
   onQueryChange: (value: string) => void
-  products: SearchSuggestionProduct[]
-  brands?: SearchSuggestionBrand[]
-  categories?: SearchSuggestionCategory[]
+  payload: SearchPayload | null
   suggestionsLoading: boolean
+  activeId: string | null
+  onSelectSuggestion: (item: SearchItem) => void
+  onSubmit: () => void
+  onSearchKeyDown: (event: ReactKeyboardEvent<HTMLInputElement>) => void
+  recentSearches: string[]
+  onPickRecent: (value: string) => void
+  onClearRecent: () => void
   topSearches: TopSearchChip[]
   bestSellers: SearchSuggestionProduct[]
   emptyLoading: boolean
@@ -36,16 +45,20 @@ export default function MobileSearchOverlay({
   onClose,
   query,
   onQueryChange,
-  products,
-  brands = [],
-  categories = [],
+  payload,
   suggestionsLoading,
+  activeId,
+  onSelectSuggestion,
+  onSubmit,
+  onSearchKeyDown,
+  recentSearches,
+  onPickRecent,
+  onClearRecent,
   topSearches,
   bestSellers,
   emptyLoading,
   hideForm = false,
 }: Props) {
-  const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [isWideViewport, setIsWideViewport] = useState(false)
 
@@ -76,19 +89,51 @@ export default function MobileSearchOverlay({
     return () => document.removeEventListener("keydown", handleKey)
   }, [open, onClose])
 
+  // Al abrir la cortina móvil el foco va al campo (en desktop lo hace el
+  // navbar, que es dueño de su propio input).
+  useEffect(() => {
+    if (!open || useDesktopBranch) return
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 220)
+    return () => window.clearTimeout(timer)
+  }, [open, useDesktopBranch])
+
+  // La selección con teclado puede caer fuera de la vista en listas largas.
+  useEffect(() => {
+    if (!activeId) return
+    const node = document.getElementById(searchOptionDomId(activeId))
+    node?.scrollIntoView({ block: "nearest" })
+  }, [activeId])
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    router.push(getSearchDestination(query))
-    onQueryChange("")
-    onClose()
+    onSubmit()
   }
 
-  const isEmpty = query.trim().length < 2
-  const hasResults =
-    products.length > 0 || brands.length > 0 || categories.length > 0
-  // Sin resultados aún y todavía cargando: no mostramos el separador para que
-  // la cortina crezca solo cuando hay algo que mostrar.
-  const showDesktopResults = hasResults || !suggestionsLoading
+  const isEmptyQuery = query.trim().length < 2
+  const variant = useDesktopBranch ? "overlay" : "mobile"
+
+  const panel = isEmptyQuery ? (
+    <SearchEmptyPanel
+      variant={variant}
+      recent={recentSearches}
+      topSearches={topSearches}
+      bestSellers={bestSellers}
+      loading={emptyLoading}
+      onPickRecent={onPickRecent}
+      onClearRecent={onClearRecent}
+      onClose={onClose}
+    />
+  ) : (
+    <SearchResultsPanel
+      query={query}
+      payload={payload}
+      loading={suggestionsLoading}
+      variant={variant}
+      activeId={activeId}
+      onSelect={onSelectSuggestion}
+      onSubmit={onSubmit}
+    />
+  )
 
   const overlayContent = (
     <>
@@ -108,9 +153,17 @@ export default function MobileSearchOverlay({
                 autoComplete="off"
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
-                placeholder=""
-                className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-base tracking-wide text-neutral-900 outline-none md:text-[17px]"
-                aria-label="Buscar productos"
+                onKeyDown={onSearchKeyDown}
+                placeholder="Productos, cursos, servicios…"
+                className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-base tracking-wide text-neutral-900 outline-none placeholder:text-neutral-400 md:text-[17px]"
+                aria-label="Buscar productos, cursos y servicios"
+                role="combobox"
+                aria-expanded={open}
+                aria-controls="search-suggestions-panel"
+                aria-autocomplete="list"
+                aria-activedescendant={
+                  activeId ? searchOptionDomId(activeId) : undefined
+                }
               />
             </div>
             <button
@@ -132,55 +185,14 @@ export default function MobileSearchOverlay({
       )}
 
       <div
-        className={`${
+        id="search-suggestions-panel"
+        className={
           useDesktopBranch
-            ? "py-6"
+            ? "py-2"
             : "min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
-        }`}
+        }
       >
-        {useDesktopBranch ? (
-          <>
-            <EmptyStatePanel
-              topSearches={topSearches}
-              bestSellers={bestSellers}
-              loading={emptyLoading}
-              onClose={onClose}
-              variant="desktop-dropdown"
-            />
-
-            {!isEmpty && showDesktopResults && (
-              <div className="mt-6 border-t border-neutral-200 pt-6">
-                <SearchSuggestionsContent
-                  query={query}
-                  products={products}
-                  brands={brands}
-                  categories={categories}
-                  loading={suggestionsLoading}
-                  onClose={onClose}
-                  variant="desktop-dropdown"
-                />
-              </div>
-            )}
-          </>
-        ) : isEmpty ? (
-          <EmptyStatePanel
-            topSearches={topSearches}
-            bestSellers={bestSellers}
-            loading={emptyLoading}
-            onClose={onClose}
-            variant="mobile"
-          />
-        ) : (
-          <SearchSuggestionsContent
-            query={query}
-            products={products}
-            brands={brands}
-            categories={categories}
-            loading={suggestionsLoading}
-            onClose={onClose}
-            variant="mobile"
-          />
-        )}
+        {panel}
       </div>
     </>
   )
@@ -204,6 +216,9 @@ export default function MobileSearchOverlay({
           overflowX: "hidden",
         }}
         aria-hidden={!open}
+        // Sigue montada al cerrarse (para la transición): sin inert, sus
+        // enlaces quedarían en el recorrido del tabulador.
+        inert={!open}
       >
         <div className="mx-auto w-full max-w-[1600px] px-6 lg:px-10">
           {overlayContent}
@@ -220,6 +235,7 @@ export default function MobileSearchOverlay({
           : "opacity-0 pointer-events-none duration-150 ease-in"
       }`}
       aria-hidden={!open}
+      inert={!open}
     >
       <div className={`${SITE_CONTAINER_CLASS} flex min-h-0 flex-1 flex-col`}>
         {overlayContent}

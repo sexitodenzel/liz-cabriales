@@ -16,7 +16,8 @@ import type {
   ProductWithCategory,
 } from "@/lib/supabase/products"
 import { pickRelatedProductsForFilters } from "@/lib/tienda/related-products"
-import { normalizeSearchText, tokenizeSearchQuery } from "@/lib/search-text"
+import { prepareDocs, searchDocs } from "@/lib/search/engine"
+import { productToSearchDoc } from "@/lib/search/product-doc"
 import { slugifyText } from "@/lib/slug"
 import { applyDiscount, hasDiscount } from "@/lib/tienda/discount"
 import BrandHeaderInfo from "./BrandHeaderInfo"
@@ -249,8 +250,24 @@ export default function ProductGrid({
     return map
   }, [products])
 
+  // Mismo motor que el autocompletado y /buscar: acentos, plurales, sinónimos
+  // y tolerancia a erratas. El índice se arma una vez por catálogo.
+  const searchIndex = useMemo(
+    () => prepareDocs(products.map((product) => productToSearchDoc(product))),
+    [products]
+  )
+
+  const searchScores = useMemo(() => {
+    const query = filters.search.trim()
+    if (query.length === 0) return null
+    const scores = new Map<string, number>()
+    for (const hit of searchDocs(searchIndex, query)) {
+      scores.set(hit.doc.id, hit.score)
+    }
+    return scores
+  }, [searchIndex, filters.search])
+
   const filteredProducts = useMemo(() => {
-    const searchTokens = tokenizeSearchQuery(filters.search.trim())
     let result = products.filter((product) => {
       if (
         filters.categorySlugs.length > 0 &&
@@ -291,20 +308,18 @@ export default function ProductGrid({
       if (filters.onSale && !hasDiscount(product.discount_percent)) {
         return false
       }
-      if (searchTokens.length > 0) {
-        const haystack = normalizeSearchText(
-          `${product.name} ${product.brand ?? ""} ${product.category?.name ?? ""} ${
-            product.category?.slug ?? ""
-          } ${product.slug ?? ""} ${product.subcategory ?? ""}`
-        )
-        if (!searchTokens.every((token) => haystack.includes(token))) {
-          return false
-        }
+      if (searchScores && !searchScores.has(product.id)) {
+        return false
       }
       return true
     })
 
     result = [...result].sort((a, b) => {
+      // Con búsqueda activa, "destacados" pasa a ser relevancia.
+      if (searchScores && (sort === "destacados" || !sort)) {
+        const diff = (searchScores.get(b.id) ?? 0) - (searchScores.get(a.id) ?? 0)
+        if (diff !== 0) return diff
+      }
       switch (sort) {
         case "nombre-asc":
           return a.name.localeCompare(b.name, "es")
@@ -328,7 +343,7 @@ export default function ProductGrid({
     })
 
     return result
-  }, [products, filters, sort])
+  }, [products, filters, sort, searchScores])
 
   const filteredProductIds = useMemo(
     () => new Set(filteredProducts.map((p) => p.id)),

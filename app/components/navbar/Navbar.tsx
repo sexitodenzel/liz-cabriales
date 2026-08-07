@@ -4,7 +4,15 @@ import Link from "next/link"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Search, ShoppingBag, X, Heart, User } from "lucide-react"
-import { useState, useEffect, useLayoutEffect, useRef } from "react"
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+} from "react"
 import { getSearchDestination } from "@/lib/search-navigation"
 import { tiendaCategories, cursosCategories } from "./menuData"
 import CartMenu from "./dropdowns/CartMenu"
@@ -18,11 +26,17 @@ import MobileDrawer from "./MobileDrawer"
 import MobileSearchOverlay from "./MobileSearchOverlay"
 import { type BrandMenuItem } from "@/lib/navbar/brands-category"
 import {
-  type SearchSuggestionBrand,
-  type SearchSuggestionCategory,
+  searchOptionDomId,
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
+import { useInstantSearch } from "./useInstantSearch"
+import { flattenPayload } from "@/lib/search/types"
+import {
+  clearRecentSearches,
+  pushRecentSearch,
+  readRecentSearches,
+} from "@/lib/search/recent-searches"
 import { useCart } from "../cart/CartContext"
 import { useWishlist } from "../wishlist/WishlistContext"
 import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
@@ -33,14 +47,20 @@ type DesktopMenu = "Tienda" | "Academia" | "Servicios" | "Marcas" | "Nail Art" |
 
 type NavbarProps = {
   isLoggedIn?: boolean
+  /** Barra de anuncios (server component). Es la fila que se comprime. */
+  announcement?: ReactNode
 }
 
 const COMPACT_DESKTOP_MAX_WIDTH = 1200
 
-// Borde inferior del navbar expandido (px). El navbar es sticky top-0 sin
-// transform en reposo, así que su bottom = --navbar-actual-h. Se lee una vez
-// por breakpoint (constante dentro de cada media query), no por frame.
+// Borde inferior del chrome expandido (px) = anuncios + filas del navbar. El
+// header es sticky top-0 sin transform en reposo, así que su offsetHeight es la
+// medida exacta — y a diferencia de --navbar-actual-h no se queda obsoleta si
+// la barra de anuncios llega por streaming después de hidratar. Se lee una vez
+// por breakpoint / resize, no por frame.
 function readNavbarBottom(): number {
+  const header = document.getElementById("site-navbar")
+  if (header && header.offsetHeight > 0) return header.offsetHeight
   const raw = getComputedStyle(document.documentElement).getPropertyValue(
     "--navbar-actual-h"
   )
@@ -57,18 +77,19 @@ const DESKTOP_NAV_ITEMS = [
   { label: "Conócenos" as const, href: "/sobre-liz", menu: "Conócenos" as const },
 ] as const
 
-export default function Navbar({ isLoggedIn = false }: NavbarProps) {
+export default function Navbar({ isLoggedIn = false, announcement = null }: NavbarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [searchQuery, setSearchQuery] = useState("")
   const [brandMenuItems, setBrandMenuItems] = useState<BrandMenuItem[]>([])
-  const [suggestionProducts, setSuggestionProducts] = useState<SearchSuggestionProduct[]>([])
-  const [suggestionBrands, setSuggestionBrands] = useState<SearchSuggestionBrand[]>([])
-  const [suggestionCategories, setSuggestionCategories] = useState<SearchSuggestionCategory[]>([])
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const { payload: searchPayload, loading: suggestionsLoading } =
+    useInstantSearch(searchQuery)
+  const [activeSuggestion, setActiveSuggestion] = useState(-1)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [topSearches, setTopSearches] = useState<TopSearchChip[]>([])
   const [bestSellers, setBestSellers] = useState<SearchSuggestionProduct[]>([])
   const [emptyStateLoading, setEmptyStateLoading] = useState(true)
+  const emptyStateLoadedRef = useRef(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [isCompactDesktop, setIsCompactDesktop] = useState(false)
@@ -76,7 +97,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   const [activeMenu, setActiveMenu] = useState<DesktopMenu>(null)
   const [navBarStyle, setNavBarStyle] = useState({ left: 0, width: 0, visible: false })
   const [navBarAnimate, setNavBarAnimate] = useState<"grow" | "slide">("grow")
-  const [hideChrome, setHideChrome] = useState(false)
   const menuCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const navBarStyleRef = useRef({ left: 0, width: 0, visible: false })
   const activeMenuRef = useRef<DesktopMenu>(null)
@@ -159,8 +179,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   }
   const openDesktopMenu = (menu: Exclude<DesktopMenu, null>) => {
     clearMenuCloseTimer()
-    setHideChrome(false)
-    document.documentElement.classList.remove("lc-nav-collapsed")
     closeCart()
     setMobileSearchOpen(false)
     setDrawerOpen(false)
@@ -199,46 +217,36 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     }
   }, [activeMenu])
 
-  // Auto-hide del navbar (todas las vistas): bajar colapsa, subir muestra.
-  // En ≥1200px sube solo la fila superior y queda la fila de módulos como
-  // barra delgada; en vistas de una sola fila se va toda la barra. CSS mueve
-  // con transform html.lc-nav-collapsed (ver globals.css, --navbar-collapse-
-  // shift) — 100% GPU. Umbrales ACUMULADOS por dirección: micro-scrolls no
-  // togglean. Cerca del top queda siempre visible. hideChrome apaga la fila
-  // superior (aria/tabIndex) cuando hay barra delgada.
+  // Compresión del chrome (todas las vistas): bajar comprime, subir muestra.
+  // Lo único que se va es la barra de anuncios; el navbar es permanente. CSS
+  // mueve con transform html.lc-nav-collapsed (ver globals.css,
+  // --navbar-collapse-shift) — 100% GPU. Umbrales ACUMULADOS por dirección:
+  // micro-scrolls no togglean. Cerca del top queda siempre visible.
   useEffect(() => {
     const mqDesktopNav = window.matchMedia("(min-width: 1200px)")
     const COLLAPSE_AFTER = 40
-    // Umbral de REAPARICIÓN (acumulado hacia arriba), dependiente del viewport:
-    //  · Desktop (≥1200px): -28. Ahí el colapso deja una barra delgada (fila de
-    //    módulos) + barras follow; con un gatillo de pelo (-8) un scrub rápido
-    //    revertía el colapso a media transición de 360ms y navbar+follow
-    //    oscilaban en ráfaga (latigazo). -28 exige un gesto COMPROMETIDO y el
-    //    jitter de un scrub ya no togglea.
-    //  · Móvil/tablet (<1200px, una sola fila que se oculta ENTERA): se quiere
-    //    el patrón tipo X/Twitter — el navbar reaparece al MENOR gesto hacia
-    //    arriba. -8 ignora el jitter de 1-2px del momentum pero se siente
-    //    inmediato (sin barra delgada ni follow visible que puedan oscilar).
-    const EXPAND_AFTER_DESKTOP = -28
-    const EXPAND_AFTER_COMPACT = -8
+    // Umbral de REAPARICIÓN (acumulado hacia arriba). -28 exige un gesto
+    // COMPROMETIDO: con un gatillo de pelo, el jitter de un scrub rápido
+    // revertía el estado a media transición de 360ms y el chrome + las barras
+    // follow oscilaban en ráfaga (latigazo). Antes móvil usaba -8 (patrón tipo
+    // X) porque ahí se ocultaba el navbar ENTERO y había que recuperarlo
+    // cuanto antes; ahora el navbar nunca se va y lo que vuelve es solo el
+    // anuncio, así que no hay prisa y conviene el umbral estable en todas las
+    // vistas.
+    const EXPAND_AFTER = -28
     let lastY = window.scrollY
     let acc = 0
     // Barra sticky de la página que sigue el hide (marcada con
     // data-nav-collapse-guard). Se cachea entre frames; se re-consulta si el
     // elemento se desmonta al cambiar de ruta.
     let guardEl: HTMLElement | null = null
-    // Borde inferior del navbar EXPANDIDO (sin transform) = --navbar-actual-h.
+    // Borde inferior del chrome EXPANDIDO (sin transform) = anuncios + navbar.
     let navbarBottom = readNavbarBottom()
     // Línea de dock del guard: su `top` sticky resuelto en px.
     let guardDockTop = navbarBottom
 
     const setCollapsed = (collapsed: boolean) => {
       document.documentElement.classList.toggle("lc-nav-collapsed", collapsed)
-      // ≥1200px conserva la fila de módulos (barra delgada): solo sube la fila
-      // superior, así que su aria/tabIndex se apagan con hideChrome y aparece
-      // el logo compacto a la izquierda del nav. En vistas de una sola fila se
-      // va toda la barra, sin fila residual → hideChrome queda en false.
-      setHideChrome(collapsed && mqDesktopNav.matches)
     }
 
     const update = () => {
@@ -247,16 +255,18 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       lastY = y
       const root = document.documentElement
 
-      // Menú / overlays abiertos: forzar barra visible.
+      // Menú / overlays abiertos: CONGELAR el estado actual, no forzar el
+      // expandido. El navbar ya está siempre visible, así que devolver la barra
+      // de anuncios solo serviría para empujar el megamenú 36px hacia abajo
+      // justo al abrirlo (el panel es `top-full` del header).
       if (overlayOpenRef.current) {
         acc = 0
-        setCollapsed(false)
         return
       }
 
-      const pinOffset =
-        document.getElementById("site-announcement-bar")?.offsetHeight ?? 0
-      const inTopZone = y <= pinOffset + 24
+      // La barra de anuncios ya no consume scroll (viaja dentro del header
+      // sticky), así que la zona de reposo es el tope real de la página.
+      const inTopZone = y <= 24
       const collapsed =
         !inTopZone && root.classList.contains("lc-nav-collapsed")
 
@@ -314,15 +324,16 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         return
       }
 
-      const expandAfter = mqDesktopNav.matches
-        ? EXPAND_AFTER_DESKTOP
-        : EXPAND_AFTER_COMPACT
       if (delta > 0 !== acc > 0) acc = 0
       acc += delta
       if (acc > COLLAPSE_AFTER) setCollapsed(true)
-      else if (acc < expandAfter) setCollapsed(false)
+      else if (acc < EXPAND_AFTER) setCollapsed(false)
     }
 
+    // Re-medir. guardEl = null fuerza además releer su línea de dock
+    // (getComputedStyle(...).top), que vale --navbar-actual-h: si esa var
+    // cambia y no se relee, el guard queda 36px descuadrado y `guardDocked`
+    // da false para siempre → el chrome no se comprime nunca.
     const handleModeChange = () => {
       lastY = window.scrollY
       acc = 0
@@ -330,10 +341,18 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       guardEl = null
     }
     window.addEventListener("scroll", update, { passive: true })
+    window.addEventListener("resize", handleModeChange)
     mqDesktopNav.addEventListener("change", handleModeChange)
+    // El alto del header cambia sin resize ni cambio de breakpoint: cuando la
+    // barra de anuncios llega por streaming (Suspense) o se apaga desde el
+    // panel. Es el disparador exacto para volver a medir.
+    const headerResize = new ResizeObserver(handleModeChange)
+    if (headerRef.current) headerResize.observe(headerRef.current)
     update()
     return () => {
+      headerResize.disconnect()
       window.removeEventListener("scroll", update)
+      window.removeEventListener("resize", handleModeChange)
       mqDesktopNav.removeEventListener("change", handleModeChange)
       document.documentElement.classList.remove("lc-nav-collapsed")
       document.documentElement.classList.remove("lc-nav-guard-free")
@@ -345,11 +364,11 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
   // que al “llegar al tope” visual el menú siguiera ivory hasta otro scroll.
   useLayoutEffect(() => {
     const overlayRange = () => {
-      // Cubre el pin del hero (120vh − 100vh) + chrome; histéresis al salir.
+      // Cubre el pin del hero (120vh − 100vh) + respiro; histéresis al salir.
+      // La barra de anuncios ya no suma: viaja dentro del header sticky y no
+      // consume scroll del documento.
       const pin = Math.round(window.innerHeight * 0.22)
-      const ann =
-        document.getElementById("site-announcement-bar")?.offsetHeight ?? 0
-      return { enterAt: pin + ann + 24, exitAt: pin + ann + 96 }
+      return { enterAt: pin + 24, exitAt: pin + 96 }
     }
 
     let overlayOn = false
@@ -404,14 +423,6 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
       setActiveMenu(null)
     }
   }, [isCartOpen])
-
-  // Mantener chrome visible mientras hay overlay abierto (megamenu, carrito, búsqueda).
-  useEffect(() => {
-    if (activeMenu || isCartOpen || drawerOpen || mobileSearchOpen) {
-      setHideChrome(false)
-      document.documentElement.classList.remove("lc-nav-collapsed")
-    }
-  }, [activeMenu, isCartOpen, drawerOpen, mobileSearchOpen])
 
   useEffect(() => {
     const updateCompactDesktop = () => {
@@ -478,8 +489,14 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
     return () => { isMounted = false }
   }, [])
 
+  // Panel vacío (más buscado + más vendidos): se pide la primera vez que se
+  // abre el buscador, no en cada carga de página.
   useEffect(() => {
-    let isMounted = true
+    // El "ya se pidió" vive en un ref, no en estado: si fuera estado, cambiarlo
+    // volvería a correr este efecto, su limpieza cancelaría la petición en
+    // curso y los datos nunca llegarían a pintarse.
+    if (!mobileSearchOpen || emptyStateLoadedRef.current) return
+    emptyStateLoadedRef.current = true
     async function loadEmptyState() {
       try {
         const [topResult, bestResult] = await Promise.allSettled([
@@ -510,60 +527,101 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
           }
         }
 
-        if (!isMounted) return
         setTopSearches(topData)
         setBestSellers(bestData)
       } catch {
         /* Red caída / HMR stale — el navbar sigue sin top searches */
       } finally {
-        if (isMounted) setEmptyStateLoading(false)
+        setEmptyStateLoading(false)
       }
     }
     void loadEmptyState()
-    return () => {
-      isMounted = false
-    }
-  }, [])
+  }, [mobileSearchOpen])
+
+  /* ── Interacción del buscador ──────────────────────────────────────────── */
+
+  // Lista plana en el mismo orden en que se pintan las secciones: es lo que
+  // recorren las flechas del teclado.
+  const suggestionItems = useMemo(
+    () => flattenPayload(searchPayload),
+    [searchPayload]
+  )
+  const activeSuggestionItem =
+    activeSuggestion >= 0 ? suggestionItems[activeSuggestion] ?? null : null
+
+  // Cambió lo escrito (o llegaron otros resultados): la selección vuelve al
+  // inicio para no navegar a un elemento que ya no está en pantalla.
+  useEffect(() => {
+    setActiveSuggestion(-1)
+  }, [searchQuery, searchPayload])
 
   useEffect(() => {
-    const query = searchQuery.trim()
-    if (query.length < 2) {
-      setSuggestionProducts([])
-      setSuggestionBrands([])
-      setSuggestionCategories([])
-      setSuggestionsLoading(false)
+    setRecentSearches(readRecentSearches())
+  }, [])
+
+  const closeSearch = () => {
+    setMobileSearchOpen(false)
+    setActiveSuggestion(-1)
+  }
+
+  const rememberQuery = (value: string) => {
+    const trimmed = value.trim()
+    if (trimmed.length < 2) return
+    setRecentSearches(pushRecentSearch(trimmed))
+  }
+
+  const submitSearch = () => {
+    const trimmed = searchQuery.trim()
+    if (!trimmed) return
+    rememberQuery(trimmed)
+    router.push(getSearchDestination(trimmed))
+    setSearchQuery("")
+    closeSearch()
+  }
+
+  // El propio <Link> navega; aquí solo se guarda la consulta y se cierra.
+  const handleSuggestionSelect = () => {
+    rememberQuery(searchQuery)
+    setSearchQuery("")
+    closeSearch()
+  }
+
+  const handleRecentPick = (value: string) => {
+    setSearchQuery(value)
+    desktopSearchInputRef.current?.focus()
+  }
+
+  const handleSearchKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      setSearchQuery("")
+      closeSearch()
+      event.currentTarget.blur()
       return
     }
-    let isMounted = true
-    setSuggestionsLoading(true)
-    const timeout = setTimeout(async () => {
-      try {
-        const response = await fetch(
-          `/api/products/search-suggestions?q=${encodeURIComponent(query)}`
-        )
-        if (!response.ok) return
-        const json = (await response.json()) as {
-          data?: {
-            products?: SearchSuggestionProduct[]
-            brands?: SearchSuggestionBrand[]
-            categories?: SearchSuggestionCategory[]
-          }
-        }
-        if (!isMounted) return
-        setSuggestionProducts(Array.isArray(json.data?.products) ? json.data!.products! : [])
-        setSuggestionBrands(Array.isArray(json.data?.brands) ? json.data!.brands! : [])
-        setSuggestionCategories(Array.isArray(json.data?.categories) ? json.data!.categories! : [])
-      } catch {
-        /* ignore network / aborted */
-      } finally {
-        if (isMounted) setSuggestionsLoading(false)
+
+    if (event.key === "Enter") {
+      if (activeSuggestionItem) {
+        event.preventDefault()
+        rememberQuery(searchQuery)
+        setSearchQuery("")
+        closeSearch()
+        router.push(activeSuggestionItem.href)
       }
-    }, 180)
-    return () => {
-      isMounted = false
-      clearTimeout(timeout)
+      return
     }
-  }, [searchQuery])
+
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
+    if (suggestionItems.length === 0) return
+
+    event.preventDefault()
+    const delta = event.key === "ArrowDown" ? 1 : -1
+    setActiveSuggestion((current) => {
+      const next = current + delta
+      if (next < -1) return suggestionItems.length - 1
+      if (next >= suggestionItems.length) return -1
+      return next
+    })
+  }
 
   const toggleMobileSearch = () => {
     if (mobileSearchOpen) {
@@ -595,6 +653,12 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         className="relative z-50 w-full sticky top-0 overflow-visible text-neutral-800"
         onMouseLeave={scheduleMenuClose}
       >
+        {/* Barra de anuncios: la ÚNICA fila que se comprime al scrollear. Vive
+            aquí dentro (no como hermana en el layout) para que el chrome sea un
+            solo elemento sticky con un solo transform: así los megamenús
+            (`top-full`), las barras .navbar-follow-collapse y los overlays
+            fixed que ya escapan por portal conservan su geometría exacta. */}
+        {announcement}
 
         {/* ===== COMPACT TOOLBAR (mobile + ventanas estrechas en desktop) ===== */}
         <div className={`navbar-toolbar relative z-10 h-[var(--navbar-h)] w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center ${showCompactToolbar ? "grid" : "grid md:hidden"}`}>
@@ -678,225 +742,196 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
         </div>
 
         {/* ===== DESKTOP TOOLBAR (ancho completo) ===== */}
-        {/* Altura del header (104px) controlada por CSS @media. Cuando colapsa,
-            el header se mueve con `transform` (GPU) — no animamos height. */}
+        {/* UNA sola fila (estilo OPI): logo · módulos · iconos. Alto =
+            --navbar-h (72px en ≥1200px). El header no fija altura: se la dan la
+            barra de anuncios + esta fila, así el chrome mide lo justo cuando la
+            barra no está. La fila es PERMANENTE; lo único que se comprime al
+            scrollear es el anuncio. */}
         <div
-          className={`navbar-toolbar relative z-10 flex h-full w-full flex-col ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
+          className={`navbar-toolbar relative z-10 h-[var(--navbar-h)] w-full items-center gap-6 lg:gap-8 ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
         >
-          {/* Fila superior: logo centrado + iconos a la derecha. Al colapsar, el
-              header entero se traslada -56px (GPU) y esta fila queda fuera del
-              viewport; hideChrome solo apaga su aria/tabIndex. */}
-          <div
-            className="min-h-0 flex-1 overflow-hidden"
-            aria-hidden={hideChrome}
+          <Link
+            href="/"
+            className="navbar-brand-link relative z-[2] shrink-0 no-underline transition-opacity hover:opacity-90"
+            aria-label="Ir al inicio"
+            onMouseEnter={() => activeMenu && scheduleMenuClose()}
           >
-            <div className="grid h-full w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-4 pt-4">
-                {/* Columna izq. = misma fracción que la derecha → logo queda centrado */}
-                <div
-                  className="relative z-20 flex min-w-0 w-full items-center justify-self-stretch gap-2 pl-1 pr-2"
-                  onMouseEnter={scheduleMenuClose}
-                >
-                  <button
-                    type="button"
-                    onClick={() => { setActiveMenu(null); toggleMobileSearch() }}
-                    className={`${iconBtnBase} h-9 w-9 shrink-0 justify-center`}
-                    tabIndex={hideChrome ? -1 : 0}
-                    aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Buscar"}
-                  >
-                    <Search className="h-5 w-5" strokeWidth={1.75} />
-                  </button>
-
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      router.push(getSearchDestination(searchQuery))
-                      setSearchQuery("")
-                      setMobileSearchOpen(false)
-                    }}
-                    className={`relative flex min-w-0 shrink-0 items-center gap-2 border-b border-neutral-900 pb-1 transition-[width] duration-200 ease-out ${
-                      mobileSearchOpen
-                        ? "w-[min(100%,320px)]"
-                        : "w-[min(100%,220px)]"
-                    }`}
-                  >
-                    <div className="relative min-w-0 w-full flex-1">
-                      <SearchTypewriter
-                        active={!mobileSearchOpen && searchQuery.length === 0}
-                        className="navbar-search-typewriter pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center overflow-hidden text-[12px] tracking-normal text-neutral-400 whitespace-nowrap lg:text-[13px]"
-                      />
-                      <input
-                        ref={desktopSearchInputRef}
-                        type="text"
-                        inputMode="search"
-                        enterKeyHint="search"
-                        autoComplete="off"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={openDesktopSearch}
-                        onClick={openDesktopSearch}
-                        placeholder=""
-                        tabIndex={hideChrome ? -1 : 0}
-                        className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-[12px] tracking-normal text-neutral-900 outline-none lg:text-[13px]"
-                        aria-label="Buscar productos"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (searchQuery.length > 0) {
-                          setSearchQuery("")
-                          desktopSearchInputRef.current?.focus()
-                        } else if (mobileSearchOpen) {
-                          setMobileSearchOpen(false)
-                          desktopSearchInputRef.current?.blur()
-                        }
-                      }}
-                      tabIndex={mobileSearchOpen || searchQuery.length > 0 ? 0 : -1}
-                      className={`inline-flex shrink-0 items-center justify-center text-neutral-900 transition-opacity duration-150 ease-out hover:text-[#c6a75e] ${
-                        mobileSearchOpen || searchQuery.length > 0
-                          ? "opacity-100 pointer-events-auto"
-                          : "opacity-0 pointer-events-none"
-                      }`}
-                      aria-label={searchQuery.length > 0 ? "Limpiar búsqueda" : "Cerrar búsqueda"}
-                      aria-hidden={!(mobileSearchOpen || searchQuery.length > 0)}
-                    >
-                      <X className="h-4 w-4" strokeWidth={1.5} />
-                    </button>
-                  </form>
-                </div>
-
-                <Link
-                  href="/"
-                  className="navbar-brand-link relative z-[2] shrink-0 justify-self-center no-underline transition-opacity hover:opacity-90"
-                  tabIndex={hideChrome ? -1 : 0}
-                  aria-label="Ir al inicio"
-                  onMouseEnter={() => activeMenu && scheduleMenuClose()}
-                >
-                  <span className="inline-flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10">
-                    <Image
-                      src="/images/logo.png"
-                      alt="Liz Cabriales"
-                      width={48}
-                      height={48}
-                      className="navbar-brand-logo h-full w-full object-contain"
-                      priority
-                    />
-                  </span>
-                </Link>
-
-                <div
-                  className="relative z-20 flex min-w-0 w-full items-center justify-end justify-self-stretch gap-0.5 pr-1 pl-2"
-                  onMouseEnter={() => activeMenu && scheduleMenuClose()}
-                >
-                  <Link
-                    href="/wishlist"
-                    onClick={() => setActiveMenu(null)}
-                    className={`relative ${iconBtnBase} h-9 w-9 justify-center`}
-                    tabIndex={hideChrome ? -1 : 0}
-                    aria-label="Favoritos"
-                  >
-                    <span className="relative shrink-0">
-                      <Heart className="h-5 w-5" strokeWidth={1.75} />
-                      <WishlistCountBadge count={wishlistBadgeCount} />
-                    </span>
-                  </Link>
-
-                  <Link
-                    href={isLoggedIn ? "/perfil" : "/login"}
-                    onClick={() => setActiveMenu(null)}
-                    className={`${iconBtnBase} h-9 w-9 justify-center`}
-                    tabIndex={hideChrome ? -1 : 0}
-                    aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
-                  >
-                    <User className="h-5 w-5" strokeWidth={1.75} />
-                  </Link>
-
-                  <button
-                    type="button"
-                    className={`relative ${iconBtnBase} h-9 w-9 justify-center`}
-                    tabIndex={hideChrome ? -1 : 0}
-                    onClick={() => {
-                      setActiveMenu(null)
-                      if (isCartOpen) {
-                        closeCart()
-                      } else {
-                        setMobileSearchOpen(false)
-                        setDrawerOpen(false)
-                        openCart()
-                      }
-                    }}
-                    aria-label="Bolsa"
-                  >
-                    <span className="relative shrink-0">
-                      <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
-                      {cartBadgeCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c6a75e] px-1 text-[10px] text-white">
-                          <SlidingNumber value={cartBadgeCount} />
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                </div>
-            </div>
-          </div>
-
-          {/* Fila inferior: nav centrado al ancho completo (equilibra con el
-              logo de arriba). Logo compacto absolute a la izq. (legado; con
-              auto-hide total ya no queda visible al scrollear). */}
-          <div className="relative flex h-12 w-full items-center justify-center px-1">
-            <Link
-              href="/"
-              className={`navbar-brand-link absolute left-1 z-[2] shrink-0 no-underline transition-opacity duration-300 ease-out ${
-                hideChrome
-                  ? "pointer-events-auto opacity-100"
-                  : "pointer-events-none opacity-0"
-              }`}
-              tabIndex={hideChrome ? 0 : -1}
-              aria-hidden={!hideChrome}
-              aria-label="Ir al inicio"
-              onMouseEnter={() => activeMenu && scheduleMenuClose()}
-            >
-              <span className="inline-flex h-7 w-7 items-center justify-center">
-                <Image
-                  src="/images/logo.png"
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="navbar-brand-logo h-full w-full object-contain"
-                />
-              </span>
-            </Link>
-            <nav ref={navRef} className="relative flex items-center justify-center gap-0">
-              <span
-                aria-hidden
-                className={`pointer-events-none absolute -bottom-1 h-[1.5px] bg-[#c6a75e] duration-150 ease-out ${
-                  navBarAnimate === "grow"
-                    ? "transition-[width]"
-                    : "transition-[left,width]"
-                }`}
-                style={{
-                  left: navBarStyle.left,
-                  width: navBarStyle.visible ? navBarStyle.width : 0,
-                }}
+            <span className="inline-flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10">
+              <Image
+                src="/images/logo.png"
+                alt="Liz Cabriales"
+                width={48}
+                height={48}
+                className="navbar-brand-logo h-full w-full object-contain"
+                priority
               />
-              {DESKTOP_NAV_ITEMS.map(({ label, href, menu }) => (
-                <Link
-                  key={label}
-                  ref={(el) => {
-                    if (el) navLinkRefs.current.set(label, el)
-                    else navLinkRefs.current.delete(label)
-                  }}
-                  href={href}
-                  onMouseEnter={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
-                  onFocus={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
-                  className={`relative inline-flex items-center justify-center px-2 whitespace-nowrap text-center text-[13px] font-medium uppercase tracking-[0.14em] transition-colors lg:px-3 lg:text-[14px] lg:tracking-[0.16em] ${
-                    activeMenu === label ? "text-[#c6a75e]" : "text-[#1a1a1a] hover:text-[#c6a75e]"
-                  }`}
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
+            </span>
+          </Link>
+
+          <nav ref={navRef} className="relative flex min-w-0 items-center gap-0">
+            <span
+              aria-hidden
+              className={`pointer-events-none absolute -bottom-1.5 h-[1.5px] bg-[#c6a75e] duration-150 ease-out ${
+                navBarAnimate === "grow"
+                  ? "transition-[width]"
+                  : "transition-[left,width]"
+              }`}
+              style={{
+                left: navBarStyle.left,
+                width: navBarStyle.visible ? navBarStyle.width : 0,
+              }}
+            />
+            {DESKTOP_NAV_ITEMS.map(({ label, href, menu }) => (
+              <Link
+                key={label}
+                ref={(el) => {
+                  if (el) navLinkRefs.current.set(label, el)
+                  else navLinkRefs.current.delete(label)
+                }}
+                href={href}
+                onMouseEnter={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
+                onFocus={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
+                className={`relative inline-flex items-center justify-center px-2 whitespace-nowrap text-center text-[15px] font-normal tracking-[-0.01em] transition-colors lg:px-3 lg:text-[16px] ${
+                  activeMenu === label ? "text-[#c6a75e]" : "text-[#1a1a1a] hover:text-[#c6a75e]"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Orden pedido: lupa → favoritos → cuenta → bolsa. En reposo la fila
+              queda limpia (solo iconos, como OPI): el campo vive plegado a
+              ancho 0 y se despliega hacia la izquierda al pulsar la lupa,
+              empujando los iconos. Sigue siendo el MISMO input de siempre, así
+              que el overlay de búsqueda desktop (hideForm) no cambia de
+              plumbing y el autofocus existente lo enfoca al abrirse. */}
+          <div
+            className="relative z-20 ml-auto flex min-w-0 items-center justify-end gap-0.5"
+            onMouseEnter={() => activeMenu && scheduleMenuClose()}
+          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                submitSearch()
+              }}
+            className={`relative flex min-w-0 items-center gap-2 overflow-hidden border-b pb-1 transition-[width,opacity,margin] duration-300 ease-out ${
+              mobileSearchOpen
+                ? "mr-2 w-[min(38vw,320px)] border-neutral-900 opacity-100"
+                : "mr-0 w-0 border-transparent opacity-0"
+            }`}
+          >
+            <div className="relative min-w-0 w-full flex-1">
+              <SearchTypewriter
+                active={mobileSearchOpen && searchQuery.length === 0}
+                className="navbar-search-typewriter pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center overflow-hidden text-[12px] tracking-normal text-neutral-400 whitespace-nowrap lg:text-[13px]"
+              />
+              <input
+                ref={desktopSearchInputRef}
+                type="text"
+                inputMode="search"
+                enterKeyHint="search"
+                autoComplete="off"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={openDesktopSearch}
+                onClick={openDesktopSearch}
+                onKeyDown={handleSearchKeyDown}
+                placeholder=""
+                // Plegado no debe recibir tabulación: el punto de entrada
+                // por teclado es la lupa, que lo despliega y lo enfoca.
+                tabIndex={mobileSearchOpen ? 0 : -1}
+                className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-[12px] tracking-normal text-neutral-900 outline-none lg:text-[13px]"
+                aria-label="Buscar productos, cursos y servicios"
+                role="combobox"
+                aria-expanded={mobileSearchOpen}
+                aria-controls="search-suggestions-panel"
+                aria-autocomplete="list"
+                aria-activedescendant={
+                  activeSuggestionItem
+                    ? searchOptionDomId(activeSuggestionItem.id)
+                    : undefined
+                }
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (searchQuery.length > 0) {
+                  setSearchQuery("")
+                  desktopSearchInputRef.current?.focus()
+                } else if (mobileSearchOpen) {
+                  setMobileSearchOpen(false)
+                  desktopSearchInputRef.current?.blur()
+                }
+              }}
+              tabIndex={mobileSearchOpen || searchQuery.length > 0 ? 0 : -1}
+              className={`inline-flex shrink-0 items-center justify-center text-neutral-900 transition-opacity duration-150 ease-out hover:text-[#c6a75e] ${
+                mobileSearchOpen || searchQuery.length > 0
+                  ? "opacity-100 pointer-events-auto"
+                  : "opacity-0 pointer-events-none"
+              }`}
+              aria-label={searchQuery.length > 0 ? "Limpiar búsqueda" : "Cerrar búsqueda"}
+              aria-hidden={!(mobileSearchOpen || searchQuery.length > 0)}
+            >
+              <X className="h-4 w-4" strokeWidth={1.5} />
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={() => { setActiveMenu(null); toggleMobileSearch() }}
+            className={`${iconBtnBase} h-9 w-9 shrink-0 justify-center`}
+            aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Buscar"}
+          >
+            <Search className="h-5 w-5" strokeWidth={1.75} />
+          </button>
+
+          <Link
+            href="/wishlist"
+            onClick={() => setActiveMenu(null)}
+            className={`relative ${iconBtnBase} h-9 w-9 justify-center`}
+            aria-label="Favoritos"
+          >
+            <span className="relative shrink-0">
+              <Heart className="h-5 w-5" strokeWidth={1.75} />
+              <WishlistCountBadge count={wishlistBadgeCount} />
+            </span>
+          </Link>
+
+          <Link
+            href={isLoggedIn ? "/perfil" : "/login"}
+            onClick={() => setActiveMenu(null)}
+            className={`${iconBtnBase} h-9 w-9 justify-center`}
+            aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
+          >
+            <User className="h-5 w-5" strokeWidth={1.75} />
+          </Link>
+
+          <button
+            type="button"
+            className={`relative ${iconBtnBase} h-9 w-9 justify-center`}
+            onClick={() => {
+              setActiveMenu(null)
+              if (isCartOpen) {
+                closeCart()
+              } else {
+                setMobileSearchOpen(false)
+                setDrawerOpen(false)
+                openCart()
+              }
+            }}
+            aria-label="Bolsa"
+          >
+            <span className="relative shrink-0">
+              <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
+              {cartBadgeCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c6a75e] px-1 text-[10px] text-white">
+                  <SlidingNumber value={cartBadgeCount} />
+                </span>
+              )}
+            </span>
+          </button>
           </div>
         </div>
 
@@ -950,13 +985,18 @@ export default function Navbar({ isLoggedIn = false }: NavbarProps) {
 
       <MobileSearchOverlay
         open={mobileSearchOpen}
-        onClose={() => setMobileSearchOpen(false)}
+        onClose={closeSearch}
         query={searchQuery}
         onQueryChange={setSearchQuery}
-        products={suggestionProducts}
-        brands={suggestionBrands}
-        categories={suggestionCategories}
+        payload={searchPayload}
         suggestionsLoading={suggestionsLoading}
+        activeId={activeSuggestionItem?.id ?? null}
+        onSelectSuggestion={handleSuggestionSelect}
+        onSubmit={submitSearch}
+        onSearchKeyDown={handleSearchKeyDown}
+        recentSearches={recentSearches}
+        onPickRecent={handleRecentPick}
+        onClearRecent={() => setRecentSearches(clearRecentSearches())}
         topSearches={topSearches}
         bestSellers={bestSellers}
         emptyLoading={emptyStateLoading}
