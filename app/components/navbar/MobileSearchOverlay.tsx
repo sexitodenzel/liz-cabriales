@@ -19,6 +19,7 @@ import {
 import type { SearchItem, SearchPayload } from "@/lib/search/types"
 import { SITE_CONTAINER_CLASS } from "@/lib/site-shell"
 import { MOBILE_CHROME_PANEL_CLASS } from "@/lib/site-chrome"
+import { SearchTypewriter } from "./SearchTypewriter"
 
 type Props = {
   open: boolean
@@ -37,7 +38,12 @@ type Props = {
   topSearches: TopSearchChip[]
   bestSellers: SearchSuggestionProduct[]
   emptyLoading: boolean
-  hideForm?: boolean
+  /**
+   * true en desktop ancho: la búsqueda baja como panel pegado al navbar en vez
+   * de la cortina a pantalla completa. En ambos casos el campo vive AQUÍ — el
+   * navbar solo tiene la lupa que abre/cierra.
+   */
+  dropdown?: boolean
 }
 
 export default function MobileSearchOverlay({
@@ -57,7 +63,7 @@ export default function MobileSearchOverlay({
   topSearches,
   bestSellers,
   emptyLoading,
-  hideForm = false,
+  dropdown = false,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isWideViewport, setIsWideViewport] = useState(false)
@@ -69,7 +75,7 @@ export default function MobileSearchOverlay({
     return () => window.removeEventListener("resize", update)
   }, [])
 
-  const useDesktopBranch = hideForm && isWideViewport
+  const useDesktopBranch = dropdown && isWideViewport
 
   useEffect(() => {
     if (!open) return
@@ -89,13 +95,12 @@ export default function MobileSearchOverlay({
     return () => document.removeEventListener("keydown", handleKey)
   }, [open, onClose])
 
-  // Al abrir la cortina móvil el foco va al campo (en desktop lo hace el
-  // navbar, que es dueño de su propio input).
+  // El campo vive aquí en las dos variantes, así que el foco al abrir también.
   useEffect(() => {
-    if (!open || useDesktopBranch) return
+    if (!open) return
     const timer = window.setTimeout(() => inputRef.current?.focus(), 220)
     return () => window.clearTimeout(timer)
-  }, [open, useDesktopBranch])
+  }, [open])
 
   // La selección con teclado puede caer fuera de la vista en listas largas.
   useEffect(() => {
@@ -119,7 +124,11 @@ export default function MobileSearchOverlay({
       topSearches={topSearches}
       bestSellers={bestSellers}
       loading={emptyLoading}
-      onPickRecent={onPickRecent}
+      // Tras elegir una reciente el foco vuelve al campo, que ahora vive aquí.
+      onPickRecent={(value) => {
+        onPickRecent(value)
+        inputRef.current?.focus()
+      }}
       onClearRecent={onClearRecent}
       onClose={onClose}
     />
@@ -137,14 +146,45 @@ export default function MobileSearchOverlay({
 
   const overlayContent = (
     <>
-      {!useDesktopBranch && (
-        <div className="shrink-0 pt-8 pb-2 md:pt-10 md:pb-4">
-          <form
-            onSubmit={handleSubmit}
-            className="flex items-center gap-4 border-b border-neutral-900 pb-3 md:pb-4"
+      {/* En desktop la X se separa del campo y se va al extremo derecho (como
+          la referencia de OPI); en móvil sigue pegada al final del renglón. */}
+      <div
+        className={
+          useDesktopBranch
+            ? "shrink-0 pt-10 pb-2"
+            : "shrink-0 pt-8 pb-2 md:pt-10 md:pb-4"
+        }
+      >
+        {/* Desktop: se centra el CAMPO (márgenes idénticos a izquierda y
+            derecha, tope de 900px como en la referencia) y la X se saca del
+            flujo pegada al borde derecho. Si la X fuera parte del grupo
+            centrado, empujaría el campo media X hacia la izquierda y dejaría de
+            estar centrado. Móvil sigue a ancho completo dentro de la cortina. */}
+        <form
+          onSubmit={handleSubmit}
+          className={
+            useDesktopBranch
+              ? "relative flex items-center justify-center"
+              : "flex items-center gap-4 border-b border-neutral-900 pb-3 md:pb-4"
+          }
+        >
+          <div
+            className={
+              useDesktopBranch
+                ? "flex w-full min-w-0 max-w-[900px] items-center gap-4 border-b border-neutral-900 pb-3"
+                : "flex min-w-0 flex-1 items-center gap-4"
+            }
           >
             <Search className="h-6 w-6 shrink-0 text-neutral-900" strokeWidth={1.5} />
             <div className="relative min-w-0 flex-1">
+              {/* El typewriter era el placeholder animado del navbar; se muda
+                  con el campo para no perderlo al sacarlo de la barra. */}
+              {useDesktopBranch && (
+                <SearchTypewriter
+                  active={query.length === 0}
+                  className="navbar-search-typewriter pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center overflow-hidden whitespace-nowrap text-base tracking-wide text-neutral-400 md:text-[17px]"
+                />
+              )}
               <input
                 ref={inputRef}
                 type="text"
@@ -154,7 +194,7 @@ export default function MobileSearchOverlay({
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
                 onKeyDown={onSearchKeyDown}
-                placeholder="Productos, cursos, servicios…"
+                placeholder={useDesktopBranch ? "" : "Productos, cursos, servicios…"}
                 className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-base tracking-wide text-neutral-900 outline-none placeholder:text-neutral-400 md:text-[17px]"
                 aria-label="Buscar productos, cursos y servicios"
                 role="combobox"
@@ -166,23 +206,25 @@ export default function MobileSearchOverlay({
                 }
               />
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (query.length > 0) {
-                  onQueryChange("")
-                } else {
-                  onClose()
-                }
-              }}
-              className="inline-flex shrink-0 items-center justify-center p-1 text-neutral-900 transition-colors hover:text-[#c6a75e]"
-              aria-label={query.length > 0 ? "Limpiar búsqueda" : "Cerrar búsqueda"}
-            >
-              <X className="h-6 w-6" strokeWidth={1.5} />
-            </button>
-          </form>
-        </div>
-      )}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (query.length > 0) {
+                onQueryChange("")
+              } else {
+                onClose()
+              }
+            }}
+            className={`inline-flex shrink-0 items-center justify-center p-1 text-neutral-900 transition-colors hover:text-[#c6a75e] ${
+              useDesktopBranch ? "absolute right-0 top-1/2 -translate-y-1/2" : ""
+            }`}
+            aria-label={query.length > 0 ? "Limpiar búsqueda" : "Cerrar búsqueda"}
+          >
+            <X className="h-6 w-6" strokeWidth={1.5} />
+          </button>
+        </form>
+      </div>
 
       <div
         id="search-suggestions-panel"
@@ -205,15 +247,24 @@ export default function MobileSearchOverlay({
             ? "opacity-100 pointer-events-auto duration-200 ease-out"
             : "opacity-0 pointer-events-none duration-150 ease-in"
         }`}
+        // Se ancla al borde inferior REAL del chrome (--site-chrome-bottom
+        // sigue la compresión de la barra de anuncios). Antes iba clavado a
+        // 56px, heredado del navbar de dos filas: con el chrome actual dejaba
+        // el panel metido bajo la barra.
         style={{
           position: "fixed",
           left: 0,
           right: 0,
-          top: 56,
+          top: "var(--site-chrome-bottom, var(--navbar-actual-h))",
           zIndex: 51,
-          maxHeight: "calc(100vh - 56px - 40px)",
+          maxHeight:
+            "calc(100vh - var(--site-chrome-bottom, var(--navbar-actual-h)) - 40px)",
           overflowY: "auto",
           overflowX: "hidden",
+          // Si el panel desborda, su scrollbar se come el ancho por un lado y
+          // descentra el campo ~7px. Reservando el carril en AMBOS bordes el
+          // centro no se mueve haya scroll o no.
+          scrollbarGutter: "stable both-edges",
         }}
         aria-hidden={!open}
         // Sigue montada al cerrarse (para la transición): sin inert, sus

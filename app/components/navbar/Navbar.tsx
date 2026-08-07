@@ -26,7 +26,6 @@ import MobileDrawer from "./MobileDrawer"
 import MobileSearchOverlay from "./MobileSearchOverlay"
 import { type BrandMenuItem } from "@/lib/navbar/brands-category"
 import {
-  searchOptionDomId,
   type SearchSuggestionProduct,
   type TopSearchChip,
 } from "./SearchBarPanels"
@@ -41,7 +40,6 @@ import { useCart } from "../cart/CartContext"
 import { useWishlist } from "../wishlist/WishlistContext"
 import WishlistCountBadge from "../wishlist/WishlistCountBadgeClient"
 import SlidingNumber from "../ui/motion/sliding-number"
-import { SearchTypewriter } from "./SearchTypewriter"
 
 type DesktopMenu = "Tienda" | "Academia" | "Servicios" | "Marcas" | "Nail Art" | "Conócenos" | null
 
@@ -104,7 +102,6 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
   const navRef = useRef<HTMLElement>(null)
   const navLinkRefs = useRef<Map<string, HTMLAnchorElement>>(new Map())
   const headerRef = useRef<HTMLElement>(null)
-  const desktopSearchInputRef = useRef<HTMLInputElement>(null)
   const overlayGuardRef = useRef(false)
   const {
     itemCount,
@@ -441,23 +438,8 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
     }
   }, [isCompactDesktop])
 
-  // Autofocus del input integrado en desktop cuando se abre la búsqueda.
-  useEffect(() => {
-    if (!mobileSearchOpen) return
-    if (isCompactDesktop) return
-    const timer = window.setTimeout(() => {
-      desktopSearchInputRef.current?.focus()
-    }, 320)
-    return () => window.clearTimeout(timer)
-  }, [mobileSearchOpen, isCompactDesktop])
-
-  // Al cerrar (X, overlay, Escape), el foco a veces vuelve al input porque el
-  // botón X deja de ser focusable. Si el input queda focused, el siguiente
-  // click no dispara onFocus y el menú no se reabre.
-  useEffect(() => {
-    if (mobileSearchOpen) return
-    desktopSearchInputRef.current?.blur()
-  }, [mobileSearchOpen])
+  // El foco del campo ya no se maneja aquí: el input vive en
+  // MobileSearchOverlay en las dos variantes y él mismo lo enfoca al abrir.
 
   // Tienda no incluye marcas ni en desktop ni en el drawer móvil: Marcas es su
   // propia entrada de primer nivel (con su megamenú en desktop y su panel con
@@ -586,9 +568,10 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
     closeSearch()
   }
 
+  // El re-foco tras elegir una búsqueda reciente lo hace el overlay, que es
+  // quien tiene el ref del input.
   const handleRecentPick = (value: string) => {
     setSearchQuery(value)
-    desktopSearchInputRef.current?.focus()
   }
 
   const handleSearchKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
@@ -628,14 +611,6 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
       setMobileSearchOpen(false)
       return
     }
-    closeCart()
-    setDrawerOpen(false)
-    setMobileSearchOpen(true)
-  }
-
-  const openDesktopSearch = () => {
-    if (mobileSearchOpen) return
-    setActiveMenu(null)
     closeCart()
     setDrawerOpen(false)
     setMobileSearchOpen(true)
@@ -747,31 +722,54 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
             barra de anuncios + esta fila, así el chrome mide lo justo cuando la
             barra no está. La fila es PERMANENTE; lo único que se comprime al
             scrollear es el anuncio. */}
+        {/* Rejilla 1fr·auto·1fr en vez de flex: las columnas laterales miden
+            igual, así los módulos quedan CENTRADOS en la barra aunque la marca
+            y el grupo de iconos tengan anchos distintos (con flex iban pegados
+            al logo). */}
         <div
-          className={`navbar-toolbar relative z-10 h-[var(--navbar-h)] w-full items-center gap-6 lg:gap-8 ${showCompactToolbar ? "hidden" : "hidden md:flex"}`}
+          className={`navbar-toolbar relative z-10 grid h-[var(--navbar-h)] w-full grid-cols-[1fr_auto_1fr] items-center gap-6 lg:gap-8 ${showCompactToolbar ? "hidden" : "hidden md:grid"}`}
         >
+          {/* Lockup de marca: logo + wordmark, mismo par que el footer
+              ("Liz Cabriales" en display + "Studio" en versalitas espaciadas).
+              Sin color propio: hereda el del header, así el overlay del home
+              lo pasa a blanco solo. */}
           <Link
             href="/"
-            className="navbar-brand-link relative z-[2] shrink-0 no-underline transition-opacity hover:opacity-90"
+            className="navbar-brand-link relative z-[2] flex w-fit shrink-0 items-center gap-2.5 justify-self-start no-underline transition-opacity hover:opacity-90"
             aria-label="Ir al inicio"
             onMouseEnter={() => activeMenu && scheduleMenuClose()}
           >
-            <span className="inline-flex h-9 w-9 items-center justify-center lg:h-10 lg:w-10">
+            <span className="inline-flex h-11 w-11 items-center justify-center lg:h-[52px] lg:w-[52px]">
               <Image
                 src="/images/logo.png"
                 alt="Liz Cabriales"
-                width={48}
-                height={48}
+                width={64}
+                height={64}
                 className="navbar-brand-logo h-full w-full object-contain"
                 priority
               />
             </span>
-          </Link>
-
-          <nav ref={navRef} className="relative flex min-w-0 items-center gap-0">
             <span
               aria-hidden
-              className={`pointer-events-none absolute -bottom-1.5 h-[1.5px] bg-[#c6a75e] duration-150 ease-out ${
+              className="navbar-brand-wordmark flex flex-col justify-center leading-none"
+            >
+              <span className="font-display text-[15px] font-medium tracking-[-0.02em] whitespace-nowrap">
+                Liz Cabriales
+              </span>
+              <span className="mt-[3px] text-[8px] uppercase tracking-[0.44em] opacity-70">
+                Studio
+              </span>
+            </span>
+          </Link>
+
+          {/* self-stretch: el nav ocupa el alto completo de la fila para que el
+              indicador pueda anclarse a bottom-0 = borde inferior del navbar
+              (como OPI), no pegado al texto. Sigue siendo el offsetParent de los
+              enlaces, así que offsetLeft/offsetWidth no cambian. */}
+          <nav ref={navRef} className="relative flex shrink-0 items-center gap-0 self-stretch justify-self-center">
+            <span
+              aria-hidden
+              className={`navbar-nav-indicator pointer-events-none absolute bottom-0 h-[2px] bg-[#1a1a1a] duration-150 ease-out ${
                 navBarAnimate === "grow"
                   ? "transition-[width]"
                   : "transition-[left,width]"
@@ -791,7 +789,7 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
                 href={href}
                 onMouseEnter={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
                 onFocus={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
-                className={`relative inline-flex items-center justify-center px-2 whitespace-nowrap text-center text-[15px] font-normal tracking-[-0.01em] transition-colors lg:px-3 lg:text-[16px] ${
+                className={`relative inline-flex items-center justify-center whitespace-nowrap px-2.5 text-center text-[12.5px] font-normal uppercase tracking-[0.13em] transition-colors lg:px-3.5 lg:text-[13.5px] ${
                   activeMenu === label ? "text-[#c6a75e]" : "text-[#1a1a1a] hover:text-[#c6a75e]"
                 }`}
               >
@@ -800,84 +798,15 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
             ))}
           </nav>
 
-          {/* Orden pedido: lupa → favoritos → cuenta → bolsa. En reposo la fila
-              queda limpia (solo iconos, como OPI): el campo vive plegado a
-              ancho 0 y se despliega hacia la izquierda al pulsar la lupa,
-              empujando los iconos. Sigue siendo el MISMO input de siempre, así
-              que el overlay de búsqueda desktop (hideForm) no cambia de
-              plumbing y el autofocus existente lo enfoca al abrirse. */}
+          {/* Orden pedido: lupa → favoritos → cuenta → bolsa. La barra queda
+              siempre limpia (solo iconos): el campo ya NO vive aquí, baja como
+              panel pegado al navbar desde MobileSearchOverlay, que es dueño del
+              input en las dos variantes. La lupa solo abre/cierra.
+              `ml-auto` mantiene el grupo pegado a la derecha. */}
           <div
-            className="relative z-20 ml-auto flex min-w-0 items-center justify-end gap-0.5"
+            className="relative z-20 flex shrink-0 items-center justify-end gap-0.5 justify-self-end"
             onMouseEnter={() => activeMenu && scheduleMenuClose()}
           >
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                submitSearch()
-              }}
-            className={`relative flex min-w-0 items-center gap-2 overflow-hidden border-b pb-1 transition-[width,opacity,margin] duration-300 ease-out ${
-              mobileSearchOpen
-                ? "mr-2 w-[min(38vw,320px)] border-neutral-900 opacity-100"
-                : "mr-0 w-0 border-transparent opacity-0"
-            }`}
-          >
-            <div className="relative min-w-0 w-full flex-1">
-              <SearchTypewriter
-                active={mobileSearchOpen && searchQuery.length === 0}
-                className="navbar-search-typewriter pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center overflow-hidden text-[12px] tracking-normal text-neutral-400 whitespace-nowrap lg:text-[13px]"
-              />
-              <input
-                ref={desktopSearchInputRef}
-                type="text"
-                inputMode="search"
-                enterKeyHint="search"
-                autoComplete="off"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={openDesktopSearch}
-                onClick={openDesktopSearch}
-                onKeyDown={handleSearchKeyDown}
-                placeholder=""
-                // Plegado no debe recibir tabulación: el punto de entrada
-                // por teclado es la lupa, que lo despliega y lo enfoca.
-                tabIndex={mobileSearchOpen ? 0 : -1}
-                className="navbar-search-input relative z-[1] w-full min-w-0 bg-transparent text-[12px] tracking-normal text-neutral-900 outline-none lg:text-[13px]"
-                aria-label="Buscar productos, cursos y servicios"
-                role="combobox"
-                aria-expanded={mobileSearchOpen}
-                aria-controls="search-suggestions-panel"
-                aria-autocomplete="list"
-                aria-activedescendant={
-                  activeSuggestionItem
-                    ? searchOptionDomId(activeSuggestionItem.id)
-                    : undefined
-                }
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (searchQuery.length > 0) {
-                  setSearchQuery("")
-                  desktopSearchInputRef.current?.focus()
-                } else if (mobileSearchOpen) {
-                  setMobileSearchOpen(false)
-                  desktopSearchInputRef.current?.blur()
-                }
-              }}
-              tabIndex={mobileSearchOpen || searchQuery.length > 0 ? 0 : -1}
-              className={`inline-flex shrink-0 items-center justify-center text-neutral-900 transition-opacity duration-150 ease-out hover:text-[#c6a75e] ${
-                mobileSearchOpen || searchQuery.length > 0
-                  ? "opacity-100 pointer-events-auto"
-                  : "opacity-0 pointer-events-none"
-              }`}
-              aria-label={searchQuery.length > 0 ? "Limpiar búsqueda" : "Cerrar búsqueda"}
-              aria-hidden={!(mobileSearchOpen || searchQuery.length > 0)}
-            >
-              <X className="h-4 w-4" strokeWidth={1.5} />
-            </button>
-          </form>
-
           <button
             type="button"
             onClick={() => { setActiveMenu(null); toggleMobileSearch() }}
@@ -1000,7 +929,7 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
         topSearches={topSearches}
         bestSellers={bestSellers}
         emptyLoading={emptyStateLoading}
-        hideForm={!showCompactToolbar}
+        dropdown={!showCompactToolbar}
       />
 
       {/* Overlay de blur global (carrito + megamenu desktop + búsqueda).

@@ -30,24 +30,6 @@ function cardEyebrow(course: CourseWithStats): string {
   return dateLabel(course.start_date)
 }
 
-function ChevLeft() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  )
-}
-
-function ChevRight() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  )
-}
-
 // ── Card ────────────────────────────────────────────────────────────────────
 
 function CourseCard({
@@ -107,26 +89,37 @@ function CourseCard({
 
 export default function AcademiaShowcaseScroll({
   courses,
+  galleryImages = [],
 }: {
   courses: CourseWithStats[]
+  galleryImages?: string[]
 }) {
   const reducedMotion = useReducedMotion()
   const scrollerRef = useRef<HTMLDivElement>(null)
-  const [page, setPage] = useState(1)
-  const [pages, setPages] = useState(1)
-  const [atStart, setAtStart] = useState(true)
+  const introRef = useRef<HTMLDivElement>(null)
   const [atEnd, setAtEnd] = useState(false)
 
   const measure = useCallback(() => {
     const el = scrollerRef.current
     if (!el) return
     const { scrollLeft, clientWidth, scrollWidth } = el
-    const total = Math.max(1, Math.ceil(scrollWidth / clientWidth))
-    setPages(total)
-    setPage(Math.min(total, Math.round(scrollLeft / clientWidth) + 1))
-    setAtStart(scrollLeft <= 2)
     setAtEnd(scrollLeft + clientWidth >= scrollWidth - 2)
-  }, [])
+
+    // Animación de "ocultar a la izquierda": la card de portada se despide con
+    // parallax (sale un poco más rápido) + fade + leve encogido conforme el riel
+    // scrollea sobre su propio ancho. Con reduced-motion sale con el scroll normal.
+    const intro = introRef.current
+    if (intro) {
+      if (reducedMotion) {
+        intro.style.transform = ""
+        intro.style.opacity = ""
+      } else {
+        const p = Math.min(1, Math.max(0, scrollLeft / (intro.offsetWidth || 1)))
+        intro.style.transform = `translate3d(${(-p * 64).toFixed(1)}px,0,0) scale(${(1 - p * 0.06).toFixed(3)})`
+        intro.style.opacity = (1 - p * 0.85).toFixed(3)
+      }
+    }
+  }, [reducedMotion])
 
   useEffect(() => {
     measure()
@@ -146,78 +139,34 @@ export default function AcademiaShowcaseScroll({
     }
   }, [measure])
 
-  function scrollByPage(dir: -1 | 1) {
-    const el = scrollerRef.current
-    if (!el) return
-    // Avanza por un número entero de cards que quepan en el viewport, para que
-    // cada paso caiga limpio en el borde de una card (sin cortes a media card).
-    const first = el.firstElementChild as HTMLElement | null
-    const gap = parseFloat(getComputedStyle(el).columnGap) || 24
-    const cardW = first ? first.offsetWidth + gap : el.clientWidth * 0.9
-    const step = Math.max(1, Math.floor(el.clientWidth / cardW)) * cardW
-    el.scrollBy({
-      left: dir * step,
-      behavior: reducedMotion ? "auto" : "smooth",
-    })
-  }
-
-  // La intro queda FIJA a la izquierda; solo el riel de cursos scrollea.
+  // La intro ahora scrollea CON el riel, pero se despide con una animación de
+  // "ocultar a la izquierda" (parallax + fade, ver measure()).
   // Borde derecho: fade cuando hay más (bleed Dior); desaparece al llegar al final.
   const fadeRight = atEnd ? "0px" : "clamp(48px, 6vw, 96px)"
   const maskImage = `linear-gradient(to right, #000 0px, #000 calc(100% - ${fadeRight}), transparent 100%)`
-  const showControls = pages > 1
 
   return (
     <div className="mx-auto max-w-[var(--site-max-w)] py-16 md:py-24">
-      <div className="flex items-stretch gap-4 pl-[var(--site-px)] sm:gap-6">
-        {/* Card fija: no scrollea con el riel. */}
-        <div className="shrink-0">
-          <AcademiaShowcaseIntro />
+      {/* Riel horizontal: la intro es el primer ítem y scrollea con las cards. */}
+      <div
+        ref={scrollerRef}
+        className="scrollbar-hide flex snap-x snap-proximity items-start gap-4 overflow-x-auto overscroll-x-contain pb-1 pl-[var(--site-px)] pr-[var(--site-px)] [scroll-padding-inline-end:var(--site-px)] sm:gap-6"
+        style={{
+          maskImage,
+          WebkitMaskImage: maskImage,
+          transition: "mask-image 450ms ease, -webkit-mask-image 450ms ease",
+        }}
+      >
+        {/* Card de portada: se oculta a la izquierda con parallax al scrollear. */}
+        <div ref={introRef} className="shrink-0 snap-start will-change-transform">
+          <AcademiaShowcaseIntro count={courses.length} images={galleryImages} />
         </div>
 
-        {/* Riel horizontal: solo las cards de cursos se mueven. */}
-        <div
-          ref={scrollerRef}
-          className="scrollbar-hide flex snap-x snap-proximity items-start gap-4 overflow-x-auto overscroll-x-contain pb-1 pr-[var(--site-px)] [scroll-padding-inline-end:var(--site-px)] sm:gap-6"
-          style={{
-            maskImage,
-            WebkitMaskImage: maskImage,
-            transition: "mask-image 450ms ease, -webkit-mask-image 450ms ease",
-          }}
-        >
-          {courses.map((course, i) => (
-            <CourseCard key={course.id} course={course} eager={i < 2} />
-          ))}
-        </div>
+        {courses.map((course, i) => (
+          <CourseCard key={course.id} course={course} eager={i < 2} />
+        ))}
       </div>
 
-      {showControls && (
-        <div className="mt-7 flex items-center justify-end gap-4 pl-[var(--site-px)] pr-[var(--site-px)]">
-          <span className="text-[12px] tabular-nums tracking-[0.12em] text-ink-soft">
-            {page}/{pages}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => scrollByPage(-1)}
-              disabled={atStart}
-              aria-label="Anterior"
-              className="grid h-9 w-9 place-items-center rounded-full border border-neutral-300 text-ink transition-colors duration-200 hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-neutral-300 disabled:hover:text-ink"
-            >
-              <ChevLeft />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollByPage(1)}
-              disabled={atEnd}
-              aria-label="Siguiente"
-              className="grid h-9 w-9 place-items-center rounded-full border border-neutral-300 text-ink transition-colors duration-200 hover:border-gold hover:text-gold disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-neutral-300 disabled:hover:text-ink"
-            >
-              <ChevRight />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -19,11 +19,30 @@
   --radius-card: 4px;
 }
 
-/* `inline` es obligatorio aquí: --font-playfair la define next/font en el
+/* `inline` es obligatorio aquí: --font-inter-tight la define next/font en el
    <body>, así que el token debe resolverse en el elemento que lo usa
-   (no en :root, donde la variable no existe). */
+   (no en :root, donde la variable no existe).
+   Estilo OPI: una sola grotesca (Inter Tight) para display Y cuerpo. */
 @theme inline {
-  --font-display: var(--font-playfair), serif;
+  --font-display: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Firma tipográfica OPI: los títulos display van con tracking negativo
+   (~-0.02em, igual que Sharp Grotesk en opi.com). Va en `base` para que
+   las utilities `tracking-*` explícitas sigan pudiendo sobreescribirlo. */
+@layer base {
+  .font-display {
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Alias de compatibilidad: ~40 componentes (blog, servicios, marcas,
+   footer, academia…) llaman `var(--font-playfair)` directamente. Tras
+   migrar a la grotesca única estilo OPI, apuntamos ese nombre a Inter
+   Tight para no tocar cada archivo. `--font-inter-tight` la expone
+   next/font en el className del <body>. */
+body {
+  --font-playfair: var(--font-inter-tight);
 }
 
 /* =====================================
@@ -38,22 +57,26 @@
   --gold: #c6a75e;
   /* Tarjetas / superficies que deben resaltar sobre el fondo */
   --surface: #ffffff;
-  /* Altura fija del navbar: la usan el carrito y el overlay para alinearse */
+  /* Alto de la fila del navbar, SIN la barra de anuncios. Es 64px en TODAS las
+     vistas: hasta 1199px lleva hamburguesa + logo + iconos, y en ≥1200px en esa
+     misma fila caben lockup de marca · módulos · iconos (estilo OPI). Al no
+     cambiar por breakpoint, tampoco hay que duplicar --navbar-actual-h.
+     Es PERMANENTE: nunca se oculta por scroll. */
   --navbar-h: 64px;
-  --navbar-mobile-h: 64px;
-  /* Altura ESTÁTICA del navbar: 64px mobile, 104px en ≥1200px (media query abajo).
-     No se actualiza en runtime; el colapso se hace con transform (ver Hermès collapse). */
-  --navbar-actual-h: var(--navbar-mobile-h);
-  /* Alto que el hero de home le resta a 100vh (navbar visible + respiro de
-     24px abajo). Al ocultar el navbar por scroll queda solo el respiro. */
-  --home-hero-inset: calc(var(--navbar-mobile-h) + 24px);
-  /* Borde inferior del chrome (anuncios + navbar); SiteChromeMetrics.tsx */
+  /* Alto de la barra de anuncios. 0 si no se renderiza (deshabilitada en el
+     panel o sin items) → entonces el chrome no se comprime en absoluto.
+     Debe coincidir con el `h-9` de AnnouncementBarClient. */
+  --announcement-h: 0px;
+  /* Borde inferior del chrome EXPANDIDO (anuncios + navbar). Se declara con
+     LITERALES en px, nunca con calc(): getComputedStyle().getPropertyValue()
+     de una custom property no registrada sustituye var() pero NO evalúa
+     calc(), y Navbar.tsx / ServiciosLanding.tsx la parsean con parseFloat. */
+  --navbar-actual-h: 64px;
+  /* Borde inferior del chrome REAL (sigue el colapso); SiteChromeMetrics.tsx */
   --site-chrome-bottom: var(--navbar-actual-h);
-  /* Cuánto sube el navbar al colapsar. Por defecto (móvil / ≤1199px, una sola
-     fila) se va TODA la barra. En ≥1200px se traslada solo la fila superior
-     (56px) y queda la fila de módulos (Tienda/Servicios/Academia…) pegada
-     arriba como barra delgada. Ver media query abajo. */
-  --navbar-collapse-shift: var(--navbar-actual-h);
+  /* Cuánto sube el chrome al colapsar = exactamente la barra de anuncios.
+     El navbar en sí es permanente, así que nada más se mueve. */
+  --navbar-collapse-shift: var(--announcement-h);
   /* Contenedor horizontal unificado (navbar + páginas públicas en desktop) */
   --site-max-w: 1600px;
   /* Respiro lateral estándar de todo el sitio: escala con el ancho de pantalla.
@@ -66,6 +89,23 @@
   --hero-dot-pl: clamp(2.75rem, 7vw, 4.5rem);
   /* Altura del footer escenario (telón); FooterStage.tsx */
   --footer-stage-h: 0px;
+}
+
+/* Alturas del chrome, todas juntas para poder leerlas de un vistazo.
+   La barra de anuncios vive DENTRO de #site-navbar (Navbar.tsx la recibe como
+   slot desde el layout) y es la única pieza que se comprime al scrollear, así
+   que el alto del chrome depende de si esa barra existe: se declara sobre
+   :root con :has() para que el valor se corrija solo cuando la barra llega por
+   streaming (Suspense) o desaparece al apagarla desde /admin/announcements.
+
+   `:not([hidden] *)` NO es cosmético: mientras el boundary Suspense resuelve,
+   React deja el header ya renderizado dentro de un <div hidden id="S:x"> y lo
+   inserta después. Sin ese filtro, :has() casa con esa copia oculta y el token
+   salta a 100px mientras el chrome VISIBLE (el fallback, sin anuncios) todavía
+   mide 64px → las barras follow dockean 36px más abajo del navbar. */
+:root:has(#site-announcement-bar:not([hidden] *)) {
+  --announcement-h: 36px;
+  --navbar-actual-h: 100px;
 }
 
 /* =====================================
@@ -126,20 +166,20 @@ html {
   overflow-anchor: none;
 }
 
-/* Auto-hide del navbar por dirección de scroll.
-   Bajar colapsa (translate hacia arriba), subir muestra. Cuánto sube lo
-   define --navbar-collapse-shift: en ≥1200px solo la fila superior (56px),
-   dejando la fila de módulos como barra delgada; en vistas de una sola fila
-   se va toda la barra. Navbar.tsx togglea html.lc-nav-collapsed; el
-   movimiento es `transform` (GPU). --navbar-actual-h se mantiene ESTÁTICA
-   para que los stickys no disparen reflow. Barras .navbar-follow-collapse
-   viajan con la misma transition. */
+/* Compresión del chrome por dirección de scroll.
+   Bajar comprime (translate hacia arriba), subir muestra. Lo ÚNICO que se va
+   es la barra de anuncios (--navbar-collapse-shift = --announcement-h): el
+   navbar entero — logo, buscador, iconos y la fila de módulos — es permanente
+   en todas las vistas. Navbar.tsx togglea html.lc-nav-collapsed; el movimiento
+   es `transform` (GPU). --navbar-actual-h se mantiene ESTÁTICA para que los
+   stickys no disparen reflow. Las barras .navbar-follow-collapse viajan con la
+   misma transition y quedan dockeadas bajo el navbar, nunca fuera de pantalla. */
 #site-navbar,
 .navbar-follow-collapse {
   transform: translate3d(0, 0, 0);
   /* easeOutCubic: arranca decidido y asienta con cola corta. Un easeInOut
      (lento al entrar Y al salir) dejaba la costura navbar↔barra/foto visible
-     casi un segundo mientras recorría los 56px; esta curva la cierra pronto. */
+     casi un segundo mientras recorría el trayecto; esta curva la cierra pronto. */
   transition: transform 360ms cubic-bezier(0.33, 1, 0.68, 1);
   will-change: transform;
 }
@@ -147,27 +187,6 @@ html {
 html.lc-nav-collapsed #site-navbar,
 html.lc-nav-collapsed .navbar-follow-collapse {
   transform: translate3d(0, calc(-1 * var(--navbar-collapse-shift)), 0);
-}
-
-/* ≤1199px: navbar y barras follow salen del viewport → sin interacción.
-   En ≥1200px NO se aplica: la fila de módulos (y las barras follow docked
-   bajo ella) siguen visibles y deben poder clicarse.
-
-   Sticky follow a top:navbar-h: con solo -shift queda en y=0 (pegada arriba
-   e inerte). Hay que sumar -100% (su propia altura) para que salga del todo. */
-@media (max-width: 1199.98px) {
-  html.lc-nav-collapsed #site-navbar {
-    pointer-events: none;
-  }
-
-  html.lc-nav-collapsed .navbar-follow-collapse {
-    transform: translate3d(
-      0,
-      calc(-1 * var(--navbar-collapse-shift) - 100%),
-      0
-    );
-    pointer-events: none;
-  }
 }
 
 /* Follow con FIN DE RECORRIDO (sidebar de curso/producto): al agotar el
@@ -180,17 +199,9 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
 }
 
 @media (min-width: 1200px) {
-  :root {
-    --navbar-actual-h: 104px;
-    /* Al colapsar sube solo la fila superior (56px): la fila de módulos queda
-       pegada arriba como barra delgada (Tienda/Servicios/Academia…). */
-    --navbar-collapse-shift: 56px; /* fila superior */
-    /* Navbar se oculta por completo al scrollear: solo queda el respiro. */
-    --home-hero-inset: 24px;
-  }
-
+  /* El alto lo fijan las filas internas (--navbar-h) + la barra de anuncios,
+     así el header se ajusta solo cuando la barra no está. */
   #site-navbar {
-    height: 104px;
     /* Sella la rendija de 1px entre capas GPU: sin esto asoma el FooterStage
        fijo (#0a0a0a) entre navbar y barra sticky al ocultar / mostrar. */
     box-shadow: 0 1px 0 0 var(--color-ivory);
@@ -301,21 +312,6 @@ html.lc-home-overlay #site-navbar::after {
   opacity: 0;
 }
 
-/* Velo oscuro sobre la foto (detrás del toolbar; no tapa el logo) */
-html.lc-home-overlay #site-navbar::before {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    to bottom,
-    rgba(12, 10, 8, 0.42) 0%,
-    rgba(12, 10, 8, 0.12) 55%,
-    transparent 100%
-  );
-}
-
 #site-navbar .navbar-toolbar {
   position: relative;
   z-index: 1;
@@ -367,6 +363,38 @@ html.lc-home-overlay #site-navbar form.border-b {
 /* Sin transition de filter: animar drop-shadow↔none hace desaparecer el PNG. */
 html.lc-home-overlay #site-navbar .navbar-brand-logo {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
+
+/* El wordmark hereda el color del header (negro → blanco con overlay); sobre
+   la foto del hero necesita la misma sombra que el logo para separarse. */
+html.lc-home-overlay #site-navbar .navbar-brand-wordmark {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+/* Indicador del módulo activo: negro sobre marfil, blanco sobre la foto. */
+html.lc-home-overlay #site-navbar .navbar-nav-indicator {
+  background-color: #fff;
+}
+
+/* Móvil (<768px): en el home el hero va DEBAJO del navbar (no detrás, a
+   diferencia de desktop que lo sube con margin negativo). Un navbar
+   transparente ahí sólo muestra marfil y los iconos blancos se pierden. Por
+   eso en móvil dejamos el navbar SÓLIDO con iconos negros aunque el overlay
+   esté activo. Va después de las reglas de overlay para ganar por orden. */
+@media (max-width: 767px) {
+  html.lc-home-overlay #site-navbar {
+    color: #1a1a1a;
+  }
+  html.lc-home-overlay #site-navbar::after {
+    opacity: 1;
+  }
+  html.lc-home-overlay #site-navbar .navbar-toolbar a:not(.navbar-brand-link),
+  html.lc-home-overlay #site-navbar .navbar-toolbar button {
+    color: #1a1a1a;
+  }
+  html.lc-home-overlay #site-navbar .navbar-brand-logo {
+    filter: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1051,3 +1079,4 @@ html::-webkit-scrollbar-thumb:hover {
     display: none;
   }
 }
+

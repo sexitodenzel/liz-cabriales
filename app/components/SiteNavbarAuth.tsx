@@ -1,14 +1,22 @@
+import type { ReactNode } from "react"
+
 import { getAuthUser } from "@/lib/supabase/auth-server"
 
 import SiteNavbar from "./SiteNavbar"
 
-export default async function SiteNavbarAuth() {
+type SiteNavbarAuthProps = {
+  announcement?: ReactNode
+}
+
+export default async function SiteNavbarAuth({
+  announcement = null,
+}: SiteNavbarAuthProps) {
   try {
     const user = await getAuthUser()
-    return <SiteNavbar isLoggedIn={Boolean(user)} />
+    return <SiteNavbar isLoggedIn={Boolean(user)} announcement={announcement} />
   } catch {
     // Si auth/Supabase falla o el stream SSR se corta, no tumbar el
     // Suspense del layout: navbar como invitado y el cliente rehidrata.
-    return <SiteNavbar isLoggedIn={false} />
+    return <SiteNavbar isLoggedIn={false} announcement={announcement} />
   }
 }

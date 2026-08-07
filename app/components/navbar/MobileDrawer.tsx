@@ -351,7 +351,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushMarcas, onPushConocenos
             onClick={() => onPushSection(key)}
             className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
           >
-            <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
+            <span className="text-[18px] font-normal tracking-[-0.01em] text-ink lg:text-[19px]">
               {key}
             </span>
             <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
@@ -363,7 +363,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushMarcas, onPushConocenos
           onClick={onPushNailArt}
           className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
         >
-          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
+          <span className="text-[18px] font-normal tracking-[-0.01em] text-ink lg:text-[19px]">
             Nail Art
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
@@ -374,7 +374,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushMarcas, onPushConocenos
           onClick={onPushMarcas}
           className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
         >
-          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#1a1a1a] lg:text-[14px]">
+          <span className="text-[18px] font-normal tracking-[-0.01em] text-ink lg:text-[19px]">
             Marcas
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-[#1a1a1a]" />
@@ -385,7 +385,7 @@ function RootPanel({ onPushSection, onPushNailArt, onPushMarcas, onPushConocenos
           onClick={onPushConocenos}
           className="flex w-full items-center justify-between pl-3 pr-3 md:pl-4 md:pr-5 py-[18px] text-left transition-colors hover:bg-neutral-50 lg:py-[22px]"
         >
-          <span className="text-[13px] font-semibold uppercase tracking-[0.18em] text-[#a8862f] lg:text-[14px]">
+          <span className="text-[18px] font-normal tracking-[-0.01em] text-[#a8862f] lg:text-[19px]">
             Conócenos
           </span>
           <ChevronRight className="h-4 w-4 shrink-0 text-[#a8862f]" />

@@ -20,7 +20,7 @@ import { Analytics } from "@vercel/analytics/next";
    (Puedes cambiar aquí las tipografías después)
    ========================= */
 
-import { Playfair_Display, Outfit } from "next/font/google";
+import { Inter_Tight } from "next/font/google";
 import type { Viewport } from "next";
 
 /* Nunca bloquear el zoom (maximumScale/userScalable): WCAG 1.4.4 —
@@ -35,15 +35,12 @@ export const viewport: Viewport = {
    CONFIGURACIÓN DE FUENTES
    ========================= */
 
-const playfairDisplay = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-playfair",
-})
-
-const outfit = Outfit({
+/* OPI usa UNA sola grotesca para todo (Sharp Grotesk). Réplica gratuita:
+   Inter Tight — misma sensación editorial, con peso 300 real para display. */
+const interTight = Inter_Tight({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter-tight",
 });
 
 /* =========================
@@ -60,6 +57,10 @@ export default async function RootLayout({
   // evita el flash ivory al refrescar /.
   const pathname = (await headers()).get("x-lc-pathname") ?? ""
   const homeOverlay = pathname === "/"
+  // El panel /admin tiene su propio sidebar: no debe llevar el chrome público
+  // (barra de anuncios + navbar con auto-hide). Sin esto, el navbar público se
+  // colapsa al scrollear y "arrastra" visualmente el panel.
+  const isAdmin = pathname.startsWith("/admin")
   const htmlClass = homeOverlay
     ? "lc-nav-guard-free lc-home-overlay"
     : "lc-nav-guard-free"
@@ -81,7 +82,7 @@ export default async function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`${outfit.className} ${playfairDisplay.variable} flex min-h-screen flex-col`}
+        className={`${interTight.className} ${interTight.variable} flex min-h-screen flex-col`}
       >
         <a href="#main-content" className="skip-link">
           Saltar al contenido
@@ -89,13 +90,18 @@ export default async function RootLayout({
         <CartProvider>
           <WishlistProvider>
             <NailArtFavoritesProvider>
-            <SiteChromeMetrics />
-            <Suspense fallback={null}>
-              <AnnouncementBar />
-            </Suspense>
-            <Suspense fallback={<SiteNavbar />}>
-              <SiteNavbarAuth />
-            </Suspense>
+            {!isAdmin && (
+              <>
+                <SiteChromeMetrics />
+                {/* La barra de anuncios se inyecta DENTRO del header sticky
+                    (Navbar.tsx): es la única pieza del chrome que se comprime
+                    al scrollear. Comparte el Suspense de auth para que el
+                    chrome entre de una sola pieza y no en dos saltos. */}
+                <Suspense fallback={<SiteNavbar />}>
+                  <SiteNavbarAuth announcement={<AnnouncementBar />} />
+                </Suspense>
+              </>
+            )}
             <SiteCurtainLayout>{children}</SiteCurtainLayout>
             </NailArtFavoritesProvider>
           </WishlistProvider>

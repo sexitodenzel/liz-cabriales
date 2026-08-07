@@ -155,7 +155,7 @@ function ProductCard({
 
   return (
     <div
-      className="lc-card group block w-[68vw] max-w-[280px] shrink-0 snap-start sm:w-[240px] lg:w-[calc((100%-72px)/4)] lg:max-w-none"
+      className="lc-card group block w-[43vw] max-w-[220px] shrink-0 snap-start sm:w-[240px] lg:w-[calc((100%-72px)/4)] lg:max-w-none"
       style={{ animationDelay: `${index * 70}ms` }}
     >
       <Link
@@ -168,7 +168,7 @@ function ProductCard({
             src={product.image}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 68vw, (max-width: 1024px) 240px, 25vw"
+            sizes="(max-width: 640px) 43vw, (max-width: 1024px) 240px, 25vw"
             className="lc-card-img object-cover"
             loading="lazy"
           />
@@ -362,7 +362,7 @@ export default function TabbedShopper({
         }`}
       >
         {title && (
-          <h2 className="shrink-0 text-[15px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] lg:text-[17px] lg:tracking-[0.16em]">
+          <h2 className="shrink-0 font-sans text-[clamp(26px,3.4vw,38px)] font-semibold leading-[1.1] tracking-[-0.02em] text-ink">
             {title}
           </h2>
         )}

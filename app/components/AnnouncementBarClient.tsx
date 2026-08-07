@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { useState } from "react"
 
 type AnnouncementItem = {
@@ -15,12 +14,9 @@ type Props = {
 }
 
 export default function AnnouncementBarClient({ items }: Props) {
-  const pathname = usePathname()
   const [index, setIndex] = useState(0)
   const [direction, setDirection] = useState<"next" | "prev">("next")
   const total = items.length
-
-  if (pathname !== "/") return null
 
   function go(step: 1 | -1) {
     setDirection(step === 1 ? "next" : "prev")
@@ -31,8 +27,12 @@ export default function AnnouncementBarClient({ items }: Props) {
   const animationClass =
     direction === "next" ? "announcement-slide-next" : "announcement-slide-prev"
 
+  // Vive dentro de #site-navbar, por encima de su capa ::after (ivory) y fuera
+  // de .navbar-toolbar, así el overlay del home no le cambia los colores.
+  // El alto (h-9 = 36px) debe coincidir con --announcement-h en globals.css:
+  // de ahí salen --navbar-actual-h y el recorrido de la compresión.
   return (
-    <div id="site-announcement-bar" className="relative z-[60] w-full bg-black text-white" aria-label="Anuncios">
+    <div id="site-announcement-bar" className="relative z-[2] w-full bg-black text-white" aria-label="Anuncios">
       <div className="flex h-9 w-full items-center justify-center gap-6 px-4 sm:gap-10">
         {total > 1 && (
           <button

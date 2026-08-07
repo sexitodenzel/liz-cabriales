@@ -18,19 +18,11 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
 
   return (
     <section className="py-6 md:py-8" aria-labelledby="shop-by-brands-title">
-      <InView>
-        <header className="mb-4 text-center md:mb-5">
-          <h2
-            id="shop-by-brands-title"
-            className="text-[13px] font-medium uppercase tracking-[0.14em] text-[#1a1a1a] lg:text-[14px] lg:tracking-[0.16em]"
-          >
-            Distribuidora oficial
-          </h2>
-          <div className="mx-auto mt-2.5 h-px w-12 bg-gold-soft" aria-hidden />
-        </header>
-      </InView>
+      <h2 id="shop-by-brands-title" className="sr-only">
+        Marcas que distribuimos
+      </h2>
 
-      <InView delay={0.12}>
+      <InView>
         <Marquee speed={80} pauseOnHover gap="0px" className="py-1.5 md:py-2">
           {brands.map((brand) => (
             <Link
@@ -55,6 +47,17 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
             </Link>
           ))}
         </Marquee>
+      </InView>
+
+      <InView delay={0.12}>
+        <div className="mt-6 flex justify-center md:mt-8">
+          <Link
+            href="/marcas"
+            className="inline-flex items-center justify-center rounded-full bg-ink px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-white transition-colors duration-300 hover:bg-neutral-800"
+          >
+            Conoce nuestras marcas
+          </Link>
+        </div>
       </InView>
     </section>
   )

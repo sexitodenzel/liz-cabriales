@@ -5,7 +5,6 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { HOME_TRI_FALLBACKS } from "@/lib/media-slots"
-import InView from "../ui/motion/in-view"
 
 type Card = {
   href: string
@@ -42,18 +41,6 @@ const RIGHT_BASE: Omit<Card, "image"> = {
   subtitle: "Tratamientos faciales y estética.",
   cta: "Reservar",
   alt: "Servicios de cabina",
-}
-
-// Cuarta card, solo en la tira horizontal de móvil (no es un slot de Media).
-const ABOUT: Card = {
-  href: "/sobre-liz",
-  eyebrow: "Conócenos",
-  title: "La historia detrás de la marca",
-  subtitle: "Quiénes somos y por qué lo hacemos.",
-  cta: "Conócenos",
-  image:
-    "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&w=800&q=75",
-  alt: "Sobre Liz Cabriales",
 }
 
 type Props = {
@@ -369,7 +356,7 @@ export default function HomeHeroTriCards({ images }: Props) {
               <span className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white/90">
                 {CENTER.eyebrow}
               </span>
-              <h2 className="lc-text-shimmer-gold max-w-[14ch] text-xl font-semibold leading-[1.1] tracking-[-0.02em] md:text-3xl lg:text-4xl">
+              <h2 className="lc-text-shimmer-gold max-w-[14ch] text-xl font-normal leading-[1.1] tracking-[-0.02em] md:text-3xl lg:text-4xl">
                 {CENTER.title}
               </h2>
               <p className="mt-2 max-w-xs text-[11px] text-white/85 md:text-xs">
@@ -401,50 +388,132 @@ export default function HomeHeroTriCards({ images }: Props) {
         </div>
       </section>
 
-      {/* MOBILE: hero editorial que RESPIRA (~86svh, no 100) para que la tira
-          de pilares asome bajo el fold e invite a scrollear — entrada Ken Burns
-          sutil (GPU) + fade-rise del texto. Debajo, Academia/Cabina/Conócenos
-          en una TIRA HORIZONTAL con scroll-snap (gesto nativo de móvil, estilo
-          Aesop/Dior) en lugar de dos cards gigantes apiladas. */}
-      <section aria-label="Tienda, academia y servicios" className="md:hidden">
-        <CardBlock
-          card={CENTER}
-          hero
-          entrance
-          className="h-[calc(100svh-var(--navbar-mobile-h,64px))]"
-        />
-
-        <InView>
-          <div className="bg-ivory pt-9 pb-11">
-            <div className="mb-5 flex items-baseline justify-between px-6">
-              <h3 className="text-2xl font-semibold tracking-[-0.02em]">Explora</h3>
-              <span className="text-[10px] uppercase tracking-[0.28em] text-neutral-400">
-                Desliza →
-              </span>
-            </div>
-            {/* snap-x + scrollbar-hide: cada card ocupa ~78% y la siguiente
-                asoma como pista visual de que hay más. */}
-            <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-6 px-6 scrollbar-hide">
-              <CardBlock
-                card={LEFT}
-                compact
-                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
-              />
-              <CardBlock
-                card={RIGHT}
-                compact
-                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
-              />
-              <CardBlock
-                card={ABOUT}
-                compact
-                className="aspect-[3/4] w-[78%] shrink-0 snap-start"
-              />
-            </div>
-          </div>
-        </InView>
-      </section>
+      {/* MOBILE: hero de 3 imágenes (Tienda / Academia / Cabina) en un carrusel
+          full-screen con scroll-snap nativo (swipe a gusto del usuario) +
+          autoplay ping-pong (sin rewind brusco) + dots. Sustituye al hero único
+          y a la tira "Explora". */}
+      <MobileHeroCarousel slides={[CENTER, LEFT, RIGHT]} />
     </>
+  )
+}
+
+// Carrusel del hero móvil. scroll-snap = swipe nativo (el usuario manda);
+// autoplay hace ping-pong 0→1→2→1→0 para evitar el rewind largo del loop.
+// Respeta prefers-reduced-motion (sin autoplay). Cada slide es un Link a su
+// sección, así que un tap navega y un swipe cambia de imagen.
+function MobileHeroCarousel({ slides }: { slides: Card[] }) {
+  const trackRef = useRef<HTMLDivElement | null>(null)
+  const [index, setIndex] = useState(0)
+  const indexRef = useRef(0)
+  const dirRef = useRef(1)
+  const interactingRef = useRef(false)
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const scrollToIndex = (i: number) => {
+    const track = trackRef.current
+    if (!track) return
+    track.scrollTo({ left: i * track.clientWidth, behavior: "smooth" })
+  }
+
+  // Autoplay ping-pong. Pausado mientras el usuario interactúa.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    const id = window.setInterval(() => {
+      if (interactingRef.current) return
+      let next = indexRef.current + dirRef.current
+      if (next > slides.length - 1) {
+        next = slides.length - 2
+        dirRef.current = -1
+      } else if (next < 0) {
+        next = 1
+        dirRef.current = 1
+      }
+      scrollToIndex(next)
+    }, 4500)
+    return () => window.clearInterval(id)
+  }, [slides.length])
+
+  // El índice activo (para los dots) se deriva del scroll real: así refleja
+  // tanto el autoplay como el swipe del usuario.
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        ticking = false
+        const w = track.clientWidth || 1
+        const i = Math.max(0, Math.min(slides.length - 1, Math.round(track.scrollLeft / w)))
+        if (i !== indexRef.current) {
+          indexRef.current = i
+          setIndex(i)
+          if (i === 0) dirRef.current = 1
+          else if (i === slides.length - 1) dirRef.current = -1
+        }
+      })
+    }
+    track.addEventListener("scroll", onScroll, { passive: true })
+    return () => track.removeEventListener("scroll", onScroll)
+  }, [slides.length])
+
+  const pauseAutoplay = () => {
+    interactingRef.current = true
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+  }
+  const resumeAutoplaySoon = () => {
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current)
+    resumeTimerRef.current = setTimeout(() => {
+      interactingRef.current = false
+    }, 3500)
+  }
+
+  return (
+    <section
+      aria-label="Tienda, academia y servicios"
+      className="relative md:hidden"
+      // El hero móvil va DEBAJO del chrome (no detrás), así que le resta el
+      // chrome completo: barra de anuncios + navbar.
+      style={{ height: "calc(100svh - var(--navbar-actual-h, 64px))" }}
+    >
+      <div
+        ref={trackRef}
+        className="flex h-full snap-x snap-mandatory overflow-x-auto scrollbar-hide"
+        onTouchStart={pauseAutoplay}
+        onTouchEnd={resumeAutoplaySoon}
+      >
+        {slides.map((card, i) => (
+          <div key={card.href} className="h-full w-full shrink-0 snap-start">
+            <CardBlock card={card} hero className="h-full w-full" priority={i === 0} />
+          </div>
+        ))}
+      </div>
+
+      {/* Dots: indican que son 3 imágenes y permiten saltar entre ellas. */}
+      <div className="absolute bottom-7 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2.5">
+        {slides.map((card, i) => (
+          <button
+            key={card.href}
+            type="button"
+            aria-label={`Ir a ${card.eyebrow}`}
+            aria-current={i === index}
+            onClick={() => {
+              pauseAutoplay()
+              scrollToIndex(i)
+              resumeAutoplaySoon()
+            }}
+            className="flex h-6 items-center justify-center"
+          >
+            <span
+              className={`block h-[3px] rounded-full transition-all duration-300 ${
+                i === index ? "w-7 bg-[var(--gold)]" : "w-2.5 bg-white/60"
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -513,7 +582,7 @@ function CardBlock({
             <span className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white/90">
               {card.eyebrow}
             </span>
-            <h2 className="lc-text-shimmer-gold max-w-[14ch] text-4xl font-semibold leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-7xl">
+            <h2 className="lc-text-shimmer-gold max-w-[14ch] text-4xl font-normal leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-7xl">
               {card.title}
             </h2>
             <p className="mt-5 max-w-md text-sm text-white/85 md:text-base">
@@ -542,7 +611,7 @@ function CardBlock({
           <span className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white/80">
             {card.eyebrow}
           </span>
-          <h2 className="text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-3xl">
+          <h2 className="text-3xl font-normal leading-tight tracking-[-0.02em] md:text-3xl">
             {card.title}
           </h2>
           <span className="mt-3 inline-flex w-fit items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">

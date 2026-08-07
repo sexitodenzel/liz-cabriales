@@ -40,12 +40,10 @@
  */
 
 /**
- * Evento (window) que Navbar.tsx dispara cada vez que el colapso Hermès
- * CAMBIA de estado (no en cada scroll). detail: { collapsed }. Lo consume el
- * hero de home (HomeHeroTriCards) en ≥1200px como única fuente de verdad de
- * su compactado: colapso del navbar y coreografía del hero arrancan en el
- * mismo frame, y el estado compacto solo existe con navbar colapsado — que es
- * exactamente lo que asume la geometría de --home-hero-inset (72px).
+ * Nombre del evento (window) reservado para anunciar cambios del colapso del
+ * chrome. Hoy nadie lo dispara ni lo escucha: el hero de home se coreografía
+ * solo. Se mantiene el nombre para no reintroducir un literal suelto si vuelve
+ * a hacer falta.
  */
 export const NAV_COLLAPSE_EVENT = "lc-nav-collapse"
 

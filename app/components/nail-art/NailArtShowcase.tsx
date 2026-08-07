@@ -85,7 +85,7 @@ function ShowcaseCard({ post, index }: { post: NailArtPost; index: number }) {
 
   return (
     <div
-      className="lc-card group w-[62vw] max-w-[260px] shrink-0 snap-start sm:w-[220px] lg:w-[calc((100%-96px)/5)] lg:max-w-none"
+      className="lc-card group w-[43vw] max-w-[220px] shrink-0 snap-start sm:w-[220px] lg:w-[calc((100%-96px)/5)] lg:max-w-none"
       style={{ animationDelay: `${index * 70}ms` }}
     >
       <div
@@ -102,7 +102,7 @@ function ShowcaseCard({ post, index }: { post: NailArtPost; index: number }) {
             alt={post.title}
             fill
             className="lc-card-img object-cover"
-            sizes="(max-width: 640px) 62vw, (max-width: 1024px) 220px, 20vw"
+            sizes="(max-width: 640px) 43vw, (max-width: 1024px) 220px, 20vw"
           />
         </Link>
 
@@ -292,10 +292,10 @@ export default function NailArtShowcase({
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => selectTab(tab.id)}
-                  className={`shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors duration-200 sm:text-[12px] ${
+                  className={`shrink-0 cursor-pointer whitespace-nowrap border-b-2 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors duration-200 sm:text-[12px] ${
                     isActive
-                      ? "border-ink bg-ink text-white"
-                      : "border-line bg-white text-ink-soft hover:border-neutral-500 hover:text-ink"
+                      ? "border-ink text-ink"
+                      : "border-transparent text-ink-soft hover:text-ink"
                   }`}
                 >
                   {tab.label}
