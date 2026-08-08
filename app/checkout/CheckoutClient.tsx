@@ -1054,7 +1054,16 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function callPaymentEndpoint(orderId: string): Promise<boolean> {
+  /**
+   * `payWindow` es una pestaña en blanco que `handleSubmit` abre en el mismo
+   * tick del clic. Sin ella el navegador bloquea la ventana, porque para
+   * cuando MercadoPago responde ya se perdió el gesto del usuario y `open`
+   * cuenta como emergente no solicitada.
+   */
+  async function callPaymentEndpoint(
+    orderId: string,
+    payWindow: Window | null
+  ): Promise<boolean> {
     setSubmitLabel("Abriendo MercadoPago...")
     const res = await fetch("/api/payments/mercadopago", {
       method: "POST",
@@ -1063,15 +1072,20 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
     })
     const json = (await res.json()) as ApiResponse<PaymentData>
     if (!res.ok || !json.data) {
+      payWindow?.close()
       setPaymentError(getCheckoutErrorMessage(json.error?.code, json.error?.message))
       return false
     }
     setPaymentUrl(json.data.payment_url)
-    // Open MercadoPago in a new tab. Note: when "noopener" is used, window.open
-    // returns null per the HTML spec — we can't reliably detect blocked popups
-    // that way. Skip the noopener flag so we can detect the block; MP is a
-    // trusted destination so tabnabbing risk is low. If the popup is blocked,
-    // newTab will be null/undefined.
+
+    if (payWindow && !payWindow.closed) {
+      payWindow.location.href = json.data.payment_url
+      return true
+    }
+
+    // Sin pestaña reservada (bloqueada o cerrada por el usuario), intentamos
+    // abrirla ahora. Sin "noopener" para poder detectar el bloqueo: con esa
+    // bandera `window.open` devuelve null por especificación aunque funcione.
     const newTab = window.open(json.data.payment_url, "_blank")
     if (!newTab) {
       setPaymentError(
@@ -1135,6 +1149,11 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
       return
     }
 
+    // Reservamos la pestaña del pago aquí, todavía dentro del gesto del clic.
+    // Se le asigna la URL de MercadoPago cuando llega, y se cierra si algo
+    // falla antes.
+    const payWindow = window.open("", "_blank")
+
     setIsSubmitting(true)
     setSubmitLabel("Creando orden...")
     try {
@@ -1147,6 +1166,7 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
       setTurnstileToken(null)
       turnstileRef.current?.reset()
       if (!orderRes.ok || !orderJson.data) {
+        payWindow?.close()
         setErrorCode(orderJson.error?.code ?? "UNKNOWN")
         setErrorMessage(getCheckoutErrorMessage(orderJson.error?.code, orderJson.error?.message))
         setTimeout(() => errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 50)
@@ -1193,8 +1213,9 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
       // El carrito se vacía solo cuando el webhook confirma el pago aprobado
       // (clearCartForUser en el handler de MercadoPago). Si vaciamos aquí,
       // el usuario pierde su carrito al volver atrás sin haber pagado.
-      await callPaymentEndpoint(orderJson.data.order_id)
+      await callPaymentEndpoint(orderJson.data.order_id, payWindow)
     } catch {
+      payWindow?.close()
       setTurnstileToken(null)
       turnstileRef.current?.reset()
       setErrorCode("UNKNOWN")
@@ -1241,10 +1262,12 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
   const handleRetryPayment = async () => {
     if (!createdOrder) return
     setPaymentError(null)
+    const payWindow = window.open("", "_blank")
     setIsRetryingPayment(true)
     try {
-      await callPaymentEndpoint(createdOrder.order_id)
+      await callPaymentEndpoint(createdOrder.order_id, payWindow)
     } catch {
+      payWindow?.close()
       setPaymentError(getCheckoutErrorMessage("PAYMENT_ERROR"))
     } finally {
       setIsRetryingPayment(false)
