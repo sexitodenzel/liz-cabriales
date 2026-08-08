@@ -1,5 +1,5 @@
 import {
-  ADMIN_EMAIL,
+  ADMIN_EMAILS,
   BRAND_BLACK,
   BRAND_GOLD,
   EMAIL_FROM,
@@ -50,13 +50,13 @@ function row(label: string, value: string): string {
 }
 
 async function sendToAdmins(subject: string, html: string, extraTo?: string[]): Promise<void> {
-  if (!ADMIN_EMAIL && (!extraTo || extraTo.length === 0)) {
+  if (ADMIN_EMAILS.length === 0 && (!extraTo || extraTo.length === 0)) {
     console.warn("[email/security] ADMIN_EMAIL no configurado; se omite el aviso.")
     return
   }
 
   const to = Array.from(
-    new Set([ADMIN_EMAIL, ...(extraTo ?? [])].filter((v): v is string => Boolean(v?.trim())))
+    new Set([...ADMIN_EMAILS, ...(extraTo ?? [])].filter((v): v is string => Boolean(v?.trim())))
   )
   if (to.length === 0) return
 

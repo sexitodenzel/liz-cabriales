@@ -1,5 +1,5 @@
 import {
-  ADMIN_EMAIL,
+  ADMIN_EMAILS,
   BRAND_BLACK,
   BRAND_GOLD,
   EMAIL_FROM,
@@ -29,7 +29,7 @@ function unwrap<T>(v: T | T[] | null | undefined): T | null {
 }
 
 export async function sendShippingPaidAdminEmail(orderId: string): Promise<void> {
-  if (!ADMIN_EMAIL) return
+  if (ADMIN_EMAILS.length === 0) return
 
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
@@ -120,7 +120,7 @@ export async function sendShippingPaidAdminEmail(orderId: string): Promise<void>
   const resend = getResend()
   const { error: sendError } = await resend.emails.send({
     from: EMAIL_FROM,
-    to: [ADMIN_EMAIL],
+    to: ADMIN_EMAILS,
     subject: `[Admin] Envío pagado — Pedido #${shortId(raw.id)} · ${clientName}`,
     html,
   })

@@ -1,5 +1,5 @@
 import {
-  ADMIN_EMAIL,
+  ADMIN_EMAILS,
   BRAND_GOLD,
   EMAIL_BUTTON_STYLE_TAG,
   EMAIL_FROM,
@@ -165,7 +165,7 @@ export async function sendInvoiceReceivedAdminEmail(orderId: string): Promise<vo
   const resend = getResend()
   await resend.emails.send({
     from: EMAIL_FROM,
-    to: [ADMIN_EMAIL],
+    to: ADMIN_EMAILS,
     subject: `📄 Nueva solicitud de factura — Orden #${shortId(orderId)}`,
     html: buildHtml(invoiceData),
   })

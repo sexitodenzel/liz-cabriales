@@ -27,7 +27,18 @@ export const EMAIL_FROM = "Academia Liz Cabriales <notificaciones@lizcabriales.c
 export const BRAND_GOLD = "#c6a75e"
 export const BRAND_BLACK = "#0a0a0a"
 export const BRAND_ORANGE = "#d97706"
-export const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? ""
+/**
+ * Destinatarios de los correos internos. `ADMIN_EMAIL` acepta varios separados
+ * por coma (p. ej. la academia y el dev) para poder seguir los avisos sin
+ * depender de un reenvío en Gmail.
+ */
+export const ADMIN_EMAILS = (process.env.ADMIN_EMAIL ?? "")
+  .split(",")
+  .map((email) => email.trim())
+  .filter(Boolean)
+
+/** Primer destinatario; se conserva para los usos que esperan uno solo. */
+export const ADMIN_EMAIL = ADMIN_EMAILS[0] ?? ""
 
 /**
  * Paleta neutra "Apple-clean" para los correos.

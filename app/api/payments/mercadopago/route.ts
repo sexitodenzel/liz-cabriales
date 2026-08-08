@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Preference } from "mercadopago"
 
+import { CFDI_SURCHARGE_PERCENT } from "@/lib/constants/cfdi"
 import { getMercadoPagoClient, resolveCheckoutUrl } from "@/lib/mercadopago"
 import { createClient } from "@/lib/supabase/server"
 import { getOrderForPayment } from "@/lib/supabase/orders"
@@ -94,6 +95,71 @@ export async function POST(
 
     const order = orderResult.data
 
+    // ── Líneas a cobrar ────────────────────────────────────────────────────────
+    // La suma de estas líneas es lo que MercadoPago le cobra al cliente, así que
+    // tiene que reproducir `orders.total` exactamente: productos + envío (hoy 0,
+    // el envío real se cobra después) + cargo CFDI. Omitir una línea cobra de
+    // menos sin que nada lo note, porque `payments.amount` guarda el total bueno.
+    const preferenceItems: Array<{
+      id: string
+      title: string
+      quantity: number
+      unit_price: number
+      currency_id: "MXN"
+    }> = order.items.map((item) => ({
+      id: item.variant_id,
+      title:
+        item.variant_name && item.variant_name !== item.product_name
+          ? `${item.product_name} - ${item.variant_name}`
+          : item.product_name,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      currency_id: "MXN",
+    }))
+
+    if (order.shipping_cost > 0) {
+      preferenceItems.push({
+        id: `shipping-${order.id}`,
+        title: "Envío",
+        quantity: 1,
+        unit_price: order.shipping_cost,
+        currency_id: "MXN",
+      })
+    }
+
+    if (order.invoice_surcharge > 0) {
+      preferenceItems.push({
+        id: `cfdi-${order.id}`,
+        title: `Cargo por facturación CFDI (${CFDI_SURCHARGE_PERCENT}%)`,
+        quantity: 1,
+        unit_price: order.invoice_surcharge,
+        currency_id: "MXN",
+      })
+    }
+
+    // Fallar cerrado ante cualquier descuadre: preferimos que el cliente no
+    // pueda pagar a que pague un monto distinto al que se le mostró.
+    const preferenceTotal =
+      Math.round(
+        preferenceItems.reduce(
+          (sum, item) => sum + item.quantity * item.unit_price,
+          0
+        ) * 100
+      ) / 100
+    const orderTotal = Math.round(order.total * 100) / 100
+
+    if (preferenceTotal !== orderTotal) {
+      console.error(
+        `[mercadopago] Descuadre en la orden ${order.id}: la preferencia suma ` +
+        `${preferenceTotal} y la orden dice ${orderTotal}. No se creó el cobro.`
+      )
+      return errorResponse(
+        "No se pudo generar el cobro por un descuadre en el total del pedido. Contáctanos para completarlo.",
+        500,
+        "PAYMENT_ERROR"
+      )
+    }
+
     // ── Datos del pagador ──────────────────────────────────────────────────────
     const userEmail = user.email?.trim() ?? ""
     if (!userEmail) {
@@ -135,16 +201,7 @@ export async function POST(
       preferenceResponse = await preferenceClient.create({
         body: {
           external_reference: order.id,
-          items: order.items.map((item) => ({
-            id: item.variant_id,
-            title:
-              item.variant_name && item.variant_name !== item.product_name
-                ? `${item.product_name} - ${item.variant_name}`
-                : item.product_name,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            currency_id: "MXN",
-          })),
+          items: preferenceItems,
           payer,
           back_urls: {
             success: `${appUrl}/orden/${order.id}?status=success`,

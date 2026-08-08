@@ -428,13 +428,16 @@ export async function createOrderFromActiveCart(
 
   const idStr = String(orderId)
 
-  if (requiresInvoice && input.rfc && input.razon_social) {
+  // `invoice_surcharge` tiene que quedar guardado siempre que el recargo esté
+  // dentro de `p_total`: el cobro de MercadoPago se arma desde esa columna, y si
+  // se quedara en 0 el total de la orden y el de la preferencia no cuadrarían.
+  if (requiresInvoice) {
     const { error: invError } = await supabaseAdmin
       .from("orders")
       .update({
         requires_invoice: true,
-        rfc: input.rfc,
-        razon_social: input.razon_social,
+        rfc: input.rfc ?? null,
+        razon_social: input.razon_social ?? null,
         invoice_surcharge: invoiceSurcharge,
         invoice_email: input.invoice_email ?? null,
       })
@@ -504,6 +507,10 @@ export type OrderForPayment = {
   id: string
   status: string
   total: number
+  /** Cargo CFDI ya incluido en `total`; se cobra como línea aparte en MercadoPago. */
+  invoice_surcharge: number
+  /** Envío cobrado al crear la orden (hoy 0: el envío real se cobra después). */
+  shipping_cost: number
   items: OrderDraftItem[]
 }
 
@@ -731,7 +738,7 @@ export async function getOrderForPayment(
 
   const { data: order, error: orderError } = await supabase
     .from("orders")
-    .select("id, status, total")
+    .select("id, status, total, invoice_surcharge, shipping_cost")
     .eq("id", orderId)
     .eq("user_id", userId)
     .maybeSingle()
@@ -798,6 +805,8 @@ export async function getOrderForPayment(
       id: order.id as string,
       status: order.status as string,
       total: Number(order.total),
+      invoice_surcharge: Number(order.invoice_surcharge ?? 0),
+      shipping_cost: Number(order.shipping_cost ?? 0),
       items,
     },
     error: null,

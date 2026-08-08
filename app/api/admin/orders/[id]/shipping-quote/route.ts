@@ -167,6 +167,27 @@ export async function POST(
 
     const paymentUrl = resolveCheckoutUrl(preferenceResponse)
 
+    // Fallar cerrado: más abajo la orden pasa a `awaiting_shipping_payment` y se
+    // le manda el link al cliente por WhatsApp y correo. Con `paymentUrl` vacío
+    // esos mensajes salen rotos y la orden queda trabada esperando un pago que
+    // nadie puede hacer, así que no seguimos.
+    if (!paymentUrl) {
+      console.error(
+        `[shipping-quote] La preferencia de envío de la orden ${orderId} no trae ` +
+        "URL de checkout para el tipo de credencial configurada."
+      )
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            message: "MercadoPago no devolvió una URL de pago. Revisa las credenciales e intenta de nuevo.",
+            code: "PAYMENT_ERROR",
+          },
+        },
+        { status: 502 }
+      )
+    }
+
     // Actualizar la orden con el costo de envío y la referencia de pago
     const { error: updateError } = await supabaseAdmin
       .from("orders")

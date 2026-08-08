@@ -2,7 +2,7 @@ import { getAppointmentWithDetails } from "@/lib/supabase/appointments"
 import { getRegistrationWithDetails } from "@/lib/supabase/courses"
 
 import {
-  ADMIN_EMAIL,
+  ADMIN_EMAILS,
   BRAND_BLACK,
   BRAND_GOLD,
   EMAIL_FROM,
@@ -25,11 +25,11 @@ function adminBadge() {
 }
 
 async function send(subject: string, html: string): Promise<void> {
-  if (!ADMIN_EMAIL) return
+  if (ADMIN_EMAILS.length === 0) return
   const resend = getResend()
   const { error } = await resend.emails.send({
     from: EMAIL_FROM,
-    to: [ADMIN_EMAIL],
+    to: ADMIN_EMAILS,
     subject,
     html,
   })

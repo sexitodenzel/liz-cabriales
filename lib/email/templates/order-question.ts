@@ -1,7 +1,7 @@
 import type { OrderForDisplay } from "@/lib/supabase/orders"
 
 import {
-  ADMIN_EMAIL,
+  ADMIN_EMAILS,
   BRAND_BLACK,
   BRAND_GOLD,
   EMAIL_FROM,
@@ -118,7 +118,7 @@ function buildBody(d: SendOrderQuestionInput): string {
 export async function sendOrderQuestionEmail(
   input: SendOrderQuestionInput
 ): Promise<void> {
-  const to = ADMIN_EMAIL || SUPPORT_FALLBACK_EMAIL
+  const to = ADMIN_EMAILS.length > 0 ? ADMIN_EMAILS : [SUPPORT_FALLBACK_EMAIL]
 
   const html = buildEmailShell({
     preheader: `Pregunta sobre pedido #${shortId(input.order.id)} de ${input.clientName}`,
@@ -135,7 +135,7 @@ export async function sendOrderQuestionEmail(
   const resend = getResend()
   const { error } = await resend.emails.send({
     from: EMAIL_FROM,
-    to: [to],
+    to,
     replyTo: input.clientEmail,
     subject: `Pregunta sobre pedido #${shortId(input.order.id)} — ${input.clientName}`,
     html,
