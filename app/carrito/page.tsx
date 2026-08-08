@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { ShoppingBag } from "lucide-react"
+import { ShoppingBag, Trash2 } from "lucide-react"
 
 import { useCart } from "@/app/components/cart/CartContext"
 import {
@@ -147,14 +147,25 @@ export default function CartPage() {
 
                     <div className="mt-3 flex items-center">
                       <div className="flex items-center rounded-full border border-neutral-300">
-                        <button
-                          type="button"
-                          onClick={() => adjustItem(item.variantId, -1)}
-                          aria-label="Disminuir cantidad"
-                          className="flex h-7 w-7 items-center justify-center rounded-full text-[14px] transition-colors hover:bg-neutral-100"
-                        >
-                          −
-                        </button>
+                        {item.quantity <= 1 ? (
+                          <button
+                            type="button"
+                            onClick={() => void removeItem(item.variantId)}
+                            aria-label={`Quitar ${item.name} del carrito`}
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-red-500"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => adjustItem(item.variantId, -1)}
+                            aria-label="Disminuir cantidad"
+                            className="flex h-7 w-7 items-center justify-center rounded-full text-[14px] transition-colors hover:bg-neutral-100"
+                          >
+                            −
+                          </button>
+                        )}
                         <span className="flex w-6 justify-center text-[12px] font-medium tabular-nums text-[#1a1a1a]">
                           <SlidingNumber value={item.quantity} />
                         </span>

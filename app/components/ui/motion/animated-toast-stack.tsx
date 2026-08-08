@@ -132,6 +132,17 @@ const POSITION_CLASS: Record<ToastPosition, string> = {
   "bottom-right": "bottom-6 right-4",
 }
 
+// Los toasts se ajustan a su contenido (no estiran al ancho del stack), así que
+// cada uno se alinea contra el borde por el que entra.
+const ALIGN_CLASS: Record<ToastPosition, string> = {
+  "top-left": "items-start",
+  "top-center": "items-center",
+  "top-right": "items-end",
+  "bottom-left": "items-start",
+  "bottom-center": "items-center",
+  "bottom-right": "items-end",
+}
+
 let idSeed = 0
 
 const NOOP_SUBSCRIBE = () => () => {}
@@ -290,8 +301,9 @@ export function AnimatedToastStack({
       aria-live="polite"
       aria-atomic="false"
       className={cn(
-        "pointer-events-none flex w-[calc(100vw-2rem)] max-w-sm gap-2",
+        "pointer-events-none flex w-max max-w-[min(24rem,calc(100vw-2rem))] gap-2",
         isBottom ? "flex-col-reverse" : "flex-col",
+        ALIGN_CLASS[position],
         resolvedPlacement === "fixed" && "fixed z-[90]",
         resolvedPlacement === "absolute" && "absolute z-20",
         resolvedPlacement !== "static" && POSITION_CLASS[position],
@@ -346,6 +358,9 @@ const ToastItem = memo(function ToastItem({
   const Icon = STATUS_ICON[status]
   const iconNode = icons?.[status] ?? toast.icon ?? <Icon className="h-3.5 w-3.5" />
   const canDismiss = toast.dismissible !== false && Boolean(onDismiss)
+  // Con solo el titulo, el icono (28px) y la ✕ (28px) quedan mas altos que la
+  // linea de texto (20px): centrar los tres. Con descripcion o accion, arriba.
+  const isCompact = !toast.description && !toast.action
 
   return (
     <motion.li
@@ -393,11 +408,12 @@ const ToastItem = memo(function ToastItem({
         {renderToast ? (
           renderToast(toast)
         ) : (
-          <div className="flex items-start gap-3">
+          <div className={cn("flex gap-3", isCompact ? "items-center" : "items-start")}>
             <motion.span
               layout
               className={cn(
-                "mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+                "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+                !isCompact && "mt-0.5",
                 STATUS_CLASS[status],
                 classNames?.iconWrap,
               )}
@@ -455,7 +471,7 @@ const ToastItem = memo(function ToastItem({
                 >
                   <p
                     className={cn(
-                      "truncate text-sm font-medium leading-5 text-neutral-900",
+                      "text-sm font-medium leading-5 text-neutral-900 [overflow-wrap:anywhere]",
                       classNames?.title,
                     )}
                   >
@@ -495,6 +511,7 @@ const ToastItem = memo(function ToastItem({
                 aria-label="Cerrar"
                 className={cn(
                   "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900",
+                  !isCompact && "mt-0.5",
                   classNames?.close,
                 )}
               >

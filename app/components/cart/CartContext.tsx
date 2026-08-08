@@ -330,6 +330,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const adjustItem = useCallback(
     (variantId: string, delta: number, min = 1) => {
+      // Bajar de la cantidad minima equivale a quitar el producto. Sin esto el
+      // boton "−" se queda pegado en 1 y parece que no responde.
+      if (delta < 0) {
+        const current = itemsRef.current.find((i) => i.variantId === variantId)
+        if (current && current.quantity + delta < min) {
+          void removeItem(variantId)
+          return
+        }
+      }
+
       mutationSeqRef.current += 1
 
       setItems((prev) => {
@@ -367,7 +377,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       debounceApiRef.current.set(variantId, timer)
     },
-    [applySnapshot, canApplyServerSnapshot, persistGuest]
+    [applySnapshot, canApplyServerSnapshot, persistGuest, removeItem]
   )
 
   const clearCart = useCallback(async () => {
