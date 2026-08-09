@@ -57,6 +57,9 @@ export default function RetryPaymentButton({
   }
 
   const handleRetry = async () => {
+    // Reservamos la pestana del pago dentro del gesto del clic: si la abrimos
+    // despues del fetch, el navegador la trata como emergente y la bloquea.
+    const payWindow = window.open("", "_blank")
     setIsLoading(true)
     setRetryError(null)
     setBlockedUrl(null)
@@ -71,6 +74,7 @@ export default function RetryPaymentButton({
       const json = (await response.json()) as ApiResponse<PaymentData>
 
       if (!response.ok || !json.data) {
+        payWindow?.close()
         if (json.error?.code === "VALIDATION_ERROR") {
           if (order) {
             try {
@@ -95,12 +99,17 @@ export default function RetryPaymentButton({
         return
       }
 
-      const newTab = window.open(json.data.payment_url, "_blank")
-      if (!newTab) {
-        setBlockedUrl(json.data.payment_url)
-        setRetryError("Tu navegador bloqueó la nueva ventana. Abre el enlace de abajo.")
+      if (payWindow && !payWindow.closed) {
+        payWindow.location.href = json.data.payment_url
+      } else {
+        const newTab = window.open(json.data.payment_url, "_blank")
+        if (!newTab) {
+          setBlockedUrl(json.data.payment_url)
+          setRetryError("Tu navegador bloqueó la nueva ventana. Abre el enlace de abajo.")
+        }
       }
     } catch {
+      payWindow?.close()
       setRetryError("Error de conexión. Verifica tu internet e intenta de nuevo.")
     } finally {
       setIsLoading(false)

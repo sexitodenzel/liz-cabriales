@@ -16,6 +16,9 @@ export default function RetryAppointmentPaymentButton({
   const [blockedUrl, setBlockedUrl] = useState<string | null>(null)
 
   const handleRetry = async () => {
+    // Reservamos la pestana del pago dentro del gesto del clic: si la abrimos
+    // despues del fetch, el navegador la trata como emergente y la bloquea.
+    const payWindow = window.open("", "_blank")
     setLoading(true)
     setError(null)
     setBlockedUrl(null)
@@ -27,20 +30,27 @@ export default function RetryAppointmentPaymentButton({
       })
       const json = await res.json()
       if (!res.ok || json.error) {
+        payWindow?.close()
         setError(json?.error?.message ?? "No se pudo iniciar el pago")
         return
       }
       const url = json.data?.payment_url as string | undefined
       if (!url) {
+        payWindow?.close()
         setError("MercadoPago no devolvió una URL de pago")
         return
       }
-      const newTab = window.open(url, "_blank")
-      if (!newTab) {
-        setBlockedUrl(url)
-        setError("Tu navegador bloqueó la nueva ventana. Abre el enlace de abajo.")
+      if (payWindow && !payWindow.closed) {
+        payWindow.location.href = url
+      } else {
+        const newTab = window.open(url, "_blank")
+        if (!newTab) {
+          setBlockedUrl(url)
+          setError("Tu navegador bloqueó la nueva ventana. Abre el enlace de abajo.")
+        }
       }
     } catch {
+      payWindow?.close()
       setError("Error de red al reintentar el pago")
     } finally {
       setLoading(false)
