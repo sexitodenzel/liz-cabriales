@@ -32,6 +32,7 @@ import FreeShippingBar from "@/app/components/cart/FreeShippingBar"
 import TurnstileWidget, {
   type TurnstileWidgetHandle,
 } from "@/components/shared/TurnstileWidget"
+import { reservePaymentWindow, sendPaymentWindowTo } from "@/lib/payments/payment-window"
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -1078,8 +1079,7 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
     }
     setPaymentUrl(json.data.payment_url)
 
-    if (payWindow && !payWindow.closed) {
-      payWindow.location.href = json.data.payment_url
+    if (sendPaymentWindowTo(payWindow, json.data.payment_url)) {
       return true
     }
 
@@ -1152,7 +1152,7 @@ export default function CheckoutClient({ initialCart, relatedProducts }: Props) 
     // Reservamos la pestaña del pago aquí, todavía dentro del gesto del clic.
     // Se le asigna la URL de MercadoPago cuando llega, y se cierra si algo
     // falla antes.
-    const payWindow = window.open("", "_blank")
+    const payWindow = reservePaymentWindow()
 
     setIsSubmitting(true)
     setSubmitLabel("Creando orden...")

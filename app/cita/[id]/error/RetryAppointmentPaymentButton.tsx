@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { reservePaymentWindow, sendPaymentWindowTo } from "@/lib/payments/payment-window"
 
 type Props = {
   appointmentId: string
@@ -18,7 +19,7 @@ export default function RetryAppointmentPaymentButton({
   const handleRetry = async () => {
     // Reservamos la pestana del pago dentro del gesto del clic: si la abrimos
     // despues del fetch, el navegador la trata como emergente y la bloquea.
-    const payWindow = window.open("", "_blank")
+    const payWindow = reservePaymentWindow()
     setLoading(true)
     setError(null)
     setBlockedUrl(null)
@@ -40,9 +41,7 @@ export default function RetryAppointmentPaymentButton({
         setError("MercadoPago no devolvió una URL de pago")
         return
       }
-      if (payWindow && !payWindow.closed) {
-        payWindow.location.href = url
-      } else {
+      if (!sendPaymentWindowTo(payWindow, url)) {
         const newTab = window.open(url, "_blank")
         if (!newTab) {
           setBlockedUrl(url)
