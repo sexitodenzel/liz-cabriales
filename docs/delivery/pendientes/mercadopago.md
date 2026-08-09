@@ -5,6 +5,39 @@
 
 ---
 
+## Estado al 2026-08-08
+
+La aplicación productiva vive en la cuenta de MercadoPago de **Lizeth Berenice
+Peña / Distribuidora Liz Cabriales**, que es la que recibe el dinero:
+
+- App: `liz-cabriales-tienda`, id `5692132340382692`, **Checkout Pro**.
+- Webhook registrado en modo productivo:
+  `https://lizcabriales.com/api/webhooks/mercadopago`, evento **"Pagos
+  (legacy)"** — es el que manda `type: "payment"`, el único que procesa
+  `app/api/webhooks/mercadopago/route.ts`. "Order (Mercado Pago)" NO sirve.
+- `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`,
+  `NEXT_PUBLIC_APP_URL`, `TURNSTILE_SECRET_KEY`,
+  `NEXT_PUBLIC_TURNSTILE_SITE_KEY` y `ADMIN_EMAIL` cargadas en Vercel
+  (Production) con redeploy.
+
+Pendiente: la prueba E2E y **rotar access token y webhook secret** al terminar.
+
+### Acceso del dev a la cuenta de Liz
+
+Denzel entra como **colaborador**. Un rol personalizado con los permisos de
+"Configuración de Integraciones" alcanza para *listar* aplicaciones, pero **no
+para ver credenciales**: esa sección exige **Administrador de la cuenta**.
+Además, **guardar la configuración de webhooks pide confirmación 2FA del dueño
+de la cuenta**, así que ese paso lo tiene que hacer Liz aunque el dev sea
+administrador.
+
+Truco de navegación: el panel de developers hereda la cuenta activa. Hay que
+cambiar de cuenta primero en `mercadopago.com.mx/home` (el saldo se ve tapado
+`$ ***` cuando el contexto es el correcto) y **en esa misma pestaña** abrir
+`/developers/panel/app`. Al revés muestra la cuenta propia.
+
+---
+
 ## Qué necesita hacer Liz
 
 1. Confirmar que su **cuenta MercadoPago de negocio** está activa y validada.
