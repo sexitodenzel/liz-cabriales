@@ -173,18 +173,32 @@ html {
    en todas las vistas. Navbar.tsx togglea html.lc-nav-collapsed; el movimiento
    es `transform` (GPU). --navbar-actual-h se mantiene ESTÁTICA para que los
    stickys no disparen reflow. Las barras .navbar-follow-collapse viajan con la
-   misma transition y quedan dockeadas bajo el navbar, nunca fuera de pantalla. */
-#site-navbar,
+   misma transition y quedan dockeadas bajo el navbar, nunca fuera de pantalla.
+
+   ⚠️ El transform NO va sobre #site-navbar (el elemento `position: sticky`):
+   en iOS Safari un sticky que además es capa compuesta (transform 3D +
+   will-change) deja de pegarse y se va con el scroll — el navbar
+   sencillamente no aparecía en móvil. Quien se mueve es .navbar-shell
+   (envoltorio interno con TODO el contenido del header, Navbar.tsx) junto con
+   el ::after que pinta la barra marfil. Visualmente es idéntico: la caja
+   sticky se queda quieta y su contenido sube. */
+.navbar-shell,
+#site-navbar::after,
 .navbar-follow-collapse {
   transform: translate3d(0, 0, 0);
   /* easeOutCubic: arranca decidido y asienta con cola corta. Un easeInOut
      (lento al entrar Y al salir) dejaba la costura navbar↔barra/foto visible
      casi un segundo mientras recorría el trayecto; esta curva la cierra pronto. */
   transition: transform 360ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.navbar-shell,
+.navbar-follow-collapse {
   will-change: transform;
 }
 
-html.lc-nav-collapsed #site-navbar,
+html.lc-nav-collapsed .navbar-shell,
+html.lc-nav-collapsed #site-navbar::after,
 html.lc-nav-collapsed .navbar-follow-collapse {
   transform: translate3d(0, calc(-1 * var(--navbar-collapse-shift)), 0);
 }
@@ -201,9 +215,11 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
 @media (min-width: 1200px) {
   /* El alto lo fijan las filas internas (--navbar-h) + la barra de anuncios,
      así el header se ajusta solo cuando la barra no está. */
-  #site-navbar {
+  .navbar-shell {
     /* Sella la rendija de 1px entre capas GPU: sin esto asoma el FooterStage
-       fijo (#0a0a0a) entre navbar y barra sticky al ocultar / mostrar. */
+       fijo (#0a0a0a) entre navbar y barra sticky al ocultar / mostrar. Va en
+       el shell (no en #site-navbar) porque es el que viaja con el colapso: el
+       sello tiene que quedarse en el borde inferior VISIBLE del chrome. */
     box-shadow: 0 1px 0 0 var(--color-ivory);
   }
 
@@ -233,9 +249,15 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
      a media página) todo conserva su transición y viaja junto. En home no hay
      barra guard → guard-free nunca se activa → la transición de color del overlay
      del navbar queda intacta. */
-  html.lc-nav-guard-free #site-navbar,
+  html.lc-nav-guard-free .navbar-shell,
   html.lc-nav-guard-free .navbar-follow-collapse {
     transition: none;
+  }
+
+  /* La barra marfil viaja con el shell: su transform también hace snap, pero
+     conserva el fade de opacidad del overlay del home. */
+  html.lc-nav-guard-free #site-navbar::after {
+    transition: opacity 520ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* Escudo anti-rendija: 20px de ivory sobre el borde superior de la barra
@@ -262,13 +284,14 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
   }
 
   /* Megamenu abierto: congelar la transition del navbar. */
-  :root.navbar-menu-open #site-navbar {
+  :root.navbar-menu-open .navbar-shell,
+  :root.navbar-menu-open #site-navbar::after {
     transition: none !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #site-navbar,
+  .navbar-shell,
   .navbar-follow-collapse {
     transition: none;
   }
@@ -281,9 +304,9 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
   isolation: isolate;
   background-color: transparent;
   color: #1a1a1a;
-  transition:
-    transform 360ms cubic-bezier(0.33, 1, 0.68, 1),
-    color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Sin transform ni will-change aquí: es el elemento sticky (ver bloque de
+     compresión del chrome). Solo el color cambia con el overlay del home. */
+  transition: color 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #site-navbar::after {
@@ -294,7 +317,11 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
   z-index: -1;
   background-color: var(--color-ivory);
   opacity: 1;
-  transition: opacity 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* La barra marfil viaja con .navbar-shell al colapsar (misma curva de 360ms
+     que el contenido); la opacidad es la del overlay del home. */
+  transition:
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 360ms cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 @media (min-width: 1200px) {
@@ -305,6 +332,13 @@ html.lc-nav-collapsed .navbar-follow-collapse.lc-follow-parked {
 
 html.lc-home-overlay #site-navbar {
   color: #fff;
+  box-shadow: none !important;
+}
+
+/* Solo el sello (box-shadow), NUNCA el color: el color se hereda del header
+   para que el override de móvil (max-width: 767px, navbar sólido negro) siga
+   ganando. Declararlo aquí lo congelaría en blanco. */
+html.lc-home-overlay .navbar-shell {
   box-shadow: none !important;
 }
 
@@ -406,7 +440,8 @@ html.lc-home-overlay #site-navbar .navbar-nav-indicator {
   }
 
   @media (min-width: 1200px) {
-    #site-navbar {
+    .navbar-shell,
+    #site-navbar::after {
       transition: transform 360ms cubic-bezier(0.33, 1, 0.68, 1);
     }
   }
@@ -1079,4 +1114,3 @@ html::-webkit-scrollbar-thumb:hover {
     display: none;
   }
 }
-

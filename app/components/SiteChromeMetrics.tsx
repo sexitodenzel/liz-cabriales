@@ -20,7 +20,11 @@ function findNavbar(): HTMLElement | null {
 
 function measureChromeBottom(navbar: HTMLElement | null): number {
   if (!navbar) return 0
-  const rect = navbar.getBoundingClientRect()
+  // El borde inferior REAL es el del .navbar-shell: el <header> sticky ya no
+  // lleva el transform del colapso (rompía sticky en iOS Safari), así que su
+  // rect no sigue la compresión — el del shell sí.
+  const shell = navbar.querySelector<HTMLElement>(".navbar-shell") ?? navbar
+  const rect = shell.getBoundingClientRect()
   return Math.round(Math.max(0, Math.min(window.innerHeight, rect.bottom)))
 }
 

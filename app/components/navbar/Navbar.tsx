@@ -52,10 +52,10 @@ type NavbarProps = {
 const COMPACT_DESKTOP_MAX_WIDTH = 1200
 
 // Borde inferior del chrome expandido (px) = anuncios + filas del navbar. El
-// header es sticky top-0 sin transform en reposo, así que su offsetHeight es la
-// medida exacta — y a diferencia de --navbar-actual-h no se queda obsoleta si
-// la barra de anuncios llega por streaming después de hidratar. Se lee una vez
-// por breakpoint / resize, no por frame.
+// header sticky nunca lleva transform (lo lleva .navbar-shell), así que su
+// offsetHeight es la medida exacta — y a diferencia de --navbar-actual-h no se
+// queda obsoleta si la barra de anuncios llega por streaming después de
+// hidratar. Se lee una vez por breakpoint / resize, no por frame.
 function readNavbarBottom(): number {
   const header = document.getElementById("site-navbar")
   if (header && header.offsetHeight > 0) return header.offsetHeight
@@ -628,11 +628,19 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
         className="relative z-50 w-full sticky top-0 overflow-visible text-neutral-800"
         onMouseLeave={scheduleMenuClose}
       >
+      {/* .navbar-shell = TODO el contenido del header. El colapso del chrome
+          traslada ESTE div (y el ::after que pinta la barra marfil), nunca el
+          <header>: en iOS Safari un `position: sticky` que además es capa
+          compuesta (transform 3D + will-change) deja de pegarse y se va con el
+          scroll — el navbar no aparecía en móvil. La caja sticky se queda
+          quieta y su contenido sube: visualmente idéntico. */}
+      <div className="navbar-shell">
         {/* Barra de anuncios: la ÚNICA fila que se comprime al scrollear. Vive
             aquí dentro (no como hermana en el layout) para que el chrome sea un
-            solo elemento sticky con un solo transform: así los megamenús
-            (`top-full`), las barras .navbar-follow-collapse y los overlays
-            fixed que ya escapan por portal conservan su geometría exacta. */}
+            solo elemento sticky con un solo transform (el del shell): así los
+            megamenús (`top-full`), las barras .navbar-follow-collapse y los
+            overlays fixed que ya escapan por portal conservan su geometría
+            exacta. */}
         {announcement}
 
         {/* ===== COMPACT TOOLBAR (mobile + ventanas estrechas en desktop) ===== */}
@@ -902,6 +910,7 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
           onClose={() => setActiveMenu(null)}
           onMouseEnter={clearMenuCloseTimer}
         />
+        </div>
       </header>
 
       <MobileDrawer
