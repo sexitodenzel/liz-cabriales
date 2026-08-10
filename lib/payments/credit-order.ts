@@ -1,4 +1,5 @@
 import {
+  checkPaymentCoversOrder,
   claimApprovedPaymentForOrder,
   claimPendingOrderByStatusSwap,
   clearCartForUser,
@@ -12,6 +13,8 @@ import { sendNewOrderAlerts } from "@/lib/notifications/order-notifications"
 export type CreditOrderOutcome =
   | { status: "credited" }
   | { status: "already_credited" }
+  /** Se pagó menos que el total vigente: la orden NO se acredita. */
+  | { status: "amount_mismatch"; expected: number; paid: number }
   | { status: "error"; message: string }
 
 /**
@@ -28,11 +31,43 @@ export type CreditOrderOutcome =
  *
  * IMPORTANTE: solo llamar después de verificar con MercadoPago que el pago
  * está `approved`.
+ *
+ * `paidAmount` es el `transaction_amount` que reporta MercadoPago. Cuando se
+ * pasa, se compara contra el total vigente de la orden y se aborta si no
+ * alcanza. Es opcional para no romper llamadas viejas, pero DEBE pasarse
+ * siempre que se tenga: es la única defensa contra acreditar de más.
  */
 export async function creditApprovedOrder(
   orderId: string,
-  logPrefix = "[credit-order]"
+  logPrefix = "[credit-order]",
+  paidAmount?: number | null
 ): Promise<CreditOrderOutcome> {
+  // Guarda de dinero, antes de reclamar nada: si el importe no cubre el total,
+  // la orden se queda en pendiente y no se descuenta stock ni se manda correo
+  // de confirmación. Se resuelve a mano desde el panel (cobrar la diferencia o
+  // reembolsar), que es una decisión de negocio, no del webhook.
+  if (typeof paidAmount === "number" && Number.isFinite(paidAmount)) {
+    const check = await checkPaymentCoversOrder(orderId, paidAmount)
+    if (check.error) {
+      console.error(
+        `${logPrefix} No se pudo verificar el monto de la orden ${orderId}:`,
+        check.error
+      )
+      return { status: "error", message: check.error.message }
+    }
+
+    if (!check.data.covers) {
+      const { expected, paid } = check.data
+      console.error(
+        `${logPrefix} PAGO INSUFICIENTE en la orden ${orderId}: ` +
+        `MercadoPago reporta $${paid} y el pedido suma $${expected}. ` +
+        "La orden NO se acreditó. Revisar en el panel: probablemente se pagó " +
+        "un link viejo generado antes de que cambiara el total."
+      )
+      return { status: "amount_mismatch", expected, paid }
+    }
+  }
+
   const claimResult = await claimApprovedPaymentForOrder(orderId)
   if (claimResult.error) {
     console.error(

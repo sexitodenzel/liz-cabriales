@@ -101,7 +101,11 @@ export async function POST(request: Request, context: RouteContext) {
       })
     }
 
-    const outcome = await creditApprovedOrder(id, "[reconcile]")
+    const outcome = await creditApprovedOrder(
+      id,
+      "[reconcile]",
+      approved.transaction_amount
+    )
 
     if (outcome.status === "error") {
       return NextResponse.json(
@@ -111,6 +115,24 @@ export async function POST(request: Request, context: RouteContext) {
         },
         { status: 500 }
       )
+    }
+
+    // Descuadre: este panel es el canal por el que se entera una persona, así
+    // que el mensaje tiene que decir las dos cifras y qué hacer con ellas.
+    if (outcome.status === "amount_mismatch") {
+      return NextResponse.json({
+        data: {
+          credited: false,
+          mp_status: "approved",
+          message:
+            `El pago en MercadoPago es de $${outcome.paid} pero el pedido suma ` +
+            `$${outcome.expected}. No se acreditó para no dar por pagado un ` +
+            "pedido incompleto. Suele pasar cuando se paga un link generado " +
+            "antes de que cambiara el total (por ejemplo, al añadir la factura). " +
+            "Cobra la diferencia o reembolsa antes de surtir.",
+        },
+        error: null,
+      })
     }
 
     return NextResponse.json({

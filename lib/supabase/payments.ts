@@ -10,6 +10,115 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+/**
+ * Tolerancia al comparar montos: un centavo. MercadoPago redondea a dos
+ * decimales igual que nosotros, así que un descuadre real siempre será mayor.
+ */
+const AMOUNT_TOLERANCE = 0.01
+
+export type OrderAmountCheck = {
+  /** Total que debería cobrarse hoy, según la orden en la base. */
+  expected: number
+  /** Lo que MercadoPago dice que se pagó de verdad. */
+  paid: number
+  covers: boolean
+}
+
+/**
+ * Compara lo pagado en MercadoPago contra el total vigente de la orden.
+ *
+ * Existe porque el link de pago se genera con el total del momento: si la orden
+ * cambia de precio después (p. ej. se le añade el cargo por factura CFDI), el
+ * cliente todavía puede pagar el link viejo y quedarse corto. El webhook solo
+ * miraba el estado `approved`, así que esa orden se marcaba pagada completa.
+ */
+export async function checkPaymentCoversOrder(
+  orderId: string,
+  paidAmount: number
+): Promise<Result<OrderAmountCheck>> {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .select("total")
+    .eq("id", orderId)
+    .maybeSingle()
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+  if (!data) {
+    return {
+      data: null,
+      error: { message: `Orden ${orderId} no encontrada`, code: "NOT_FOUND" },
+    }
+  }
+
+  const expected = Math.round(Number(data.total) * 100) / 100
+  const paid = Math.round(paidAmount * 100) / 100
+
+  return {
+    data: { expected, paid, covers: paid >= expected - AMOUNT_TOLERANCE },
+    error: null,
+  }
+}
+
+export type ShippingAmountCheck = {
+  /**
+   * Lo cotizado en `shipping_amount_final`. `null` si no hay cotización
+   * guardada, caso en el que no hay contra qué comparar.
+   */
+  expected: number | null
+  paid: number
+  covers: boolean
+}
+
+/**
+ * Igual que `checkPaymentCoversOrder` pero para el segundo cobro, el del envío.
+ * Mismo riesgo: si se recotiza el envío después de mandarle el link al cliente,
+ * el link viejo sigue siendo pagable y `claimShippingPayment` lo daba por bueno.
+ *
+ * OJO con la columna: el importe del segundo cobro es `shipping_amount_final`,
+ * que es lo que escribe la cotización del panel. NO es `shipping_cost`, que en
+ * este flujo vale 0 — compararlo contra esa daría por bueno cualquier importe.
+ */
+export async function checkPaymentCoversShipping(
+  orderId: string,
+  paidAmount: number
+): Promise<Result<ShippingAmountCheck>> {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .select("shipping_amount_final")
+    .eq("id", orderId)
+    .maybeSingle()
+
+  if (error) {
+    return { data: null, error: { message: error.message, code: error.code } }
+  }
+  if (!data) {
+    return {
+      data: null,
+      error: { message: `Orden ${orderId} no encontrada`, code: "NOT_FOUND" },
+    }
+  }
+
+  const paid = Math.round(paidAmount * 100) / 100
+  const raw = data.shipping_amount_final
+
+  // Sin cotización guardada no hay verdad contra la cual comparar. No debería
+  // pasar (el link de envío se crea junto con la cotización), así que se deja
+  // pasar y se avisa: bloquear aquí castigaría a un cliente que sí pagó por un
+  // hueco de datos nuestro.
+  if (raw === null || raw === undefined) {
+    return { data: { expected: null, paid, covers: true }, error: null }
+  }
+
+  const expected = Math.round(Number(raw) * 100) / 100
+
+  return {
+    data: { expected, paid, covers: paid >= expected - AMOUNT_TOLERANCE },
+    error: null,
+  }
+}
+
 export type CreatePaymentInput = {
   user_id: string
   order_id: string

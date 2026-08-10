@@ -4,7 +4,10 @@ import { Payment } from "mercadopago"
 
 import { getMercadoPagoClient } from "@/lib/mercadopago"
 import { creditApprovedOrder } from "@/lib/payments/credit-order"
-import { updatePaymentStatusByOrderId } from "@/lib/supabase/payments"
+import {
+  checkPaymentCoversShipping,
+  updatePaymentStatusByOrderId,
+} from "@/lib/supabase/payments"
 import {
   claimApprovedPaymentForAppointment,
   markAppointmentPaymentRejected,
@@ -360,6 +363,38 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const orderId = externalRef.slice("shipping:".length)
 
       if (mpStatus === "approved") {
+        // Misma guarda que en la orden: el envío puede recotizarse después de
+        // mandar el link, y el link viejo sigue siendo pagable.
+        const shippingAmount = paymentInfo.transaction_amount
+        if (typeof shippingAmount === "number" && Number.isFinite(shippingAmount)) {
+          const amountCheck = await checkPaymentCoversShipping(
+            orderId,
+            shippingAmount
+          )
+          if (amountCheck.error) {
+            console.error(
+              `[webhook] No se pudo verificar el monto del envío de la orden ${orderId}:`,
+              amountCheck.error
+            )
+            return NextResponse.json({ received: true }, { status: 200 })
+          }
+          if (amountCheck.data.expected === null) {
+            console.warn(
+              `[webhook] La orden ${orderId} recibió un pago de envío de ` +
+              `$${amountCheck.data.paid} pero no tiene 'shipping_amount_final' ` +
+              "guardado. Se acredita sin poder verificar el importe; revisar " +
+              "por qué la cotización no quedó registrada."
+            )
+          } else if (!amountCheck.data.covers) {
+            console.error(
+              `[webhook] PAGO DE ENVIO INSUFICIENTE en la orden ${orderId}: ` +
+              `MercadoPago reporta $${amountCheck.data.paid} y el envío cotizado ` +
+              `es $${amountCheck.data.expected}. No se marcó como pagado.`
+            )
+            return NextResponse.json({ received: true }, { status: 200 })
+          }
+        }
+
         const claimResult = await claimShippingPayment(orderId)
         if (claimResult.error) {
           console.error(
@@ -403,7 +438,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const orderId = externalRef
 
     if (mpStatus === "approved") {
-      await creditApprovedOrder(orderId, "[webhook]")
+      // El monto viene de la API de MercadoPago (no del cuerpo del webhook),
+      // así que no se puede falsificar: sirve como verdad para comparar.
+      await creditApprovedOrder(
+        orderId,
+        "[webhook]",
+        paymentInfo.transaction_amount
+      )
     } else if (mpStatus === "rejected" || mpStatus === "cancelled") {
       const updateResult = await updatePaymentStatusByOrderId(
         orderId,
