@@ -7,7 +7,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { authEmailSchema } from "@/lib/validations/auth"
 import { normalizePhoneInput } from "@/lib/validations/phone"
-import { verifyTurnstileOnServer } from "@/lib/turnstile-client"
+import { prepareSupabaseCaptcha } from "@/lib/turnstile-client"
 import FloatingInput from "@/app/components/auth/FloatingInput"
 import FloatingSelect from "@/app/components/auth/FloatingSelect"
 import TurnstileWidget, {
@@ -89,9 +89,21 @@ export default function RegistrarPage() {
   const [resendCooldown, setResendCooldown] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  /**
+   * Acción disparada mientras Turnstile todavía resolvía. En vez de perder el
+   * clic (y culpar al usuario con "completa el CAPTCHA"), se reenvía sola al
+   * llegar el token. El token es de un solo uso: tras cada envío el widget
+   * arranca de cero, así que esta ventana ocurre seguido.
+   */
+  const [pendingAction, setPendingAction] = useState<
+    "sendCode" | "submit" | null
+  >(null)
+  /** Cloudflare pidió interacción humana: el token ya no tiene tiempo límite. */
+  const [captchaInteractive, setCaptchaInteractive] = useState(false)
 
   function resetTurnstile() {
     setTurnstileToken(null)
+    setPendingAction(null)
     turnstileRef.current?.reset()
   }
 
@@ -127,13 +139,14 @@ export default function RegistrarPage() {
       return
     }
     if (!turnstileToken) {
-      setServerError("Completa la verificación de seguridad (CAPTCHA).")
+      setPendingAction("sendCode")
       return
     }
+    setPendingAction(null)
     clearError("email")
     setSendingCode(true)
     try {
-      const captcha = await verifyTurnstileOnServer(turnstileToken)
+      const captcha = await prepareSupabaseCaptcha(turnstileToken)
       resetTurnstile()
       if (!captcha.ok) {
         setServerError(captcha.message)
@@ -142,7 +155,10 @@ export default function RegistrarPage() {
 
       const { error } = await supabase.auth.signInWithOtp({
         email: parsed.data,
-        options: { shouldCreateUser: true },
+        options: {
+          shouldCreateUser: true,
+          captchaToken: captcha.captchaToken,
+        },
       })
       if (error) {
         const rateMatch = /after (\d+) seconds?/i.exec(error.message)
@@ -151,6 +167,10 @@ export default function RegistrarPage() {
           setResendCooldown(waitSec)
           setServerError(
             `Espera ${waitSec} segundos antes de pedir otro código.`
+          )
+        } else if (/captcha/i.test(error.message)) {
+          setServerError(
+            "La verificación de seguridad falló. Recarga la página e intenta de nuevo."
           )
         } else {
           setServerError(error.message)
@@ -246,20 +266,23 @@ export default function RegistrarPage() {
     return errs
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function runSubmit() {
     setServerError(null)
     const errs = validate()
     setErrors(errs)
-    if (Object.keys(errs).length > 0) return
-    if (!turnstileToken) {
-      setServerError("Completa la verificación de seguridad (CAPTCHA).")
+    if (Object.keys(errs).length > 0) {
+      setPendingAction(null)
       return
     }
+    if (!turnstileToken) {
+      setPendingAction("submit")
+      return
+    }
+    setPendingAction(null)
 
     setSubmitting(true)
     try {
-      const captcha = await verifyTurnstileOnServer(turnstileToken)
+      const captcha = await prepareSupabaseCaptcha(turnstileToken)
       resetTurnstile()
       if (!captcha.ok) {
         setServerError(captcha.message)
@@ -270,9 +293,18 @@ export default function RegistrarPage() {
         email,
         token: code,
         type: "email",
+        options: { captchaToken: captcha.captchaToken },
       })
       if (verifyError || !verifyData.user) {
         const raw = verifyError?.message ?? ""
+        // El error de captcha de Supabase trae "invalid": sin este caso caería
+        // en el mensaje de código expirado y mandaría a pedir otro para nada.
+        if (/captcha/i.test(raw)) {
+          setServerError(
+            "La verificación de seguridad falló. Recarga la página e intenta de nuevo."
+          )
+          return
+        }
         const friendly = /expired|invalid|token/i.test(raw)
           ? "Código incorrecto o expirado. Intenta de nuevo."
           : raw || "Código incorrecto o expirado. Intenta de nuevo."
@@ -316,6 +348,10 @@ export default function RegistrarPage() {
         console.warn("[registrar] No se pudo guardar el perfil completo:", profileError)
       }
 
+      // Bienvenida: se dispara sin await para no retrasar la entrada al sitio.
+      // El registro ya está hecho; si el correo falla, la cuenta sigue viva.
+      void fetch("/api/auth/welcome", { method: "POST" }).catch(() => undefined)
+
       router.push(safeNext ?? "/")
       router.refresh()
     } catch (err) {
@@ -327,6 +363,45 @@ export default function RegistrarPage() {
       setSubmitting(false)
     }
   }
+
+  // Los refs guardan la versión más reciente de cada acción: el efecto lee el
+  // estado del render actual, no el del montaje.
+  const sendCodeRef = useRef(handleSendCode)
+  sendCodeRef.current = handleSendCode
+  const submitRef = useRef(runSubmit)
+  submitRef.current = runSubmit
+
+  useEffect(() => {
+    if (!pendingAction) return
+
+    if (turnstileToken) {
+      const run = pendingAction === "sendCode" ? sendCodeRef : submitRef
+      void run.current()
+      return
+    }
+
+    // Reto interactivo: está esperando el clic del usuario, puede tardar lo que
+    // sea. Cortarlo sería abortar un registro legítimo.
+    if (captchaInteractive) return
+
+    // Turnstile caído o bloqueado: el token no va a llegar. Cortar en vez de
+    // dejar el botón girando en silencio.
+    const timeout = window.setTimeout(() => {
+      setPendingAction(null)
+      setServerError(
+        "No se pudo completar la verificación de seguridad. Recarga la página e intenta de nuevo."
+      )
+    }, 15_000)
+    return () => window.clearTimeout(timeout)
+  }, [pendingAction, turnstileToken, captchaInteractive])
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    void runSubmit()
+  }
+
+  const sendingCodeBusy = sendingCode || pendingAction === "sendCode"
+  const submittingBusy = submitting || pendingAction === "submit"
 
   return (
     <div className="w-full max-w-5xl">
@@ -376,10 +451,10 @@ export default function RegistrarPage() {
                 <button
                   type="button"
                   onClick={handleSendCode}
-                  disabled={sendingCode || resendCooldown > 0}
+                  disabled={sendingCodeBusy || resendCooldown > 0}
                   className="mb-3 inline-flex h-11 items-center justify-center whitespace-nowrap bg-neutral-900 px-4 text-[11px] tracking-[0.15em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {sendingCode
+                  {sendingCodeBusy
                     ? "ENVIANDO…"
                     : resendCooldown > 0
                     ? `VOLVER A ENVIAR (${resendCooldown})`
@@ -639,7 +714,11 @@ export default function RegistrarPage() {
 
           <TurnstileWidget
             ref={turnstileRef}
-            onToken={setTurnstileToken}
+            onToken={(token) => {
+              setTurnstileToken(token)
+              if (token) setCaptchaInteractive(false)
+            }}
+            onInteractive={() => setCaptchaInteractive(true)}
             className="flex justify-center pt-2"
           />
 
@@ -652,10 +731,10 @@ export default function RegistrarPage() {
           <div className="flex justify-center pt-4">
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submittingBusy}
               className="inline-flex h-12 w-full max-w-md items-center justify-center bg-neutral-900 px-12 text-[13px] tracking-[0.2em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "CREANDO CUENTA…" : "CREAR UNA CUENTA"}
+              {submittingBusy ? "CREANDO CUENTA…" : "CREAR UNA CUENTA"}
             </button>
           </div>
         </form>

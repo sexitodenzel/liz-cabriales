@@ -19,10 +19,10 @@ Para responsables, evidencias y pasos detallados → secciones **2**, **3** y **
 - [x] `EMAIL_FROM` actualizado a `notificaciones@lizcabriales.com` en `lib/email/templates/_shared.ts`
 - [ ] `RESEND_API_KEY` en Vercel
 - [ ] `ADMIN_EMAIL` en Vercel (dirección que recibe alertas de admin)
-- [ ] Supabase Auth → SMTP custom configurado con Resend (ver `docs/delivery/pendientes/resend.md` §2)
-- [ ] **Template Magic Link de Supabase editado con `{{ .Token }}`** — obligatorio para `/registrar` (sin esto el OTP llega como link y el form queda roto). Ver `docs/delivery/pendientes/resend.md` §2 paso 4.
+- [x] Supabase Auth → SMTP custom configurado con Resend (verificado en el panel 2026-08-09: `smtp.resend.com:465`, remitente `notificaciones@lizcabriales.com`, intervalo mínimo 120 s)
+- [x] **Template Magic Link de Supabase editado con `{{ .Token }}`** — obligatorio para `/registrar` (sin esto el OTP llega como link y el form queda roto). Verificado en el panel 2026-08-09.
 - [ ] Smoke test registro: `/registrar` → email con código 6 dígitos → completar cuenta OK
-- [ ] Email templates de Supabase Auth revisados (no los genéricos del placeholder)
+- [ ] Email templates de Supabase Auth con la marca — pegar los de `docs/delivery/supabase-auth-emails/` (ver su README)
 - [ ] SQL ejecutado: `docs/delivery/sql-sprint5-supabase.sql` (recepcionista, CFDI, `handle_new_user`)
 - [ ] SQL ejecutado: `docs/delivery/sql-invoice-fields.sql` (columnas facturación CFDI en `orders`)
 - [ ] Bucket `invoice-docs` creado en Supabase Storage (privado, límite 10 MB)

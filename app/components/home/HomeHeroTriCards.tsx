@@ -59,6 +59,17 @@ const DUR_CENTER = 1300 // ms — compactado de la central (forward)
 const DUR_SIDES = 1300 // ms — entrada/salida de laterales (forward)
 const DELAY_SIDES = 700 // ms — laterales esperan a que central avance (staging)
 
+// Legibilidad del texto sobre foto. Estáticos (no animan) → sin costo por frame.
+// Scrim radial: elipse de negro tenue centrada donde vive el texto; oscurece solo
+// esa zona sin apagar toda la imagen (look editorial, no velo plano). Las sombras
+// son un halo difuso de respaldo para las zonas más claras de la foto. En el
+// título dorado la text-shadow dibuja el halo por fuera de los glifos (el relleno
+// del shimmer es opaco y lo tapa por dentro) → refuerza sin ensuciar el dorado.
+const HERO_SCRIM =
+  "radial-gradient(ellipse 62% 52% at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.32) 48%, rgba(0,0,0,0) 78%)"
+const TITLE_SHADOW = "0 2px 22px rgba(0,0,0,0.55), 0 1px 4px rgba(0,0,0,0.45)"
+const TEXT_SHADOW = "0 1px 12px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.4)"
+
 // Reverse animado pero más corto que forward.
 const DUR_CENTER_REVERSE = 700
 const DUR_SIDES_REVERSE = 700
@@ -349,17 +360,36 @@ export default function HomeHeroTriCards({ images }: Props) {
             <CardBlock card={LEFT} compact style={sideLeftStyle} priority />
             <CardBlock card={RIGHT} compact style={sideRightStyle} priority />
 
+            {/* Scrim radial de la central: z-15 = encima de la imagen central
+                (z-0) pero DEBAJO de los laterales (z-20), así solo oscurece el
+                hueco central donde está el texto, sin manchar los bordes
+                internos de las fotos laterales. */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{ zIndex: 15, background: HERO_SCRIM }}
+            />
+
             {/* Texto del hero: tamaño chico fijo, siempre visible. Sin
                 opacity ni scale animando = cero trabajo de render del texto
                 durante la animación del centro. */}
             <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center px-6 text-center text-white">
-              <span className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white/90">
+              <span
+                className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white/90"
+                style={{ textShadow: TEXT_SHADOW }}
+              >
                 {CENTER.eyebrow}
               </span>
-              <h2 className="lc-text-shimmer-gold max-w-[14ch] text-xl font-normal leading-[1.1] tracking-[-0.02em] md:text-3xl lg:text-4xl">
+              <h2
+                className="lc-text-shimmer-gold max-w-[14ch] text-xl font-normal leading-[1.1] tracking-[-0.02em] md:text-3xl lg:text-4xl"
+                style={{ textShadow: TITLE_SHADOW }}
+              >
                 {CENTER.title}
               </h2>
-              <p className="mt-2 max-w-xs text-[11px] text-white/85 md:text-xs">
+              <p
+                className="mt-2 max-w-xs text-[11px] text-white/85 md:text-xs"
+                style={{ textShadow: TEXT_SHADOW }}
+              >
                 {CENTER.subtitle}
               </p>
               <span
@@ -367,6 +397,7 @@ export default function HomeHeroTriCards({ images }: Props) {
                 style={{
                   borderColor: centerHover ? "var(--gold)" : "rgba(255,255,255,0.7)",
                   color: centerHover ? "var(--gold)" : "#fff",
+                  textShadow: TEXT_SHADOW,
                 }}
               >
                 {CENTER.cta}
@@ -571,7 +602,16 @@ function CardBlock({
         priority={priority}
         style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/55" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/60" />
+      {/* Scrim radial detrás del texto centrado del hero (carrusel móvil):
+          contraste garantizado sobre fotos claras sin apagar la imagen. */}
+      {hero && !hideHeroText && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: HERO_SCRIM }}
+        />
+      )}
 
       {hero && !hideHeroText && (
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center text-white">
@@ -579,16 +619,28 @@ function CardBlock({
             style={titleStyle}
             className={`flex flex-col items-center${entrance ? " lc-hero-text-rise" : ""}`}
           >
-            <span className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white/90">
+            <span
+              className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white/90"
+              style={{ textShadow: TEXT_SHADOW }}
+            >
               {card.eyebrow}
             </span>
-            <h2 className="lc-text-shimmer-gold max-w-[14ch] text-4xl font-normal leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-7xl">
+            <h2
+              className="lc-text-shimmer-gold max-w-[14ch] text-4xl font-normal leading-[1.05] tracking-[-0.02em] md:text-6xl lg:text-7xl"
+              style={{ textShadow: TITLE_SHADOW }}
+            >
               {card.title}
             </h2>
-            <p className="mt-5 max-w-md text-sm text-white/85 md:text-base">
+            <p
+              className="mt-5 max-w-md text-sm text-white/85 md:text-base"
+              style={{ textShadow: TEXT_SHADOW }}
+            >
               {card.subtitle}
             </p>
-            <span className="mt-8 inline-flex items-center border-b border-white/70 pb-1 text-xs uppercase tracking-[0.28em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">
+            <span
+              className="mt-8 inline-flex items-center border-b border-white/70 pb-1 text-xs uppercase tracking-[0.28em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]"
+              style={{ textShadow: TEXT_SHADOW }}
+            >
               {card.cta}
             </span>
           </div>
@@ -608,13 +660,22 @@ function CardBlock({
 
       {compact && (
         <div className="absolute inset-0 flex flex-col justify-end p-7 text-white md:p-6">
-          <span className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white/80">
+          <span
+            className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white/80"
+            style={{ textShadow: TEXT_SHADOW }}
+          >
             {card.eyebrow}
           </span>
-          <h2 className="text-3xl font-normal leading-tight tracking-[-0.02em] md:text-3xl">
+          <h2
+            className="text-3xl font-normal leading-tight tracking-[-0.02em] md:text-3xl"
+            style={{ textShadow: TITLE_SHADOW }}
+          >
             {card.title}
           </h2>
-          <span className="mt-3 inline-flex w-fit items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]">
+          <span
+            className="mt-3 inline-flex w-fit items-center border-b border-white/70 pb-0.5 text-[11px] uppercase tracking-[0.24em] transition-colors group-hover:border-[var(--gold)] group-hover:text-[var(--gold)]"
+            style={{ textShadow: TEXT_SHADOW }}
+          >
             {card.cta}
           </span>
         </div>

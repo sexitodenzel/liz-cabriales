@@ -4,6 +4,7 @@ import type { CookieOptions } from "@supabase/ssr"
 
 import { enforceRateLimit } from "@/lib/rate-limit"
 import { extractTurnstileToken, requireTurnstile } from "@/lib/turnstile"
+import { supabaseAuthCaptchaEnabled } from "@/lib/turnstile-client"
 import { loginCredentialsSchema } from "@/lib/validations/auth"
 import {
   loginEventRequestMeta,
@@ -59,6 +60,14 @@ function friendlyAuthError(raw: string): {
     return {
       message: "Aún no confirmas tu correo. Revisa tu bandeja de entrada.",
       code: "EMAIL_NOT_CONFIRMED",
+      status: 403,
+    }
+  }
+  if (/captcha/i.test(raw)) {
+    return {
+      message:
+        "La verificación de seguridad falló. Recarga la página e intenta de nuevo.",
+      code: "TURNSTILE_FAILED",
       status: 403,
     }
   }
@@ -122,12 +131,29 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     return rateLimited as NextResponse<ApiResponse>
   }
 
-  const turnstileRejected = await requireTurnstile(
-    request,
-    extractTurnstileToken(json)
-  )
-  if (turnstileRejected) {
-    return turnstileRejected as NextResponse<ApiResponse>
+  const captchaToken = extractTurnstileToken(json)
+
+  if (supabaseAuthCaptchaEnabled) {
+    // Valida Supabase Auth (Attack Protection). El token es de un solo uso:
+    // verificarlo aquí lo quemaría y Supabase lo rechazaría después. Solo
+    // comprobamos que venga, para no perder el mensaje en español.
+    if (!captchaToken?.trim()) {
+      return NextResponse.json(
+        {
+          data: null,
+          error: {
+            message: "Completa la verificación de seguridad (CAPTCHA).",
+            code: "TURNSTILE_MISSING",
+          },
+        },
+        { status: 403 }
+      )
+    }
+  } else {
+    const turnstileRejected = await requireTurnstile(request, captchaToken)
+    if (turnstileRejected) {
+      return turnstileRejected as NextResponse<ApiResponse>
+    }
   }
 
   const parsed = loginCredentialsSchema.safeParse({
@@ -167,6 +193,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
+    options: supabaseAuthCaptchaEnabled
+      ? { captchaToken: captchaToken ?? undefined }
+      : undefined,
   })
 
   if (error || !data.user || !data.session) {
@@ -225,8 +254,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
   }
 
   // Inicia el reloj de inactividad del panel para staff.
+  // Tiene que quedar escrito ANTES de responder: el navegador se va a /admin
+  // en cuanto llega este JSON y el proxy lee last_activity_at. Disparándolo
+  // sin await, el proxy alcanzaba a leer la marca de la sesión anterior, la
+  // daba por inactiva y devolvía al login — de ahí el "siempre hay que
+  // iniciar sesión dos veces".
   if (role === "admin" || role === "receptionist") {
-    void touchUserLastActivity(data.user.id)
+    await touchUserLastActivity(data.user.id)
   }
 
   const payload: LoginSuccess = {

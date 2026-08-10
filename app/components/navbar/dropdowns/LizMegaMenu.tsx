@@ -10,6 +10,7 @@ import {
   resolveSobreLizBrandPhoto,
   SOBRE_LIZ_BRAND_PHOTO_FALLBACK,
 } from "@/lib/sobre-liz/brand-photo"
+import { canPrefetchMegaMenu } from "./prefetchGate"
 
 type LizMegaMenuProps = {
   isOpen: boolean
@@ -61,6 +62,9 @@ export default function LizMegaMenu({
   const [featureImage, setFeatureImage] = useState(SOBRE_LIZ_BRAND_PHOTO_FALLBACK)
 
   useEffect(() => {
+    // Solo en desktop: la foto es del panel derecho del megamenú, que en móvil
+    // no existe (el fallback ya cubre cualquier caso).
+    if (!canPrefetchMegaMenu()) return
     let isMounted = true
     void fetch("/api/landing/brand-photo")
       .then((res) => (res.ok ? res.json() : null))

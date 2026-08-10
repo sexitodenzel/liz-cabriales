@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import { PackageOpen } from "lucide-react"
 
@@ -44,6 +44,9 @@ type SortOption =
   | "nombre-desc"
   | "precio-asc"
   | "precio-desc"
+
+/** Productos por tanda: 12 filas en móvil (2 col) y 8 en desktop (3 col). */
+const PRODUCTS_PER_PAGE = 24
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "destacados", label: "Destacados" },
@@ -370,6 +373,53 @@ export default function ProductGrid({
 
   const isEmpty = filteredProducts.length === 0
 
+  // El catálogo completo (940+ productos) se queda en memoria para filtrar y
+  // ordenar al instante, pero pintarlo entero mandaba ~5 MB de HTML en la
+  // primera respuesta y ahogaba la carga en celular. Se dibuja por tandas y el
+  // resto entra al hacer scroll.
+  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE)
+
+  // Cualquier cambio de filtro u orden vuelve a empezar desde la primera tanda.
+  // Se deriva durante el render (mismo patrón que `appliedFiltersKey` arriba)
+  // para no pintar una lista larga y recortarla en un segundo pase.
+  // Se compara contra `filters` (el estado real), no contra `initialFilters`:
+  // los filtros que toca el usuario nunca cambian la prop del servidor.
+  const resultsKey = `${JSON.stringify(filters)}|${sort}`
+  const [countedResultsKey, setCountedResultsKey] = useState(resultsKey)
+  if (countedResultsKey !== resultsKey) {
+    setCountedResultsKey(resultsKey)
+    setVisibleCount(PRODUCTS_PER_PAGE)
+  }
+
+  const visibleProducts = useMemo(
+    () => filteredProducts.slice(0, visibleCount),
+    [filteredProducts, visibleCount]
+  )
+  const hasMoreProducts = visibleCount < filteredProducts.length
+
+  // Carga la siguiente tanda cuando el centinela entra en pantalla. El botón
+  // sigue ahí y funciona solo: es el camino con teclado y el respaldo si el
+  // observer no está disponible.
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const node = sentinelRef.current
+    if (!node || !hasMoreProducts) return
+    if (typeof IntersectionObserver === "undefined") return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisibleCount((count) => count + PRODUCTS_PER_PAGE)
+        }
+      },
+      // Se adelanta un viewport para que la siguiente tanda ya esté puesta
+      // cuando el usuario llega al final.
+      { rootMargin: "600px 0px" }
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [hasMoreProducts, visibleCount])
+
   const formatPriceShort = (value: number) =>
     new Intl.NumberFormat("es-MX", {
       style: "currency",
@@ -542,7 +592,7 @@ export default function ProductGrid({
           >
             {/* sr-only: evita el salto h1→h3 (los nombres de producto son h3) */}
             <h2 className="sr-only">Productos</h2>
-            {filteredProducts.map((product) => (
+            {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -551,6 +601,24 @@ export default function ProductGrid({
             ))}
           </div>
         )}
+
+        {hasMoreProducts && (
+          <div ref={sentinelRef} className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() =>
+                setVisibleCount((count) => count + PRODUCTS_PER_PAGE)
+              }
+              className="rounded-full border border-neutral-300 px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-700 transition-colors hover:border-[#c6a75e] hover:text-[#c6a75e]"
+            >
+              Mostrar más productos
+            </button>
+          </div>
+        )}
+
+        <p aria-live="polite" className="sr-only">
+          {`Mostrando ${visibleProducts.length} de ${filteredProducts.length} productos`}
+        </p>
       </div>
 
       {hasActiveFilters && (

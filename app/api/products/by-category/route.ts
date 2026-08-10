@@ -1,24 +1,14 @@
 import { NextResponse } from "next/server"
 
-import { getProducts } from "@/lib/supabase/products"
-import { applyDiscount } from "@/lib/tienda/discount"
+import {
+  getCategoryShowcaseCached,
+  type CategoryShowcaseProduct,
+} from "@/lib/supabase/cache"
 
 export const dynamic = "force-dynamic"
 
-const MAX_ITEMS = 4
-
-type CategoryProduct = {
-  id: string
-  name: string
-  slug: string
-  image: string | null
-  price: number
-  originalPrice: number
-  discountPercent: number
-}
-
 type ApiResponse =
-  | { data: CategoryProduct[]; error: null }
+  | { data: CategoryShowcaseProduct[]; error: null }
   | { data: null; error: { message: string; code?: string } }
 
 export async function GET(
@@ -36,7 +26,9 @@ export async function GET(
     return NextResponse.json({ data: [], error: null })
   }
 
-  const result = await getProducts({ categorySlugs })
+  // Orden estable: el megamenú manda los slugs siempre igual, pero normalizar
+  // aquí evita duplicar entradas de caché si alguna vez cambia el orden.
+  const result = await getCategoryShowcaseCached([...categorySlugs].sort())
 
   if (!result.data) {
     return NextResponse.json(
@@ -48,26 +40,16 @@ export async function GET(
     )
   }
 
-  // Destacados primero; se completa con el resto para llenar el showcase.
-  const ordered = [...result.data].sort(
-    (a, b) => Number(b.is_featured) - Number(a.is_featured)
-  )
-
-  const items: CategoryProduct[] = ordered.slice(0, MAX_ITEMS).map((product) => {
-    const discountPercent = product.discount_percent ?? 0
-    return {
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      image: product.images?.[0] ?? null,
-      price: applyDiscount(product.base_price, discountPercent),
-      originalPrice: product.base_price,
-      discountPercent,
-    }
-  })
-
   return NextResponse.json(
-    { data: items, error: null },
-    { headers: { "Cache-Control": "no-store" } }
+    { data: result.data, error: null },
+    {
+      headers: {
+        // Catálogo público sin datos por usuario: se puede servir desde el CDN.
+        // Antes iba con `no-store`, así que las 19 llamadas del menú pegaban a
+        // Supabase en cada visita.
+        "Cache-Control":
+          "public, s-maxage=300, stale-while-revalidate=3600",
+      },
+    }
   )
 }

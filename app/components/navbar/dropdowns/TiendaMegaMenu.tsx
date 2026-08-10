@@ -5,6 +5,7 @@ import Link from "next/link"
 import type { TiendaCategory } from "../menuData"
 import { categorySlugsOf } from "../menuData"
 import SmoothImage from "@/app/components/shared/SmoothImage"
+import { canPrefetchMegaMenu } from "./prefetchGate"
 
 type CategoryProduct = {
   id: string
@@ -115,6 +116,9 @@ export default function TiendaMegaMenu({
   // showcase listo, sin lag de red.
   useEffect(() => {
     if (prefetchStartedRef.current) return
+    // Solo donde el megamenú se puede abrir. En móvil esto disparaba 19
+    // llamadas a /api/products/by-category + ~76 imágenes de tiles invisibles.
+    if (!canPrefetchMegaMenu()) return
     prefetchStartedRef.current = true
 
     const targets = categories

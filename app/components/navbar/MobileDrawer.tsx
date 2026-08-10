@@ -157,6 +157,10 @@ export default function MobileDrawer({
 
   useEffect(() => {
     if (serviciosMenuCategories !== null) return
+    // Al abrir el cajón, no al montar: es la única forma de llegar a Servicios
+    // en móvil, y en cada carga de página era una petición que nadie usaba.
+    // Llega de sobra mientras el usuario sigue en la raíz del menú.
+    if (!isOpen) return
     void fetch("/api/navbar/servicios-menu")
       .then((r) => (r.ok ? r.json() : { data: [] }))
       .then((json) => {
@@ -177,7 +181,7 @@ export default function MobileDrawer({
         setServiciosMenuCategories([])
         setServicioTiles([])
       })
-  }, [serviciosMenuCategories])
+  }, [serviciosMenuCategories, isOpen])
 
   useEffect(() => {
     if (pendingIndex === null) return

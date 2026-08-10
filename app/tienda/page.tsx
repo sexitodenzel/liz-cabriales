@@ -95,7 +95,20 @@ export default async function StorePage({
     allBrandsFullResult.error || !allBrandsFullResult.data
       ? []
       : allBrandsFullResult.data
-  const products = productsResult.data as ProductWithCategory[]
+  // La grilla es un componente cliente, así que cada campo del catálogo viaja
+  // serializado en la respuesta. Las descripciones y las fechas solo las usa la
+  // página de producto: mandarlas aquí eran ~220 KB extra por visita, con 940
+  // productos. Se vacían en vez de cambiar el tipo para no tocar ProductCard.
+  const products = (productsResult.data as ProductWithCategory[]).map(
+    (product) => ({
+      ...product,
+      description: null,
+      long_description: null,
+      application_text: null,
+      created_at: null,
+      updated_at: null,
+    })
+  )
 
   const today = new Date().toISOString().split("T")[0] ?? ""
   const upcomingCourses = (coursesResult.data ?? [])

@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr"
-import { NextResponse, type NextRequest } from "next/server"
+import { after, NextResponse, type NextRequest } from "next/server"
 
 import {
   getUserLastActivityAt,
@@ -101,8 +101,16 @@ export async function proxy(request: NextRequest) {
     return redirectResponse
   }
 
-  // Actividad válida: renovar marca y continuar.
-  void touchUserLastActivity(user.id)
+  // Actividad válida: renovar marca y continuar. `after` mantiene viva la
+  // escritura después de responder; con `void` la función podía congelarse
+  // antes de que llegara el UPDATE y la marca se quedaba atrás.
+  // Si `after` no estuviera disponible en este contexto, degradar a `void`
+  // antes que tumbar el acceso al panel.
+  try {
+    after(() => touchUserLastActivity(user.id))
+  } catch {
+    void touchUserLastActivity(user.id)
+  }
 
   // Recepcionista solo puede entrar a la agenda de citas.
   if (role === "receptionist" && !pathname.startsWith("/admin/appointments")) {

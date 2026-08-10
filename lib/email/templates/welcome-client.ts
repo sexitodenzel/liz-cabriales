@@ -11,6 +11,13 @@ export type WelcomeClientData = {
   firstName: string
   email: string
   appUrl: string
+  /**
+   * `true` (default) para las cuentas que crea el admin: llevan una contraseña
+   * temporal al azar y la persona la estrena por "Olvidé mi contraseña".
+   * `false` para quien se registró solo en `/registrar`: esa persona ya eligió
+   * su contraseña y mandarla a recuperarla la confundiría.
+   */
+  needsPasswordSetup?: boolean
 }
 
 export function buildWelcomeClientHtml(data: WelcomeClientData): string {
@@ -24,11 +31,19 @@ export function buildWelcomeClientHtml(data: WelcomeClientData): string {
       Tu cuenta en Academia Liz Cabriales ya está lista.
     </p>
 
-    <p style="margin: 0 0 24px; font-size: 14px; color: #555; line-height: 1.7;">
+    ${
+      data.needsPasswordSetup === false
+        ? `<p style="margin: 0 0 24px; font-size: 14px; color: #555; line-height: 1.7;">
+      Entra cuando quieras con este correo:
+      <a href="mailto:${data.email}" style="color: ${BRAND_GOLD}; font-weight: 600; text-decoration: none;">${data.email}</a>
+      y la contraseña que elegiste.
+    </p>`
+        : `<p style="margin: 0 0 24px; font-size: 14px; color: #555; line-height: 1.7;">
       Para establecer tu contraseña, entra a nuestro sitio y usa la opción
       <strong>“Olvidé mi contraseña”</strong> con este correo:
       <a href="mailto:${data.email}" style="color: ${BRAND_GOLD}; font-weight: 600; text-decoration: none;">${data.email}</a>.
-    </p>
+    </p>`
+    }
 
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px;">
       <tr>

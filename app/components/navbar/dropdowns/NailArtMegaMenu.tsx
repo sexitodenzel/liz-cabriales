@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import SmoothImage from "@/app/components/shared/SmoothImage"
+import { canPrefetchMegaMenu } from "./prefetchGate"
 
 type PreviewPost = {
   id: string
@@ -40,6 +41,8 @@ export default function NailArtMegaMenu({
   // el primer hover, sin lag de red. Las imágenes se calientan al recibirlas.
   useEffect(() => {
     if (loaded) return
+    // Solo en desktop: el MobileDrawer pide estos diseños al entrar a Nail Art.
+    if (!canPrefetchMegaMenu()) return
     let cancelled = false
     const run = () => {
       void fetch("/api/nail-art/list?sort=likes&limit=6")

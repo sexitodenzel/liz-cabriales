@@ -6,6 +6,7 @@ import Link from "next/link"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 
 import type { TiendaCategory } from "../menuData"
+import { canPrefetchMegaMenu } from "./prefetchGate"
 
 type ServiciosMegaMenuProps = {
   isOpen: boolean
@@ -32,6 +33,9 @@ export default function ServiciosMegaMenu({
   // vuelve a pedir a la red cada vez que se abre (que era la causa del skeleton
   // en cada hover). Mismo patrón que AcademiaMegaMenu.
   useEffect(() => {
+    // Solo en desktop: en móvil el megamenú está oculto y el MobileDrawer trae
+    // estas categorías al abrirse, así que aquí era una petición duplicada.
+    if (!canPrefetchMegaMenu()) return
     let isMounted = true
     void fetch("/api/navbar/servicios-menu")
       .then((res) => (res.ok ? res.json() : null))

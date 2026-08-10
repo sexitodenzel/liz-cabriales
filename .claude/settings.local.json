@@ -118,7 +118,8 @@
       "PowerShell(Remove-Item \"app\\\\sobre-liz\\\\components\\\\TestimonialsCarousel.tsx\" -Confirm:$false)",
       "PowerShell(npx tsc --noEmit; if\\($?\\){ $b=\\(Invoke-WebRequest -Uri \"http://localhost:3000/sobre-liz\" -UseBasicParsing -TimeoutSec 90\\).RawContentStream.ToArray\\(\\); $h=[System.Text.Encoding]::UTF8.GetString\\($b\\); $fakes=@\\('Mariana Reyes','Gabriela Soto','Daniela Ortiz','Karen Villa','unsplash'\\); $left=$fakes | Where-Object { $h.Contains\\($_\\) }; if\\($left\\){\"AÚN PRESENTES: $\\($left -join ', '\\)\"}else{\"testimonios falsos fuera; reales: \"+\\([regex]::Matches\\($h,'recomienda|Vianey|Fernanda'\\).Count\\)+\" refs\"} })",
       "PowerShell(git diff --stat HEAD | Select-Object -Last 5; git status --short | Where-Object {$_ -match '^\\\\?\\\\?|^ D| D '})",
-      "mcp__claude_ai_Google_Drive__search_files"
+      "mcp__claude_ai_Google_Drive__search_files",
+      "PowerShell(npx tsc --noEmit -p tsconfig.json)"
     ]
   }
 }

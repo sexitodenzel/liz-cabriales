@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
@@ -60,6 +60,10 @@ export default function LoginPage() {
 
   const [checking, setChecking] = useState(false)
   const [signingIn, setSigningIn] = useState(false)
+  /** Clic dado mientras Turnstile todavía resolvía: se reenvía al llegar el token. */
+  const [awaitingCaptcha, setAwaitingCaptcha] = useState(false)
+  /** Cloudflare pidió interacción humana: el token ya no tiene tiempo límite. */
+  const [captchaInteractive, setCaptchaInteractive] = useState(false)
 
   const redirectParam = searchParams.get("redirect") ?? searchParams.get("next")
   const safeRedirect =
@@ -82,6 +86,7 @@ export default function LoginPage() {
 
   function resetTurnstile() {
     setTurnstileToken(null)
+    setAwaitingCaptcha(false)
     turnstileRef.current?.reset()
   }
 
@@ -90,17 +95,18 @@ export default function LoginPage() {
     return turnstileRef.current?.getToken() ?? turnstileToken
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function runSubmit() {
     setServerError(null)
 
     if (step === "email") {
       if (!email.trim()) {
+        setAwaitingCaptcha(false)
         setEmailError("Información necesaria")
         return
       }
       const parsed = authEmailSchema.safeParse(email)
       if (!parsed.success) {
+        setAwaitingCaptcha(false)
         setEmailError(
           "Indique un correo electrónico válido. Ejemplo: nombreapellidos@dominio.com"
         )
@@ -108,11 +114,12 @@ export default function LoginPage() {
       }
       const emailCaptcha = readTurnstileToken()
       if (!emailCaptcha) {
-        setServerError(
-          "Espera un momento a que termine la verificación de seguridad e intenta de nuevo."
-        )
+        // Turnstile sigue resolviendo: deja el envío en cola en vez de perder
+        // el clic. El efecto de abajo lo reenvía al llegar el token.
+        setAwaitingCaptcha(true)
         return
       }
+      setAwaitingCaptcha(false)
       setEmailError(null)
       setChecking(true)
       try {
@@ -150,17 +157,17 @@ export default function LoginPage() {
     const credResult = loginCredentialsSchema.safeParse({ email, password })
     if (!credResult.success) {
       const issue = credResult.error.issues[0]
+      setAwaitingCaptcha(false)
       if (issue?.path[0] === "password") setPasswordError("Información necesaria")
       else setEmailError("Información necesaria")
       return
     }
     const loginCaptcha = readTurnstileToken()
     if (!loginCaptcha) {
-      setServerError(
-        "Espera un momento a que termine la verificación de seguridad e intenta de nuevo."
-      )
+      setAwaitingCaptcha(true)
       return
     }
+    setAwaitingCaptcha(false)
     setPasswordError(null)
     setSigningIn(true)
     try {
@@ -218,9 +225,45 @@ export default function LoginPage() {
     }
   }
 
+  // El efecto de abajo necesita la versión más reciente de runSubmit (lee step,
+  // email y password del render actual), no la que existía al montar.
+  const submitRef = useRef(runSubmit)
+  submitRef.current = runSubmit
+
+  useEffect(() => {
+    if (!awaitingCaptcha) return
+
+    if (turnstileToken) {
+      void submitRef.current()
+      return
+    }
+
+    // Reto interactivo: está esperando el clic del usuario, puede tardar lo que
+    // sea. Cortarlo sería abortar un login legítimo.
+    if (captchaInteractive) return
+
+    // Turnstile caído o bloqueado (extensión, red corporativa): el token no va
+    // a llegar nunca. Cortar en vez de dejar el botón girando en silencio.
+    const timeout = window.setTimeout(() => {
+      setAwaitingCaptcha(false)
+      setServerError(
+        "No se pudo completar la verificación de seguridad. Recarga la página e intenta de nuevo."
+      )
+    }, 15_000)
+    return () => window.clearTimeout(timeout)
+  }, [awaitingCaptcha, turnstileToken, captchaInteractive])
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    void runSubmit()
+  }
+
   const loading = checking || signingIn
-  const captchaReady = Boolean(readTurnstileToken() || turnstileToken)
-  const canSubmit = !loading && captchaReady
+  // El botón ya no se bloquea por el captcha: si el token todavía no llega, el
+  // clic se encola y sale solo. Antes quedaba deshabilitado y había que darle
+  // CONTINUAR una segunda vez.
+  const busy = loading || awaitingCaptcha
+  const canSubmit = !busy
 
   return (
     <div className="w-full max-w-3xl">
@@ -283,8 +326,12 @@ export default function LoginPage() {
             ref={turnstileRef}
             onToken={(token) => {
               setTurnstileToken(token)
-              if (token) setServerError(null)
+              if (token) {
+                setCaptchaInteractive(false)
+                setServerError(null)
+              }
             }}
+            onInteractive={() => setCaptchaInteractive(true)}
             className="pt-1"
           />
 
@@ -316,7 +363,7 @@ export default function LoginPage() {
               disabled={!canSubmit}
               className="order-1 ml-auto inline-flex h-12 w-full items-center justify-center gap-2.5 bg-neutral-900 px-12 text-[13px] tracking-[0.2em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2 sm:w-auto"
             >
-              {loading || !captchaReady ? (
+              {busy ? (
                 <svg
                   className="h-4 w-4 animate-spin"
                   viewBox="0 0 24 24"
@@ -328,12 +375,12 @@ export default function LoginPage() {
                 </svg>
               ) : null}
               <span>
-                {loading
-                  ? step === "email"
-                    ? "VERIFICANDO…"
-                    : "ENTRANDO…"
-                  : !captchaReady
-                    ? "VERIFICANDO…"
+                {awaitingCaptcha
+                  ? "VERIFICANDO…"
+                  : loading
+                    ? step === "email"
+                      ? "VERIFICANDO…"
+                      : "ENTRANDO…"
                     : "CONTINUAR"}
               </span>
             </button>

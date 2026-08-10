@@ -6,6 +6,7 @@ import Link from "next/link"
 import type { TiendaCategory } from "../menuData"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import type { CourseLevel } from "@/types"
+import { canPrefetchMegaMenu } from "./prefetchGate"
 
 type AcademiaCourse = {
   id: string
@@ -85,6 +86,9 @@ export default function AcademiaMegaMenu({
   // siempre montado, así que traer los datos y calentar las portadas aquí hace
   // que los flyers ya estén en caché del navegador antes del primer hover.
   useEffect(() => {
+    // Solo en desktop: en móvil el megamenú está oculto y el MobileDrawer pide
+    // estos cursos por su cuenta cuando abres la sección Academia.
+    if (!canPrefetchMegaMenu()) return
     let cancelled = false
     void fetch("/api/navbar/academia-courses")
       .then((res) => (res.ok ? res.json() : null))

@@ -5,6 +5,7 @@ import {
   isAbrasivityValue,
   type AbrasivityValue,
 } from "@/lib/constants/abrasivity"
+import { applyDiscount } from "@/lib/tienda/discount"
 
 import type {
   Category,
@@ -719,6 +720,76 @@ export const getProductBySlugCached = cachedResult(
   },
   ["product-slug"],
   { revalidate: 120, tags: ["products"] }
+)
+
+/* ── Showcase del megamenú por categoría ─────────────────────────────────── */
+
+export type CategoryShowcaseProduct = {
+  id: string
+  name: string
+  slug: string
+  image: string | null
+  price: number
+  originalPrice: number
+  discountPercent: number
+}
+
+const CATEGORY_SHOWCASE_LIMIT = 4
+
+type ShowcaseRow = {
+  id: string
+  name: string
+  slug: string
+  images: string[] | null
+  base_price: number | string
+  discount_percent: number | string | null
+}
+
+/**
+ * Los 4 productos del panel derecho del megamenú. Antes esto vivía en
+ * `/api/products/by-category` como `force-dynamic` + `no-store`: cada visita
+ * abría 19 consultas a Supabase (una por categoría del menú) que se medían
+ * entre 0.6s y 31s. Aquí se cachea por grupo de categorías y se pide solo lo
+ * que el tile necesita — sin variantes ni descripciones.
+ */
+export const getCategoryShowcaseCached = cachedResult(
+  async (categorySlugs: string[]): Promise<CategoryShowcaseProduct[]> => {
+    const catRows = await retryRows<{ id: string }>(() =>
+      db().from("categories").select("id").in("slug", categorySlugs)
+    )
+    const categoryIds = (catRows ?? []).map((row) => row.id)
+    if (categoryIds.length === 0) return []
+
+    // Destacados primero y luego alfabético: mismo orden que veía el menú
+    // cuando la ruta traía la categoría completa y la recortaba en memoria.
+    const rows = await retryRows<ShowcaseRow>(() =>
+      db()
+        .from("products")
+        .select("id, name, slug, images, base_price, discount_percent")
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .in("category_id", categoryIds)
+        .order("is_featured", { ascending: false })
+        .order("name", { ascending: true })
+        .limit(CATEGORY_SHOWCASE_LIMIT)
+    )
+
+    return (rows ?? []).map((row) => {
+      const basePrice = Number(row.base_price)
+      const discountPercent = Number(row.discount_percent ?? 0)
+      return {
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        image: row.images?.[0] ?? null,
+        price: applyDiscount(basePrice, discountPercent),
+        originalPrice: basePrice,
+        discountPercent,
+      }
+    })
+  },
+  ["category-showcase"],
+  { revalidate: 300, tags: ["products"] }
 )
 
 /* ── Related products ────────────────────────────────────────────────────── */

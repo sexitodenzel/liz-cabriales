@@ -22,6 +22,7 @@ type TurnstileApi = {
       callback?: (token: string) => void
       "expired-callback"?: () => void
       "error-callback"?: () => void
+      "before-interactive-callback"?: () => void
     }
   ) => string
   reset: (widgetId?: string) => void
@@ -44,6 +45,11 @@ type Props = {
   className?: string
   /** Tema del widget; por defecto light para fondos claros del sitio. */
   theme?: "light" | "dark" | "auto"
+  /**
+   * Cloudflare pasó a reto interactivo: ahora espera un clic humano, así que
+   * el token puede tardar lo que sea. Quien tenga un timeout debe cancelarlo.
+   */
+  onInteractive?: () => void
 }
 
 function loadTurnstileScript(): Promise<TurnstileApi> {
@@ -92,16 +98,24 @@ function loadTurnstileScript(): Promise<TurnstileApi> {
  * El token es de un solo uso: tras enviarlo al backend llama a `ref.reset()`.
  */
 const TurnstileWidget = forwardRef<TurnstileWidgetHandle, Props>(
-  function TurnstileWidget({ onToken, className = "", theme = "light" }, ref) {
+  function TurnstileWidget(
+    { onToken, className = "", theme = "light", onInteractive },
+    ref
+  ) {
     const containerRef = useRef<HTMLDivElement>(null)
     const widgetIdRef = useRef<string | null>(null)
     const tokenRef = useRef<string | null>(null)
     const onTokenRef = useRef(onToken)
+    const onInteractiveRef = useRef(onInteractive)
     const [loadError, setLoadError] = useState<string | null>(null)
 
     useEffect(() => {
       onTokenRef.current = onToken
     }, [onToken])
+
+    useEffect(() => {
+      onInteractiveRef.current = onInteractive
+    }, [onInteractive])
 
     useImperativeHandle(ref, () => ({
       reset() {
@@ -152,6 +166,9 @@ const TurnstileWidget = forwardRef<TurnstileWidgetHandle, Props>(
             "error-callback": () => {
               tokenRef.current = null
               onTokenRef.current(null)
+            },
+            "before-interactive-callback": () => {
+              onInteractiveRef.current?.()
             },
           })
           setLoadError(null)
