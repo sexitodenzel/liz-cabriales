@@ -111,6 +111,14 @@ fuera; son secretos de servidor):
   Trampa de columnas: el segundo cobro va contra `shipping_amount_final`, que es
   lo que escribe la cotización del panel. `shipping_cost` vale 0 en este flujo —
   compararlo contra esa columna hace que la guarda acepte cualquier importe.
+- ~~Correos que se perdían sin dejar rastro.~~ **ARREGLADO 2026-08-11.**
+  En Vercel la instancia se congela al devolver la respuesta, así que una
+  promesa lanzada sin `await` se muere a medias: el correo no sale y el
+  `.catch()` ni siquiera alcanza a loguear. Se detectó en la prueba E2E — la
+  cotización de envío se guardaba, el link se generaba, y al cliente nunca le
+  llegaba el correo para pagarlo; sin rastro en Resend ni en los logs.
+  Corregido en 9 sitios. **Regla para el futuro: en una ruta de API nunca
+  lanzar un envío sin `await`** (o `Promise.allSettled` si son varios).
 - Doble pago de la misma orden no se detecta ni alerta.
 - `deductStockForOrder` lee y escribe sin transacción (poco probable en este volumen).
 - `/api/payments/course` no falla cerrado si el insert en `payments` falla.

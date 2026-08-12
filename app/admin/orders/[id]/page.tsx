@@ -405,8 +405,17 @@ export default function AdminOrderDetailPage() {
       <p className="text-sm text-neutral-700">Retiro en local</p>
     )
 
+  // Se puede cotizar mientras el envío no esté pagado, no solo la primera vez.
+  // Antes el formulario desaparecía en cuanto se cotizaba una vez: un error de
+  // dedo en el importe, la paquetería o la guía dejaba la orden atorada y solo
+  // se podía arreglar tocando la base de datos a mano.
+  const shippingQuotePending =
+    order.status === "awaiting_shipping_payment" &&
+    order.shipping_payment_status === "pending"
+
   const showShippingQuoteForm =
-    order.delivery_type === "shipping" && order.status === "paid"
+    order.delivery_type === "shipping" &&
+    (order.status === "paid" || shippingQuotePending)
 
   // Solo tiene sentido reconciliar una orden que no se acreditó: pendiente, o
   // cancelada por el cron de limpieza aunque el cliente sí haya pagado.
@@ -547,6 +556,21 @@ export default function AdminOrderDetailPage() {
 
               {showShippingQuoteForm && (
                 <>
+                  {shippingQuotePending ? (
+                    <div className="mt-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm">
+                      <p className="font-semibold text-amber-900">
+                        Esta orden ya tiene una cotización de envío
+                      </p>
+                      <p className="mt-1 text-amber-800">
+                        Si vuelves a cotizar, se genera un link nuevo y se le
+                        avisa otra vez al cliente. Ojo: el{" "}
+                        <strong>link anterior sigue funcionando</strong> en
+                        MercadoPago. Si el cliente ya lo tenía y paga ese, el
+                        pago se rechaza por no cubrir el nuevo importe — avísale
+                        que use el correo más reciente.
+                      </p>
+                    </div>
+                  ) : null}
                   <p className="mt-3 text-sm text-neutral-600">
                     Ingresa el costo del envío. Se generará un link de pago de MercadoPago
                     y se le avisará al cliente por <strong>WhatsApp y correo</strong> para que

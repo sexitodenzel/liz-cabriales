@@ -7,7 +7,6 @@ import {
   createUgcSignedUrl,
   extractUgcRelativePath,
   isUgcCover,
-  SIGNED_URL_TTL_SECONDS,
 } from "@/lib/supabase/nail-art-storage"
 
 const supabaseAdmin = createServiceClient(
@@ -16,6 +15,28 @@ const supabaseAdmin = createServiceClient(
 )
 
 type RouteContext = { params: Promise<{ postId: string }> }
+
+/** Ventana de caché del redirect. Corta a propósito: si moderación desactiva un
+ *  post, deja de servirse en ese plazo. El signed URL vive 1 h, así que incluso
+ *  un redirect servido al final de la ventana `stale` llega con margen de sobra. */
+const COVER_CACHE_SECONDS = 300
+const COVER_STALE_SECONDS = 600
+
+/**
+ * Antes todas las covers salían con `private`, así que el CDN no guardaba nada:
+ * cada miniatura, para cada visitante, pagaba consulta a Supabase + firma antes
+ * de empezar a bajar la imagen (medido en producción: 0.6–1.6 s solo el
+ * redirect, por 6 miniaturas). Las aprobadas son públicas y pueden compartirse
+ * en el CDN; las pendientes dependen de quién las pide y siguen sin cachearse.
+ */
+function applyCoverCache(res: NextResponse, isApprovedPublic: boolean): void {
+  res.headers.set(
+    "Cache-Control",
+    isApprovedPublic
+      ? `public, s-maxage=${COVER_CACHE_SECONDS}, stale-while-revalidate=${COVER_STALE_SECONDS}`
+      : "private, no-store"
+  )
+}
 
 /**
  * Sirve la cover de un post Nail Art sin exponer el path del bucket.
@@ -76,7 +97,9 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     // Editorial / legacy no-UGC: URL pública absoluta ajena al bucket UGC
     if (!isUgcCover(cover)) {
       if (cover.startsWith("https://") || cover.startsWith("http://")) {
-        return NextResponse.redirect(cover, 302)
+        const res = NextResponse.redirect(cover, 302)
+        applyCoverCache(res, isApprovedPublic)
+        return res
       }
       return NextResponse.json({ error: "Imagen no disponible" }, { status: 404 })
     }
@@ -92,10 +115,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     }
 
     const res = NextResponse.redirect(signed.signedUrl, 302)
-    res.headers.set(
-      "Cache-Control",
-      `private, max-age=${Math.min(300, SIGNED_URL_TTL_SECONDS)}, stale-while-revalidate=60`
-    )
+    applyCoverCache(res, isApprovedPublic)
     return res
   } catch {
     return NextResponse.json({ error: "Error interno" }, { status: 500 })
