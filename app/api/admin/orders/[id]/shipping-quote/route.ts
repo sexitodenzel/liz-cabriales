@@ -67,7 +67,9 @@ export async function POST(
     // Verificar que la orden existe, está en estado 'paid' y es de tipo 'shipping'
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select("id, status, delivery_type, user_id, users ( email, first_name, last_name )")
+      .select(
+        "id, status, delivery_type, user_id, shipping_payment_status, users ( email, first_name, last_name )"
+      )
       .eq("id", orderId)
       .maybeSingle()
 
@@ -83,15 +85,28 @@ export async function POST(
       status: string
       delivery_type: string
       user_id: string
+      shipping_payment_status: string | null
       users: { email: string; first_name: string; last_name: string } | Array<{ email: string; first_name: string; last_name: string }> | null
     }
 
-    if (o.status !== "paid") {
+    // Se cotiza la primera vez con la orden en 'paid', y se puede volver a
+    // cotizar mientras el envío siga sin pagarse. Antes solo se permitía 'paid',
+    // así que un error de dedo en el importe o la guía dejaba la orden atorada:
+    // no había forma de corregir sin tocar la base de datos a mano.
+    const puedeCotizar =
+      o.status === "paid" ||
+      (o.status === "awaiting_shipping_payment" &&
+        o.shipping_payment_status === "pending")
+
+    if (!puedeCotizar) {
+      const yaPagado = o.shipping_payment_status === "paid"
       return NextResponse.json(
         {
           data: null,
           error: {
-            message: `La orden debe estar en estado 'paid' para registrar el envío (estado actual: ${o.status})`,
+            message: yaPagado
+              ? "El envío de esta orden ya está pagado; no se puede volver a cotizar."
+              : `No se puede cotizar el envío con la orden en estado '${o.status}'.`,
             code: "INVALID_STATUS",
           },
         },

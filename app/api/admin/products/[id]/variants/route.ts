@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { revalidateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import {
   requireAdmin,
@@ -76,6 +77,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         { status: mapCode(result.error.code) }
       )
     }
+
+    // Las variantes viajan dentro del catálogo cacheado (precio y stock salen
+    // de aquí), así que crear una sin tirar la caché dejaba la tienda mostrando
+    // datos viejos hasta que venciera sola.
+    revalidateTag("products", "max")
 
     return NextResponse.json({ data: result.data, error: null }, { status: 201 })
   } catch {

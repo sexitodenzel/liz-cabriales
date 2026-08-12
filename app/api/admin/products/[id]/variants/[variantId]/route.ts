@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { revalidateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import {
   requireAdmin,
@@ -49,6 +50,10 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       )
     }
 
+    // Precio y stock del catálogo salen de la variante: sin tirar la caché, la
+    // tienda seguía mostrando el valor viejo hasta que venciera sola.
+    revalidateTag("products", "max")
+
     return NextResponse.json({ data: result.data, error: null })
   } catch {
     return NextResponse.json(
@@ -79,6 +84,8 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
         { status: mapCode(result.error.code) }
       )
     }
+
+    revalidateTag("products", "max")
 
     return NextResponse.json({ data: null, error: null })
   } catch {

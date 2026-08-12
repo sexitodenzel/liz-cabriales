@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { revalidateCatalogTags } from "@/lib/cache/revalidate-catalog"
 import {
   createAdminSubcategory,
   getAdminSubcategoriesWithProductCount,
@@ -86,6 +87,8 @@ export async function POST(request: Request) {
         { status: mapStatus(result.error.code) }
       )
     }
+
+    revalidateCatalogTags()
 
     return NextResponse.json(
       { data: result.data, error: null },

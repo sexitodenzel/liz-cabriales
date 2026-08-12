@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { revalidateCatalogTags } from "@/lib/cache/revalidate-catalog"
 import {
   deleteAdminSubcategory,
   requireAdmin,
@@ -54,6 +55,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     }
 
     const result = await updateAdminSubcategory(id, parsed.data)
+    if (!result.error) revalidateCatalogTags()
     return NextResponse.json(
       { data: result.data, error: result.error },
       { status: mapStatus(result.error?.code) }
@@ -83,6 +85,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
     }
 
     const result = await deleteAdminSubcategory(id)
+    if (!result.error) revalidateCatalogTags()
     return NextResponse.json(
       { data: result.data, error: result.error },
       { status: mapStatus(result.error?.code) }
