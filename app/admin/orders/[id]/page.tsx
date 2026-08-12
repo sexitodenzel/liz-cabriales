@@ -71,6 +71,8 @@ function shippingPaymentStatusLabel(s: string): string {
 
 type ShippingQuoteFormProps = {
   orderId: string
+  /** Nombre del cliente, para que la confirmación diga a quién se le cobra. */
+  customerName?: string | null
   onSuccess: (quote: {
     paymentUrl: string
     shipping_amount_final: number
@@ -79,15 +81,36 @@ type ShippingQuoteFormProps = {
   }) => void
 }
 
-function ShippingQuoteForm({ orderId, onSuccess }: ShippingQuoteFormProps) {
+/**
+ * Umbral para marcar un importe como sospechoso.
+ *
+ * El error realista no es equivocarse por poco: es el cero de más ($1,500 en vez
+ * de $150). Por eso el aviso es un tope absoluto y no una comparación contra el
+ * total del pedido — cobrar $200 de envío por un producto de $10 es normal, y
+ * usar esa proporción llenaría la pantalla de alertas falsas hasta que nadie las
+ * lea.
+ */
+const SHIPPING_AMOUNT_WARN_THRESHOLD = 1000
+
+function ShippingQuoteForm({
+  orderId,
+  customerName,
+  onSuccess,
+}: ShippingQuoteFormProps) {
   const [amount, setAmount] = useState("")
   const [carrier, setCarrier] = useState("")
   const [trackingNumber, setTrackingNumber] = useState("")
   const [guideNotes, setGuideNotes] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  /**
+   * Importe ya validado, esperando confirmación. El cobro no se manda hasta que
+   * alguien lo lea en grande: una vez enviado, el link queda pagable y no se
+   * puede desactivar.
+   */
+  const [pendingAmount, setPendingAmount] = useState<number | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleReview(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
@@ -96,6 +119,14 @@ function ShippingQuoteForm({ orderId, onSuccess }: ShippingQuoteFormProps) {
       setError("Ingresa un monto de envío válido.")
       return
     }
+
+    setPendingAmount(parsedAmount)
+  }
+
+  async function handleConfirm() {
+    const parsedAmount = pendingAmount
+    if (parsedAmount === null) return
+    setError(null)
 
     setSubmitting(true)
     try {
@@ -135,8 +166,85 @@ function ShippingQuoteForm({ orderId, onSuccess }: ShippingQuoteFormProps) {
     }
   }
 
+  if (pendingAmount !== null) {
+    const looksHigh = pendingAmount >= SHIPPING_AMOUNT_WARN_THRESHOLD
+    return (
+      <div className="mt-4 rounded-xl border border-[#ececec] bg-white p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a9a9a]">
+          Revisa antes de enviar
+        </p>
+
+        <p className="mt-3 text-3xl font-semibold tracking-tight text-[#1a1a1a]">
+          ${pendingAmount.toFixed(2)}{" "}
+          <span className="text-base font-normal text-[#6b6b6b]">MXN</span>
+        </p>
+        <p className="mt-1 text-sm text-[#6b6b6b]">
+          Es lo que se le va a cobrar de envío
+          {customerName ? ` a ${customerName}` : ""}.
+        </p>
+
+        {carrier || trackingNumber ? (
+          <div className="mt-4 space-y-1 border-t border-[#ececec] pt-3 text-sm text-[#6b6b6b]">
+            {carrier ? (
+              <p>
+                Paquetería: <strong className="text-[#1a1a1a]">{carrier}</strong>
+              </p>
+            ) : null}
+            {trackingNumber ? (
+              <p>
+                Guía: <strong className="text-[#1a1a1a]">{trackingNumber}</strong>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {looksHigh ? (
+          <div className="mt-4 rounded-lg border-2 border-red-300 bg-red-50 p-3 text-sm">
+            <p className="font-semibold text-red-800">
+              Ese monto es más alto de lo normal para un envío
+            </p>
+            <p className="mt-1 text-red-700">
+              Revisa que no se te haya ido un cero de más. ¿Querías poner $
+              {(pendingAmount / 10).toFixed(2)}?
+            </p>
+          </div>
+        ) : null}
+
+        <p className="mt-4 text-xs text-[#9a9a9a]">
+          En cuanto lo envíes, el link de pago queda activo y no se puede
+          desactivar. Si el monto está mal, tendrás que cotizar de nuevo y
+          avisarle al cliente que ignore el correo anterior.
+        </p>
+
+        {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={submitting}
+            className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#a8893a] disabled:opacity-60"
+          >
+            {submitting ? "Enviando cobro…" : "Sí, enviar el cobro"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPendingAmount(null)
+              setError(null)
+            }}
+            disabled={submitting}
+            className="rounded-lg border border-[#ececec] px-5 py-2.5 text-sm font-medium text-[#1a1a1a] transition-colors hover:bg-[#f5f5f5] disabled:opacity-60"
+          >
+            Corregir
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+    <form onSubmit={handleReview} className="mt-4 space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-xs font-medium text-[#6b6b6b]">
@@ -203,7 +311,7 @@ function ShippingQuoteForm({ orderId, onSuccess }: ShippingQuoteFormProps) {
         disabled={submitting}
         className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
       >
-        {submitting ? "Enviando cobro…" : "Enviar cobro de envío al cliente"}
+        Revisar cobro de envío
       </button>
     </form>
   )
@@ -599,6 +707,7 @@ export default function AdminOrderDetailPage() {
                   ) : (
                     <ShippingQuoteForm
                       orderId={id}
+                      customerName={clientName || null}
                       onSuccess={(quote) => {
                         setQuoteSuccess(quote.paymentUrl)
                         setOrder((prev) =>

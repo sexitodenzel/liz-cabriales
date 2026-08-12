@@ -1,0 +1,21 @@
+{
+  "ranAt": "2026-08-12T20:00:33.394Z",
+  "note": "Los originales siguen en el bucket. Para revertir, reponer la clave (URL vieja) donde quedó el valor (URL nueva).",
+  "bytesBefore": 1909912,
+  "bytesAfter": 732412,
+  "remap": {
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257534074-ydx9x3x0f1.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564818409-nl9ak4uc1b.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257532259-ih873rgazdg.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564819650-o194tall0u.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257532687-smthclfree.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564820522-gdwxl90ele.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257533278-746pyyex5r7.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564821263-915w0vu7g9.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257536076-o7fw5x3dkdr.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564822968-78h4y8x9wu.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257535283-lxyckh5aoar.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564823659-hurrrnb13m.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257537538-tca6dm4h11.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564824590-53idq3x140.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257537256-lqqhvpk4qxc.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564825104-j60dklscz7.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257528713-jnogz0mcmcd.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564826343-q030x01ju7.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785259946348-ykk3igd2oj.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564827380-gaf6fwomnw.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785257530846-ku0b54j9mna.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564828181-ya385c8uoz.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785259949057-bo9ty92bt4m.png": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564828978-me4proj3vc.webp",
+    "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1785259948052-j1vlhmlv0xm.jpg": "https://qlvslouwkiemsjkggdqq.supabase.co/storage/v1/object/public/images/blog/1786564829724-jhmcyjjmlp.webp"
+  }
+}
