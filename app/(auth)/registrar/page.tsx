@@ -380,18 +380,22 @@ export default function RegistrarPage() {
       return
     }
 
-    // Reto interactivo: está esperando el clic del usuario, puede tardar lo que
-    // sea. Cortarlo sería abortar un registro legítimo.
-    if (captchaInteractive) return
-
-    // Turnstile caído o bloqueado: el token no va a llegar. Cortar en vez de
-    // dejar el botón girando en silencio.
-    const timeout = window.setTimeout(() => {
-      setPendingAction(null)
-      setServerError(
-        "No se pudo completar la verificación de seguridad. Recarga la página e intenta de nuevo."
-      )
-    }, 15_000)
+    // Siempre hay red de seguridad. Salir de aquí sin armar timeout durante el
+    // reto interactivo dejaba el botón girando para siempre si el token después
+    // expiraba o fallaba (`onToken(null)` no baja `captchaInteractive`).
+    // Resolver el reto puede tardar, por eso el plazo largo; el corto es para
+    // cuando Turnstile ni siquiera pidió interacción.
+    const timeout = window.setTimeout(
+      () => {
+        setPendingAction(null)
+        setCaptchaInteractive(false)
+        turnstileRef.current?.reset()
+        setServerError(
+          "No se pudo completar la verificación de seguridad. Intenta de nuevo."
+        )
+      },
+      captchaInteractive ? 90_000 : 15_000
+    )
     return () => window.clearTimeout(timeout)
   }, [pendingAction, turnstileToken, captchaInteractive])
 
@@ -716,7 +720,20 @@ export default function RegistrarPage() {
             ref={turnstileRef}
             onToken={(token) => {
               setTurnstileToken(token)
-              if (token) setCaptchaInteractive(false)
+              if (token) {
+                setCaptchaInteractive(false)
+                return
+              }
+              // Token nulo = expiró o falló. Si había un envío en cola ese token
+              // ya no llega: se corta aquí en vez de esperar a que venza el
+              // plazo. Nuestro propio reset pasa por aquí con la cola vacía.
+              if (pendingAction) {
+                setPendingAction(null)
+                setCaptchaInteractive(false)
+                setServerError(
+                  "La verificación de seguridad expiró. Intenta de nuevo."
+                )
+              }
             }}
             onInteractive={() => setCaptchaInteractive(true)}
             className="flex justify-center pt-2"

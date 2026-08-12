@@ -253,7 +253,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           )
         }
 
-        sendAdminNewAppointmentEmail(appointmentId).catch((err) =>
+        await sendAdminNewAppointmentEmail(appointmentId).catch((err) =>
           console.error(
             `[webhook] Error enviando alerta admin para cita ${appointmentId}:`,
             err
@@ -277,7 +277,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           )
         }
 
-        sendAppointmentPaymentFailedEmail(appointmentId).catch((err) =>
+        await sendAppointmentPaymentFailedEmail(appointmentId).catch((err) =>
           console.error(
             `[webhook] Error enviando email pago fallido para cita ${appointmentId}:`,
             err
@@ -324,7 +324,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           )
         }
 
-        sendAdminNewCourseRegistrationEmail(registrationId).catch((err) =>
+        await sendAdminNewCourseRegistrationEmail(registrationId).catch((err) =>
           console.error(
             `[webhook] Error enviando alerta admin para inscripción ${registrationId}:`,
             err
@@ -347,7 +347,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           )
         }
 
-        sendCoursePaymentFailedEmail(registrationId).catch((err) =>
+        await sendCoursePaymentFailedEmail(registrationId).catch((err) =>
           console.error(
             `[webhook] Error enviando email pago fallido para inscripción ${registrationId}:`,
             err
@@ -417,18 +417,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           )
         }
 
-        sendShippingPaidAdminEmail(orderId).catch((err) =>
-          console.error(
-            `[webhook] Error enviando email de envío pagado (admin) para orden ${orderId}:`,
-            err
-          )
-        )
-        sendShippingPaidClientEmail(orderId).catch((err) =>
-          console.error(
-            `[webhook] Error enviando email de envío pagado (cliente) para orden ${orderId}:`,
-            err
-          )
-        )
+        await Promise.allSettled([
+          sendShippingPaidAdminEmail(orderId).catch((err) =>
+            console.error(
+              `[webhook] Error enviando email de envío pagado (admin) para orden ${orderId}:`,
+              err
+            )
+          ),
+          sendShippingPaidClientEmail(orderId).catch((err) =>
+            console.error(
+              `[webhook] Error enviando email de envío pagado (cliente) para orden ${orderId}:`,
+              err
+            )
+          ),
+        ])
       }
 
       return NextResponse.json({ received: true }, { status: 200 })

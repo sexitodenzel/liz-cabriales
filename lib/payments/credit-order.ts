@@ -133,7 +133,10 @@ export async function creditApprovedOrder(
     )
   }
 
-  sendAdminNewOrderEmail(orderId).catch((err) =>
+  // Con await. Hoy sobrevive de casualidad porque debajo hay otro await que
+  // mantiene viva la función; si alguien quita esa llamada, este correo dejaría
+  // de salir en silencio.
+  await sendAdminNewOrderEmail(orderId).catch((err) =>
     console.error(
       `${logPrefix} Error enviando alerta admin para orden ${orderId}:`,
       err

@@ -36,17 +36,38 @@ export async function sendShippingPaymentRequestEmail(
     .eq("id", orderId)
     .maybeSingle()
 
-  if (error || !data) return
+  // Estos tres cortes salían mudos: si alguno se cumplía, el correo no se
+  // mandaba y no quedaba rastro en ningún lado. Un fallo silencioso en el aviso
+  // de "págame el envío" significa un cliente que nunca paga y nadie se entera.
+  if (error || !data) {
+    console.error(
+      `[shipping-payment-request] No se pudo leer la orden ${orderId}:`,
+      error
+    )
+    return
+  }
 
   const raw = data as unknown as RawOrderRow
   const user = unwrap(raw.users)
-  if (!user?.email) return
+  if (!user?.email) {
+    console.error(
+      `[shipping-payment-request] La orden ${orderId} no tiene correo de cliente. Sin destinatario, no se envía.`
+    )
+    return
+  }
 
   const amount = raw.shipping_amount_final != null
     ? Number(raw.shipping_amount_final)
     : null
   const paymentUrl = raw.shipping_payment_url
-  if (!amount || !paymentUrl) return
+  if (!amount || !paymentUrl) {
+    console.error(
+      `[shipping-payment-request] Orden ${orderId} sin cotización utilizable ` +
+      `(shipping_amount_final=${String(raw.shipping_amount_final)}, ` +
+      `shipping_payment_url=${paymentUrl ? "presente" : "ausente"}). No se envía.`
+    )
+    return
+  }
 
   const recipientName = `${user.first_name} ${user.last_name}`.trim()
   const carrierLabel = raw.carrier ?? "nuestra paquetería"

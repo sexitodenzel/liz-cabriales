@@ -99,8 +99,10 @@ export async function sendAppointmentCancelledByClientEmail(
     )
   }
 
-  // Notificar al admin en fire-and-forget
-  sendAdminAppointmentCancelledEmail(appointmentId).catch((err) =>
+  // Con await: quien llama a esta función ya la espera, así que soltarla aquí
+  // solo movía el problema un nivel más abajo — la función terminaba, la
+  // instancia se congelaba y Liz nunca se enteraba de la cancelación.
+  await sendAdminAppointmentCancelledEmail(appointmentId).catch((err) =>
     console.error(
       `[email] Error enviando alerta admin por cancelación de cita ${appointmentId}:`,
       err

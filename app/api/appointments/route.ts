@@ -113,7 +113,9 @@ export async function POST(
       return errorResponse(result.error.message, status, result.error.code)
     }
 
-    sendAdminNewAppointmentEmail(result.data.appointment_id).catch((err) =>
+    // Con await: suelta, la promesa muere al responder y Liz no se entera de
+    // que le agendaron una cita.
+    await sendAdminNewAppointmentEmail(result.data.appointment_id).catch((err) =>
       console.error(
         `[api/appointments POST] Error enviando alerta admin para cita ${result.data!.appointment_id}:`,
         err

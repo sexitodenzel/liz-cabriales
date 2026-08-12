@@ -96,17 +96,20 @@ export default function ForgotPasswordPage() {
       return
     }
 
-    // Reto interactivo: espera el clic del usuario, puede tardar lo que sea.
-    if (captchaInteractive) return
-
-    // Turnstile caído o bloqueado (extensión, red corporativa): el token no va
-    // a llegar nunca. Cortar en vez de dejar el botón girando en silencio.
-    const timeout = window.setTimeout(() => {
-      setAwaitingCaptcha(false)
-      setError(
-        "No se pudo completar la verificación de seguridad. Recarga la página e intenta de nuevo."
-      )
-    }, 15_000)
+    // Siempre hay red de seguridad. Salir de aquí sin armar timeout durante el
+    // reto interactivo dejaba el botón girando para siempre si el token después
+    // expiraba o fallaba (`onToken(null)` no baja `captchaInteractive`).
+    const timeout = window.setTimeout(
+      () => {
+        setAwaitingCaptcha(false)
+        setCaptchaInteractive(false)
+        turnstileRef.current?.reset()
+        setError(
+          "No se pudo completar la verificación de seguridad. Intenta de nuevo."
+        )
+      },
+      captchaInteractive ? 90_000 : 15_000
+    )
     return () => window.clearTimeout(timeout)
   }, [awaitingCaptcha, turnstileToken, captchaInteractive])
 
@@ -153,7 +156,22 @@ export default function ForgotPasswordPage() {
 
           <TurnstileWidget
             ref={turnstileRef}
-            onToken={setTurnstileToken}
+            onToken={(token) => {
+              setTurnstileToken(token)
+              if (token) {
+                setCaptchaInteractive(false)
+                return
+              }
+              // Token nulo = expiró o falló; corta el envío en cola en vez de
+              // dejar el botón esperando a que venza el plazo.
+              if (awaitingCaptcha) {
+                setAwaitingCaptcha(false)
+                setCaptchaInteractive(false)
+                setError(
+                  "La verificación de seguridad expiró. Intenta de nuevo."
+                )
+              }
+            }}
             onInteractive={() => setCaptchaInteractive(true)}
             className="flex justify-center"
           />

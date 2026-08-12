@@ -79,21 +79,29 @@ export async function PATCH(request: Request, context: RouteContext) {
       )
     }
 
+    // Hay que esperar los avisos: en Vercel la instancia se congela al devolver
+    // la respuesta y una promesa suelta se muere sin llegar a enviarse ni a
+    // loguear el fallo. Aquí se perdían los correos de "tu pedido va en camino"
+    // y "fue entregado", que son los que el cliente sí espera.
     const newStatus = parseResult.data.status
     if (newStatus === "shipped") {
-      sendOrderShippedAlert(id).catch((err) =>
-        console.error(`[status] Error enviando WhatsApp shipped para orden ${id}:`, err)
-      )
-      sendOrderShippedEmail(id).catch((err) =>
-        console.error(`[status] Error enviando email shipped para orden ${id}:`, err)
-      )
+      await Promise.allSettled([
+        sendOrderShippedAlert(id).catch((err) =>
+          console.error(`[status] Error enviando WhatsApp shipped para orden ${id}:`, err)
+        ),
+        sendOrderShippedEmail(id).catch((err) =>
+          console.error(`[status] Error enviando email shipped para orden ${id}:`, err)
+        ),
+      ])
     } else if (newStatus === "delivered") {
-      sendOrderDeliveredAlert(id).catch((err) =>
-        console.error(`[status] Error enviando WhatsApp delivered para orden ${id}:`, err)
-      )
-      sendOrderDeliveredEmail(id).catch((err) =>
-        console.error(`[status] Error enviando email delivered para orden ${id}:`, err)
-      )
+      await Promise.allSettled([
+        sendOrderDeliveredAlert(id).catch((err) =>
+          console.error(`[status] Error enviando WhatsApp delivered para orden ${id}:`, err)
+        ),
+        sendOrderDeliveredEmail(id).catch((err) =>
+          console.error(`[status] Error enviando email delivered para orden ${id}:`, err)
+        ),
+      ])
     }
 
     return NextResponse.json({ data: { ok: true }, error: null })

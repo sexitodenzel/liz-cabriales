@@ -40,6 +40,26 @@ function rateLimitMessage(retryAfterSeconds?: number | null): string {
   return base
 }
 
+/**
+ * `fetch` con plazo máximo. Sin esto, un endpoint que tarda (Supabase frío ha
+ * llegado a 30 s) deja el botón girando indefinidamente y sin salida: el
+ * usuario no sabe si sigue vivo ni puede reintentar.
+ */
+const REQUEST_TIMEOUT_MS = 20_000
+
+async function fetchWithTimeout(
+  input: string,
+  init: RequestInit
+): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -123,7 +143,7 @@ export default function LoginPage() {
       setEmailError(null)
       setChecking(true)
       try {
-        const res = await fetch("/api/auth/check-email", {
+        const res = await fetchWithTimeout("/api/auth/check-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -144,9 +164,13 @@ export default function LoginPage() {
         } else {
           router.push(buildCreateAccountHref(parsed.data))
         }
-      } catch {
+      } catch (err) {
         resetTurnstile()
-        setServerError("Error de red. Intenta de nuevo.")
+        setServerError(
+          err instanceof DOMException && err.name === "AbortError"
+            ? "El servidor está tardando demasiado. Intenta de nuevo."
+            : "Error de red. Intenta de nuevo."
+        )
       } finally {
         setChecking(false)
       }
@@ -171,7 +195,7 @@ export default function LoginPage() {
     setPasswordError(null)
     setSigningIn(true)
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetchWithTimeout("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -218,8 +242,15 @@ export default function LoginPage() {
       else navigateAfterLogin("/")
     } catch (err) {
       resetTurnstile()
-      const message = err instanceof Error ? err.message : "Error al iniciar sesión."
-      setServerError(message)
+      // El abort trae un mensaje interno del navegador; no se le enseña al
+      // usuario.
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setServerError("El servidor está tardando demasiado. Intenta de nuevo.")
+      } else {
+        setServerError(
+          err instanceof Error ? err.message : "Error al iniciar sesión."
+        )
+      }
     } finally {
       setSigningIn(false)
     }
@@ -238,18 +269,24 @@ export default function LoginPage() {
       return
     }
 
-    // Reto interactivo: está esperando el clic del usuario, puede tardar lo que
-    // sea. Cortarlo sería abortar un login legítimo.
-    if (captchaInteractive) return
-
-    // Turnstile caído o bloqueado (extensión, red corporativa): el token no va
-    // a llegar nunca. Cortar en vez de dejar el botón girando en silencio.
-    const timeout = window.setTimeout(() => {
-      setAwaitingCaptcha(false)
-      setServerError(
-        "No se pudo completar la verificación de seguridad. Recarga la página e intenta de nuevo."
-      )
-    }, 15_000)
+    // Siempre hay red de seguridad. Antes el reto interactivo salía de aquí sin
+    // armar timeout: si después el token expiraba o fallaba, el widget llama a
+    // `onToken(null)` sin tocar `captchaInteractive`, así que nos quedábamos con
+    // "esperando" + sin token + sin plazo — el botón giraba en VERIFICANDO… para
+    // siempre, sin mensaje y sin salida salvo recargar. Resolver el reto puede
+    // tardar, así que ahí el plazo es largo; el corto es para cuando Turnstile
+    // ni siquiera llegó a pedir interacción (bloqueado por extensión o red).
+    const timeout = window.setTimeout(
+      () => {
+        setAwaitingCaptcha(false)
+        setCaptchaInteractive(false)
+        turnstileRef.current?.reset()
+        setServerError(
+          "No se pudo completar la verificación de seguridad. Intenta de nuevo."
+        )
+      },
+      captchaInteractive ? 90_000 : 15_000
+    )
     return () => window.clearTimeout(timeout)
   }, [awaitingCaptcha, turnstileToken, captchaInteractive])
 
@@ -329,6 +366,19 @@ export default function LoginPage() {
               if (token) {
                 setCaptchaInteractive(false)
                 setServerError(null)
+                return
+              }
+              // Token nulo = expiró o falló (el widget avisa por el mismo
+              // callback). Si había un envío en cola, ese token ya no va a
+              // llegar: se corta aquí en vez de dejar el botón girando hasta
+              // que venza el plazo. Nuestro propio `resetTurnstile()` también
+              // pasa por aquí, pero siempre con la cola ya vacía.
+              if (awaitingCaptcha) {
+                setAwaitingCaptcha(false)
+                setCaptchaInteractive(false)
+                setServerError(
+                  "La verificación de seguridad expiró. Intenta de nuevo."
+                )
               }
             }}
             onInteractive={() => setCaptchaInteractive(true)}

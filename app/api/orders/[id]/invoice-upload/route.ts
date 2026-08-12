@@ -140,7 +140,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .update({ constancia_fiscal_url: storagePath, updated_at: new Date().toISOString() })
       .eq("id", orderId)
 
-    sendInvoiceReceivedAdminEmail(orderId).catch((err) =>
+    // Con await: suelta, la promesa muere al responder y nadie se entera de que
+    // el cliente subió su constancia fiscal.
+    await sendInvoiceReceivedAdminEmail(orderId).catch((err) =>
       console.error("[invoice-upload] admin email error:", err)
     )
 

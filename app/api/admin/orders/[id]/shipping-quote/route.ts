@@ -213,13 +213,23 @@ export async function POST(
       )
     }
 
-    // Notificar al cliente por WhatsApp y email (sin await — no bloquea la respuesta)
-    sendShippingPaymentRequest(orderId).catch((err) =>
-      console.error("[shipping-quote] Error enviando WhatsApp:", err)
-    )
-    sendShippingPaymentRequestEmail(orderId).catch((err) =>
-      console.error("[shipping-quote] Error enviando email:", err)
-    )
+    // Notificar al cliente por WhatsApp y email.
+    //
+    // OJO: hay que esperarlas. En Vercel la instancia se congela en cuanto la
+    // función devuelve la respuesta, así que una promesa suelta se muere a
+    // medias y ni siquiera alcanza a loguear el fallo. Pasó de verdad: la
+    // cotización se guardaba, el link se generaba y al cliente nunca le llegaba
+    // el correo para pagar el envío. Sin rastro en Resend ni en los logs.
+    //
+    // `allSettled` para que un fallo de WhatsApp no impida el correo.
+    await Promise.allSettled([
+      sendShippingPaymentRequest(orderId).catch((err) =>
+        console.error("[shipping-quote] Error enviando WhatsApp:", err)
+      ),
+      sendShippingPaymentRequestEmail(orderId).catch((err) =>
+        console.error("[shipping-quote] Error enviando email:", err)
+      ),
+    ])
 
     return NextResponse.json({ data: { payment_url: paymentUrl }, error: null })
   } catch {

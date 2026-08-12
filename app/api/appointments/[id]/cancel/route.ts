@@ -45,7 +45,9 @@ export async function PATCH(_request: Request, context: RouteContext) {
       return errorResponse(result.error.message, status, result.error.code)
     }
 
-    sendAppointmentCancelledByClientEmail(id).catch((err) =>
+    // Con await: suelta, la promesa muere cuando la función devuelve la
+    // respuesta y la cancelación no le llega a nadie.
+    await sendAppointmentCancelledByClientEmail(id).catch((err) =>
       console.error(
         `[api/appointments/cancel] Error enviando email de cancelación para cita ${id}:`,
         err

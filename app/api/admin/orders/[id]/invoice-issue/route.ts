@@ -43,7 +43,9 @@ export async function POST(_request: Request, context: RouteContext) {
       )
     }
 
-    sendInvoiceIssuedClientEmail(orderId).catch((err) =>
+    // Con await: si se deja suelta, la función se congela al responder y el
+    // correo de la factura nunca sale (ni deja rastro del fallo).
+    await sendInvoiceIssuedClientEmail(orderId).catch((err) =>
       console.error("[invoice-issue] client email error:", err)
     )
 
