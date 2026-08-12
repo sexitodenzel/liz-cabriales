@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Costos de Operación y Notificaciones — Liz Cabriales</title>
+<style>
+  :root{
+    --ivory:#faf7f1;
+    --ink:#1a1a1a;
+    --muted:#5c574e;
+    --gold:#c6a75e;
+    --gold-soft:#f4ecda;
+    --line:#e6dfd1;
+    --green:#3f7d54;
+    --red:#a4443b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body{
+    margin:0;
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:#fff;
+    line-height:1.55;
+    font-size:14px;
+  }
+  .page{
+    max-width:820px;
+    margin:0 auto;
+    padding:48px 56px 64px;
+  }
+  h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:600;letter-spacing:.2px;}
+  h1{font-size:30px;line-height:1.2;margin:0 0 6px;}
+  h2{font-size:21px;margin:38px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);}
+  h3{font-size:16px;margin:22px 0 6px;}
+  p{margin:0 0 12px;}
+  .eyebrow{
+    text-transform:uppercase;letter-spacing:2.5px;font-size:11px;
+    color:var(--gold);font-weight:700;margin:0 0 10px;
+  }
+  .lede{color:var(--muted);font-size:15px;max-width:60ch;}
+  .cover{
+    border-top:4px solid var(--gold);
+    padding-top:24px;
+    margin-bottom:8px;
+  }
+  .meta{
+    display:flex;gap:28px;flex-wrap:wrap;
+    margin-top:20px;font-size:12.5px;color:var(--muted);
+  }
+  .meta b{color:var(--ink);font-weight:600;}
+  table{width:100%;border-collapse:collapse;margin:14px 0 8px;font-size:13px;}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{background:var(--gold-soft);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#7a6224;}
+  tbody tr:nth-child(even) td{background:#fbfaf6;}
+  .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .total td{font-weight:700;background:var(--gold-soft) !important;border-top:2px solid var(--gold);}
+  .tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.4px;}
+  .tag-free{background:#e4f0e8;color:var(--green);}
+  .tag-paid{background:#f6e6e4;color:var(--red);}
+  .tag-var{background:#f0ead9;color:#8a6d26;}
+  .callout{
+    background:var(--ivory);
+    border:1px solid var(--line);
+    border-left:4px solid var(--gold);
+    padding:16px 18px;border-radius:6px;margin:16px 0;
+  }
+  .callout.warn{border-left-color:var(--red);background:#fdf6f5;}
+  .callout.ok{border-left-color:var(--green);background:#f4faf6;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout .h{font-weight:700;display:block;margin-bottom:4px;font-family:Georgia,serif;font-size:15px;}
+  .cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0;}
+  .card{border:1px solid var(--line);border-radius:8px;padding:16px;background:#fff;}
+  .card h3{margin:0 0 4px;}
+  .card .price{font-family:Georgia,serif;font-size:20px;color:var(--gold);margin:6px 0;}
+  .card ul{margin:8px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+  .card ul li{margin-bottom:4px;}
+  .rec{outline:2px solid var(--gold);outline-offset:-2px;position:relative;}
+  .rec::before{content:"RECOMENDADA PARA ARRANCAR";position:absolute;top:-10px;left:14px;background:var(--gold);color:#fff;font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 8px;border-radius:4px;}
+  ul.clean{padding-left:20px;margin:10px 0;}
+  ul.clean li{margin-bottom:7px;}
+  .foot{margin-top:44px;padding-top:14px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);}
+  .small{font-size:11.5px;color:var(--muted);}
+  @page{margin:14mm;}
+  @media print{
+    .page{padding:0;max-width:none;}
+    h2{page-break-after:avoid;}
+    table,.cards,.callout{page-break-inside:avoid;}
+    .break{page-break-before:always;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <section class="cover">
+    <p class="eyebrow">Plataforma Web · Academia y Salón Liz Cabriales</p>
+    <h1>Costos de operación y opciones<br>de notificaciones al cliente</h1>
+    <p class="lede">Documento de referencia para decidir qué servicios se activan al lanzar la tienda, cuánto cuesta mantenerla viva cada mes y qué opciones existen para avisar a los clientes (correo y/o WhatsApp).</p>
+    <div class="meta">
+      <span><b>Preparado para:</b> Liz Cabriales</span>
+      <span><b>Fecha:</b> Agosto 2026</span>
+      <span><b>Tipo de cambio usado:</b> ~$18 MXN/USD (ajustar al día)</span>
+    </div>
+  </section>
+
+  <div class="callout ok">
+    <span class="h">En una frase</span>
+    <p>La plataforma <b>puede arrancar prácticamente sin costos fijos mensuales</b> usando los planes gratuitos y avisando a los clientes por <b>correo electrónico</b>. Los únicos cobros inevitables desde el día uno son la <b>comisión de MercadoPago</b> (se descuenta de cada venta) y el <b>dominio</b> (pago anual). WhatsApp automático es un <b>extra opcional</b> que sí cuesta.</p>
+  </div>
+
+  <h2>1. Costos de infraestructura</h2>
+  <p>Son los servicios que mantienen el sitio en línea. Hoy todos están en su <b>plan gratuito</b>. Suben de precio solo cuando el tráfico o el volumen de datos crece.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Servicio</th>
+        <th>Para qué sirve</th>
+        <th>Estado hoy</th>
+        <th class="num">Costo si sube</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Vercel</b><br><span class="small">Hosting del sitio</span></td>
+        <td>Donde vive la página web; la mantiene rápida y en línea 24/7.</td>
+        <td><span class="tag tag-free">Gratis (Hobby)</span></td>
+        <td class="num">Pro: $20 USD<br>≈ <b>$360 MXN/mes</b></td>
+      </tr>
+      <tr>
+        <td><b>Supabase</b><br><span class="small">Base de datos</span></td>
+        <td>Guarda productos, pedidos, clientes, citas y cursos.</td>
+        <td><span class="tag tag-free">Gratis</span></td>
+        <td class="num">Pro: $25 USD<br>≈ <b>$450 MXN/mes</b></td>
+      </tr>
+      <tr>
+        <td><b>Resend</b><br><span class="small">Correos</span></td>
+        <td>Envía confirmaciones de pedido, avisos de envío, etc.</td>
+        <td><span class="tag tag-free">Gratis<br>(3,000/mes · 100/día)</span></td>
+        <td class="num">Pro: $20 USD<br>≈ <b>$360 MXN/mes</b></td>
+      </tr>
+      <tr>
+        <td><b>Dominio</b><br><span class="small">lizcabriales.com</span></td>
+        <td>La dirección web propia de la marca.</td>
+        <td><span class="tag tag-paid">De pago</span></td>
+        <td class="num"><b>$200–400 MXN</b><br>al año</td>
+      </tr>
+      <tr>
+        <td><b>SSL / Candado</b></td>
+        <td>Seguridad y candado verde del navegador.</td>
+        <td><span class="tag tag-free">Incluido</span></td>
+        <td class="num">$0</td>
+      </tr>
+      <tr>
+        <td><b>Captcha (Turnstile)</b></td>
+        <td>Protege login y registro de bots.</td>
+        <td><span class="tag tag-free">Gratis</span></td>
+        <td class="num">$0</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="h">⚠ Punto que suele pasarse por alto: uso comercial</span>
+    <p>Los planes <b>gratuitos de Vercel (Hobby) son para uso personal, no comercial</b>. Una tienda que vende cae en uso comercial, así que a rigor debería estar en <b>Vercel Pro (~$360 MXN/mes)</b>. Se puede arrancar en gratuito para probar, pero conviene presupuestarlo. Con Supabase pasa parecido: el plan gratis <b>se pausa tras una semana sin actividad</b> y tiene límites de almacenamiento y de tráfico; una tienda con movimiento real probablemente pida el plan Pro y sus <b>respaldos diarios</b>.</p>
+  </div>
+
+  <h2>2. Comisión de MercadoPago</h2>
+  <p>Esta <b>no es una mensualidad</b>: es un porcentaje que MercadoPago descuenta automáticamente de <b>cada venta</b>. Es el costo más relevante porque escala con las ventas.</p>
+
+  <table>
+    <thead>
+      <tr><th>Concepto</th><th class="num">Valor</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Comisión base (Checkout Pro)</td><td class="num">3.49%</td></tr>
+      <tr><td>Cargo fijo por transacción</td><td class="num">$4.00 MXN</td></tr>
+      <tr><td>IVA sobre la comisión</td><td class="num">16%</td></tr>
+      <tr class="total"><td>Comisión efectiva aproximada</td><td class="num">~4.36% por venta</td></tr>
+    </tbody>
+  </table>
+
+  <p class="small"><b>Ejemplo:</b> en una venta de $1,500 MXN, MercadoPago retiene ~$65 MXN y a Liz le llegan ~$1,435 MXN. Además, el dinero no cae al instante: MercadoPago libera los fondos según el plazo de liquidación de la cuenta (puede ir de inmediato hasta varios días).</p>
+
+  <h2 class="break">3. WhatsApp: las tres opciones</h2>
+  <p>El aviso a los clientes se puede resolver de tres formas. La plataforma ya está programada para las tres; es solo cuestión de decidir cuál activar.</p>
+
+  <div class="cards">
+    <div class="card rec">
+      <h3>A · Solo correo</h3>
+      <div class="price">$0 / mes</div>
+      <p class="small">Todos los avisos llegan por correo electrónico automáticamente.</p>
+      <ul>
+        <li>Confirmación de pedido</li>
+        <li>Aviso de envío y entrega</li>
+        <li>Notificación a Liz de pedido nuevo</li>
+        <li>100% automático y gratis</li>
+        <li>Sin trámites con Meta</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>B · WhatsApp automático</h3>
+      <div class="price">~$40–80 / mes*</div>
+      <p class="small">Mensajes automáticos por la API oficial de Meta.</p>
+      <ul>
+        <li>Cobra por mensaje enviado</li>
+        <li>Requiere cuenta Meta Business + tarjeta</li>
+        <li>Número de WhatsApp dedicado</li>
+        <li>Plantillas aprobadas por Meta</li>
+        <li>*Varía según nº de pedidos</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>C · WhatsApp manual</h3>
+      <div class="price">$0 / mes</div>
+      <p class="small">Liz escribe el WhatsApp ella misma con un botón (links wa.me).</p>
+      <ul>
+        <li>Gratis, sin trámites</li>
+        <li>Mensaje personal desde su número</li>
+        <li>Es manual: depende de Liz</li>
+        <li>No sirve para volumen alto</li>
+        <li>Ideal como complemento del correo</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Costo de WhatsApp automático (opción B), a detalle</h3>
+  <p>Desde el 1 de julio de 2025 Meta cobra <b>por cada mensaje de plantilla enviado</b> (ya no existe el tramo gratis mensual). Precios para México:</p>
+  <table>
+    <thead>
+      <tr><th>Tipo de mensaje</th><th>Ejemplos en la tienda</th><th class="num">Precio c/u</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>Utilidad</b></td><td>Pedido confirmado, enviado, entregado, aviso a Liz</td><td class="num">~$0.008 USD<br>(~$0.15 MXN)</td></tr>
+      <tr><td><b>Autenticación</b></td><td>Código OTP al registrarse con teléfono</td><td class="num">~$0.021 USD<br>(~$0.38 MXN)</td></tr>
+      <tr><td><b>Marketing</b></td><td>Promociones masivas (hoy no se usan)</td><td class="num">~$0.044 USD<br>(~$0.79 MXN)</td></tr>
+    </tbody>
+  </table>
+  <p class="small"><b>Gratis:</b> cualquier respuesta que se mande dentro de las 24 h después de que el cliente escriba primero. Los cobros son solo por los avisos automáticos que inicia el negocio. En la práctica, con ~150 pedidos al mes y 2–4 avisos por pedido, el gasto ronda <b>$40–80 MXN/mes</b>.</p>
+
+  <h2 class="break">4. Escenario de costo mensual estimado</h2>
+  <p>Ejemplo con un volumen conservador: <b>150 pedidos/mes</b>, ticket promedio <b>$800 MXN</b> (ventas ~$120,000 MXN/mes). Cifras aproximadas.</p>
+  <table>
+    <thead>
+      <tr><th>Concepto</th><th>Tipo</th><th class="num">Costo mensual</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Comisión MercadoPago (~4.36% de ventas)</td><td><span class="tag tag-var">Variable</span></td><td class="num">~$5,230 MXN</td></tr>
+      <tr><td>Vercel Pro (uso comercial)</td><td><span class="tag tag-paid">Fijo</span></td><td class="num">~$360 MXN</td></tr>
+      <tr><td>Supabase Pro (con respaldos)</td><td><span class="tag tag-paid">Fijo</span></td><td class="num">~$450 MXN</td></tr>
+      <tr><td>Resend (correos)</td><td><span class="tag tag-free">Gratis</span></td><td class="num">$0</td></tr>
+      <tr><td>Dominio (prorrateado del anual)</td><td><span class="tag tag-paid">Fijo</span></td><td class="num">~$25 MXN</td></tr>
+      <tr><td>WhatsApp automático (opción B, opcional)</td><td><span class="tag tag-var">Opcional</span></td><td class="num">~$60 MXN</td></tr>
+      <tr class="total"><td>Fijo mensual (sin comisiones de venta)</td><td></td><td class="num">~$835–895 MXN</td></tr>
+    </tbody>
+  </table>
+  <p class="small">La comisión de MercadoPago no es un gasto que se pague aparte: ya viene descontada de lo que entra por ventas. Si se arranca todo en planes gratuitos y solo con correo, el <b>costo fijo mensual puede ser prácticamente $0</b> (solo el dominio anual).</p>
+
+  <h2>5. Lo que a veces se pasa por alto</h2>
+  <ul class="clean">
+    <li><b>Uso comercial de Vercel/Supabase.</b> Los planes gratis son para proyectos personales; una tienda formal conviene tenerla en los planes de pago (arriba explicado).</li>
+    <li><b>MercadoPago no libera el dinero al instante.</b> Hay un plazo de liquidación; conviene saberlo para el flujo de caja.</li>
+    <li><b>Renovación anual del dominio.</b> Es fácil de olvidar; si vence, el sitio deja de cargar en su dirección.</li>
+    <li><b>Límite de correos gratis.</b> Resend gratis permite 100 correos/día y 3,000/mes. En días muy cargados o al crecer podría requerir el plan Pro (~$360 MXN/mes).</li>
+    <li><b>WhatsApp automático exige método de pago en Meta.</b> Además del trámite, Meta pide registrar una tarjeta para cobrar los mensajes.</li>
+    <li><b>Facturación (CFDI).</b> No es un costo de la plataforma: la maneja la contadora de Liz. Se aclara para no confundirlo con un gasto del sitio.</li>
+    <li><b>Logo en los correos (BIMI).</b> Que aparezca el logotipo de la marca junto a cada correo requiere un certificado caro (cientos de USD al año). Es opcional y no se recomienda por ahora.</li>
+    <li><b>Mantenimiento y soporte.</b> Corrección de errores, actualizaciones de seguridad y ajustes de contenido se cubren en el acuerdo de mantenimiento mensual (a definir), aparte de la infraestructura.</li>
+    <li><b>Publicidad (Fase 3).</b> Google/Meta Ads llevan su propio presupuesto de campaña, independiente de todo lo anterior.</li>
+  </ul>
+
+  <h2>6. Recomendación</h2>
+  <div class="callout">
+    <p><b>Arrancar así:</b></p>
+    <ul class="clean" style="margin-bottom:0;">
+      <li><b>Notificaciones por correo (Opción A)</b> — automáticas, completas y gratis desde el día uno.</li>
+      <li><b>WhatsApp manual (Opción C)</b> como complemento cuando Liz quiera dar un toque personal, sin costo.</li>
+      <li>Presupuestar <b>Vercel Pro + Supabase Pro (~$800–900 MXN/mes)</b> para operar en regla y con respaldos.</li>
+      <li>Dejar <b>WhatsApp automático (Opción B)</b> para una segunda etapa, cuando el volumen justifique el trámite con Meta. El sistema ya está listo para activarlo cuando se decida.</li>
+    </ul>
+  </div>
+  <p>De esta forma la plataforma sale a producción con lo esencial cubierto, costos mínimos y sin dependencias que retrasen el lanzamiento.</p>
+
+  <div class="foot">
+    <p>Documento de referencia · Plataforma Academia y Salón Liz Cabriales · Agosto 2026 · Precios aproximados en MXN sujetos a tipo de cambio y a las tarifas vigentes de cada proveedor (Vercel, Supabase, Resend, Meta/WhatsApp y MercadoPago).</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -88,6 +88,33 @@ bloque, comprime antes de subir.
   queda en `docs/perf/blog-images-<fecha>.json` y los originales siguen en el
   bucket.
 
+## Invalidación de caché al editar en el panel
+
+Las consultas de `lib/supabase/cache.ts` viven entre 2 y 5 min, así que toda
+ruta del panel que **escriba** catálogo tiene que tirar su etiqueta o el cambio
+no se ve en la tienda hasta que la entrada vence sola.
+
+Usa `revalidateCatalogTags()` (`lib/cache/revalidate-catalog.ts`), que tumba
+`categories`, `products` y `brands` de una vez. Van juntas a propósito: la
+categoría viaja **embebida dentro de cada producto** (`PRODUCT_SELECT` trae
+`categories(...)`), así que renombrarla sin invalidar `products` dejaba el
+nombre viejo pegado en las tarjetas.
+
+Ya lo hacían: productos, marcas y descuentos masivos. Se les agregó a las que
+faltaban — **variantes** (son el precio y el stock que ve la tienda),
+**categorías** y **subcategorías**.
+
+## Decisiones tomadas a propósito
+
+- **Las imágenes del hero NO se recomprimieron.** Ya son WebP; recomprimirlas a
+  q78 solo ahorraba 8% (397→366 KB, 289→265 KB) y son el elemento LCP del home.
+  No vale arriesgar calidad visible por eso. El caso del blog era distinto:
+  JPEG crudo, 60–86% de ahorro.
+- **Hay ~970 KB huérfanos en `landing/`**: dos PNG (`…6w1h9za53kd.png` y
+  `…ndjapsnq99m.png`, ~500 KB cada uno) que no referencia ninguna tabla ni el
+  código. No afectan la velocidad —nadie los descarga— pero ocupan
+  almacenamiento. Se pueden borrar desde el panel de Supabase.
+
 ## Pendiente
 
 - **Los originales del blog siguen ocupando espacio** (~1.9 MB). Cuando estés
@@ -96,8 +123,3 @@ bloque, comprime antes de subir.
 - **Quedan ~1.1 MB de datos de catálogo** viajando en `/tienda`, inherente a
   filtrar en el cliente. Bajarlo más significa filtrar en el servidor: es un
   rediseño de la tienda, no un ajuste.
-- **Las imágenes del hero del home** pesan 397 KB y 289 KB. Mismo tratamiento
-  que el blog si se quiere.
-- **La caché por `unstable_cache` no se invalida al editar en el panel.** Los
-  cambios de catálogo tardan hasta 5 min en verse. Si estorba, hay que llamar a
-  `revalidateTag("products")` desde las acciones del admin.

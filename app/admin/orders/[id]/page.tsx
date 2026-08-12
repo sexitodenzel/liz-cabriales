@@ -9,8 +9,6 @@ import type { OrderStatus } from "@/types"
 import { toast } from "@/app/components/ui/motion/toast-provider"
 import { AnimatedBadge } from "@/app/components/ui/motion/animated-badge"
 
-const BRAND_GOLD = "#C9A84C"
-
 const MANUAL_STATUSES = ["shipped", "delivered", "cancelled"] as const
 type ManualStatus = (typeof MANUAL_STATUSES)[number]
 
@@ -223,7 +221,7 @@ function ShippingQuoteForm({
             type="button"
             onClick={handleConfirm}
             disabled={submitting}
-            className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#a8893a] disabled:opacity-60"
+            className="rounded-lg bg-[#1a1a1a] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#333] disabled:opacity-60"
           >
             {submitting ? "Enviando cobro…" : "Sí, enviar el cobro"}
           </button>
@@ -309,7 +307,7 @@ function ShippingQuoteForm({
       <button
         type="submit"
         disabled={submitting}
-        className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
+        className="rounded-lg bg-[#1a1a1a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#333] transition-colors disabled:opacity-60"
       >
         Revisar cobro de envío
       </button>
@@ -329,7 +327,12 @@ export default function AdminOrderDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<ManualStatus>("shipped")
   const [saving, setSaving] = useState(false)
-  const [quoteSuccess, setQuoteSuccess] = useState<string | null>(null)
+  /**
+   * Formulario de corrección abierto. Con una cotización ya hecha, el caso
+   * normal es no tocar nada: el formulario vive detrás de un enlace para que la
+   * pantalla se lea de un vistazo en vez de pedir que la esquives.
+   */
+  const [showRequote, setShowRequote] = useState(false)
   const [issuingInvoice, setIssuingInvoice] = useState(false)
   const [invoiceIssued, setInvoiceIssued] = useState(false)
   const [reconciling, setReconciling] = useState(false)
@@ -482,7 +485,7 @@ export default function AdminOrderDetailPage() {
         <p className="text-red-700">{error ?? "Orden no encontrada."}</p>
         <Link
           href="/admin/orders"
-          className="mt-4 inline-block text-sm font-medium text-[#c9a84c] underline"
+          className="mt-4 inline-block text-sm font-medium text-[#8a6d26] underline"
         >
           Volver a órdenes
         </Link>
@@ -550,7 +553,7 @@ export default function AdminOrderDetailPage() {
     <div className="min-h-screen bg-white text-[#1a1a1a]">
       <div className="mx-auto max-w-4xl px-6 py-10">
         <div className="mb-8">
-          <p className="text-xs font-semibold tracking-[0.25em] text-[#c9a84c]">
+          <p className="text-xs font-semibold tracking-[0.25em] text-[#8a6d26]">
             PANEL ADMINISTRADOR
           </p>
           <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
@@ -587,7 +590,7 @@ export default function AdminOrderDetailPage() {
                     href={`https://wa.me/52${order.client_phone.replace(/\D/g, "").slice(-10)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-medium text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-[#c9a84c]"
+                    className="font-medium text-[#1a1a1a] underline underline-offset-2 transition-colors hover:text-[#8a6d26]"
                   >
                     {order.client_phone}
                   </a>
@@ -653,7 +656,7 @@ export default function AdminOrderDetailPage() {
                         href={order.shipping_payment_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#c9a84c] underline"
+                        className="text-[#8a6d26] underline"
                       >
                         Ver link MP
                       </a>
@@ -662,54 +665,14 @@ export default function AdminOrderDetailPage() {
                 </div>
               )}
 
-              {showShippingQuoteForm && (
-                <>
-                  {shippingQuotePending ? (
-                    <div className="mt-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm">
-                      <p className="font-semibold text-amber-900">
-                        Esta orden ya tiene una cotización de envío
-                      </p>
-                      <p className="mt-1 text-amber-800">
-                        Si vuelves a cotizar, se genera un link nuevo y se le
-                        avisa otra vez al cliente. Ojo: el{" "}
-                        <strong>link anterior sigue funcionando</strong> en
-                        MercadoPago. Si el cliente ya lo tenía y paga ese, el
-                        pago se rechaza por no cubrir el nuevo importe — avísale
-                        que use el correo más reciente.
-                      </p>
-                    </div>
-                  ) : null}
-                  <p className="mt-3 text-sm text-neutral-600">
-                    Ingresa el costo del envío. Se generará un link de pago de MercadoPago
-                    y se le avisará al cliente por <strong>WhatsApp y correo</strong> para que
-                    lo cubra.
-                  </p>
-                  {quoteSuccess ? (
-                    <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm">
-                      <p className="font-semibold text-emerald-800">
-                        ¡Listo! Le avisamos al cliente por WhatsApp y correo.
-                      </p>
-                      <p className="mt-1 text-emerald-600">
-                        En cuanto pague el envío te notificamos y puedes preparar el paquete.
-                      </p>
-                      <p className="mt-2 text-emerald-700 break-all text-xs">
-                        Link de pago:{" "}
-                        <a
-                          href={quoteSuccess}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline"
-                        >
-                          {quoteSuccess}
-                        </a>
-                      </p>
-                    </div>
-                  ) : (
+              {showShippingQuoteForm &&
+                (() => {
+                  const quoteForm = (
                     <ShippingQuoteForm
                       orderId={id}
                       customerName={clientName || null}
                       onSuccess={(quote) => {
-                        setQuoteSuccess(quote.paymentUrl)
+                        setShowRequote(false)
                         setOrder((prev) =>
                           prev
                             ? {
@@ -725,9 +688,56 @@ export default function AdminOrderDetailPage() {
                         )
                       }}
                     />
-                  )}
-                </>
-              )}
+                  )
+
+                  // Primera cotización: no hay nada que leer todavía, así que el
+                  // formulario va abierto.
+                  if (!shippingQuotePending) {
+                    return (
+                      <>
+                        <p className="mt-3 text-sm text-[#6b6b6b]">
+                          Ingresa el costo del envío. Se generará un link de pago
+                          de MercadoPago y se le avisará al cliente por{" "}
+                          <strong>WhatsApp y correo</strong> para que lo cubra.
+                        </p>
+                        {quoteForm}
+                      </>
+                    )
+                  }
+
+                  // Ya cotizado: lo normal es no tocar nada.
+                  if (!showRequote) {
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setShowRequote(true)}
+                        className="mt-4 text-sm font-medium text-[#1a1a1a] underline underline-offset-4 transition-colors hover:text-[#6b6b6b]"
+                      >
+                        Corregir cotización
+                      </button>
+                    )
+                  }
+
+                  return (
+                    <div className="mt-4 border-t border-[#ececec] pt-4">
+                      <p className="text-sm text-[#6b6b6b]">
+                        Se generará un link nuevo y se le avisará otra vez al
+                        cliente. El link anterior sigue funcionando en
+                        MercadoPago: si paga ese, el cobro se rechaza por no
+                        cubrir el importe nuevo, así que avísale que use el
+                        correo más reciente.
+                      </p>
+                      {quoteForm}
+                      <button
+                        type="button"
+                        onClick={() => setShowRequote(false)}
+                        className="mt-3 text-sm font-medium text-[#6b6b6b] underline underline-offset-4 transition-colors hover:text-[#1a1a1a]"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  )
+                })()}
             </section>
           )}
 
@@ -816,7 +826,7 @@ export default function AdminOrderDetailPage() {
                     type="button"
                     onClick={handleIssueInvoice}
                     disabled={issuingInvoice}
-                    className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
+                    className="rounded-lg bg-[#1a1a1a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#333] transition-colors disabled:opacity-60"
                   >
                     {issuingInvoice ? "Procesando…" : "Marcar factura como emitida"}
                   </button>
@@ -867,10 +877,43 @@ export default function AdminOrderDetailPage() {
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-[#ececec] px-6 py-4 text-right">
-              <p className="text-lg font-semibold text-[#1a1a1a]">
-                Total: ${order.total.toFixed(2)} MXN
-              </p>
+            {/* El envío se cobra aparte, así que `orders.total` son solo los
+                productos. Mostrarlo a secas como "Total" hacía creer que el
+                cliente pagaba $10 cuando en realidad va a pagar $10 + envío. */}
+            <div className="border-t border-[#ececec] px-6 py-4">
+              <div className="ml-auto w-full max-w-xs space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-[#6b6b6b]">Productos</span>
+                  <span className="font-medium">
+                    ${order.total.toFixed(2)} MXN
+                  </span>
+                </div>
+
+                {order.shipping_amount_final != null && (
+                  <div className="flex justify-between">
+                    <span className="text-[#6b6b6b]">
+                      Envío
+                      {order.shipping_payment_status === "paid"
+                        ? " (pagado)"
+                        : " (por cobrar)"}
+                    </span>
+                    <span className="font-medium">
+                      ${order.shipping_amount_final.toFixed(2)} MXN
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between border-t border-[#ececec] pt-2 text-lg font-semibold text-[#1a1a1a]">
+                  <span>Total</span>
+                  <span>
+                    $
+                    {(
+                      order.total + (order.shipping_amount_final ?? 0)
+                    ).toFixed(2)}{" "}
+                    MXN
+                  </span>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -901,7 +944,7 @@ export default function AdminOrderDetailPage() {
                     type="button"
                     onClick={handleReconcilePayment}
                     disabled={reconciling}
-                    className="rounded-lg border border-[#c9a84c] px-4 py-2 text-sm font-semibold text-[#a8893a] transition-colors hover:bg-[#c9a84c] hover:text-white disabled:opacity-60"
+                    className="rounded-lg border border-[#1a1a1a] px-4 py-2 text-sm font-semibold text-[#1a1a1a] transition-colors hover:bg-[#1a1a1a] hover:text-white disabled:opacity-60"
                   >
                     Verificar pago en MercadoPago
                   </button>
@@ -915,35 +958,12 @@ export default function AdminOrderDetailPage() {
             )}
 
             {showShippingQuoteForm && (
-              <div className="mt-4 flex gap-3 rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mt-0.5 shrink-0 text-amber-600"
-                  aria-hidden="true"
-                >
-                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                  <line x1="12" x2="12" y1="9" y2="13" />
-                  <line x1="12" x2="12.01" y1="17" y2="17" />
-                </svg>
-                <div className="text-sm">
-                  <p className="font-semibold text-amber-900">
-                    Falta cobrar el envío de esta orden.
-                  </p>
-                  <p className="mt-1 text-amber-800">
-                    Primero usa <strong>&ldquo;Enviar cobro de envío al cliente&rdquo;</strong> (sección{" "}
-                    <em>Guía y envío</em>, arriba) y espera a que el cliente lo pague. Si cambias el
-                    estado a <strong>&ldquo;Enviado&rdquo;</strong> ahora, la orden dejará de estar en{" "}
-                    <code>paid</code> y <strong>ya no podrás generar el cobro de envío</strong>.
-                  </p>
-                </div>
-              </div>
+              <p className="mt-4 border-l-2 border-amber-400 pl-3 text-sm text-[#6b6b6b]">
+                Falta cobrar el envío. Cóbralo arriba, en{" "}
+                <em>Guía y envío</em>, y espera a que el cliente pague. Si marcas
+                la orden como <strong>Enviado</strong> antes, ya no vas a poder
+                generar ese cobro.
+              </p>
             )}
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -969,7 +989,7 @@ export default function AdminOrderDetailPage() {
                 type="button"
                 onClick={() => saveStatus(effectiveStatus)}
                 disabled={saving}
-                className="rounded-lg bg-[#c9a84c] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a8893a] transition-colors disabled:opacity-60"
+                className="rounded-lg bg-[#1a1a1a] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#333] transition-colors disabled:opacity-60"
               >
                 Guardar cambio de estado
               </button>
