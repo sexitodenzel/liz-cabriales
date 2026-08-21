@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
@@ -17,6 +18,13 @@ function errorResponse<T>(
   return NextResponse.json({ data: null, error: { message, code } }, { status })
 }
 
+/** Comparación de tiempo constante: evita filtrar el secreto por temporización. */
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  return bufA.length === bufB.length && timingSafeEqual(bufA, bufB)
+}
+
 export async function GET(
   request: NextRequest
 ): Promise<NextResponse<ApiResponse<{ refreshed: boolean }>>> {
@@ -31,8 +39,8 @@ export async function GET(
       )
     }
 
-    const authHeader = request.headers.get("authorization")
-    if (authHeader !== `Bearer ${cronSecret}`) {
+    const authHeader = request.headers.get("authorization") ?? ""
+    if (!safeEqual(authHeader, `Bearer ${cronSecret}`)) {
       return errorResponse("No autorizado", 401, "UNAUTHORIZED")
     }
 

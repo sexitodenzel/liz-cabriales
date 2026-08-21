@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
@@ -36,6 +37,13 @@ function errorResponse<T>(
   return NextResponse.json({ data: null, error: { message, code } }, { status })
 }
 
+/** Comparación de tiempo constante: evita filtrar el secreto por temporización. */
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  return bufA.length === bufB.length && timingSafeEqual(bufA, bufB)
+}
+
 /**
  * Retorna la fecha "mañana" en formato YYYY-MM-DD calculada en la zona
  * horaria local de Tampico (UTC-6). Vercel Cron corre en UTC.
@@ -69,9 +77,9 @@ export async function GET(
       )
     }
 
-    const authHeader = request.headers.get("authorization")
+    const authHeader = request.headers.get("authorization") ?? ""
     const expected = `Bearer ${cronSecret}`
-    if (authHeader !== expected) {
+    if (!safeEqual(authHeader, expected)) {
       return errorResponse("No autorizado", 401, "UNAUTHORIZED")
     }
 

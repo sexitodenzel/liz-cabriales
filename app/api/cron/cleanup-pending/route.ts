@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createServiceClient } from "@supabase/supabase-js"
 
@@ -33,6 +34,13 @@ function hoursAgo(hours: number): string {
   return paymentDeadlineThresholdIso(hours)
 }
 
+/** Comparación de tiempo constante: evita filtrar el secreto por temporización. */
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  return bufA.length === bufB.length && timingSafeEqual(bufA, bufB)
+}
+
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
   if (!secret) {
@@ -43,7 +51,7 @@ function isAuthorized(request: NextRequest): boolean {
   const headerToken = header.toLowerCase().startsWith("bearer ")
     ? header.slice(7).trim()
     : null
-  return headerToken === secret
+  return headerToken !== null && safeEqual(headerToken, secret)
 }
 
 export async function GET(
