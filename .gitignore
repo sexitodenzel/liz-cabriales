@@ -46,3 +46,9 @@ next-env.d.ts
 # graphify (salida generada)
 graphify-out/
 .agents/
+
+# Respaldos locales de datos (scripts/backup-data.mjs) — datos de clientes, no van al repo
+/backups
+
+# Temp del CLI de Supabase
+supabase/.temp
