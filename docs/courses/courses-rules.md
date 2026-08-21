@@ -19,7 +19,7 @@ Los cursos son un pilar secundario del negocio — el fuerte es el ecommerce de 
 - Disponibilidad pública: visible u oculta por curso.
 - Números de disponibilidad: datos reales por defecto; Liz puede capturar inscritos/cupo públicos manuales.
 - Privacidad: nunca se muestran nombres o listas de alumnos inscritos.
-- SQL ejecutado: `docs/delivery/sql-course-display-settings.sql`.
+- SQL ejecutado: `docs/delivery/sql/sql-course-display-settings.sql`.
 
 ---
 

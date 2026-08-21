@@ -3,7 +3,7 @@
 -- (match por nombre, sin importar mayúsculas), no lo duplica ni lo modifica.
 --
 -- Requisito: la columna instructors.title debe existir
--- (ver docs/delivery/sql-instructor-title.sql).
+-- (ver docs/delivery/sql/sql-instructor-title.sql).
 
 INSERT INTO instructors (name, title)
 SELECT v.name, v.title

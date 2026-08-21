@@ -43,7 +43,7 @@ Estos costos son independientes del desarrollo y los gestiona el proveedor en no
 |Dominio|~$200-400 MXN|Anual|
 |Hosting (Vercel Pro si aplica)|~$400 MXN|Mensual|
 |Supabase (si supera plan gratuito)|~$300 MXN|Mensual|
-|Mantenimiento y soporte|A definir|Mensual|
+|Mantenimiento y soporte|$990 MXN fijo + $150 MXN/h en cambios|Mensual|
 
 > El proveedor notifica a Liz con anticipación cualquier cambio en costos recurrentes. Si Liz no renueva los servicios, la plataforma deja de funcionar — es responsabilidad del proveedor avisar con 30 días de anticipación.
 
@@ -51,20 +51,22 @@ Estos costos son independientes del desarrollo y los gestiona el proveedor en no
 
 ## Mantenimiento mensual
 
-Incluye:
+**Cuota fija: $990 MXN/mes.** Cubre que la tienda siga funcionando — arreglo de lo que sea que falle, sin límite de incidentes:
 
 - Corrección de bugs reportados
+- Caídas del sitio
+- Fallas de pago o de correo
 - Actualizaciones de seguridad
-- Soporte por WhatsApp en horario hábil (respuesta en 24h)
-- Pequeños ajustes de contenido (textos, precios, imágenes)
 
-No incluye:
+**Cambios y programación: $150 MXN/hora.** Todo lo que sea pedir algo nuevo, no arreglar una falla:
 
-- Funcionalidades nuevas no acordadas en este documento
-- Cambios de diseño mayores
-- Integraciones con sistemas externos no mencionados
+- Ajustes de contenido (textos, precios, imágenes)
+- Cambios de diseño
+- Funcionalidades nuevas chicas
 
-> Funcionalidades nuevas se cotizan por separado.
+> Se avisa el estimado de horas antes de empezar cualquier cambio. Funcionalidades nuevas grandes se cotizan por separado como proyecto. Detalle completo en [`golive/costos-operacion-y-whatsapp.pdf`](golive/costos-operacion-y-whatsapp.pdf).
+
+**Primer mes sin cobro de mantenimiento.** El mes de la entrega formal, Liz solo liquida el pago final de desarrollo de este acuerdo — el cobro de mantenimiento arranca el segundo mes.
 
 ---
 

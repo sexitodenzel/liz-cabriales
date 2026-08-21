@@ -110,6 +110,17 @@
     <p>La plataforma <b>puede arrancar prácticamente sin costos fijos mensuales</b> usando los planes gratuitos y avisando a los clientes por <b>correo electrónico</b>. Los únicos cobros inevitables desde el día uno son la <b>comisión de MercadoPago</b> (se descuenta de cada venta) y el <b>dominio</b> (pago anual). WhatsApp automático es un <b>extra opcional</b> que sí cuesta.</p>
   </div>
 
+  <div class="callout">
+    <span class="h">Qué vemos en esta llamada</span>
+    <ol style="margin:8px 0 0;padding-left:20px;font-size:13px;color:var(--muted)">
+      <li>Costos de infraestructura y comisión de MercadoPago</li>
+      <li>Opciones de WhatsApp</li>
+      <li>Cómo neutralizar esos costos subiendo precios</li>
+      <li>Acuerdo de mantenimiento mensual</li>
+      <li>Qué sigue pendiente de nuestro lado y qué se entrega</li>
+    </ol>
+  </div>
+
   <h2>1. Costos de infraestructura</h2>
   <p>Son los servicios que mantienen el sitio en línea. Hoy todos están en su <b>plan gratuito</b>. Suben de precio solo cuando el tráfico o el volumen de datos crece.</p>
 
@@ -258,7 +269,65 @@
   </table>
   <p class="small">La comisión de MercadoPago no es un gasto que se pague aparte: ya viene descontada de lo que entra por ventas. Si se arranca todo en planes gratuitos y solo con correo, el <b>costo fijo mensual puede ser prácticamente $0</b> (solo el dominio anual).</p>
 
-  <h2>5. Lo que a veces se pasa por alto</h2>
+  <h2 class="break">5. Cómo neutralizar el gasto operativo</h2>
+  <p>En vez de que la comisión de MercadoPago y la infraestructura le resten margen a Liz mes a mes, se puede subir el precio de los productos <b>un pequeño porcentaje, una sola vez</b>, calculado para cubrir exactamente esos costos. A partir de ahí cada venta ya trae ese ajuste incluido, así que el gasto se cancela solo — sin que Liz tenga que estar pendiente ni volver a tocarlo cada mes.</p>
+
+  <table>
+    <thead>
+      <tr><th>Concepto a cubrir</th><th class="num">% de las ventas</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Comisión de MercadoPago</td><td class="num">~4.36%</td></tr>
+      <tr><td>Infraestructura fija (Vercel + Supabase + dominio, sobre $120,000 MXN/mes de ventas)</td><td class="num">~0.7%</td></tr>
+      <tr class="total"><td>Aumento de precio que neutraliza ambos</td><td class="num">~5%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="h">Cómo se aplica</span>
+    <p>Corremos un script sobre el catálogo que sube todos los precios ese % de un jalón (redondeando a precios limpios). No es un proceso recurrente ni automático mes a mes: se corre una vez, y se vuelve a correr solo si los costos de infraestructura cambian de plan más adelante. Con esto, lo único que Liz sigue viendo como gasto real es la cuota de mantenimiento de la sección siguiente.</p>
+  </div>
+
+  <h2 class="break">6. Acuerdo de mantenimiento mensual</h2>
+  <p>Cubre que la tienda siga funcionando después del lanzamiento: que no se caiga, que los pagos sigan procesando y que los ajustes chicos se resuelvan rápido. Es aparte de la infraestructura (sección 1) y de la comisión de MercadoPago (sección 2) — esas las paga Liz directamente a cada proveedor; esto es lo que se le paga al desarrollador.</p>
+
+  <table>
+    <thead>
+      <tr><th>Concepto</th><th>Incluye</th><th class="num">Costo</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Cuota fija mensual</b></td>
+        <td>Arreglo de lo que sea que falle: caídas, errores, pagos que no procesan, bugs.</td>
+        <td class="num"><b>$990 MXN</b><br>al mes</td>
+      </tr>
+      <tr>
+        <td><b>Cambios y programación</b></td>
+        <td>Ajustes de contenido, cambios de textos/precios/imágenes, funciones nuevas chicas.</td>
+        <td class="num"><b>$150 MXN</b><br>por hora</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout ok">
+    <span class="h">Qué cubre la cuota fija</span>
+    <p>Que el sitio siga vivo: corrección de errores, caídas, fallas de pago o de correo. No tiene límite de incidentes — si algo se rompe, se arregla, sin cobro extra por eso.</p>
+    <p>Es poco probable que pase seguido — un sitio bien construido no debería fallar todos los meses —, pero el software no es algo que se termina y se queda quieto para siempre: navegadores, sistemas operativos y la variedad de celulares y computadoras donde entran los clientes cambian solos con el tiempo, y a veces eso hace que algo que funcionaba bien deje de hacerlo sin que nadie haya tocado el código. Por eso la cuota cubre también esos casos.</p>
+  </div>
+
+  <div class="callout">
+    <span class="h">Qué se cobra por hora</span>
+    <p>Todo lo que sea pedir un cambio, no arreglar una falla: nuevos textos, imágenes, precios, ajustes de diseño, funciones que no existían. Se avisa el estimado de horas antes de empezar.</p>
+  </div>
+
+  <p class="small">Este acuerdo se puede ajustar más adelante si el volumen de la tienda crece mucho (más pedidos, más soporte). Cualquier cambio se avisa con anticipación.</p>
+
+  <div class="callout ok">
+    <span class="h">Primer mes sin costo de mantenimiento</span>
+    <p>Esta llamada es la entrega formal del proyecto: ese primer mes Liz solo liquida el pago final de desarrollo ya acordado (ver Acuerdo de Servicio), sin cargo de mantenimiento todavía. El cobro de $990 MXN/mes arranca a partir del segundo mes.</p>
+  </div>
+
+  <h2>7. Lo que a veces se pasa por alto</h2>
   <ul class="clean">
     <li><b>Uso comercial de Vercel/Supabase.</b> Los planes gratis son para proyectos personales; una tienda formal conviene tenerla en los planes de pago (arriba explicado).</li>
     <li><b>MercadoPago no libera el dinero al instante.</b> Hay un plazo de liquidación; conviene saberlo para el flujo de caja.</li>
@@ -267,11 +336,10 @@
     <li><b>WhatsApp automático exige método de pago en Meta.</b> Además del trámite, Meta pide registrar una tarjeta para cobrar los mensajes.</li>
     <li><b>Facturación (CFDI).</b> No es un costo de la plataforma: la maneja la contadora de Liz. Se aclara para no confundirlo con un gasto del sitio.</li>
     <li><b>Logo en los correos (BIMI).</b> Que aparezca el logotipo de la marca junto a cada correo requiere un certificado caro (cientos de USD al año). Es opcional y no se recomienda por ahora.</li>
-    <li><b>Mantenimiento y soporte.</b> Corrección de errores, actualizaciones de seguridad y ajustes de contenido se cubren en el acuerdo de mantenimiento mensual (a definir), aparte de la infraestructura.</li>
     <li><b>Publicidad (Fase 3).</b> Google/Meta Ads llevan su propio presupuesto de campaña, independiente de todo lo anterior.</li>
   </ul>
 
-  <h2>6. Recomendación</h2>
+  <h2>8. Recomendación</h2>
   <div class="callout">
     <p><b>Arrancar así:</b></p>
     <ul class="clean" style="margin-bottom:0;">
@@ -282,6 +350,28 @@
     </ul>
   </div>
   <p>De esta forma la plataforma sale a producción con lo esencial cubierto, costos mínimos y sin dependencias que retrasen el lanzamiento.</p>
+
+  <h2 class="break">9. Pendientes — en proceso</h2>
+  <p>Para cerrar con la misma transparencia con la que se construyó todo: esto es lo que todavía sigue en proceso de nuestro lado.</p>
+  <ul class="clean">
+    <li><b>Sección "antes y después" en la landing.</b> Un bloque visual mostrando los servicios (por construir todavía).</li>
+    <li><b>Tutoriales del panel de administración.</b> Videos cortos (Loom) de cómo hacer cualquier cosa en el panel — productos, pedidos, citas, cursos, blog. Se entregan en la carpeta de Drive de la sección siguiente.</li>
+    <li><b>Instagram.</b> Falta generar el token de larga duración inicial y confirmar que el cron de renovación automática responde bien.</li>
+    <li><b>Fotos de servicios.</b> Faltan un par de fotos por subir en algunos servicios (Admin → Citas → Servicios); mientras tanto esos servicios muestran un recuadro genérico en vez de foto propia.</li>
+    <li><b>Automatización de citas y cursos.</b> El sistema ya tiene el código para agendar <i>y pagar en línea</i> de forma 100% automática, tanto citas como cursos. Por petición de Liz y Mildred (vía WhatsApp) se está usando el flujo manual — cotizar/inscribir desde el panel — en vez de activarlo. Queda listo para prenderlo cuando ustedes decidan.</li>
+    <li><b>Catálogo.</b> Se siguen agregando a la base de datos los productos que faltaban del catálogo de la distribuidora.</li>
+    <li><b>Documentación técnica del código.</b> Para que cualquier desarrollador futuro pueda retomar el proyecto sin depender de nosotros.</li>
+    <li><b>Documentos legales.</b> Términos y condiciones, aviso de privacidad y política de cancelaciones.</li>
+  </ul>
+
+  <h2 class="break">10. Entregables de nuestra parte</h2>
+  <p>Lo que Liz recibe como parte del cierre del proyecto:</p>
+  <ul class="clean">
+    <li><b>Cuenta de administradora</b> en el sitio en producción, ya funcionando.</li>
+    <li><b>Carpeta de Google Drive</b> con los tutoriales Loom del panel (sección anterior) y una hoja de referencia rápida de 1 página.</li>
+    <li><b>Credenciales de MercadoPago de Liz</b> guardadas en un gestor de contraseñas seguro — nunca en Drive plano.</li>
+    <li><b>WhatsApp directo de soporte</b> con Denzel para reportar cualquier problema.</li>
+  </ul>
 
   <div class="foot">
     <p>Documento de referencia · Plataforma Academia y Salón Liz Cabriales · Agosto 2026 · Precios aproximados en MXN sujetos a tipo de cambio y a las tarifas vigentes de cada proveedor (Vercel, Supabase, Resend, Meta/WhatsApp y MercadoPago).</p>

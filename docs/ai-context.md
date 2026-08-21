@@ -124,9 +124,9 @@ docs/
 
 Usar siempre estas rutas como referencia activa para planning, prompts y decisiones:
 
-- `delivery/roadmap.md`
-- `delivery/backlog.md`
-- `delivery/sprint-actual.md`
+- `delivery/golive/ESTADO.md` — estado real y verificado
+- `delivery/golive/PENDIENTES.md` — qué falta antes de lanzar
+- `delivery/delivery-decisions-log.md` — decisiones aprobadas
 - `payments/proveedorpagos.md`
 
 Archivos legacy, duplicados o variantes fuera de esas rutas no se usan para planning ni para generación de prompts, aunque sigan existiendo como referencia histórica.
@@ -137,7 +137,7 @@ Archivos legacy, duplicados o variantes fuera de esas rutas no se usan para plan
 
 **Siempre:**
 
-1. `delivery/sprint-actual.md` ← qué estamos construyendo hoy
+1. `delivery/golive/PENDIENTES.md` ← qué falta antes de lanzar
 2. `tech/dev-rules.md`
 3. `tech/database-schema.md`
 
@@ -201,30 +201,13 @@ Archivos legacy, duplicados o variantes fuera de esas rutas no se usan para plan
 
 ## Workflow operativo del proyecto
 
-Además del contexto funcional y técnico, este proyecto usa un sistema operativo de trabajo definido en:
+El proyecto está en fase de **go-live / entrega** (ya no en sprints). La operación se rige por:
 
-- `docs/ai-workflow-kit.md` — reglas operativas, prompts, semáforo, continuidad y flujo de trabajo
-- `docs/delivery/session-continuity.md` — último estado operativo confirmado
-
-### Regla de uso
-- ChatGPT asume el contexto base desde este proyecto y estos documentos
-- El usuario solo reporta el delta desde la última sesión
-- Si no hay continuidad clara, se entra a modo recuperación antes de proponer trabajo nuevo
-
-### Regla de portabilidad
-El sistema debe poder continuar aunque cambie la cuenta de ChatGPT, siempre que existan:
-- código real actualizado
-- vault actualizado
-- workflow kit
-- session continuity
-
-### Regla operativa adicional
-- `delivery/roadmap.md` define fases, sprints y cambios macro del plan
-- `delivery/sprint-actual.md` define el trabajo operativo inmediato
-- `delivery/backlog.md` captura pendientes nuevos, bloqueadores y fuera de scope
-- `delivery/decisions-log.md` registra decisiones relevantes aprobadas
-- `docs/ai-workflow-kit.md` define cómo se trabaja
-- `docs/delivery/session-continuity.md` define desde dónde se retoma
+- `docs/delivery/golive/README.md` — índice central de la entrega
+- `docs/delivery/golive/ESTADO.md` — estado real y verificado (fuente de verdad)
+- `docs/delivery/golive/PENDIENTES.md` — qué falta antes del lanzamiento (tracker único)
+- `docs/delivery/delivery-decisions-log.md` — decisiones relevantes aprobadas
+- `docs/delivery/delivery-launch-plan.md` — matriz RACI + anexo técnico
 
 ## Rol proactivo del asistente
 

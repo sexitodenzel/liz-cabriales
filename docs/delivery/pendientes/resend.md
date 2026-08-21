@@ -89,6 +89,6 @@ Por defecto Supabase envía los emails de auth (`confirmar cuenta`, `reset de co
 
 ## Referencias
 
-- Sprint 3: `docs/delivery/sprints/sprint-3.md` — detalles técnicos completos
-- Checklist pre-lanzamiento → sección Técnico (líneas Resend + Supabase Auth SMTP)
-- Owner Checklist sección B (`RESEND_API_KEY`, `ADMIN_EMAIL`)
+- Plan maestro: `docs/delivery/delivery-launch-plan.md` §2.5 (RACI Resend) y §5.3 (anexo técnico)
+- Plantillas de correo de marca: `docs/delivery/supabase-auth-emails/README.md`
+- Variables `RESEND_API_KEY` y `ADMIN_EMAIL` en Vercel (ver `golive/checklist-entrega.md`)

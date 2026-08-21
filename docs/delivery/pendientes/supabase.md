@@ -15,19 +15,22 @@
 
 ## Qué hace el Dev
 
-### 1. SQL pendientes de ejecutar
+### 1. SQL — YA CORRIDOS (verificado en la BD 2026-08-12)
 
-En **Supabase → SQL Editor**, ejecutar en orden:
+Todos los scripts pendientes ya se corrieron; sus columnas/tablas existen en Supabase.
+Ver el índice completo en `docs/delivery/sql/README.md`. En particular:
 
-**A) `docs/delivery/sql-sprint5-supabase.sql`**  
-Contiene: rol recepcionista, campos CFDI, función `handle_new_user`.  
-> Aún no ejecutado — crítico para funcionamiento de auth y roles.
+- `sql-sprint5-supabase.sql` — CFDI + `handle_new_user`. ✓ (`orders.requires_invoice`, `orders.rfc`)
+- `sql-sprint-whatsapp.sql` — teléfono en `users`, TUA en `orders`, `notification_log`. ✓
+- `sql-local-delivery.sql`, `sql-instructor-title.sql`, `sql-course-instructors.sql`,
+  `sql-course-highlights.sql`, `sql-course-event-type.sql`, `sql-course-short-description.sql`. ✓
 
-**B) `docs/delivery/sql-sprint-whatsapp.sql`**  
-Contiene: campo teléfono en `users`, campos TUA en `orders`, tabla `notification_log`.  
-> Aún no ejecutado — requerido para WhatsApp Business.
-
-> `sql-course-display-settings.sql` ya fue ejecutado el 2026-05-18. ✓
+> SQL sin correr: `sql-nail-art-view-cleanup.sql` (cierra una alerta de seguridad, sin prisa) y
+> `sql-before-after.sql` (sección "Antes y Después" del home, junto a Nail Art — tablas
+> `before_after_items` y `before_after_settings`; sin correr, la sección no aparece porque no
+> hay items). Panel de carga en `/admin/antes-despues`. Liz aún no tiene fotos reales de
+> antes/después de quiropodia — solo 2 fotos genéricas en el Drive del estudio, sin par
+> antes/después — así que la sección queda vacía hasta que suba pares reales.
 
 ### 2. Auth URL Configuration
 

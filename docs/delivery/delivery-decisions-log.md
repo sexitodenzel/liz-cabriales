@@ -33,7 +33,7 @@ Cada vez que Liz (u otro stakeholder) apruebe, rechace o cambie algo relevante:
 - ✅ La disponibilidad pública puede usar datos reales o números manuales de inscritos/cupo.
 - ❌ No se muestran nombres/listas de alumnos inscritos.
 
-**Impacto:** Se agregaron controles admin y columnas en `courses`: `allow_online_registration`, `show_price_public`, `show_capacity_public`, `public_registered_count` y `public_capacity`. El SQL correspondiente (`docs/delivery/sql-course-display-settings.sql`) fue ejecutado en Supabase.
+**Impacto:** Se agregaron controles admin y columnas en `courses`: `allow_online_registration`, `show_price_public`, `show_capacity_public`, `public_registered_count` y `public_capacity`. El SQL correspondiente (`docs/delivery/sql/sql-course-display-settings.sql`) fue ejecutado en Supabase.
 
 ---
 

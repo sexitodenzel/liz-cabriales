@@ -4,6 +4,11 @@
 **Versión:** 2.0  
 **Documento operativo único** — reemplaza notas dispersas de handoff, RACI y OAuth.
 
+> **Nota (2026-08-12):** Este doc menciona el rol **"recepcionista"** en varias filas de la
+> matriz RACI y checklists. Ese rol **fue eliminado** del sistema (solo hay `client` y `admin`).
+> Ignorar esas filas. El estado real y verificado del lanzamiento vive en
+> [`golive/ESTADO.md`](golive/ESTADO.md).
+
 ---
 
 ## 0) Cómo usar este documento
@@ -62,8 +67,8 @@ Plantilla completa: `.env.example` y `DEPLOY.md`.
 
 ### Dependencias técnicas fáciles de olvidar
 
-- [ ] Ejecutar `docs/delivery/sql-sprint5-supabase.sql` en Supabase **antes** del go-live (trigger `handle_new_user` para Google OAuth).
-- [ ] Ejecutar `docs/delivery/sql-sprint-whatsapp.sql` en Supabase (teléfono en `users`, campos TUA en `orders`, tabla `notification_log`).
+- [ ] Ejecutar `docs/delivery/sql/sql-sprint5-supabase.sql` en Supabase **antes** del go-live (trigger `handle_new_user` para Google OAuth).
+- [ ] Ejecutar `docs/delivery/sql/sql-sprint-whatsapp.sql` en Supabase (teléfono en `users`, campos TUA en `orders`, tabla `notification_log`).
 - [ ] Bucket Supabase Storage `images` operativo (subida desde admin de productos).
 - [ ] Cron en `vercel.json`: recordatorios de citas + renovación token Instagram.
 - [ ] 7 plantillas WhatsApp aprobadas en Meta Business Manager antes del go-live.
@@ -268,7 +273,7 @@ Configuración actual funciona en staging (`https://liz-cabriales.vercel.app`). 
 
 **Orden el día del lanzamiento**
 
-0. Supabase → SQL Editor → ejecutar `docs/delivery/sql-sprint5-supabase.sql` (trigger `handle_new_user`)
+0. Supabase → SQL Editor → ejecutar `docs/delivery/sql/sql-sprint5-supabase.sql` (trigger `handle_new_user`)
 1. Google Cloud — agregar dominio real al cliente OAuth
 2. Google Cloud — completar información de la marca
 3. Google Cloud — **Publicar app** (salir de modo prueba)
@@ -348,9 +353,9 @@ Ambos exigen header `Authorization: Bearer <CRON_SECRET>`.
 
 ### 5.7 SQL y DB adicionales (referencia)
 
-- Sprint 5: `docs/delivery/sql-sprint5-supabase.sql` (rol recepcionista, CFDI, trigger OAuth)
-- Sprint WhatsApp + TUA: `docs/delivery/sql-sprint-whatsapp.sql` (teléfono, envío TUA, notification_log)
-- Pre-lanzamiento ampliado: `docs/delivery/checklist-prelanzamiento.md`
+- Sprint 5: `docs/delivery/sql/sql-sprint5-supabase.sql` (rol recepcionista, CFDI, trigger OAuth)
+- Sprint WhatsApp + TUA: `docs/delivery/sql/sql-sprint-whatsapp.sql` (teléfono, envío TUA, notification_log)
+- Índice de todos los scripts SQL (estado corridos/pendientes): `docs/delivery/sql/README.md`
 - Deploy general: `DEPLOY.md`
 - Comentarios SQL embebidos en `app/api/webhooks/mercadopago/route.ts` (`email_sent`, `create_order_atomic`)
 
@@ -426,8 +431,9 @@ shipped → delivered (WhatsApp cliente: entregado)
 
 | Documento | Uso |
 |-----------|-----|
-| **`docs/delivery finalll.md`** (este) | Plan maestro, RACI, anexo técnico |
-| `docs/delivery/checklist-prelanzamiento.md` | Lista rápida día del lanzamiento (apunta aquí) |
-| `docs/delivery/delivery-backlog.md` | Backlog de entregas |
+| **`docs/delivery/delivery-launch-plan.md`** (este) | Plan maestro, RACI, anexo técnico |
+| `docs/delivery/golive/README.md` | Índice central de la entrega |
+| `docs/delivery/golive/ESTADO.md` | Estado real y verificado del lanzamiento (fuente de verdad) |
+| `docs/delivery/sql/README.md` | Índice de scripts SQL (corridos / pendientes) |
 | `DEPLOY.md` | Pasos de deploy en Vercel |
 | `.env.example` | Plantilla de variables |

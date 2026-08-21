@@ -51,7 +51,7 @@ El camino más rápido es directo desde Vercel:
 
 ### Quién lo compra y quién lo controla
 
-El owner-checklist indica que el dominio debe estar bajo el control de Liz (la dueña). Opciones:
+El plan maestro (`delivery-launch-plan.md` §1) indica que el dominio debe estar bajo el control de Liz (la dueña). Opciones:
 
 | Opción | Qué implica |
 |--------|-------------|

@@ -46,7 +46,7 @@ No se reintrodujo `#c9a84c`/`#a8862f` como color de **texto** sobre claro.
 ## Pendiente de datos
 
 Las páginas dependen de dos migraciones manuales (aún sin correr en Supabase):
-`docs/delivery/sql-blog.sql` y `docs/delivery/sql-course-event-type.sql`. Lectura
+`docs/delivery/sql/sql-blog.sql` y `docs/delivery/sql/sql-course-event-type.sql`. Lectura
 resiliente: sin ellas, `/blog` muestra estado vacío y el calendario omite
 `event_type`. El escaneo SSR completo con datos reales queda para después de
 correr los SQL.

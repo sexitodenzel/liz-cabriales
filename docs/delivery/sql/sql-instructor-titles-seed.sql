@@ -11,7 +11,7 @@
 --   - Idempotente: se puede correr varias veces sin efectos secundarios.
 --
 --   Requisito previo: la columna instructors.title debe existir
---   (ver docs/delivery/sql-instructor-title.sql).
+--   (ver docs/delivery/sql/sql-instructor-title.sql).
 
 UPDATE instructors AS i
 SET title = v.title

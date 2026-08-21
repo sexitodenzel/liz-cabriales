@@ -10,7 +10,7 @@ Dos sistemas espejo con la misma arquitectura:
 | | Productos | Cursos |
 |---|---|---|
 | Tabla | `product_reviews` | `course_reviews` |
-| SQL | `docs/delivery/sql-product-reviews.sql` ✅ corrido | `docs/delivery/sql-course-reviews.sql` ✅ corrido |
+| SQL | `docs/delivery/sql/sql-product-reviews.sql` ✅ corrido | `docs/delivery/sql/sql-course-reviews.sql` ✅ corrido |
 | Quién puede reseñar | Compra pagada del producto (`order_items` en orden con status distinto de pending/cancelled) | Inscripción `paid` al curso (cursos ya realizados) |
 | Capa de datos | `lib/supabase/product-reviews.ts` | `lib/supabase/course-reviews.ts` |
 | API pública | `GET/POST /api/products/[id]/reviews` | `GET/POST /api/courses/[id]/reviews` |

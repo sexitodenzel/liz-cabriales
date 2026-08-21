@@ -54,7 +54,7 @@ El sistema usa WhatsApp Business API para:
    - `WHATSAPP_BUSINESS_ACCOUNT_ID`
    - `ADMIN_WHATSAPP_PHONE` (número de Liz en E.164)
 2. Ejecutar en Supabase el SQL pendiente:
-   - `docs/delivery/sql-sprint-whatsapp.sql` (agrega campo teléfono en users, campos TUA en orders, tabla notification_log)
+   - `docs/delivery/sql/sql-sprint-whatsapp.sql` (agrega campo teléfono en users, campos TUA en orders, tabla notification_log)
 3. Hacer redeploy en Vercel.
 
 ---

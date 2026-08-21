@@ -48,10 +48,10 @@ Sin esto, la tienda no vende de verdad.
 
 Correr en Supabase cuando se quieran activar. Verificado pendiente al 2026-08-01:
 
-- [ ] Facturación CFDI → `docs/delivery/sql-sprint5-supabase.sql` (falta columna `cfdi_use`)
-- [ ] Reseñas de producto → `docs/delivery/sql-product-reviews.sql` (falta `verified_purchase`)
+- [ ] Facturación CFDI → `docs/delivery/sql/sql-sprint5-supabase.sql` (falta columna `cfdi_use`)
+- [ ] Reseñas de producto → `docs/delivery/sql/sql-product-reviews.sql` (falta `verified_purchase`)
 - [ ] Collage del home → `sql-home-spotlight.sql` (falta la tabla `home_spotlight`)
-- [ ] Varios maestros por curso → `docs/delivery/sql-course-instructors.sql` (verificar tabla `course_instructors`)
+- [ ] Varios maestros por curso → `docs/delivery/sql/sql-course-instructors.sql` (verificar tabla `course_instructors`)
 
 ---
 

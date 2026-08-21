@@ -75,7 +75,7 @@ Al terminar el proyecto, Liz debe poder:
 
 **Decisiones documentadas** — cada decisión clave se confirma por escrito (WhatsApp o correo). Ver `delivery/decisions-log.md`.
 
-**Pendientes de Liz** — el proyecto no puede avanzar sin ciertos insumos. Se rastrean en `delivery/backlog.md` bajo la sección "Bloqueadores".
+**Pendientes de Liz** — el proyecto no puede avanzar sin ciertos insumos. Se rastrean en `delivery/golive/PENDIENTES.md`.
 
 ---
 

@@ -19,9 +19,10 @@
 | Las 6 plantillas de auth con la marca | Pegadas en el panel. Copia versionada en `docs/delivery/supabase-auth-emails/` |
 | Correo de bienvenida al registrarse | Ruta `app/api/auth/welcome/route.ts`, disparada desde `/registrar` |
 | CAPTCHA exigido por Supabase | `curl` sin token a `/auth/v1/otp`, `/token?grant_type=password` y `/recover` → los tres `captcha_failed`. Login por navegador sigue funcionando |
-| Alerta CRITICAL `nail_art_posts_public` | Falsa alarma: la vista filtra `is_active = true AND status = 'approved'`. Además no la usa nadie → ver `docs/delivery/sql-nail-art-view-cleanup.sql` |
+| Alerta CRITICAL `nail_art_posts_public` | Falsa alarma: la vista filtra `is_active = true AND status = 'approved'`. Además no la usa nadie → ver `docs/delivery/sql/sql-nail-art-view-cleanup.sql` |
 | SQL de facturación, reseñas y collage | El usuario los corrió el 2026-08-09 |
 | Import duplicado en los 5 megamenús | **Ya no existe**: 1 import + 1 uso por archivo. `tsc --noEmit` sale en 0 y `npm run build` pasa |
+| `robots.txt` y `sitemap.xml` | `app/robots.ts` + `app/sitemap.ts` (convención nativa de Next.js). Verificado con dev server: `curl localhost:3000/robots.txt` y `/sitemap.xml` → 200, 1073 URLs (estáticas + productos/cursos/blog/nail-art reales desde Supabase). `lib/site-url.ts` fuerza el dominio de prod aunque `NEXT_PUBLIC_APP_URL` esté en `localhost` |
 
 ---
 
@@ -60,9 +61,7 @@ fuera; son secretos de servidor):
 - [ ] **Rotar `TURNSTILE_SECRET_KEY`** (quedó escrita en un chat el 2026-08-09).
       Al rotarla hay que actualizarla en **dos** lugares: Vercel y
       Supabase → Attack Protection → Captcha secret.
-- [ ] **No hay `robots.txt` ni `sitemap.xml`.** No existen ni en `app/` ni en
-      `public/`. Para un lanzamiento con SEO es una carencia real.
-- [ ] Correr `docs/delivery/sql-nail-art-view-cleanup.sql` (sin prisa).
+- [ ] Correr `docs/delivery/sql/sql-nail-art-view-cleanup.sql` (sin prisa).
 - [ ] Entrega a Liz: cuenta admin, carpeta de Drive, credenciales guardadas.
 - [ ] WhatsApp Business e Instagram: sin configurar. El sitio funciona sin ellos.
 

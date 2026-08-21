@@ -4,7 +4,7 @@
 -- Las marcas sin descripción aquí se editan manualmente desde el admin cuando se
 -- cuente con información oficial.
 --
--- Requiere primero: docs/delivery/sql-brand-description.sql (agrega la columna).
+-- Requiere primero: docs/delivery/sql/sql-brand-description.sql (agrega la columna).
 -- Idempotente: corre cuantas veces quieras. Sobrescribe cualquier descripción
 -- existente — si tienes descripciones editadas a mano que quieras conservar,
 -- comenta los UPDATE correspondientes.

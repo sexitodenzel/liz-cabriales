@@ -71,7 +71,7 @@ directo con la anon key desde el navegador.
 
 ## Scripts SQL de esta auditoría
 
-- `docs/delivery/sql-phone-otp-limits.sql` — columnas de límites del OTP (**correr**).
-- `docs/delivery/sql-rls-audit.sql` — queries de diagnóstico (solo lectura).
-- `docs/delivery/sql-rls-fixes.sql` — correcciones #7, #8, #9.
-- `docs/delivery/sql-rls-subcategories-read.sql` — corrección #10.
+- `docs/delivery/sql/sql-phone-otp-limits.sql` — columnas de límites del OTP (**correr**).
+- `docs/delivery/sql/sql-rls-audit.sql` — queries de diagnóstico (solo lectura).
+- `docs/delivery/sql/sql-rls-fixes.sql` — correcciones #7, #8, #9.
+- `docs/delivery/sql/sql-rls-subcategories-read.sql` — corrección #10.

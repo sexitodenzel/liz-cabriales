@@ -1,5 +1,5 @@
 -- Correcciones de RLS — correr en Supabase SQL Editor.
--- Basado en la auditoría de políticas (docs/delivery/sql-rls-audit.sql).
+-- Basado en la auditoría de políticas (docs/delivery/sql/sql-rls-audit.sql).
 --
 -- Contexto: todas las escrituras del servidor usan el service role, que ignora
 -- RLS. Estas políticas solo gobiernan el acceso DIRECTO con la anon key desde

@@ -24,7 +24,7 @@ Tercer método de entrega para clientes locales, además de **Envío nacional** 
 
 ## Migración requerida
 
-`docs/delivery/sql-local-delivery.sql` — amplía el CHECK de `orders.delivery_type` para aceptar `local_delivery`. **Ya ejecutado en Supabase** (jul 2026).
+`docs/delivery/sql/sql-local-delivery.sql` — amplía el CHECK de `orders.delivery_type` para aceptar `local_delivery`. **Ya ejecutado en Supabase** (jul 2026).
 
 ## Archivos principales
 
