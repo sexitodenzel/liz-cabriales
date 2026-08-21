@@ -89,10 +89,10 @@ function CourseCard({
 
 export default function AcademiaShowcaseScroll({
   courses,
-  galleryImages = [],
+  coverImage = "",
 }: {
   courses: CourseWithStats[]
-  galleryImages?: string[]
+  coverImage?: string
 }) {
   const reducedMotion = useReducedMotion()
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -159,7 +159,7 @@ export default function AcademiaShowcaseScroll({
       >
         {/* Card de portada: se oculta a la izquierda con parallax al scrollear. */}
         <div ref={introRef} className="shrink-0 snap-start will-change-transform">
-          <AcademiaShowcaseIntro count={courses.length} images={galleryImages} />
+          <AcademiaShowcaseIntro count={courses.length} coverImage={coverImage} />
         </div>
 
         {courses.map((course, i) => (

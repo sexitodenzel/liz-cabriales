@@ -15,6 +15,12 @@ export const HOME_TRI_FALLBACKS = [
   "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=75",
 ]
 
+/**
+ * Fondo de la card de portada del riel de Academia en la landing.
+ * Si está vacío, la card cae a su fondo gris de siempre (no se rompe nada).
+ */
+export const HOME_ACADEMIA_COVER_SLOT = "home_academia_cover"
+
 export const SERVICIOS_GALLERY_SLOT_KEYS = [
   "servicios_gallery_1",
   "servicios_gallery_2",

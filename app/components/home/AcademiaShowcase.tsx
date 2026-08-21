@@ -1,9 +1,7 @@
 import { getPublishedCoursesCached } from "@/lib/supabase/courses"
 import type { CourseWithStats } from "@/lib/supabase/courses"
-import {
-  getEventsGallery,
-  getPastCoursesForGallery,
-} from "@/lib/supabase/events-gallery"
+import { getSlotUrl } from "@/lib/supabase/landing-slots"
+import { HOME_ACADEMIA_COVER_SLOT } from "@/lib/media-slots"
 
 import AcademiaShowcaseScroll from "./AcademiaShowcaseScroll"
 
@@ -21,25 +19,12 @@ function isCoursePast(dateStr: string): boolean {
 }
 
 export default async function AcademiaShowcase() {
-  const [result, events, pastGallery] = await Promise.all([
+  const [result, coverImage] = await Promise.all([
     getPublishedCoursesCached(),
-    getEventsGallery(),
-    getPastCoursesForGallery(),
+    getSlotUrl(HOME_ACADEMIA_COVER_SLOT),
   ])
   const all: CourseWithStats[] = result.data ?? []
   if (all.length === 0) return null
-
-  // Collage de la card de portada: fotos reales de cursos pasados / eventos.
-  // Preferimos las fotos curadas de eventos (liz_events) y rellenamos con las
-  // portadas de galería de cursos pasados. Dedupe + 3 para la salerita.
-  const galleryImages = Array.from(
-    new Set([
-      ...events.map((e) => e.image_url),
-      ...pastGallery.courses.map((c) => c.cover_image),
-    ]),
-  )
-    .filter(Boolean)
-    .slice(0, 6)
 
   // Próximos primero (asc por fecha). Si hay pocos próximos, completamos con
   // el catálogo para no dejar el riel vacío.
@@ -57,7 +42,7 @@ export default async function AcademiaShowcase() {
       className="relative bg-ivory"
       aria-label="Academia — cursos y certificaciones"
     >
-      <AcademiaShowcaseScroll courses={courses} galleryImages={galleryImages} />
+      <AcademiaShowcaseScroll courses={courses} coverImage={coverImage} />
     </section>
   )
 }

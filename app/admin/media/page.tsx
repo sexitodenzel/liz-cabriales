@@ -23,9 +23,9 @@ const SECTION_META: Record<string, { title: string; description: string }> = {
       "Foto lateral de la sección de presentación. Formato recomendado: 500×750 px.",
   },
   home: {
-    title: "Imágenes para el módulo de inicio (tri-cards)",
+    title: "Imágenes para el módulo de inicio",
     description:
-      "Las tres tarjetas del hero actual: Tienda, Academia y Cabina/Citas.",
+      "Las tres tarjetas del hero (Tienda, Academia y Cabina/Citas) y el fondo de la portada de Academia. Formato vertical: recortan al centro.",
   },
   servicios: {
     title: "Imágenes para el módulo de servicios",

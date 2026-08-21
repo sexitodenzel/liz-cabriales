@@ -7,8 +7,9 @@ import SmoothImage from "@/app/components/shared/SmoothImage"
 import { EASE_OUT } from "@/lib/ease"
 
 /* Portada del riel de academia: mismo footprint que CourseCard (aspect 3/4).
-   Reparte el contenido de arriba (eyebrow + título) a abajo (CTA), con una
-   línea de copy y chips en medio, para que la card no se sienta vacía. */
+   Con foto de fondo se comporta como panel editorial (foto a sangre + velo +
+   texto claro + CTA en píldora). Sin foto cae al fondo gris de siempre con
+   texto oscuro, así que la card nunca queda ilegible si el slot está vacío. */
 
 const container: Variants = {
   hidden: {},
@@ -27,50 +28,33 @@ const maskUp: Variants = {
   show: { y: 0, transition: { duration: 0.7, ease: EASE_OUT } },
 }
 
+/* El degradado gris es solo el caso sin foto: cuando hay `coverImage`, la
+   imagen a sangre y su velo lo tapan por completo. */
 const CARD_CLS =
   "group relative flex aspect-[3/4] w-[82vw] shrink-0 flex-col overflow-hidden rounded-card bg-gradient-to-b from-[#f7f7f7] via-[#f2f2f2] to-[#eaeaea] sm:w-[380px] lg:w-[420px]"
 
 const TITLE_CLS =
-  "text-[clamp(26px,4.6vw,34px)] font-semibold leading-[1.08] tracking-[-0.02em] text-ink"
+  "text-[clamp(26px,4.6vw,34px)] font-semibold leading-[1.08] tracking-[-0.02em]"
 
-const COLLAGE_MAX = 6
-
-/* Salerita editorial: rejilla 3×2 de fotos de cursos pasados / eventos, para
-   dar un vistazo real del ambiente de la academia. */
-function Collage({ images }: { images: string[] }) {
-  const shots = images.slice(0, COLLAGE_MAX)
-  if (shots.length === 0) return null
-
-  return (
-    <div className="grid grid-cols-3 gap-1.5">
-      {shots.map((src, i) => (
-        <div
-          key={`${src}-${i}`}
-          className="relative aspect-[4/3] min-w-0 overflow-hidden rounded-lg bg-neutral-200"
-        >
-          <SmoothImage
-            src={src}
-            alt=""
-            fill
-            sizes="120px"
-            className="object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.06]"
-          />
-        </div>
-      ))}
-    </div>
-  )
+/** Paleta de texto según haya foto de fondo o no. */
+function tones(hasCover: boolean) {
+  return {
+    eyebrow: hasCover ? "text-white/75" : "text-ink-soft",
+    title: hasCover ? "text-white" : "text-ink",
+    copy: hasCover ? "text-white/80" : "text-ink-soft",
+    count: hasCover ? "text-white/65" : "text-ink-soft",
+    cta: hasCover
+      ? "bg-white text-ink group-hover:bg-gold group-hover:text-white"
+      : "bg-ink text-white group-hover:bg-gold",
+  }
 }
 
-function Cta() {
+function Cta({ className }: { className: string }) {
   return (
-    <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink">
-      <span className="relative">
-        Ver la academia
-        <span
-          className="absolute -bottom-0.5 left-0 h-px w-full bg-gold/40 transition-colors duration-300 group-hover:bg-gold"
-          aria-hidden
-        />
-      </span>
+    <span
+      className={`inline-flex w-fit items-center gap-2 rounded-full px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-300 ${className}`}
+    >
+      Ver la academia
       <span
         aria-hidden
         className="transition-transform duration-300 ease-out group-hover:translate-x-1"
@@ -81,45 +65,46 @@ function Cta() {
   )
 }
 
-function CountLine({ count }: { count: number }) {
+function CountLine({ count, className }: { count: number; className: string }) {
   if (count <= 0) return null
   const label = count === 1 ? "formación activa" : "formaciones activas"
   return (
-    <p className="text-[11px] tabular-nums tracking-[0.08em] text-ink-soft">
+    <p className={`text-[11px] tabular-nums tracking-[0.08em] ${className}`}>
       {count} {label}
     </p>
   )
 }
 
-type BodyProps = { count: number; images: string[] }
+const COPY =
+  "Formación presencial y online para onicotécnicas, pedicuristas y quiropodistas. Contamos con más de 7 años preparando profesionales de éxito desde Tampico, Tamaulipas."
 
-function StaticBody({ count, images }: BodyProps) {
+type BodyProps = { count: number; hasCover: boolean }
+
+function StaticBody({ count, hasCover }: BodyProps) {
+  const t = tones(hasCover)
   return (
     <div className="flex h-full flex-col">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-soft">
+        <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${t.eyebrow}`}>
           Academia
         </p>
-        <h2 className={`${TITLE_CLS} mt-3`}>Cursos y certificaciones</h2>
+        <h2 className={`${TITLE_CLS} ${t.title} mt-3`}>Cursos y certificaciones</h2>
       </div>
 
-      <p className="mt-4 max-w-[26ch] text-[13px] leading-relaxed text-ink-soft">
-        Formaciones profesionales con certificación, diploma y cupo limitado.
+      <p className={`mt-4 max-w-[38ch] text-[13px] leading-relaxed ${t.copy}`}>
+        {COPY}
       </p>
 
-      <div className="mt-5">
-        <Collage images={images} />
-      </div>
-
-      <div className="mt-auto flex flex-col gap-3 pt-4">
-        <CountLine count={count} />
-        <Cta />
+      <div className="mt-auto flex flex-col gap-4 pt-6">
+        <CountLine count={count} className={t.count} />
+        <Cta className={t.cta} />
       </div>
     </div>
   )
 }
 
-function AnimatedBody({ count, images }: BodyProps) {
+function AnimatedBody({ count, hasCover }: BodyProps) {
+  const t = tones(hasCover)
   return (
     <motion.div
       className="flex h-full flex-col"
@@ -131,11 +116,11 @@ function AnimatedBody({ count, images }: BodyProps) {
       <div>
         <motion.p
           variants={fadeUp}
-          className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-soft"
+          className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${t.eyebrow}`}
         >
           Academia
         </motion.p>
-        <h2 className={`${TITLE_CLS} mt-3 overflow-hidden`}>
+        <h2 className={`${TITLE_CLS} ${t.title} mt-3 overflow-hidden`}>
           <motion.span variants={maskUp} className="block will-change-transform">
             Cursos y certificaciones
           </motion.span>
@@ -144,18 +129,14 @@ function AnimatedBody({ count, images }: BodyProps) {
 
       <motion.p
         variants={fadeUp}
-        className="mt-4 max-w-[26ch] text-[13px] leading-relaxed text-ink-soft"
+        className={`mt-4 max-w-[38ch] text-[13px] leading-relaxed ${t.copy}`}
       >
-        Formaciones profesionales con certificación, diploma y cupo limitado.
+        {COPY}
       </motion.p>
 
-      <motion.div variants={fadeUp} className="mt-5">
-        <Collage images={images} />
-      </motion.div>
-
-      <motion.div variants={fadeUp} className="mt-auto flex flex-col gap-3 pt-4">
-        <CountLine count={count} />
-        <Cta />
+      <motion.div variants={fadeUp} className="mt-auto flex flex-col gap-4 pt-6">
+        <CountLine count={count} className={t.count} />
+        <Cta className={t.cta} />
       </motion.div>
     </motion.div>
   )
@@ -163,20 +144,41 @@ function AnimatedBody({ count, images }: BodyProps) {
 
 export default function AcademiaShowcaseIntro({
   count = 0,
-  images = [],
+  coverImage = "",
 }: {
   count?: number
-  images?: string[]
+  coverImage?: string
 }) {
   const reducedMotion = useReducedMotion()
+  const hasCover = Boolean(coverImage)
 
   return (
     <Link href="/academia" className={CARD_CLS} aria-label="Ver toda la academia">
+      {hasCover && (
+        <>
+          <SmoothImage
+            src={coverImage}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 420px, (min-width: 640px) 380px, 82vw"
+            className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+          />
+          {/* Velo: la foto es un salón con mucho detalle. El tramo de en medio
+              va casi tan oscuro como los extremos a propósito — ahí cae la
+              pantalla del proyector, la zona más brillante, y es justo donde
+              se apoya el párrafo. Con un via más claro el texto se perdía. */}
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/85"
+          />
+        </>
+      )}
+
       <div className="relative z-10 flex h-full flex-col p-6 sm:p-7">
         {reducedMotion ? (
-          <StaticBody count={count} images={images} />
+          <StaticBody count={count} hasCover={hasCover} />
         ) : (
-          <AnimatedBody count={count} images={images} />
+          <AnimatedBody count={count} hasCover={hasCover} />
         )}
       </div>
     </Link>
