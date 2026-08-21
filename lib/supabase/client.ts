@@ -1,6 +1,8 @@
 import { createBrowserClient } from "@supabase/ssr"
 import { processLock, type SupabaseClient } from "@supabase/supabase-js"
 
+import { timeoutFetch } from "./timeoutFetch"
+
 let browserClient: SupabaseClient | null = null
 
 export function createClient() {
@@ -13,6 +15,7 @@ export function createClient() {
       // "Lock broken by another request with the 'steal' option" que dispara
       // StrictMode/HMR en dev al solaparse llamadas de auth.
       auth: { lock: processLock },
+      global: { fetch: timeoutFetch },
     }
   )
   return browserClient

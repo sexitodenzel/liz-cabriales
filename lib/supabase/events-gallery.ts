@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "./timeoutFetch"
 import { unstable_cache } from "next/cache"
 
 type SupabaseError = { message: string; code?: string }
@@ -21,14 +22,16 @@ const SELECT = "id, image_url, caption, event_date, sort_order, created_at, upda
 function db() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { fetch: timeoutFetch } }
   )
 }
 
 function dbAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { global: { fetch: timeoutFetch } }
   )
 }
 

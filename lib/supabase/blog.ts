@@ -1,9 +1,11 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "./timeoutFetch"
 import { getDemoBlogPosts, getDemoBlogPostBySlug } from "@/lib/blog-demo"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: timeoutFetch } }
 )
 
 export type BlogLinkedProduct = {

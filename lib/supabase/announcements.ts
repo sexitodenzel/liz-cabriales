@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "./timeoutFetch"
 
 type SupabaseError = { message: string; code?: string }
 type Result<T> =
@@ -17,7 +18,8 @@ export type AnnouncementRow = {
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: timeoutFetch } }
 )
 
 function mapRow(row: unknown): AnnouncementRow {

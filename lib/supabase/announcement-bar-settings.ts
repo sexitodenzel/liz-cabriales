@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "./timeoutFetch"
 
 type SupabaseError = { message: string; code?: string }
 type Result<T> =
@@ -9,7 +10,8 @@ export const ANNOUNCEMENT_BAR_SETTING_KEY = "announcement_bar_enabled"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: timeoutFetch } }
 )
 
 function parseEnabledValue(value: unknown): boolean {

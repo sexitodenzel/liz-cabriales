@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "./timeoutFetch"
 
 import type { DeliveryType, OrderStatus, ShippingPaymentStatus } from "@/types"
 
@@ -7,7 +8,8 @@ type Result<T> = { data: T; error: null } | { data: null; error: SupabaseError }
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: timeoutFetch } }
 )
 
 export type AdminOrderSummary = {

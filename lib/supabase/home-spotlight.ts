@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "./timeoutFetch"
 import { unstable_cache } from "next/cache"
 
 /* Datos de la sección "Spotlight" del home (collage editorial estilo OPI).
@@ -48,14 +49,16 @@ const EMPTY_SETTINGS: HomeSpotlightSettings = {
 function db() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { fetch: timeoutFetch } }
   )
 }
 
 function dbAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { global: { fetch: timeoutFetch } }
   )
 }
 

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "./timeoutFetch"
 
 import {
   isAbrasivityValue,
@@ -200,7 +201,8 @@ function normalizeAbrasivity(
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: timeoutFetch } }
 )
 
 function slugifyCategory(value: string): string {
@@ -651,7 +653,7 @@ export async function getAdminSubcategoriesWithProductCount(): Promise<
         data: null,
         error: {
           message:
-            "La tabla subcategories no existe. Corre docs/delivery/sql-subcategories.sql en Supabase.",
+            "La tabla subcategories no existe. Corre docs/delivery/sql/sql-subcategories.sql en Supabase.",
           code: "SUBCATEGORIES_TABLE_MISSING",
         },
       }

@@ -21,6 +21,7 @@ import type {
   ServiceWithOptions,
 } from "./appointments"
 import { getPublicServicesWithOptions, mapServiceRecord, queryServiceRows } from "./servicesAdmin"
+import { timeoutFetch } from "./timeoutFetch"
 
 function adminDb() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -28,7 +29,8 @@ function adminDb() {
 
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    serviceKey
+    serviceKey,
+    { global: { fetch: timeoutFetch } }
   )
 }
 
@@ -63,7 +65,8 @@ async function loadProfessionalFilterIdsMap(
 function db() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { fetch: timeoutFetch } }
   )
 }
 
@@ -75,7 +78,8 @@ function dbAdminReadonly() {
 
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    serviceKey
+    serviceKey,
+    { global: { fetch: timeoutFetch } }
   )
 }
 
