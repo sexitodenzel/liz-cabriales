@@ -189,6 +189,11 @@ export async function uploadUgcImage(params: {
   const path = `${params.userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${params.ext}`
   const admin = getAdmin()
 
+  // Caché corto a propósito, al revés que el bucket público `images`: esto es
+  // contenido de usuario sujeto a moderación, y si se rechaza una foto no
+  // queremos que sobreviva un año en los navegadores que ya la cargaron.
+  // Tampoco ganaríamos nada: este bucket es privado y se sirve con URLs
+  // firmadas, así que el CDN no lo cachea de todos modos.
   const { error: uploadError } = await admin.storage.from(UGC_BUCKET).upload(path, params.bytes, {
     cacheControl: "3600",
     upsert: false,

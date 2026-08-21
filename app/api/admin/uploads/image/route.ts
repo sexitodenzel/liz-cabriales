@@ -44,6 +44,7 @@ const ALLOWED_FOLDERS = new Set([
   "nail-art",
   "blog",
   "services",
+  "antes-despues",
 ])
 
 const UPLOAD_RATE_LIMIT = 30
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
     const { error: uploadError } = await supabaseAdmin.storage
       .from("images")
       .upload(path, arrayBuffer, {
-        cacheControl: "3600",
+        cacheControl: "31536000",
         upsert: false,
         contentType: file.type,
       })

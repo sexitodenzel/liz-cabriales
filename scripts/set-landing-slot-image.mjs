@@ -102,7 +102,7 @@ async function main() {
   const { error: uploadError } = await db.storage
     .from(BUCKET)
     .upload(path, output, {
-      cacheControl: "3600",
+      cacheControl: "31536000",
       upsert: false,
       contentType: "image/webp",
     })
