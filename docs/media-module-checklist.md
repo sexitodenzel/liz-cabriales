@@ -15,13 +15,13 @@ Supabase — no subir sin comprimir (ver [pipeline de imágenes](../lib/image-co
 
 ---
 
-## Pendientes de subir (13)
+## Pendientes de subir (11)
 
 ### Home — tri-cards del hero  ·  superficie: `/`
-Formato tipo tarjeta. La de Tienda ya tiene imagen real.
+Formato tipo tarjeta (vertical, recorta al centro). Las tres ya tienen foto real.
 
-- [ ] `home_tri_academia` — Tri-card **Academia**  _(hoy: stock Unsplash)_
-- [ ] `home_tri_cabina` — Tri-card **Cabina / Citas**  _(hoy: stock Unsplash)_
+- [x] `home_tri_academia` — Tri-card Academia  ✅ (foto del área técnica)
+- [x] `home_tri_cabina` — Tri-card Cabina / Citas  ✅ (uñas esculturales)
 - [x] `home_tri_tienda` — Tri-card Tienda  ✅ ya configurada
 
 ### Servicios — galería del estudio  ·  superficie: `/servicios`
@@ -51,19 +51,21 @@ Formato recomendado **700×900 px**.
 
 ## Ya configurados (no tocar salvo cambio de diseño)
 
-- `hero` — Hero slider clásico: `hero_1`, `hero_slide_1/2/3`  ✅ (4 reales)
 - `brand` — Foto de Sobre Liz: `brand_photo`  ✅ (1 real)
-- `home_tri_tienda`  ✅
+- `home` — Tri-cards del hero: `home_tri_tienda/academia/cabina`  ✅ (3 reales)
+
+> La sección `hero` (`hero_1`, `hero_4`, `hero_slide_1/2/3`) ya no existe: era
+> del carrusel clásico, ningún componente la leía y se borró en
+> `sql-landing-slots-cleanup-hero.sql`. El hero de hoy son las tri-cards de
+> sección `home`.
 
 ---
 
 ## Prioridad sugerida
 
-1. **Home** (`home_tri_academia`, `home_tri_cabina`) — están en la portada y su
-   fallback es **Unsplash**, que a veces bloquea hotlinking. Máxima prioridad.
-2. **Servicios** (5) — página de conversión principal; fallback picsum.
-3. **Academia** (3) — fallback picsum.
-4. **Blog** (3) — fallback picsum.
+1. **Servicios** (5) — página de conversión principal; fallback picsum.
+2. **Academia** (3) — fallback picsum.
+3. **Blog** (3) — fallback picsum.
 
 ## Referencia de slots en código
 

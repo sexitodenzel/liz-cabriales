@@ -3,9 +3,7 @@ import { revalidatePath, revalidateTag } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/supabase/admin"
-import { getAllLandingSlots, updateLandingSlot, createHeroSlide } from "@/lib/supabase/landing-slots"
-
-const VALID_LINK_TYPES = ["none", "product", "course", "services", "custom"] as const
+import { getAllLandingSlots, updateLandingSlot } from "@/lib/supabase/landing-slots"
 
 export async function GET() {
   try {
@@ -53,10 +51,8 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const { key, label, url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle } = json as {
-      key?: unknown; label?: unknown; url?: unknown; link_type?: unknown; link_value?: unknown
-      cta_label?: unknown; cta_subtext?: unknown; subtitle?: unknown
-      text_position?: unknown; show_title?: unknown; show_subtitle?: unknown
+    const { key, label, url } = json as {
+      key?: unknown; label?: unknown; url?: unknown
     }
 
     if (typeof key !== "string" || !key) {
@@ -66,7 +62,7 @@ export async function PATCH(request: Request) {
       )
     }
 
-    if ([label, url, link_type, link_value, cta_label, cta_subtext, subtitle, text_position, show_title, show_subtitle].every(v => v === undefined)) {
+    if ([label, url].every(v => v === undefined)) {
       return NextResponse.json(
         { data: null, error: { message: "Se requiere al menos un campo para actualizar", code: "VALIDATION_ERROR" } },
         { status: 400 }
@@ -87,24 +83,9 @@ export async function PATCH(request: Request) {
       )
     }
 
-    if (link_type !== undefined && !VALID_LINK_TYPES.includes(link_type as typeof VALID_LINK_TYPES[number])) {
-      return NextResponse.json(
-        { data: null, error: { message: "link_type inválido", code: "VALIDATION_ERROR" } },
-        { status: 400 }
-      )
-    }
-
-    const fields: { label?: string; url?: string; link_type?: string; link_value?: string; cta_label?: string; cta_subtext?: string; subtitle?: string; text_position?: string; show_title?: boolean; show_subtitle?: boolean } = {}
+    const fields: { label?: string; url?: string } = {}
     if (typeof label === "string") fields.label = label
     if (typeof url === "string") fields.url = url
-    if (typeof link_type === "string") fields.link_type = link_type
-    if (typeof link_value === "string") fields.link_value = link_value
-    if (typeof cta_label === "string") fields.cta_label = cta_label
-    if (typeof cta_subtext === "string") fields.cta_subtext = cta_subtext
-    if (typeof subtitle === "string") fields.subtitle = subtitle
-    if (typeof text_position === "string") fields.text_position = text_position
-    if (typeof show_title === "boolean") fields.show_title = show_title
-    if (typeof show_subtitle === "boolean") fields.show_subtitle = show_subtitle
 
     const result = await updateLandingSlot(key, fields)
     if (result.error) {
@@ -129,30 +110,3 @@ export async function PATCH(request: Request) {
   }
 }
 
-export async function POST() {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    const authResult = await requireAdmin(user?.id)
-    if (authResult.error) {
-      const status = authResult.error.code === "UNAUTHENTICATED" ? 401 : 403
-      return NextResponse.json({ data: null, error: authResult.error }, { status })
-    }
-
-    const result = await createHeroSlide()
-    if (result.error) {
-      return NextResponse.json({ data: null, error: { message: result.error } }, { status: 500 })
-    }
-
-    revalidatePath("/")
-    revalidateTag("landing-slots", "max")
-
-    return NextResponse.json({ data: result.data, error: null })
-  } catch {
-    return NextResponse.json(
-      { data: null, error: { message: "Error interno del servidor" } },
-      { status: 500 }
-    )
-  }
-}

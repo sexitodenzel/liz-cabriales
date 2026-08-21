@@ -29,10 +29,12 @@ CREATE POLICY "landing_slots_admin_write"
   );
 
 -- Seed: slots con URLs vacías (la diseñadora los llena desde el panel)
+--
+-- Los `hero_slide_1/2/3` de sección `hero` salieron de aquí: alimentaban el
+-- carrusel clásico, que ya no existe (lo sustituyó HomeHeroTriCards, sección
+-- `home`). Se quitaron del seed para que una corrida nueva no los recree —
+-- ver sql-landing-slots-cleanup-hero.sql.
 INSERT INTO landing_slots (key, label, section) VALUES
-  ('hero_slide_1',  'Slide 1',      'hero'),
-  ('hero_slide_2',  'Slide 2',      'hero'),
-  ('hero_slide_3',  'Slide 3',      'hero'),
   ('brand_photo',   'Foto lateral', 'brand')
 ON CONFLICT (key) DO NOTHING;
 
