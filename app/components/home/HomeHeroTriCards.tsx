@@ -330,7 +330,7 @@ export default function HomeHeroTriCards({ images }: Props) {
             // colapsar solo se revela más foto (no hay hueco que cerrar).
             top: 0,
             height: "100vh",
-            marginTop: "calc(-1 * var(--navbar-actual-h, 64px))",
+            marginTop: "calc(-1 * var(--navbar-actual-h, 80px))",
           }}
         >
           <div className="relative h-full w-full">
@@ -506,7 +506,7 @@ function MobileHeroCarousel({ slides }: { slides: Card[] }) {
       className="relative md:hidden"
       // El hero móvil va DEBAJO del chrome (no detrás), así que le resta el
       // chrome completo: barra de anuncios + navbar.
-      style={{ height: "calc(100svh - var(--navbar-actual-h, 64px))" }}
+      style={{ height: "calc(100svh - var(--navbar-actual-h, 80px))" }}
     >
       <div
         ref={trackRef}

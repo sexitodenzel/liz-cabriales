@@ -155,12 +155,12 @@ function ProductCard({
 
   return (
     <div
-      className="lc-card group block w-[43vw] max-w-[220px] shrink-0 snap-start sm:w-[240px] lg:w-[calc((100%-72px)/4)] lg:max-w-none"
+      className="lc-card group relative -ml-px block w-[43vw] max-w-[220px] shrink-0 snap-start border border-neutral-300 bg-neutral-100 transition-shadow duration-200 first:ml-0 hover:z-10 hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] sm:w-[240px] lg:w-1/4 lg:max-w-none"
       style={{ animationDelay: `${index * 70}ms` }}
     >
       <Link
         href={`/tienda/${product.slug}`}
-        className="relative block aspect-[4/5] overflow-hidden rounded-xl bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.04),0_12px_28px_rgba(20,20,20,0.06)]"
+        className="relative block aspect-[4/5] overflow-hidden"
         aria-label={`${product.name}${product.brand ? ` — ${product.brand}` : ""}`}
       >
         {product.image ? (
@@ -186,7 +186,7 @@ function ProductCard({
         ) : null}
       </Link>
 
-      <div className="pt-3">
+      <div className="p-3">
         <h3 className="line-clamp-2 text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
           <Link href={`/tienda/${product.slug}`} className="hover:text-[#a8862f]">
             {product.name}
@@ -429,7 +429,7 @@ export default function TabbedShopper({
       <div
         key={active.id}
         ref={scrollerRef}
-        className={`lc-shopper-track flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 scrollbar-hide lg:gap-6 ${
+        className={`lc-shopper-track flex snap-x snap-mandatory overflow-x-auto pb-2 scrollbar-hide ${
           revealed ? "is-revealed" : ""
         }`}
       >

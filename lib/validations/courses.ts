@@ -22,6 +22,7 @@ export const courseEventTypeSchema = z.enum([
   "taller_master_nacional",
   "masterclass",
   "seminario_tecnico",
+  "congreso",
 ])
 
 export const createCourseSchema = z

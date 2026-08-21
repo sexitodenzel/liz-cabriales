@@ -19,7 +19,7 @@ type Props = {
 
 const SECTIONS: Array<{ id: SectionId; title: string }> = [
   { id: "descripcion", title: "Descripción" },
-  { id: "aplicacion", title: "Aplicación / Tamaño" },
+  { id: "aplicacion", title: "Tamaño" },
   { id: "pedido", title: "Pedido en línea" },
 ]
 

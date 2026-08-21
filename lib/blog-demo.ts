@@ -1,7 +1,7 @@
 /**
  * Posts de demostración para el blog. Sirven para previsualizar el diseño de la
  * sección (mismas cards que academia/tienda) con imágenes placeholder mientras
- * aún no se corre `docs/delivery/sql-blog.sql` ni se cargan artículos reales.
+ * aún no se corre `docs/delivery/sql/sql-blog.sql` ni se cargan artículos reales.
  *
  * En cuanto `blog_posts` tenga al menos una fila activa, la capa de datos deja
  * de usar estos demos automáticamente (ver `lib/supabase/blog.ts`). No requiere

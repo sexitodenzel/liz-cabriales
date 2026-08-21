@@ -62,7 +62,7 @@ body {
      misma fila caben lockup de marca · módulos · iconos (estilo OPI). Al no
      cambiar por breakpoint, tampoco hay que duplicar --navbar-actual-h.
      Es PERMANENTE: nunca se oculta por scroll. */
-  --navbar-h: 64px;
+  --navbar-h: 80px;
   /* Alto de la barra de anuncios. 0 si no se renderiza (deshabilitada en el
      panel o sin items) → entonces el chrome no se comprime en absoluto.
      Debe coincidir con el `h-9` de AnnouncementBarClient. */
@@ -71,7 +71,7 @@ body {
      LITERALES en px, nunca con calc(): getComputedStyle().getPropertyValue()
      de una custom property no registrada sustituye var() pero NO evalúa
      calc(), y Navbar.tsx / ServiciosLanding.tsx la parsean con parseFloat. */
-  --navbar-actual-h: 64px;
+  --navbar-actual-h: 80px;
   /* Borde inferior del chrome REAL (sigue el colapso); SiteChromeMetrics.tsx */
   --site-chrome-bottom: var(--navbar-actual-h);
   /* Cuánto sube el chrome al colapsar = exactamente la barra de anuncios.
@@ -105,7 +105,7 @@ body {
    mide 64px → las barras follow dockean 36px más abajo del navbar. */
 :root:has(#site-announcement-bar:not([hidden] *)) {
   --announcement-h: 36px;
-  --navbar-actual-h: 100px;
+  --navbar-actual-h: 116px;
 }
 
 /* =====================================
@@ -405,7 +405,7 @@ html.lc-home-overlay #site-navbar .navbar-brand-wordmark {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
-/* Indicador del módulo activo: negro sobre marfil, blanco sobre la foto. */
+/* Indicador del módulo activo: dorado sobre marfil, blanco sobre la foto. */
 html.lc-home-overlay #site-navbar .navbar-nav-indicator {
   background-color: #fff;
 }

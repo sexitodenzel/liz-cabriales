@@ -7,10 +7,10 @@ import {
 } from "@/lib/media-slots"
 import HomeHeroTriCards from "./components/home/HomeHeroTriCards"
 import CategoriasSection from "./components/home/CategoriasSection"
-import DestacadosSection from "./components/home/DestacadosSection"
 import AcademiaShowcase from "./components/home/AcademiaShowcase"
 import HomeTopSections from "./components/home/HomeTopSections"
 import NailArtSection from "./components/NailArtSection"
+import BeforeAfterSection from "./components/home/BeforeAfterSection"
 import HomeVlogSection from "./components/home/HomeVlogSection"
 import InstagramFeed from "./components/InstagramFeed"
 import InView from "./components/ui/motion/in-view"
@@ -21,8 +21,8 @@ import InView from "./components/ui/motion/in-view"
 export const dynamic = "force-dynamic"
 
 /* Orden narrativo de la landing:
-   hero (3 pilares) → marcas → en oferta/nuevos/best sellers → compra por
-   categoría → inspiración → instagram. */
+   hero (3 pilares) → compra por categoría → marcas → inspiración →
+   instagram. */
 
 export default async function Home() {
   const triImages = await getOrderedSlotUrls(
@@ -36,27 +36,27 @@ export default async function Home() {
         Liz Cabriales — Academia y distribuidora profesional de uñas
       </h1>
       <HomeHeroTriCards images={triImages} />
-      <Suspense fallback={<div className="h-10 shrink-0 md:h-12" aria-hidden />}>
-        <HomeTopSections />
-      </Suspense>
       <div className="site-container">
-        <InView>
-          <Suspense fallback={null}>
-            <DestacadosSection />
-          </Suspense>
-        </InView>
         <InView>
           <Suspense fallback={null}>
             <CategoriasSection />
           </Suspense>
         </InView>
       </div>
+      <Suspense fallback={<div className="h-10 shrink-0 md:h-12" aria-hidden />}>
+        <HomeTopSections />
+      </Suspense>
       <Suspense fallback={null}>
         <AcademiaShowcase />
       </Suspense>
       <InView>
         <Suspense fallback={null}>
           <NailArtSection />
+        </Suspense>
+      </InView>
+      <InView>
+        <Suspense fallback={null}>
+          <BeforeAfterSection />
         </Suspense>
       </InView>
       <div className="site-container">

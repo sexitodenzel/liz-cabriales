@@ -20,7 +20,7 @@ export default async function AdminResenasPage() {
         {result.error ? (
           <p className="mt-6 text-[13px] text-red-600">
             No se pudieron cargar las reseñas: {result.error.message}. Si la
-            tabla aún no existe, corre docs/delivery/sql-product-reviews.sql en
+            tabla aún no existe, corre docs/delivery/sql/sql-product-reviews.sql en
             Supabase.
           </p>
         ) : (

@@ -78,7 +78,7 @@ import { sendShippingPaidClientEmail } from "@/lib/email/templates/shipping-paid
  *    END;
  *    $$ LANGUAGE plpgsql SECURITY DEFINER;
  *
- * 3) Columnas CFDI en `orders` (Sprint 5) — ver `docs/delivery/sql-sprint5-supabase.sql`.
+ * 3) Columnas CFDI en `orders` (Sprint 5) — ver `docs/delivery/sql/sql-sprint5-supabase.sql`.
  *    Tras ejecutar el SQL, `create_order_atomic` puede seguir igual: el total con cargo
  *    CFDI se envía en `p_total` y los metadatos de factura se actualizan vía servicio.
  */

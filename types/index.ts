@@ -21,6 +21,7 @@ export type CourseEventType =
   | "taller_master_nacional"
   | "masterclass"
   | "seminario_tecnico"
+  | "congreso"
 export type RegistrationStatus = "pending" | "paid" | "cancelled"
 export type PaymentStatus = "pending" | "approved" | "rejected" | "refunded"
 export type PaymentProvider = "mercadopago" | "stripe"

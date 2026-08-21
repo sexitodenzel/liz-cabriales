@@ -54,7 +54,7 @@ export default function ProductHero({ product, reviewSummary }: Props) {
               }
               .lc-product-info-pane {
                 position: sticky;
-                top: calc(var(--navbar-actual-h, 64px) + 1.5rem);
+                top: calc(var(--navbar-actual-h, 80px) + 1.5rem);
                 align-self: start;
                 width: 100%;
                 display: flex;

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "@/lib/supabase/timeoutFetch"
 
 import { sendProductBackInStockEmail } from "@/lib/email/templates/product-back-in-stock"
 import {
@@ -14,7 +15,8 @@ import {
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: timeoutFetch } }
 )
 
 const EMAIL_TEMPLATE = "product_back_in_stock"

@@ -137,6 +137,17 @@ const PILLARS = [
   },
 ] as const
 
+const MISSION_VISION = [
+  {
+    title: "Misión",
+    text: "Ofrecer una educación de calidad que prepare a los estudiantes en su desarrollo profesional como onicotécnicas, pedicuristas y quiropodistas, proporcionando una educación que abarque aspectos académicos, profesionales y personales, considerando cada una de las necesidades individuales de los estudiantes para que se puedan desenvolver de manera responsable y comprometida con su entorno.",
+  },
+  {
+    title: "Visión",
+    text: "Ser la academia líder en formación especializada como onicotécnicas, pedicuristas y quiropodistas, reconocida por la excelencia en las diversas áreas de conocimiento llevando a cabo cursos con maestros de talla nacional e internacional, al igual que seminarios y congresos en distintas partes de la nación. Logrando fomentar el desarrollo personal y profesional de las y los estudiantes con el fin de que puedan emprender y seguir creciendo personal y profesionalmente.",
+  },
+] as const
+
 const TIMELINE = [
   {
     year: "2019",
@@ -242,6 +253,18 @@ const PRESS_MENTIONS: PressMention[] = [
       "La zona conurbada se convirtió en sede del Primer Seminario Internacional Quiro Aesthetic Pedicure 2025, organizado por la Academia Liz Cabriales.",
     date: "Noviembre 2025",
     url: "https://www.facebook.com/permalink.php?story_fbid=pfbid02ZsjjfncBxe9YYLA7j5rvcCs5TEkJEV5Fzkapoh6cCGNc9Yx5QErMcNfsAdFTrMmVl&id=61556355743027",
+    sources: [
+      { label: "Publicación", url: "https://www.facebook.com/share/p/1DyHG3M7Hj/" },
+      { label: "Video", url: "https://www.facebook.com/share/r/1CyPLjW29A/" },
+    ],
+  },
+  {
+    id: "press-nail-krush-edicion-37-qap-2025",
+    outlet: "Revista Nail Krush · Edición #37",
+    title:
+      "El Seminario Internacional QAP 2025 de la Academia Liz Cabriales, reseñado en la edición impresa #37 de la revista de uñas Nail Krush.",
+    date: "2025",
+    url: "https://www.facebook.com/share/p/1BVqDFBJCQ/",
   },
   {
     id: "press-nail-krush-entrevista-2021",
@@ -250,6 +273,22 @@ const PRESS_MENTIONS: PressMention[] = [
       "Entrevista completa a Liz Cabriales en la edición de la revista Nail Krush.",
     date: "Julio 2021",
     url: "https://www.facebook.com/nailkrush/posts/pfbid0n1NxYoGGssTnYHc8m4CEpqufG76A1TYm8DgYsCB8m3KqhGpPKH9MofvEoM1augf8l",
+  },
+  {
+    id: "press-taller-quiropodia-abc-2026",
+    outlet: "Academia Liz Cabriales",
+    title:
+      "Taller de Quiropodia ABC 2026: capacitación práctica en el cuidado profesional del pie impartida por la academia.",
+    date: "2026",
+    url: "https://www.facebook.com/share/r/1G7Vhd7imz/",
+  },
+  {
+    id: "press-nmas-mujeres-belleza-2023",
+    outlet: "N+ Tamaulipas",
+    title:
+      "Un grupo de mujeres emprendedoras se capacita en belleza para fomentar el autoempleo y fortalecer su economía familiar.",
+    date: "Enero 2023",
+    url: "https://www.nmas.com.mx/tamaulipas/sociedad/programas-sociales/un-grupo-mujeres-emprendedoras-se-capacitan-belleza/",
   },
 ]
 
@@ -528,6 +567,35 @@ export default async function SobreLizPage() {
               >
                 {pillar.cta} →
               </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── MISIÓN Y VISIÓN ── */}
+      <section className="site-container mt-24">
+        <div className="mb-10 max-w-3xl">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+            Nuestra razón de ser
+          </p>
+          <h2 className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-[#111]">
+            Misión y visión
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {MISSION_VISION.map((block) => (
+            <div
+              key={block.title}
+              className="flex h-full flex-col rounded-2xl border border-[#c6a75e]/20 bg-white p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(168,134,47,0.12)]"
+            >
+              <h3 className="text-[20px] font-semibold text-[#111]">
+                {block.title}
+              </h3>
+              <div className="mt-3 h-0.5 w-10 bg-[#c6a75e]" aria-hidden />
+              <p className="mt-5 flex-1 text-[15px] leading-[1.75] text-[#4b4b4b]">
+                {block.text}
+              </p>
             </div>
           ))}
         </div>

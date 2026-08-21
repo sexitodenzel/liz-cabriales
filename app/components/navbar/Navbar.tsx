@@ -214,23 +214,15 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
     }
   }, [activeMenu])
 
-  // Compresión del chrome (todas las vistas): bajar comprime, subir muestra.
-  // Lo único que se va es la barra de anuncios; el navbar es permanente. CSS
-  // mueve con transform html.lc-nav-collapsed (ver globals.css,
-  // --navbar-collapse-shift) — 100% GPU. Umbrales ACUMULADOS por dirección:
-  // micro-scrolls no togglean. Cerca del top queda siempre visible.
+  // Compresión del chrome (todas las vistas): bajar comprime; solo vuelve a
+  // mostrarse al llegar al tope real de la página (no con cualquier scroll
+  // hacia arriba a media página). Lo único que se va es la barra de
+  // anuncios; el navbar es permanente. CSS mueve con transform
+  // html.lc-nav-collapsed (ver globals.css, --navbar-collapse-shift) — 100%
+  // GPU. Umbral de colapso ACUMULADO: micro-scrolls no togglean.
   useEffect(() => {
     const mqDesktopNav = window.matchMedia("(min-width: 1200px)")
     const COLLAPSE_AFTER = 40
-    // Umbral de REAPARICIÓN (acumulado hacia arriba). -28 exige un gesto
-    // COMPROMETIDO: con un gatillo de pelo, el jitter de un scrub rápido
-    // revertía el estado a media transición de 360ms y el chrome + las barras
-    // follow oscilaban en ráfaga (latigazo). Antes móvil usaba -8 (patrón tipo
-    // X) porque ahí se ocultaba el navbar ENTERO y había que recuperarlo
-    // cuanto antes; ahora el navbar nunca se va y lo que vuelve es solo el
-    // anuncio, así que no hay prisa y conviene el umbral estable en todas las
-    // vistas.
-    const EXPAND_AFTER = -28
     let lastY = window.scrollY
     let acc = 0
     // Barra sticky de la página que sigue el hide (marcada con
@@ -321,10 +313,12 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
         return
       }
 
+      // Solo colapsa (acumulado hacia abajo); la reaparición NO se dispara por
+      // scroll hacia arriba a media página — solo vuelve al tope real
+      // (inTopZone) o mientras el guard no ha dockeado, arriba.
       if (delta > 0 !== acc > 0) acc = 0
       acc += delta
       if (acc > COLLAPSE_AFTER) setCollapsed(true)
-      else if (acc < EXPAND_AFTER) setCollapsed(false)
     }
 
     // Re-medir. guardEl = null fuerza además releer su línea de dock
@@ -747,12 +741,12 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
             aria-label="Ir al inicio"
             onMouseEnter={() => activeMenu && scheduleMenuClose()}
           >
-            <span className="inline-flex h-11 w-11 items-center justify-center lg:h-[52px] lg:w-[52px]">
+            <span className="inline-flex h-12 w-12 items-center justify-center lg:h-16 lg:w-16">
               <Image
                 src="/images/logo.png"
                 alt="Liz Cabriales"
-                width={64}
-                height={64}
+                width={80}
+                height={80}
                 className="navbar-brand-logo h-full w-full object-contain"
                 priority
               />
@@ -777,7 +771,7 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
           <nav ref={navRef} className="relative flex shrink-0 items-center gap-0 self-stretch justify-self-center">
             <span
               aria-hidden
-              className={`navbar-nav-indicator pointer-events-none absolute bottom-0 h-[2px] bg-[#1a1a1a] duration-150 ease-out ${
+              className={`navbar-nav-indicator pointer-events-none absolute bottom-0 h-[2px] bg-gold-soft duration-150 ease-out ${
                 navBarAnimate === "grow"
                   ? "transition-[width]"
                   : "transition-[left,width]"
@@ -797,8 +791,8 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
                 href={href}
                 onMouseEnter={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
                 onFocus={() => (menu ? handleNavMouseEnter(menu) : scheduleMenuClose())}
-                className={`relative inline-flex items-center justify-center whitespace-nowrap px-2.5 text-center text-[12.5px] font-normal uppercase tracking-[0.13em] transition-colors lg:px-3.5 lg:text-[13.5px] ${
-                  activeMenu === label ? "text-[#c6a75e]" : "text-[#1a1a1a] hover:text-[#c6a75e]"
+                className={`relative inline-flex items-center justify-center whitespace-nowrap px-2.5 text-center text-[12.5px] font-medium uppercase tracking-[0.16em] transition-colors lg:px-3.5 lg:text-[13.5px] lg:tracking-[0.18em] ${
+                  activeMenu === label ? "text-[#c6a75e]" : "text-black hover:text-[#c6a75e]"
                 }`}
               >
                 {label}
@@ -812,26 +806,26 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
               input en las dos variantes. La lupa solo abre/cierra.
               `ml-auto` mantiene el grupo pegado a la derecha. */}
           <div
-            className="relative z-20 flex shrink-0 items-center justify-end gap-0.5 justify-self-end"
+            className="relative z-20 flex shrink-0 items-center justify-end gap-0 justify-self-end"
             onMouseEnter={() => activeMenu && scheduleMenuClose()}
           >
           <button
             type="button"
             onClick={() => { setActiveMenu(null); toggleMobileSearch() }}
-            className={`${iconBtnBase} h-9 w-9 shrink-0 justify-center`}
+            className={`${iconBtnBase} h-10 w-10 shrink-0 justify-center`}
             aria-label={mobileSearchOpen ? "Cerrar búsqueda" : "Buscar"}
           >
-            <Search className="h-5 w-5" strokeWidth={1.75} />
+            <Search className="h-6 w-6" strokeWidth={1.75} />
           </button>
 
           <Link
             href="/wishlist"
             onClick={() => setActiveMenu(null)}
-            className={`relative ${iconBtnBase} h-9 w-9 justify-center`}
+            className={`relative ${iconBtnBase} h-10 w-10 justify-center`}
             aria-label="Favoritos"
           >
             <span className="relative shrink-0">
-              <Heart className="h-5 w-5" strokeWidth={1.75} />
+              <Heart className="h-6 w-6" strokeWidth={1.75} />
               <WishlistCountBadge count={wishlistBadgeCount} />
             </span>
           </Link>
@@ -839,15 +833,15 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
           <Link
             href={isLoggedIn ? "/perfil" : "/login"}
             onClick={() => setActiveMenu(null)}
-            className={`${iconBtnBase} h-9 w-9 justify-center`}
+            className={`${iconBtnBase} h-10 w-10 justify-center`}
             aria-label={isLoggedIn ? "Mi cuenta" : "Iniciar sesión"}
           >
-            <User className="h-5 w-5" strokeWidth={1.75} />
+            <User className="h-6 w-6" strokeWidth={1.75} />
           </Link>
 
           <button
             type="button"
-            className={`relative ${iconBtnBase} h-9 w-9 justify-center`}
+            className={`relative ${iconBtnBase} h-10 w-10 justify-center`}
             onClick={() => {
               setActiveMenu(null)
               if (isCartOpen) {
@@ -861,9 +855,9 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
             aria-label="Bolsa"
           >
             <span className="relative shrink-0">
-              <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
+              <ShoppingBag className="h-6 w-6" strokeWidth={1.75} />
               {cartBadgeCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c6a75e] px-1 text-[10px] text-white">
+                <span className="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#c6a75e] px-1 text-[10px] text-white">
                   <SlidingNumber value={cartBadgeCount} />
                 </span>
               )}

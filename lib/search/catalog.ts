@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "@/lib/supabase/timeoutFetch"
 import { unstable_cache } from "next/cache"
 
 import { getPublishedCourses } from "@/lib/supabase/courses"
@@ -23,7 +24,8 @@ function db() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    serviceKey ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    serviceKey ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { fetch: timeoutFetch } }
   )
 }
 

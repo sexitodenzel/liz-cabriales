@@ -16,6 +16,7 @@ export const COURSE_EVENT_TYPES: CourseEventType[] = [
   "taller_master_nacional",
   "masterclass",
   "seminario_tecnico",
+  "congreso",
 ]
 
 export const EVENT_TYPE_LABEL: Record<CourseEventType, string> = {
@@ -24,6 +25,7 @@ export const EVENT_TYPE_LABEL: Record<CourseEventType, string> = {
   taller_master_nacional: "Taller Máster Nacional",
   masterclass: "Masterclass",
   seminario_tecnico: "Seminario Técnico",
+  congreso: "Congreso",
 }
 
 /**
@@ -54,6 +56,10 @@ export const EVENT_TYPE_COLOR: Record<
   seminario_tecnico: {
     dot: "#5a6a7a",
     chip: "border-[#d5dde4] bg-[#eef2f5] text-[#3d4a56]",
+  },
+  congreso: {
+    dot: "#8a6a4a",
+    chip: "border-[#e4d8cc] bg-[#f5efe8] text-[#5a4536]",
   },
 }
 

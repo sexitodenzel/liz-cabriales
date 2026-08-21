@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "@/lib/supabase/timeoutFetch"
 
 import { sendWhatsAppTemplate } from "./whatsapp-client"
 import {
@@ -14,7 +15,8 @@ import {
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: timeoutFetch } }
 )
 
 function formatMxn(value: number): string {

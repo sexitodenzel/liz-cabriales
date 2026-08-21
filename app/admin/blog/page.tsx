@@ -209,7 +209,7 @@ export default function AdminBlogPage() {
           <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
             <strong>Error:</strong> {fetchError}
             <p className="mt-1 text-xs text-red-500">
-              Asegúrate de haber ejecutado <code>docs/delivery/sql-blog.sql</code> en Supabase.
+              Asegúrate de haber ejecutado <code>docs/delivery/sql/sql-blog.sql</code> en Supabase.
             </p>
           </div>
         )}

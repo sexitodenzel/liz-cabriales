@@ -28,7 +28,7 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
             <Link
               key={brand.id}
               href={`/tienda?marca=${encodeURIComponent(brand.name)}`}
-              className="group flex h-[44px] w-[88px] shrink-0 items-center justify-center border-r border-gold-soft/30 px-2.5 sm:h-[52px] sm:w-[112px] sm:px-3.5 md:h-[56px] md:w-[128px] md:px-4"
+              className="group flex h-[52px] w-[76px] shrink-0 items-center justify-center border-r border-gold-soft/30 px-1.5 sm:h-[62px] sm:w-[96px] sm:px-2 md:h-[68px] md:w-[108px] md:px-2"
               aria-label={`Ver productos de ${brand.name}`}
             >
               {brand.logo_url ? (
@@ -36,7 +36,7 @@ export default function ShopByBrands({ brands }: ShopByBrandsProps) {
                 <img
                   src={brand.logo_url}
                   alt={brand.name}
-                  className="max-h-[32px] w-auto max-w-[68px] object-contain transition-opacity duration-300 group-hover:opacity-80 sm:max-h-[40px] sm:max-w-[88px] md:max-h-[44px] md:max-w-[100px]"
+                  className="max-h-[42px] w-auto max-w-[60px] rounded-md object-contain transition-opacity duration-300 group-hover:opacity-80 sm:max-h-[52px] sm:max-w-[76px] md:max-h-[58px] md:max-w-[90px]"
                   loading="lazy"
                 />
               ) : (

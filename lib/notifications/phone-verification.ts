@@ -1,5 +1,6 @@
 import { createHash, randomInt, timingSafeEqual } from "crypto"
 import { createClient } from "@supabase/supabase-js"
+import { timeoutFetch } from "@/lib/supabase/timeoutFetch"
 
 import { sendWhatsAppTemplate } from "./whatsapp-client"
 import {
@@ -10,7 +11,8 @@ import {
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { global: { fetch: timeoutFetch } }
 )
 
 type SupabaseError = { message: string; code?: string }
@@ -22,11 +24,11 @@ const MAX_SENDS_PER_DAY = 10
 const MAX_VERIFY_ATTEMPTS = 5
 
 // Las columnas de límites (attempts / sends) requieren correr
-// docs/delivery/sql-phone-otp-limits.sql en Supabase. Si no existen (42703),
+// docs/delivery/sql/sql-phone-otp-limits.sql en Supabase. Si no existen (42703),
 // se degrada al comportamiento anterior sin límites para no romper el flujo.
 const MISSING_LIMIT_COLUMNS_WARNING =
   "[phone-verification] Faltan columnas de límites de OTP. " +
-  "Corre docs/delivery/sql-phone-otp-limits.sql en Supabase. Continuando sin límites."
+  "Corre docs/delivery/sql/sql-phone-otp-limits.sql en Supabase. Continuando sin límites."
 
 function hashCode(code: string): string {
   return createHash("sha256").update(code).digest("hex")

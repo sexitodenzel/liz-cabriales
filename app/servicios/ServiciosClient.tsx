@@ -1666,14 +1666,14 @@ export default function ServiciosClient({
                 "plain",
                 "z-10 hidden w-[340px] shrink-0 lg:block xl:w-[380px]",
               )}
-              style={{ top: "calc(var(--navbar-actual-h, 64px) + 3.75rem)" }}
+              style={{ top: "calc(var(--navbar-actual-h, 80px) + 3.75rem)" }}
             >
               <BookingSummary {...summaryProps} />
             </aside>
           ) : (
             <aside
               {...navSticky("plain", "z-10 hidden lg:col-span-4 lg:block")}
-              style={{ top: "calc(var(--navbar-actual-h, 64px) + 3.75rem)" }}
+              style={{ top: "calc(var(--navbar-actual-h, 80px) + 3.75rem)" }}
             >
               <BookingSummary {...summaryProps} />
             </aside>

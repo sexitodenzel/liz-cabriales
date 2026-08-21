@@ -12,6 +12,8 @@ export type PressMention = {
   url: string
   /** Foto opcional de la nota o del momento. */
   image?: string
+  /** Enlaces adicionales de la misma aparición (p. ej. publicación + reel). */
+  sources?: { label: string; url: string }[]
 }
 
 type Props = {
@@ -57,15 +59,21 @@ export default function PressMentions({ items }: Props) {
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((m) => (
-          <a
+          <article
             key={m.id}
-            href={m.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex flex-col overflow-hidden rounded-2xl border border-[#c6a75e]/20 bg-white transition-shadow hover:shadow-[0_10px_30px_rgba(0,0,0,0.07)]"
+            className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#c6a75e]/20 bg-white transition-shadow hover:shadow-[0_10px_30px_rgba(0,0,0,0.07)]"
           >
+            {/* Enlace principal estirado sobre toda la tarjeta. Los chips de
+                abajo se reactivan con pointer-events para poder pulsarse. */}
+            <a
+              href={m.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${m.outlet}: ${m.title}`}
+              className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            />
             {m.image ? (
-              <span className="relative block aspect-[16/9] w-full overflow-hidden bg-neutral-100">
+              <span className="pointer-events-none relative block aspect-[16/9] w-full overflow-hidden bg-neutral-100">
                 <SmoothImage
                   src={m.image}
                   alt={m.title}
@@ -75,7 +83,7 @@ export default function PressMentions({ items }: Props) {
                 />
               </span>
             ) : null}
-            <span className="flex flex-1 flex-col p-6">
+            <span className="pointer-events-none relative flex flex-1 flex-col p-6">
               <span className="flex items-center justify-between gap-3">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gold">
                   {m.outlet}
@@ -90,8 +98,23 @@ export default function PressMentions({ items }: Props) {
               {m.date ? (
                 <span className="mt-4 text-[12px] text-[#6b6b6b]">{m.date}</span>
               ) : null}
+              {m.sources?.length ? (
+                <span className="pointer-events-auto relative z-10 mt-4 flex flex-wrap gap-2">
+                  {m.sources.map((s) => (
+                    <a
+                      key={s.url}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[#c6a75e]/30 px-3 py-1 text-[11px] font-medium text-[#4b4b4b] transition-colors hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                    >
+                      {s.label}
+                    </a>
+                  ))}
+                </span>
+              ) : null}
             </span>
-          </a>
+          </article>
         ))}
       </div>
     </section>
