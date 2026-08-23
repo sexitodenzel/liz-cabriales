@@ -6,10 +6,13 @@ import { motion, useReducedMotion, type Variants } from "motion/react"
 import SmoothImage from "@/app/components/shared/SmoothImage"
 import { EASE_OUT } from "@/lib/ease"
 
-/* Portada del riel de academia: mismo footprint que CourseCard (aspect 3/4).
+/* Portada de la sección de academia. Nunca es una card del carrusel: en móvil
+   es un bloque a todo el ancho encima del riel y en desktop la columna fija de
+   su izquierda (ver AcademiaShowcaseScroll), donde suelta el aspect y se
+   estira a la altura de la fila.
    Con foto de fondo se comporta como panel editorial (foto a sangre + velo +
    texto claro + CTA en píldora). Sin foto cae al fondo gris de siempre con
-   texto oscuro, así que la card nunca queda ilegible si el slot está vacío. */
+   texto oscuro, así que el panel nunca queda ilegible si el slot está vacío. */
 
 const container: Variants = {
   hidden: {},
@@ -31,10 +34,15 @@ const maskUp: Variants = {
 /* El degradado gris es solo el caso sin foto: cuando hay `coverImage`, la
    imagen a sangre y su velo lo tapan por completo. */
 const CARD_CLS =
-  "group relative flex aspect-[3/4] w-[82vw] shrink-0 flex-col overflow-hidden rounded-card bg-gradient-to-b from-[#f7f7f7] via-[#f2f2f2] to-[#eaeaea] sm:w-[380px] lg:w-[420px]"
+  // Móvil sin aspect a propósito: con un aspect fijo, en pantallas de 320-360 el
+  // copy envuelve más líneas de las que cabían y el overflow-hidden se comía el
+  // botón. Con min-h el bloque tiene presencia igual (~420) y si el texto pide
+  // más, el box crece en vez de recortar. De sm para arriba sí manda el aspect,
+  // con un piso por si acaso; en lg se estira a la fila.
+  "group relative flex min-h-[420px] w-full shrink-0 flex-col overflow-hidden rounded-card bg-gradient-to-b from-[#f7f7f7] via-[#f2f2f2] to-[#eaeaea] sm:aspect-[16/10] sm:min-h-[380px] lg:aspect-auto lg:h-full lg:min-h-0 lg:w-[clamp(400px,33vw,530px)]"
 
 const TITLE_CLS =
-  "text-[clamp(26px,4.6vw,34px)] font-semibold leading-[1.08] tracking-[-0.02em]"
+  "text-[clamp(26px,4.6vw,42px)] font-semibold leading-[1.06] tracking-[-0.02em]"
 
 /** Paleta de texto según haya foto de fondo o no. */
 function tones(hasCover: boolean) {
@@ -43,24 +51,21 @@ function tones(hasCover: boolean) {
     title: hasCover ? "text-white" : "text-ink",
     copy: hasCover ? "text-white/80" : "text-ink-soft",
     count: hasCover ? "text-white/65" : "text-ink-soft",
+    // Sobre la foto, píldora blanca: el velo del panel cierra en negro/85 justo
+    // donde cae el botón, y en negro sobre negro la forma se perdía. El hover va
+    // a negro, nunca a dorado.
     cta: hasCover
-      ? "bg-white text-ink group-hover:bg-gold group-hover:text-white"
-      : "bg-ink text-white group-hover:bg-gold",
+      ? "bg-white text-ink group-hover:bg-ink group-hover:text-white"
+      : "bg-ink text-white group-hover:bg-ink/85",
   }
 }
 
 function Cta({ className }: { className: string }) {
   return (
     <span
-      className={`inline-flex w-fit items-center gap-2 rounded-full px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-300 ${className}`}
+      className={`inline-flex w-fit items-center rounded-full px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors duration-300 lg:px-7 lg:py-3.5 lg:text-[12px] ${className}`}
     >
       Ver la academia
-      <span
-        aria-hidden
-        className="transition-transform duration-300 ease-out group-hover:translate-x-1"
-      >
-        →
-      </span>
     </span>
   )
 }
@@ -69,7 +74,7 @@ function CountLine({ count, className }: { count: number; className: string }) {
   if (count <= 0) return null
   const label = count === 1 ? "formación activa" : "formaciones activas"
   return (
-    <p className={`text-[11px] tabular-nums tracking-[0.08em] ${className}`}>
+    <p className={`text-[11px] tabular-nums tracking-[0.08em] lg:text-[12px] ${className}`}>
       {count} {label}
     </p>
   )
@@ -78,22 +83,21 @@ function CountLine({ count, className }: { count: number; className: string }) {
 const COPY =
   "Formación presencial y online para onicotécnicas, pedicuristas y quiropodistas. Contamos con más de 7 años preparando profesionales de éxito desde Tampico, Tamaulipas."
 
+const EYEBROW_CLS = "text-[11px] font-semibold uppercase tracking-[0.22em] lg:text-[12px]"
+const COPY_CLS = "mt-4 max-w-[42ch] text-[13px] leading-relaxed lg:mt-6 lg:text-[15px]"
+
 type BodyProps = { count: number; hasCover: boolean }
 
 function StaticBody({ count, hasCover }: BodyProps) {
   const t = tones(hasCover)
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-auto flex-col">
       <div>
-        <p className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${t.eyebrow}`}>
-          Academia
-        </p>
+        <p className={`${EYEBROW_CLS} ${t.eyebrow}`}>Academia</p>
         <h2 className={`${TITLE_CLS} ${t.title} mt-3`}>Cursos y certificaciones</h2>
       </div>
 
-      <p className={`mt-4 max-w-[38ch] text-[13px] leading-relaxed ${t.copy}`}>
-        {COPY}
-      </p>
+      <p className={`${COPY_CLS} ${t.copy}`}>{COPY}</p>
 
       <div className="mt-auto flex flex-col gap-4 pt-6">
         <CountLine count={count} className={t.count} />
@@ -107,17 +111,14 @@ function AnimatedBody({ count, hasCover }: BodyProps) {
   const t = tones(hasCover)
   return (
     <motion.div
-      className="flex h-full flex-col"
+      className="flex flex-auto flex-col"
       variants={container}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "0px 0px -80px 0px" }}
     >
       <div>
-        <motion.p
-          variants={fadeUp}
-          className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${t.eyebrow}`}
-        >
+        <motion.p variants={fadeUp} className={`${EYEBROW_CLS} ${t.eyebrow}`}>
           Academia
         </motion.p>
         <h2 className={`${TITLE_CLS} ${t.title} mt-3 overflow-hidden`}>
@@ -127,10 +128,7 @@ function AnimatedBody({ count, hasCover }: BodyProps) {
         </h2>
       </div>
 
-      <motion.p
-        variants={fadeUp}
-        className={`mt-4 max-w-[38ch] text-[13px] leading-relaxed ${t.copy}`}
-      >
+      <motion.p variants={fadeUp} className={`${COPY_CLS} ${t.copy}`}>
         {COPY}
       </motion.p>
 
@@ -160,7 +158,7 @@ export default function AcademiaShowcaseIntro({
             src={coverImage}
             alt=""
             fill
-            sizes="(min-width: 1024px) 420px, (min-width: 640px) 380px, 82vw"
+            sizes="(min-width: 1024px) 530px, 100vw"
             className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
           />
           {/* Velo: la foto es un salón con mucho detalle. El tramo de en medio
@@ -174,7 +172,7 @@ export default function AcademiaShowcaseIntro({
         </>
       )}
 
-      <div className="relative z-10 flex h-full flex-col p-6 sm:p-7">
+      <div className="relative z-10 flex flex-auto flex-col p-6 sm:p-7 lg:p-9">
         {reducedMotion ? (
           <StaticBody count={count} hasCover={hasCover} />
         ) : (

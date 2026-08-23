@@ -19,7 +19,7 @@ export default async function BeforeAfterSection() {
   const orUndef = (v: string) => (v.trim() ? v : undefined)
 
   return (
-    <section className="py-14 md:py-20" aria-label="Antes y Después">
+    <section className="py-12 md:py-16" aria-label="Antes y Después">
       <div className="site-container">
         <BeforeAfterShowcase
           items={items}

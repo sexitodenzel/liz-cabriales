@@ -12,7 +12,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@/app/components/ui/icons"
 import { useWishlist } from "@/app/components/wishlist/WishlistContext"
 import AddToCartButton from "@/app/tienda/components/AddToCartButton"
 import NotifyWhenAvailable from "@/app/tienda/components/NotifyWhenAvailable"
-import { storeIconButtonClassName } from "@/app/tienda/components/store-button-styles"
+import { storeCardButtonClassName } from "@/app/tienda/components/store-button-styles"
 
 /* Tabs con productos comprables debajo (estilo Westman Atelier): se compra
    desde la landing sin navegar toda la tienda. Genérico — lo usan tanto la
@@ -21,7 +21,13 @@ import { storeIconButtonClassName } from "@/app/tienda/components/store-button-s
    Layout tomado del SectionCarousel de la página de producto: header con
    pestañas a la izquierda + flechas ‹ › a la derecha (visibles también en
    móvil, con estado activo/inactivo), y el rail SIN sangrado a los bordes —
-   las cards arrancan alineadas bajo las pestañas, con el margen del sitio. */
+   las cards arrancan alineadas bajo las pestañas, con el margen del sitio.
+
+   La card no tiene caja (nada de gris ni bordes pegados): manda la foto, en
+   4/5 y con radio. Las acciones viven ENCIMA de la imagen — chips blancos
+   arriba a la derecha y, sólo en desktop, un pill que sube al hover — para
+   que el pie quede en marca / nombre / precio, sin apretujar. La
+   separación entre cards la da el gap del rail. */
 
 export type ShopperProduct = {
   id: string
@@ -79,19 +85,29 @@ function ProductCard({
 
   const iconClass = "h-4 w-4 sm:h-[18px] sm:w-[18px]"
 
+  // Chip blanco flotando sobre la foto. En móvil siempre visible (no hay
+  // hover); en desktop entra con el hover/focus de la card.
+  const chipClass =
+    "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white/90 text-neutral-900 shadow-[0_1px_6px_rgba(10,10,10,0.16)] backdrop-blur-sm transition-all duration-200 ease-out hover:bg-white hover:text-gold active:scale-90 active:duration-75"
+  // El corazón ya marcado se queda visible: si se ocultara, en desktop no
+  // habría forma de saber que el producto está en favoritos sin pasar el mouse.
+  const chipReveal = wishlisted
+    ? ""
+    : " md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+
   function handleWishlistToggle(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
     toggle(product.slug)
   }
 
-  // Corazón (favoritos) + bolsa (agregar), misma lógica que la card de tienda.
-  const heartButton = (
+  const heartChip = (
     <button
       type="button"
       onClick={handleWishlistToggle}
       aria-label={wishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
-      className={storeIconButtonClassName}
+      aria-pressed={wishlisted}
+      className={`${chipClass}${chipReveal}`}
     >
       <Heart
         className={`${iconClass} transition-colors${
@@ -101,10 +117,12 @@ function ProductCard({
     </button>
   )
 
-  const bagButton = hasMultipleVariants ? (
+  // Móvil: la bolsa vive como chip junto al corazón. Desktop: se sustituye por
+  // el pill de abajo (md:hidden), para no repetir la misma acción dos veces.
+  const bagChip = hasMultipleVariants ? (
     <Link
       href={`/tienda/${product.slug}`}
-      className={storeIconButtonClassName}
+      className={`${chipClass} md:hidden`}
       onClick={(e) => e.stopPropagation()}
       aria-label="Elegir presentación"
     >
@@ -117,7 +135,7 @@ function ProductCard({
       productName={product.name}
       variantId={singleVariant.id}
       outOfStock
-      className={storeIconButtonClassName}
+      className={`${chipClass} md:hidden`}
       iconOnly
       label="Avísame disponibilidad"
     />
@@ -132,6 +150,40 @@ function ProductCard({
       discountPercent={product.discount_percent}
       variants={product.variants}
       variant="icon"
+      className={`${chipClass} md:hidden`}
+    />
+  )
+
+  // Desktop: pill negro que sube desde el borde inferior de la foto al hover.
+  const addPill = hasMultipleVariants ? (
+    <Link
+      href={`/tienda/${product.slug}`}
+      className={storeCardButtonClassName}
+      onClick={(e) => e.stopPropagation()}
+    >
+      Elegir presentación
+    </Link>
+  ) : isOutOfStock && singleVariant ? (
+    <NotifyWhenAvailable
+      productId={product.id}
+      productSlug={product.slug}
+      productName={product.name}
+      variantId={singleVariant.id}
+      outOfStock
+      className={storeCardButtonClassName}
+      label="Avísame"
+    />
+  ) : (
+    <AddToCartButton
+      productId={product.id}
+      productSlug={product.slug}
+      productName={product.name}
+      brand={product.brand ?? null}
+      image={product.image}
+      basePrice={product.base_price}
+      discountPercent={product.discount_percent}
+      variants={product.variants}
+      className={storeCardButtonClassName}
     />
   )
 
@@ -155,53 +207,60 @@ function ProductCard({
 
   return (
     <div
-      className="lc-card group relative -ml-px block w-[43vw] max-w-[220px] shrink-0 snap-start border border-neutral-300 bg-neutral-100 transition-shadow duration-200 first:ml-0 hover:z-10 hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)] sm:w-[240px] lg:w-1/4 lg:max-w-none"
+      className="lc-card group relative block w-[43vw] max-w-[220px] shrink-0 snap-start sm:w-[240px] lg:w-[calc((100%-72px)/4)] lg:max-w-none"
       style={{ animationDelay: `${index * 70}ms` }}
     >
-      <Link
-        href={`/tienda/${product.slug}`}
-        className="relative block aspect-[4/5] overflow-hidden"
-        aria-label={`${product.name}${product.brand ? ` — ${product.brand}` : ""}`}
-      >
-        {product.image ? (
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            sizes="(max-width: 640px) 43vw, (max-width: 1024px) 240px, 25vw"
-            className="lc-card-img object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-ivory" />
-        )}
-        {badge ? (
-          <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink shadow-sm">
-            {badge}
-          </span>
-        ) : discounted ? (
-          <span className="absolute left-3 top-3 rounded-full bg-gold-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
-            {product.discount_percent}% OFF
-          </span>
-        ) : null}
-      </Link>
+      {/* Los chips y el pill son HERMANOS del enlace de la foto, nunca hijos:
+          un <button> o <a> dentro de otro <a> es HTML inválido. */}
+      <div className="relative">
+        <Link
+          href={`/tienda/${product.slug}`}
+          className="relative block aspect-[4/5] overflow-hidden rounded-xl bg-neutral-50"
+          aria-label={`${product.name}${product.brand ? ` — ${product.brand}` : ""}`}
+        >
+          {product.image ? (
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 43vw, (max-width: 1024px) 240px, 25vw"
+              className="lc-card-img object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-neutral-50" />
+          )}
+          {badge ? (
+            <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink shadow-sm">
+              {badge}
+            </span>
+          ) : discounted ? (
+            <span className="absolute left-3 top-3 rounded-full bg-gold-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+              {product.discount_percent}% OFF
+            </span>
+          ) : null}
+        </Link>
 
-      <div className="p-3">
-        <h3 className="line-clamp-2 text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
-          <Link href={`/tienda/${product.slug}`} className="hover:text-[#a8862f]">
+        <div className="absolute right-2 top-2 z-10 flex flex-col gap-1.5 sm:right-2.5 sm:top-2.5">
+          {heartChip}
+          {bagChip}
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 hidden translate-y-1.5 opacity-0 transition-[opacity,transform] duration-300 ease-out group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:transition-none md:block">
+          {addPill}
+        </div>
+      </div>
+
+      <div className="pt-3">
+        <p className="truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-500 sm:text-[11px] sm:tracking-[0.18em]">
+          {brand}
+        </p>
+        <h3 className="mt-1 line-clamp-2 text-xs font-medium leading-snug text-[#0a0a0a] sm:text-sm">
+          <Link href={`/tienda/${product.slug}`} className="hover:text-gold">
             {product.name}
           </Link>
         </h3>
-        <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-[0.15em] text-neutral-500 sm:text-xs sm:tracking-[0.18em]">
-          {brand}
-        </p>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <div className="min-w-0">{priceBlock}</div>
-          <div className="flex shrink-0 items-center gap-1.5">
-            {heartButton}
-            {bagButton}
-          </div>
-        </div>
+        <div className="mt-1.5">{priceBlock}</div>
       </div>
     </div>
   )
@@ -429,7 +488,7 @@ export default function TabbedShopper({
       <div
         key={active.id}
         ref={scrollerRef}
-        className={`lc-shopper-track flex snap-x snap-mandatory overflow-x-auto pb-2 scrollbar-hide ${
+        className={`lc-shopper-track flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 scrollbar-hide lg:gap-6 ${
           revealed ? "is-revealed" : ""
         }`}
       >

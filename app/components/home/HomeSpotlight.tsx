@@ -205,7 +205,7 @@ export default function HomeSpotlight({
   const sampleAvatar = items.find((it) => it.avatar_url)?.avatar_url ?? null
 
   return (
-    <section className="pt-14 pb-6 md:py-24" aria-labelledby="home-spotlight-title">
+    <section className="pt-12 pb-6 md:py-16" aria-labelledby="home-spotlight-title">
       <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-12">
         {/* Columna de texto */}
         <motion.div

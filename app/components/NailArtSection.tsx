@@ -90,7 +90,7 @@ export default async function NailArtSection() {
   )
 
   return (
-    <section className="bg-neutral-100 py-14 md:py-20" aria-label="Inspiración Nail Art">
+    <section className="bg-neutral-100 py-12 md:py-16" aria-label="Inspiración Nail Art">
       <div className="site-container">
         <NailArtShowcase
           tabs={tabs}
