@@ -3,6 +3,8 @@
 import { useEffect } from "react"
 import { usePathname } from "next/navigation"
 
+import { subscribeWindowScroll } from "@/lib/on-scroll-raf"
+
 const CHROME_BOTTOM_VAR = "--site-chrome-bottom"
 const NAVBAR_ID = "site-navbar"
 
@@ -48,8 +50,20 @@ export default function SiteChromeMetrics() {
       if (event.propertyName === "transform") sync()
     }
 
+    let lastPx = ""
+
+    const writeBottom = (navbar: HTMLElement | null) => {
+      const next = `${measureChromeBottom(navbar)}px`
+      if (next === lastPx) return
+      lastPx = next
+      document.documentElement.style.setProperty(CHROME_BOTTOM_VAR, next)
+    }
+
     const sync = () => {
-      const navbar = findNavbar()
+      // Si el nodo observado sigue en el árbol, no re-query. querySelectorAll
+      // + getBoundingClientRect en cada rueda era layout forzado de más.
+      const navbar =
+        observed && observed.isConnected ? observed : findNavbar()
       if (navbar !== observed) {
         if (observed) {
           resizeObserver.unobserve(observed)
@@ -61,10 +75,7 @@ export default function SiteChromeMetrics() {
         }
         observed = navbar
       }
-      document.documentElement.style.setProperty(
-        CHROME_BOTTOM_VAR,
-        `${measureChromeBottom(navbar)}px`,
-      )
+      writeBottom(navbar)
     }
 
     sync()
@@ -75,14 +86,14 @@ export default function SiteChromeMetrics() {
     const mutationObserver = new MutationObserver(sync)
     mutationObserver.observe(document.body, { childList: true })
 
-    window.addEventListener("scroll", sync, { passive: true })
+    const unsubscribeScroll = subscribeWindowScroll(sync)
     window.addEventListener("resize", sync)
 
     return () => {
       resizeObserver.disconnect()
       mutationObserver.disconnect()
       observed?.removeEventListener("transitionend", onTransitionEnd)
-      window.removeEventListener("scroll", sync)
+      unsubscribeScroll()
       window.removeEventListener("resize", sync)
     }
   }, [])

@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { HOME_TRI_FALLBACKS } from "@/lib/media-slots"
+import { subscribeWindowScroll } from "@/lib/on-scroll-raf"
 
 type Card = {
   href: string
@@ -132,7 +133,6 @@ export default function HomeHeroTriCards({ images }: Props) {
   const [sidesMounted, setSidesMounted] = useState(false)
   const sectionRef = useRef<HTMLElement | null>(null)
   const lastYRef = useRef(0)
-  const tickingRef = useRef(false)
   // Lock: mientras una animación corre, evaluate() ignora todos los scrolls
   // (no bufferea). Al expirar el lock, re-evaluamos la posición ACTUAL del
   // scroll contra la posición donde estaba al inicio del lock — eso refleja
@@ -168,7 +168,6 @@ export default function HomeHeroTriCards({ images }: Props) {
 
   useEffect(() => {
     const evaluate = () => {
-      tickingRef.current = false
       const y = window.scrollY
       const prevY = lastYRef.current
       lastYRef.current = y
@@ -185,12 +184,6 @@ export default function HomeHeroTriCards({ images }: Props) {
       }
     }
 
-    const onScroll = () => {
-      if (tickingRef.current) return
-      tickingRef.current = true
-      window.requestAnimationFrame(evaluate)
-    }
-
     lastYRef.current = window.scrollY
     // Si la página carga ya scrolleada (reload a media página), arranca
     // expandida. Vía rAF para no hacer setState síncrono dentro del effect.
@@ -199,9 +192,9 @@ export default function HomeHeroTriCards({ images }: Props) {
       initRaf = requestAnimationFrame(() => setExpanded(true))
     }
 
-    window.addEventListener("scroll", onScroll, { passive: true })
+    const unsubscribeScroll = subscribeWindowScroll(evaluate)
     return () => {
-      window.removeEventListener("scroll", onScroll)
+      unsubscribeScroll()
       if (initRaf !== null) cancelAnimationFrame(initRaf)
     }
   }, [])

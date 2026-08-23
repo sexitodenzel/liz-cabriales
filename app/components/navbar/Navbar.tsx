@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react"
 import { getSearchDestination } from "@/lib/search-navigation"
+import { subscribeWindowScroll } from "@/lib/on-scroll-raf"
 import { tiendaCategories, cursosCategories } from "./menuData"
 import CartMenu from "./dropdowns/CartMenu"
 import AcademiaMegaMenu from "./dropdowns/AcademiaMegaMenu"
@@ -235,7 +236,9 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
     let guardDockTop = navbarBottom
 
     const setCollapsed = (collapsed: boolean) => {
-      document.documentElement.classList.toggle("lc-nav-collapsed", collapsed)
+      const root = document.documentElement
+      if (root.classList.contains("lc-nav-collapsed") === collapsed) return
+      root.classList.toggle("lc-nav-collapsed", collapsed)
     }
 
     const update = () => {
@@ -300,7 +303,10 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
         guardTop <= guardDockTop + 1
 
       // lc-nav-guard-free solo tiene CSS en ≥1200px; en móvil el toggle es no-op visual.
-      root.classList.toggle("lc-nav-guard-free", !guardDocked)
+      const guardFree = !guardDocked
+      if (root.classList.contains("lc-nav-guard-free") !== guardFree) {
+        root.classList.toggle("lc-nav-guard-free", guardFree)
+      }
 
       if (inTopZone) {
         acc = 0
@@ -331,7 +337,7 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
       navbarBottom = readNavbarBottom()
       guardEl = null
     }
-    window.addEventListener("scroll", update, { passive: true })
+    const unsubscribeScroll = subscribeWindowScroll(update)
     window.addEventListener("resize", handleModeChange)
     mqDesktopNav.addEventListener("change", handleModeChange)
     // El alto del header cambia sin resize ni cambio de breakpoint: cuando la
@@ -342,7 +348,7 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
     update()
     return () => {
       headerResize.disconnect()
-      window.removeEventListener("scroll", update)
+      unsubscribeScroll()
       window.removeEventListener("resize", handleModeChange)
       mqDesktopNav.removeEventListener("change", handleModeChange)
       document.documentElement.classList.remove("lc-nav-collapsed")
@@ -390,17 +396,20 @@ export default function Navbar({ isLoggedIn = false, announcement = null }: Navb
         overlayOn = true
       }
 
-      document.documentElement.classList.toggle("lc-home-overlay", overlayOn)
+      const root = document.documentElement
+      if (root.classList.contains("lc-home-overlay") !== overlayOn) {
+        root.classList.toggle("lc-home-overlay", overlayOn)
+      }
     }
 
     sync()
-    window.addEventListener("scroll", sync, { passive: true })
+    const unsubscribeScroll = subscribeWindowScroll(sync)
     window.addEventListener("resize", sync)
     // scrollend: al frenar en el tope tras un fling, el último scroll a veces
     // no cae bajo el umbral y el menú se quedaba ivory hasta otro gesto.
     window.addEventListener("scrollend", sync)
     return () => {
-      window.removeEventListener("scroll", sync)
+      unsubscribeScroll()
       window.removeEventListener("resize", sync)
       window.removeEventListener("scrollend", sync)
       document.documentElement.classList.remove("lc-home-overlay")
