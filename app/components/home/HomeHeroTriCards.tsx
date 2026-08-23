@@ -48,10 +48,11 @@ type Props = {
   images?: [string, string, string] | string[]
 }
 
-// Sección 120vh → 20vh de "scroll muerto" (sticky pin). Reducido desde 180vh
-// para minimizar la zona donde el user puede encadenar disparos. El lock
-// previene interrupciones residuales.
-const SECTION_HEIGHT_VH = 120
+// 100vh: sin “scroll muerto”. El pin extra (120/180vh) dejaba 3 fotos a
+// pantalla completa compositando mientras el usuario ya quería bajar —
+// en producción se sentía a pocos fps. El expand sigue disparándose al
+// primer scroll; ya no pelea con un tramo pinned.
+const SECTION_HEIGHT_VH = 100
 
 // Easings y timings — más smooth/lentos para sensación premium
 const EASE = "cubic-bezier(0.32, 0.72, 0, 1)"
@@ -126,6 +127,9 @@ export default function HomeHeroTriCards({ images }: Props) {
   // la animación de la central → twitch visible justo antes de que entren
   // las imágenes laterales.
   const [sidesExpanded, setSidesExpanded] = useState(false)
+  // Las laterales no montan hasta el primer expand: en prod son 2 decodes
+  // extra de fotos full-bleed (unoptimized) en el primer paint.
+  const [sidesMounted, setSidesMounted] = useState(false)
   const sectionRef = useRef<HTMLElement | null>(null)
   const lastYRef = useRef(0)
   const tickingRef = useRef(false)
@@ -137,6 +141,10 @@ export default function HomeHeroTriCards({ images }: Props) {
   const animLockUntilRef = useRef(0)
   const lockStartYRef = useRef(0)
   const expandedRef = useRef(expanded)
+
+  useEffect(() => {
+    if (expanded) setSidesMounted(true)
+  }, [expanded])
 
   useEffect(() => {
     expandedRef.current = expanded
@@ -252,7 +260,6 @@ export default function HomeHeroTriCards({ images }: Props) {
       zIndex: 10,
       transform: expanded ? "translate3d(0,0,0)" : "translate3d(-102%,0,0)",
       transition: animEnabled ? `transform ${durCenter}ms ${EASE}` : "none",
-      willChange: "transform",
     }),
     [expanded, durCenter, animEnabled]
   )
@@ -268,7 +275,6 @@ export default function HomeHeroTriCards({ images }: Props) {
       zIndex: 10,
       transform: expanded ? "translate3d(0,0,0)" : "translate3d(102%,0,0)",
       transition: animEnabled ? `transform ${durCenter}ms ${EASE}` : "none",
-      willChange: "transform",
     }),
     [expanded, durCenter, animEnabled]
   )
@@ -289,7 +295,6 @@ export default function HomeHeroTriCards({ images }: Props) {
       transition: animEnabled
         ? `transform ${durSides}ms ${EASE}, opacity ${durSides}ms ${EASE}`
         : "none",
-      willChange: "transform, opacity",
     }),
     [sidesExpanded, durSides, animEnabled]
   )
@@ -307,7 +312,6 @@ export default function HomeHeroTriCards({ images }: Props) {
       transition: animEnabled
         ? `transform ${durSides}ms ${EASE}, opacity ${durSides}ms ${EASE}`
         : "none",
-      willChange: "transform, opacity",
     }),
     [sidesExpanded, durSides, animEnabled]
   )
@@ -357,8 +361,12 @@ export default function HomeHeroTriCards({ images }: Props) {
             />
             <div aria-hidden style={curtainLeftStyle} />
             <div aria-hidden style={curtainRightStyle} />
-            <CardBlock card={LEFT} compact style={sideLeftStyle} priority />
-            <CardBlock card={RIGHT} compact style={sideRightStyle} priority />
+            {sidesMounted ? (
+              <>
+                <CardBlock card={LEFT} compact style={sideLeftStyle} />
+                <CardBlock card={RIGHT} compact style={sideRightStyle} />
+              </>
+            ) : null}
 
             {/* Scrim radial de la central: z-15 = encima de la imagen central
                 (z-0) pero DEBAJO de los laterales (z-20), así solo oscurece el
@@ -600,6 +608,7 @@ function CardBlock({
             : "object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
         }
         priority={priority}
+        decoding="async"
         style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/60" />

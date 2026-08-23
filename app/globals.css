@@ -504,7 +504,8 @@ html.lc-home-overlay #site-navbar .navbar-nav-indicator {
 
 @media (prefers-reduced-motion: no-preference) {
   .lc-text-shimmer-gold {
-    animation: lc-text-shimmer-gold 8s linear infinite;
+    /* Dos pasadas y se queda: el loop infinito recortaba fps en el hero. */
+    animation: lc-text-shimmer-gold 8s linear 2 forwards;
   }
 }
 

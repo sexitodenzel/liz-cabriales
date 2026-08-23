@@ -28,13 +28,11 @@ export default function ServiciosMegaMenu({
   const [loading, setLoading] = useState(true)
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
 
-  // Trae las categorías AL MONTAR (no al abrir): el megamenú está siempre
-  // montado, así que los datos ya están listos antes del primer hover y no se
-  // vuelve a pedir a la red cada vez que se abre (que era la causa del skeleton
-  // en cada hover). Mismo patrón que AcademiaMegaMenu.
+  // Trae las categorías al primer hover (no al montar el home). Montar
+  // disparaba fetch + fotos en paralelo con el hero; en prod se sentía a
+  // tirones. Se cachea en estado: el segundo hover no vuelve a pedir.
   useEffect(() => {
-    // Solo en desktop: en móvil el megamenú está oculto y el MobileDrawer trae
-    // estas categorías al abrirse, así que aquí era una petición duplicada.
+    if (!isOpen || categories.length > 0) return
     if (!canPrefetchMegaMenu()) return
     let isMounted = true
     void fetch("/api/navbar/servicios-menu")
@@ -73,7 +71,7 @@ export default function ServiciosMegaMenu({
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [isOpen, categories.length])
 
   useEffect(() => {
     if (!isOpen) return

@@ -1,11 +1,10 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import type { TiendaCategory } from "../menuData"
 import { categorySlugsOf } from "../menuData"
 import SmoothImage from "@/app/components/shared/SmoothImage"
-import { canPrefetchMegaMenu } from "./prefetchGate"
 
 type CategoryProduct = {
   id: string
@@ -67,11 +66,6 @@ export default function TiendaMegaMenu({
     Record<string, CategoryProduct[]>
   >({})
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null)
-  // Espejo de la caché para leerla dentro del prefetch sin volverlo a disparar.
-  const productsRef = useRef(productsBySlug)
-  productsRef.current = productsBySlug
-  // El prefetch corre una sola vez por apertura del menú.
-  const prefetchStartedRef = useRef(false)
 
   // Categoría por defecto: la primera que tenga subcategorías (para que el
   // panel derecho nunca abra vacío). Si ninguna tiene, la primera de la lista.
@@ -107,58 +101,9 @@ export default function TiendaMegaMenu({
     return () => document.removeEventListener("keydown", handleKey)
   }, [isOpen, onClose])
 
-  // Prefetch: al abrir el menú, traer en paralelo los productos de todas las
-  // categorías reales (aún no cacheadas) y calentar sus imágenes. Así al pasar
-  // el mouse por una categoría el showcase ya está listo, sin lag de red.
-  // Prefetch al MONTAR el navbar (en tiempo ocioso), no solo al abrir el menú:
-  // traer en paralelo los productos de todas las categorías reales (aún no
-  // cacheadas) y calentar sus imágenes. Así el primer hover ya encuentra el
-  // showcase listo, sin lag de red.
-  useEffect(() => {
-    if (prefetchStartedRef.current) return
-    // Solo donde el megamenú se puede abrir. En móvil esto disparaba 19
-    // llamadas a /api/products/by-category + ~76 imágenes de tiles invisibles.
-    if (!canPrefetchMegaMenu()) return
-    prefetchStartedRef.current = true
-
-    const targets = categories
-      .filter((c) => c.href.includes("categoria=") && !productsRef.current[c.slug])
-      .map((c) => ({ key: c.slug, param: categorySlugsOf(c).join(",") }))
-    if (targets.length === 0) return
-
-    let cancelled = false
-    const run = () => {
-      void Promise.all(
-        targets.map(async ({ key, param }) => {
-          try {
-            const res = await fetch(
-              `/api/products/by-category?categoria=${encodeURIComponent(param)}`
-            )
-            if (!res.ok || cancelled) return
-            const json = (await res.json()) as { data?: CategoryProduct[] }
-            if (cancelled) return
-            const list = Array.isArray(json.data) ? json.data : []
-            setProductsBySlug((prev) => (prev[key] ? prev : { ...prev, [key]: list }))
-            warmImages(list)
-          } catch {
-            /* ignore */
-          }
-        })
-      )
-    }
-    const w = window as Window & {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
-      cancelIdleCallback?: (id: number) => void
-    }
-    const id = w.requestIdleCallback
-      ? w.requestIdleCallback(run, { timeout: 2000 })
-      : window.setTimeout(run, 300)
-    return () => {
-      cancelled = true
-      if (w.cancelIdleCallback) w.cancelIdleCallback(id)
-      else window.clearTimeout(id)
-    }
-  }, [categories])
+  // No precargar las ~15 categorías al montar el home: en desktop eso disparaba
+  // un aluvión de fetches (y, si fallaban, 15 HTML 404 completos) en el mismo
+  // frame que el hero. Cada categoría se pide al activarla (efecto de abajo).
 
   // Solo las categorías reales de la tienda traen productos (href con
   // `categoria=`); las virtuales (cursos, etc.) no consultan.

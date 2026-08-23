@@ -82,12 +82,10 @@ export default function AcademiaMegaMenu({
     return () => document.removeEventListener("keydown", handleKey)
   }, [isOpen, onClose])
 
-  // Precarga los 2 próximos cursos AL MONTAR (no al abrir): el megamenú está
-  // siempre montado, así que traer los datos y calentar las portadas aquí hace
-  // que los flyers ya estén en caché del navegador antes del primer hover.
+  // Precarga los 2 próximos cursos al primer hover (no al montar el home):
+  // montar el navbar disparaba fetch + flyers a la vez que el hero.
   useEffect(() => {
-    // Solo en desktop: en móvil el megamenú está oculto y el MobileDrawer pide
-    // estos cursos por su cuenta cuando abres la sección Academia.
+    if (!isOpen || courses !== null) return
     if (!canPrefetchMegaMenu()) return
     let cancelled = false
     void fetch("/api/navbar/academia-courses")
@@ -104,7 +102,7 @@ export default function AcademiaMegaMenu({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [isOpen, courses])
 
   return (
     <div

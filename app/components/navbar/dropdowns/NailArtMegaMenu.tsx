@@ -36,49 +36,36 @@ export default function NailArtMegaMenu({
     return () => cancelAnimationFrame(raf)
   }, [isOpen])
 
-  // Precargamos los diseños al montar el navbar (en tiempo ocioso), no al
-  // pasar el mouse: así el showcase ya está en caché y aparece al instante en
-  // el primer hover, sin lag de red. Las imágenes se calientan al recibirlas.
+  // Carga los diseños al primer hover, no al montar el home (evita 6 fotos
+  // extra compitiendo con el hero).
   useEffect(() => {
-    if (loaded) return
-    // Solo en desktop: el MobileDrawer pide estos diseños al entrar a Nail Art.
+    if (!isOpen || loaded) return
     if (!canPrefetchMegaMenu()) return
     let cancelled = false
-    const run = () => {
-      void fetch("/api/nail-art/list?sort=likes&limit=6")
-        .then((r) => (r.ok ? r.json() : { data: [] }))
-        .then((json: { data?: PreviewPost[] }) => {
-          if (cancelled) return
-          const list = Array.isArray(json?.data) ? json.data.slice(0, 6) : []
-          setPosts(list)
+    void fetch("/api/nail-art/list?sort=likes&limit=6")
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((json: { data?: PreviewPost[] }) => {
+        if (cancelled) return
+        const list = Array.isArray(json?.data) ? json.data.slice(0, 6) : []
+        setPosts(list)
+        setLoaded(true)
+        for (const post of list) {
+          if (post.cover_image) {
+            const img = new window.Image()
+            img.src = post.cover_image
+          }
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPosts([])
           setLoaded(true)
-          for (const post of list) {
-            if (post.cover_image) {
-              const img = new window.Image()
-              img.src = post.cover_image
-            }
-          }
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setPosts([])
-            setLoaded(true)
-          }
-        })
-    }
-    const w = window as Window & {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
-      cancelIdleCallback?: (id: number) => void
-    }
-    const id = w.requestIdleCallback
-      ? w.requestIdleCallback(run, { timeout: 2000 })
-      : window.setTimeout(run, 300)
+        }
+      })
     return () => {
       cancelled = true
-      if (w.cancelIdleCallback) w.cancelIdleCallback(id)
-      else window.clearTimeout(id)
     }
-  }, [loaded])
+  }, [isOpen, loaded])
 
   useEffect(() => {
     if (!isOpen) return

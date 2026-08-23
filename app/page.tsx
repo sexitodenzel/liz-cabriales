@@ -13,7 +13,6 @@ import NailArtSection from "./components/NailArtSection"
 import BeforeAfterSection from "./components/home/BeforeAfterSection"
 import HomeVlogSection from "./components/home/HomeVlogSection"
 import InstagramFeed from "./components/InstagramFeed"
-import InView from "./components/ui/motion/in-view"
 
 // Dinámica en cada request: evita que el build pre-genere esta página llamando
 // a Supabase (las queries tardaban >60s y tumbaban el deploy por timeout). El
@@ -37,11 +36,9 @@ export default async function Home() {
       </h1>
       <HomeHeroTriCards images={triImages} />
       <div className="site-container">
-        <InView>
-          <Suspense fallback={null}>
-            <CategoriasSection />
-          </Suspense>
-        </InView>
+        <Suspense fallback={null}>
+          <CategoriasSection />
+        </Suspense>
       </div>
       <Suspense fallback={<div className="h-10 shrink-0 md:h-12" aria-hidden />}>
         <HomeTopSections />
@@ -49,22 +46,16 @@ export default async function Home() {
       <Suspense fallback={null}>
         <AcademiaShowcase />
       </Suspense>
-      <InView>
-        <Suspense fallback={null}>
-          <NailArtSection />
-        </Suspense>
-      </InView>
-      <InView>
-        <Suspense fallback={null}>
-          <BeforeAfterSection />
-        </Suspense>
-      </InView>
+      <Suspense fallback={null}>
+        <NailArtSection />
+      </Suspense>
+      <Suspense fallback={null}>
+        <BeforeAfterSection />
+      </Suspense>
       <div className="site-container">
-        <InView>
-          <Suspense fallback={null}>
-            <HomeVlogSection />
-          </Suspense>
-        </InView>
+        <Suspense fallback={null}>
+          <HomeVlogSection />
+        </Suspense>
       </div>
       <InstagramFeed />
     </main>
