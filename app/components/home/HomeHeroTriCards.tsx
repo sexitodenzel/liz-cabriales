@@ -63,14 +63,14 @@ const DELAY_SIDES = 700 // ms — laterales esperan a que central avance (stagin
 
 // Legibilidad del texto sobre foto. Estáticos (no animan) → sin costo por frame.
 // Scrim radial: elipse de negro tenue centrada donde vive el texto; oscurece solo
-// esa zona sin apagar toda la imagen (look editorial, no velo plano). Las sombras
-// son un halo difuso de respaldo para las zonas más claras de la foto. En el
-// título dorado la text-shadow dibuja el halo por fuera de los glifos (el relleno
-// del shimmer es opaco y lo tapa por dentro) → refuerza sin ensuciar el dorado.
+// esa zona sin apagar toda la imagen (look editorial, no velo plano). Todo el
+// contraste lo pone el scrim; las sombras son sólo un contorno de 1-2px para
+// despegar el glifo del fondo. Antes había un halo difuso de 22px/12px y el
+// texto leía borroso y agrisado sobre la foto → blur mínimo, letras nítidas.
 const HERO_SCRIM =
-  "radial-gradient(ellipse 62% 52% at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.32) 48%, rgba(0,0,0,0) 78%)"
-const TITLE_SHADOW = "0 2px 22px rgba(0,0,0,0.55), 0 1px 4px rgba(0,0,0,0.45)"
-const TEXT_SHADOW = "0 1px 12px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.4)"
+  "radial-gradient(ellipse 64% 54% at 50% 50%, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.38) 48%, rgba(0,0,0,0) 78%)"
+const TITLE_SHADOW = "0 1px 2px rgba(0,0,0,0.5)"
+const TEXT_SHADOW = "0 1px 2px rgba(0,0,0,0.5)"
 
 // Reverse animado pero más corto que forward.
 const DUR_CENTER_REVERSE = 700
@@ -376,7 +376,7 @@ export default function HomeHeroTriCards({ images }: Props) {
                 durante la animación del centro. */}
             <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center px-6 text-center text-white">
               <span
-                className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white/90"
+                className="mb-3 text-[9px] uppercase tracking-[0.32em] text-white"
                 style={{ textShadow: TEXT_SHADOW }}
               >
                 {CENTER.eyebrow}
@@ -388,7 +388,7 @@ export default function HomeHeroTriCards({ images }: Props) {
                 {CENTER.title}
               </h2>
               <p
-                className="mt-2 max-w-xs text-[11px] text-white/85 md:text-xs"
+                className="mt-2 max-w-xs text-[11px] text-white md:text-xs"
                 style={{ textShadow: TEXT_SHADOW }}
               >
                 {CENTER.subtitle}
@@ -408,7 +408,7 @@ export default function HomeHeroTriCards({ images }: Props) {
             {/* Indicador scroll (visible solo al inicio) */}
             <div
               aria-hidden
-              className="pointer-events-none absolute bottom-6 left-1/2 z-30 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-white/80"
+              className="pointer-events-none absolute bottom-6 left-1/2 z-30 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-white"
               style={{
                 opacity: expanded ? 0 : 1,
                 transition: `opacity 300ms ${EASE}`,
@@ -622,7 +622,7 @@ function CardBlock({
             className={`flex flex-col items-center${entrance ? " lc-hero-text-rise" : ""}`}
           >
             <span
-              className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white/90"
+              className="mb-5 text-[11px] uppercase tracking-[0.32em] text-white"
               style={{ textShadow: TEXT_SHADOW }}
             >
               {card.eyebrow}
@@ -634,7 +634,7 @@ function CardBlock({
               {card.title}
             </h2>
             <p
-              className="mt-5 max-w-md text-sm text-white/85 md:text-base"
+              className="mt-5 max-w-md text-sm text-white md:text-base"
               style={{ textShadow: TEXT_SHADOW }}
             >
               {card.subtitle}
@@ -654,7 +654,7 @@ function CardBlock({
       {hero && entrance && (
         <div
           aria-hidden
-          className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-white/80"
+          className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-white"
         >
           <span className="inline-block animate-pulse">↓ Desliza</span>
         </div>
@@ -663,7 +663,7 @@ function CardBlock({
       {compact && (
         <div className="absolute inset-0 flex flex-col justify-end p-7 text-white md:p-6">
           <span
-            className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white/80"
+            className="mb-2 text-[10px] uppercase tracking-[0.28em] text-white"
             style={{ textShadow: TEXT_SHADOW }}
           >
             {card.eyebrow}

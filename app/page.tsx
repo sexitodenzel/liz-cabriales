@@ -12,7 +12,9 @@ import HomeTopSections from "./components/home/HomeTopSections"
 import NailArtSection from "./components/NailArtSection"
 import BeforeAfterSection from "./components/home/BeforeAfterSection"
 import HomeVlogSection from "./components/home/HomeVlogSection"
-import InstagramFeed from "./components/InstagramFeed"
+// Instagram desactivado temporalmente (solo oculto). Para reactivarlo:
+// descomentar este import y el <InstagramFeed /> del JSX de abajo.
+// import InstagramFeed from "./components/InstagramFeed"
 
 // Dinámica en cada request: evita que el build pre-genere esta página llamando
 // a Supabase (las queries tardaban >60s y tumbaban el deploy por timeout). El
@@ -21,7 +23,7 @@ export const dynamic = "force-dynamic"
 
 /* Orden narrativo de la landing:
    hero (3 pilares) → compra por categoría → marcas → inspiración →
-   instagram. */
+   vlog. (Instagram queda oculto por ahora.) */
 
 export default async function Home() {
   const triImages = await getOrderedSlotUrls(
@@ -57,7 +59,7 @@ export default async function Home() {
           <HomeVlogSection />
         </Suspense>
       </div>
-      <InstagramFeed />
+      {/* <InstagramFeed /> — oculto temporalmente */}
     </main>
   )
 }
