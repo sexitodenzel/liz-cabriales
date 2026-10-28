@@ -33,6 +33,12 @@ export async function GET(request: NextRequest) {
   let justAuthenticated = false
   let exchangeFailed = false
 
+  // Supabase manda ?error=access_denied&error_code=otp_expired cuando el enlace
+  // del correo ya se usó o venció (un clic doble, o el antivirus del correo lo
+  // abrió antes). Sin esto el usuario caería en la portada sin explicación.
+  const linkErrorCode = requestUrl.searchParams.get("error_code")
+  const linkFailed = !!(requestUrl.searchParams.get("error") || linkErrorCode)
+
   if (code) {
     supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
@@ -47,12 +53,18 @@ export async function GET(request: NextRequest) {
     type === "recovery" ||
     request.cookies.get(RECOVERY_MARKER_COOKIE)?.value === "1"
 
-  if (type === "invite" || isRecovery) {
+  if (type === "invite" || isRecovery || linkFailed) {
+    const wantsRecovery = isRecovery || (linkFailed && type !== "invite")
     const setPasswordUrl = new URL("/auth/set-password", requestUrl.origin)
-    if (isRecovery) setPasswordUrl.searchParams.set("type", "recovery")
+    if (wantsRecovery) setPasswordUrl.searchParams.set("type", "recovery")
     // Sin sesión (p. ej. el enlace se abrió en otro navegador y falta el
-    // code_verifier del PKCE) la página debe explicarlo, no mostrar un genérico.
-    if (exchangeFailed) setPasswordUrl.searchParams.set("error", "link")
+    // code_verifier del PKCE, o ya venció) la página debe explicarlo, no
+    // mostrar un genérico.
+    if (linkErrorCode === "otp_expired") {
+      setPasswordUrl.searchParams.set("error", "expired")
+    } else if (exchangeFailed || linkFailed) {
+      setPasswordUrl.searchParams.set("error", "link")
+    }
     const response = NextResponse.redirect(setPasswordUrl)
     if (isRecovery) response.cookies.delete(RECOVERY_MARKER_COOKIE)
     return response

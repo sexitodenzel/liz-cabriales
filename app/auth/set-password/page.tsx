@@ -23,6 +23,15 @@ export default function SetPasswordPage() {
     const tokenHash = searchParams.get("token_hash")
     const type = searchParams.get("type") as "invite" | "recovery" | null
 
+    // Supabase ya marcó el enlace como vencido o usado (cada enlace sirve una
+    // sola vez).
+    if (searchParams.get("error") === "expired") {
+      setError(
+        "Este enlace ya se usó o venció. Cada enlace sirve una sola vez: pide uno nuevo."
+      )
+      return
+    }
+
     // /auth/callback no pudo canjear el código (casi siempre: el enlace se abrió
     // en otro navegador/dispositivo que el que lo pidió, o ya se usó).
     if (searchParams.get("error") === "link") {
@@ -101,7 +110,10 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen site-container flex flex-col items-center justify-center py-10">
+    // Alto = pantalla menos el chrome (anuncios + navbar): con min-h-screen el
+    // bloque se centraba en una caja más alta que lo visible y quedaba bajo el
+    // centro, con el footer asomando.
+    <div className="site-container flex min-h-[calc(100svh-var(--navbar-actual-h))] flex-1 flex-col items-center justify-center py-10">
       <Link href="/" className="mb-6 transition-opacity hover:opacity-80" aria-label="Ir al inicio">
         <Image
           src="/images/logo.png"
@@ -113,10 +125,10 @@ export default function SetPasswordPage() {
         />
       </Link>
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold text-[#1a1a1a] mb-2">
+        <h1 className="text-center text-2xl font-semibold text-[#1a1a1a] mb-2">
           {isRecoveryFlow ? "Restablecer contraseña" : "Crear contraseña"}
         </h1>
-        <p className="text-sm text-neutral-500 mb-8">
+        <p className="text-center text-sm text-neutral-500 mb-8">
           {isRecoveryFlow
             ? "Elige una nueva contraseña para volver a entrar a tu cuenta."
             : "Elige una contraseña para acceder a tu cuenta."}
@@ -124,7 +136,7 @@ export default function SetPasswordPage() {
 
         {error && !ready ? (
           <div className="space-y-5">
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-center text-sm text-red-600" role="alert">
               {error}
             </p>
             <Link
