@@ -6,6 +6,7 @@ import {
   type LoginMethod,
 } from "@/lib/supabase/login-events"
 import { notifyAdminLoginSuccess } from "@/lib/security/login-alerts"
+import { RECOVERY_MARKER_COOKIE } from "@/lib/supabase/recovery-marker"
 
 function sanitizeNextPath(value: string | null): string | null {
   if (!value) return null
@@ -30,15 +31,31 @@ export async function GET(request: NextRequest) {
   )
   let supabase: Awaited<ReturnType<typeof createClient>> | null = null
   let justAuthenticated = false
+  let exchangeFailed = false
 
   if (code) {
     supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     justAuthenticated = !error
+    exchangeFailed = !!error
   }
 
-  if (type === "invite" || type === "recovery") {
-    return NextResponse.redirect(new URL("/auth/set-password", requestUrl.origin))
+  // El correo de recuperación ya no lleva `?type=recovery` (rompía la lista de
+  // Redirect URLs de Supabase): lo reconocemos por la cookie de /forgot-password.
+  // El parámetro se conserva para los correos que ya se enviaron con él.
+  const isRecovery =
+    type === "recovery" ||
+    request.cookies.get(RECOVERY_MARKER_COOKIE)?.value === "1"
+
+  if (type === "invite" || isRecovery) {
+    const setPasswordUrl = new URL("/auth/set-password", requestUrl.origin)
+    if (isRecovery) setPasswordUrl.searchParams.set("type", "recovery")
+    // Sin sesión (p. ej. el enlace se abrió en otro navegador y falta el
+    // code_verifier del PKCE) la página debe explicarlo, no mostrar un genérico.
+    if (exchangeFailed) setPasswordUrl.searchParams.set("error", "link")
+    const response = NextResponse.redirect(setPasswordUrl)
+    if (isRecovery) response.cookies.delete(RECOVERY_MARKER_COOKIE)
+    return response
   }
 
   const authClient = supabase ?? (await createClient())

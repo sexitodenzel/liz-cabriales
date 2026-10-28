@@ -23,6 +23,15 @@ export default function SetPasswordPage() {
     const tokenHash = searchParams.get("token_hash")
     const type = searchParams.get("type") as "invite" | "recovery" | null
 
+    // /auth/callback no pudo canjear el código (casi siempre: el enlace se abrió
+    // en otro navegador/dispositivo que el que lo pidió, o ya se usó).
+    if (searchParams.get("error") === "link") {
+      setError(
+        "No pudimos validar el enlace. Ábrelo en el mismo navegador y dispositivo desde donde lo pediste, o pide uno nuevo."
+      )
+      return
+    }
+
     if (tokenHash && type) {
       supabase.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ error }) => {
         if (error) {
@@ -113,8 +122,18 @@ export default function SetPasswordPage() {
             : "Elige una contraseña para acceder a tu cuenta."}
         </p>
 
-        {error ? (
-          <p className="text-sm text-red-600">{error}</p>
+        {error && !ready ? (
+          <div className="space-y-5">
+            <p className="text-sm text-red-600" role="alert">
+              {error}
+            </p>
+            <Link
+              href="/forgot-password"
+              className="block w-full py-3 rounded-md bg-black text-white text-sm font-medium text-center hover:bg-gray-900 transition-colors"
+            >
+              Pedir un enlace nuevo
+            </Link>
+          </div>
         ) : !ready ? (
           <p className="text-sm text-neutral-500">Verificando enlace…</p>
         ) : (

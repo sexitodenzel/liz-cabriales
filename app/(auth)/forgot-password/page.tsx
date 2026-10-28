@@ -4,6 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import {
+  RECOVERY_MARKER_COOKIE,
+  RECOVERY_MARKER_MAX_AGE_SECONDS,
+} from "@/lib/supabase/recovery-marker"
 import { prepareSupabaseCaptcha } from "@/lib/turnstile-client"
 import TurnstileWidget, {
   type TurnstileWidgetHandle,
@@ -60,8 +64,20 @@ export default function ForgotPasswordPage() {
         return
       }
 
+      // El marcador le dice a /auth/callback que el `?code=` es de recuperación
+      // sin ensuciar el redirectTo con query (ver recovery-marker.ts).
+      document.cookie = [
+        `${RECOVERY_MARKER_COOKIE}=1`,
+        `Max-Age=${RECOVERY_MARKER_MAX_AGE_SECONDS}`,
+        "Path=/",
+        "SameSite=Lax",
+        window.location.protocol === "https:" ? "Secure" : "",
+      ]
+        .filter(Boolean)
+        .join("; ")
+
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${getAppUrl()}/auth/callback?type=recovery`,
+        redirectTo: `${getAppUrl()}/auth/callback`,
         captchaToken: captcha.captchaToken,
       })
 
